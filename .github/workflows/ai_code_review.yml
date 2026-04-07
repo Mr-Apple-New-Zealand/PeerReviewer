@@ -1,0 +1,223 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - staging
+
+# Permissions needed to read code and post PR comments
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  OLLAMA_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL }}
+  AI_ASSISTANT_MODEL_NUM_CTX: ${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}
+
+jobs:
+  code-review:
+    # REQUIRED: must use a self-hosted runner that can reach 192.168.10.100
+    # Add additional labels (e.g. [self-hosted, linux]) to target a specific runner
+    runs-on: mra-ubuntu
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set AI assistant context from variable
+        run: |
+          val="${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}"
+          if [ -n "$val" ]; then echo "AI_ASSISTANT_MODEL_NUM_CTX=$val" >> "$GITHUB_ENV"; fi
+
+      # -----------------------------------------------------------------------
+      # Build the diff between the PR branch and the target branch
+      # -----------------------------------------------------------------------
+      - name: Get PR diff
+        id: diff
+        run: |
+          git diff "origin/${{ github.base_ref }}..HEAD" \
+            --unified=5 \
+            -- ':!*.lock' ':!*.min.js' ':!*.min.css' ':!package-lock.json' \
+            ':!yarn.lock' ':!*.sum' ':!dist/' ':!build/' \
+            > pr_diff.txt
+
+          DIFF_SIZE=$(wc -c < pr_diff.txt)
+          echo "diff_size=${DIFF_SIZE}" >> "$GITHUB_OUTPUT"
+
+          if [ "$DIFF_SIZE" -eq 0 ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if no relevant changes
+        if: steps.diff.outputs.empty == 'true'
+        run: echo "No reviewable changes in this PR — skipping AI review."
+
+      # -----------------------------------------------------------------------
+      # Send the diff to Ollama and save the review to review.txt
+      # -----------------------------------------------------------------------
+      - name: Request review from Ollama
+        if: steps.diff.outputs.empty == 'false'
+        env:
+          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
+          AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, subprocess, sys
+
+          pr_title = os.environ.get("PR_TITLE", "(no title)")
+          pr_body = os.environ.get("PR_BODY") or "(no description)"
+          model = os.environ.get("OLLAMA_MODEL")
+          base_url = os.environ.get("OLLAMA_URL")
+
+          with open("pr_diff.txt", "r", errors="replace") as f:
+              diff = f.read()
+
+          # Truncate oversized diffs to avoid exceeding the model's context window.
+          # Adjust max_chars to match your num_ctx setting minus prompt overhead.
+          max_chars = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
+          truncated = len(diff) > max_chars
+          if truncated:
+              diff = diff[:max_chars]
+
+          truncation_note = "[Note: the diff below was truncated to fit the context window]" if truncated else ""
+          prompt_template = os.environ.get("AI_ASSISTANT_MODEL_PROMPT") or (
+              "PR Title: {pr_title}\n\nPR Description:\n{pr_body}\n\n{truncation_note}\n\n```diff\n{diff}\n```"
+          )
+          # Normalize legacy f-string expression to placeholder so .format() does not raise KeyError
+          prompt_template = prompt_template.replace(
+              '{"[Note: the diff below was truncated to fit the context window]" if truncated else ""}',
+              "{truncation_note}",
+          )
+          prompt = prompt_template.format(
+              pr_title=pr_title,
+              pr_body=pr_body,
+              diff=diff,
+              truncation_note=truncation_note,
+          )
+
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
+          temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          payload = {
+              "model": model,
+              "prompt": prompt,
+              "stream": False,
+              "options": {
+                  "temperature": temperature,
+                  "num_ctx": num_ctx,
+                  "num_predict": num_predict,
+              },
+          }
+
+          with open("payload.json", "w") as f:
+              json.dump(payload, f)
+
+          print(f"Calling {base_url}/api/generate with model {model} …")
+
+          result = subprocess.run(
+              [
+                  "curl", "-sf", "--max-time", "900",
+                  "-X", "POST", f"{base_url}/api/generate",
+                  "-H", "Content-Type: application/json",
+                  "-d", "@payload.json",
+              ],
+              capture_output=True,
+              text=True,
+          )
+
+          if result.returncode != 0:
+              print(f"ERROR: curl failed (exit {result.returncode})\n{result.stderr}", file=sys.stderr)
+              sys.exit(1)
+
+          try:
+              data = json.loads(result.stdout)
+          except json.JSONDecodeError as exc:
+              print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
+              print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
+              sys.exit(1)
+
+          review = data.get("response", "").strip()
+          if not review:
+              print("ERROR: Ollama returned an empty response.", file=sys.stderr)
+              sys.exit(1)
+
+          with open("review.txt", "w") as f:
+              f.write(review)
+
+          print("Review saved to review.txt")
+          PYEOF
+
+      # -----------------------------------------------------------------------
+      # On re-push (synchronize), remove the previous AI review comment so the
+      # PR thread doesn't accumulate stale reviews.
+      # -----------------------------------------------------------------------
+      - name: Delete stale AI review comment
+        if: >
+          steps.diff.outputs.empty == 'false' &&
+          github.event.action == 'synchronize'
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const stale = comments.filter(
+              c => c.user.type === 'Bot' && c.body.startsWith('## 🤖 AI Code Review')
+            );
+
+            for (const c of stale) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: c.id,
+              });
+              console.log(`Deleted stale comment ${c.id}`);
+            }
+
+      # -----------------------------------------------------------------------
+      # Post the review as a PR comment
+      # -----------------------------------------------------------------------
+      - name: Post review comment
+        if: steps.diff.outputs.empty == 'false'
+        uses: actions/github-script@v8
+        env:
+          OLLAMA_MODEL: ${{ env.OLLAMA_MODEL }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('review.txt', 'utf8');
+            const model = process.env.OLLAMA_MODEL;
+            const sha = context.payload.pull_request.head.sha.substring(0, 7);
+
+            const body = [
+              '## 🤖 AI Code Review',
+              '',
+              `> **Model:** \`${model}\` &nbsp;·&nbsp; **Reviewed commit:** \`${sha}\``,
+              '',
+              review,
+              '',
+              '---',
+              '*This review was generated automatically. Use your own judgment before acting on any suggestion.*',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
