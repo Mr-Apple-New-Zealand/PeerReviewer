@@ -3,9 +3,8 @@ name: AI Code Review
 on:
   workflow_dispatch
 
-# contents:write is required to post commit comments
 permissions:
-  contents: write
+  contents: read
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
@@ -202,37 +201,47 @@ jobs:
 
           preamble = (
               "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
-              "Below is a reference document listing every known intentional issue in the codebase, "
-              "followed by the AI review that was produced.\n\n"
+              "IMPORTANT: The AI review was produced by a model that has never seen the reference "
+              "issue list. It will NOT use issue IDs like C1 or L2. Instead it will describe "
+              "problems in its own words. Your job is to do semantic matching: read what the review "
+              "says and decide whether it identifies the same underlying problem described in each "
+              "reference issue, even if different terminology is used.\n\n"
+              "Scoring rules:\n"
+              "- Found: the review clearly identifies the same vulnerability, bug, or problem, "
+              "even if it does not name the exact file or line. A general mention of the issue "
+              "type (e.g. 'SQL injection', 'resource leak', 'missing null check') counts as Found "
+              "if it applies to the same area of code.\n"
+              "- Partial: the review hints at the problem or identifies the symptom but misses "
+              "the root cause or a key detail.\n"
+              "- Missed: the review shows no awareness of this issue whatsoever.\n\n"
               "Your task:\n"
               "- Work through EVERY issue ID in the reference document "
               "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
               "and the missing unit tests section).\n"
-              "- For each one, decide whether the review Found it, Partially identified it, "
-              "or Missed it entirely.\n"
               "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
               "  1. A summary line: total Found / Partial / Missed counts out of the total issues.\n"
               "  2. One table per category matching the categories in the reference document.\n"
               "     Each table must have columns: | ID | Description | Status | Notes |\n"
               "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting or explaining the finding. Leave blank for Missed.\n"
+              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed.\n"
               "- Do not add any commentary outside the scorecard document.\n\n"
               "---\n"
               "## Reference Issues\n\n"
           )
-          scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
           # Scoring output is larger than a normal review — use a higher token budget
           num_predict = max(int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048")), 4096)
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
+          # Truncate the review if the full prompt would exceed the context window,
+          # keeping the issues list intact since it is the scoring reference.
           max_chars = num_ctx
-          if len(scoring_prompt) > max_chars:
-              # Truncate the review portion to stay within context; issues list is kept whole
-              overflow = len(scoring_prompt) - max_chars
-              review = review[: max(0, len(review) - overflow - 200)]
-              scoring_prompt = scoring_prompt.replace(review, review)
+          full_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
+          if len(full_prompt) > max_chars:
+              overhead = len(preamble) + len(issues) + 50
+              review = review[: max(0, max_chars - overhead)]
+          scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
           payload = {
               "model": model,
@@ -301,40 +310,20 @@ jobs:
           cat issues_scorecard.md
 
       # -----------------------------------------------------------------------
-      # Post both the review and the scorecard as a commit comment
+      # Upload review and scorecard as downloadable workflow artifacts
       # -----------------------------------------------------------------------
-      - name: Post review and scorecard as commit comment
+      - name: Upload review artifact
         if: steps.diff.outputs.empty == 'false'
-        uses: actions/github-script@v8
-        env:
-          OLLAMA_MODEL: ${{ env.OLLAMA_MODEL }}
+        uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const review = fs.readFileSync('review.txt', 'utf8');
-            const scorecard = fs.readFileSync('issues_scorecard.md', 'utf8');
-            const model = process.env.OLLAMA_MODEL;
-            const sha = context.sha.substring(0, 7);
+          name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
+          path: review.txt
+          retention-days: 90
 
-            const body = [
-              '## 🤖 AI Code Review',
-              '',
-              `> **Model:** \`${model}\` &nbsp;·&nbsp; **Reviewed commit:** \`${sha}\``,
-              '',
-              review,
-              '',
-              '---',
-              '',
-              scorecard,
-              '',
-              '---',
-              '*This review was generated automatically. Use your own judgment before acting on any suggestion.*',
-            ].join('\n');
-
-            await github.rest.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body,
-            });
+      - name: Upload scorecard artifact
+        if: steps.diff.outputs.empty == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
+          path: issues_scorecard.md
+          retention-days: 90
