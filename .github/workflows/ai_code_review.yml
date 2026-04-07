@@ -200,30 +200,27 @@ jobs:
           with open("ISSUES.md", "r", errors="replace") as f:
               issues = f.read()
 
-          scoring_prompt = f"""You are a QA evaluator assessing how well an AI code review tool performed.
-
-Below is a reference document listing every known intentional issue in the codebase, followed by the AI review that was produced.
-
-Your task:
-- Work through EVERY issue ID in the reference document (C1–C11, L1–L5, R1–R3, E1–E7, RL1–RL5, N1–N7, M1–M5, D1–D11, A1–A6, CF1–CF9, and the missing unit tests).
-- For each one, decide whether the review **Found** it, **Partially** identified it, or **Missed** it entirely.
-- Output a Markdown document titled "# AI Review Scorecard" with:
-  1. A summary line: total Found / Partial / Missed counts out of the total number of issues.
-  2. One table per category (matching the categories in the reference document). Each table must have the columns: | ID | Description | Status | Notes |
-     - Status must be exactly one of: ✅ Found | ⚠️ Partial | ❌ Missed
-     - Notes: a brief quote or explanation (one sentence max). Leave blank for Missed items.
-- Do not add any other commentary outside the scorecard document.
-
----
-## Reference Issues
-
-{issues}
-
----
-## AI Review Output
-
-{review}
-"""
+          preamble = (
+              "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
+              "Below is a reference document listing every known intentional issue in the codebase, "
+              "followed by the AI review that was produced.\n\n"
+              "Your task:\n"
+              "- Work through EVERY issue ID in the reference document "
+              "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
+              "and the missing unit tests section).\n"
+              "- For each one, decide whether the review Found it, Partially identified it, "
+              "or Missed it entirely.\n"
+              "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
+              "  1. A summary line: total Found / Partial / Missed counts out of the total issues.\n"
+              "  2. One table per category matching the categories in the reference document.\n"
+              "     Each table must have columns: | ID | Description | Status | Notes |\n"
+              "     Status must be exactly one of: Found | Partial | Missed\n"
+              "     Notes: one sentence quoting or explaining the finding. Leave blank for Missed.\n"
+              "- Do not add any commentary outside the scorecard document.\n\n"
+              "---\n"
+              "## Reference Issues\n\n"
+          )
+          scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
           # Scoring output is larger than a normal review — use a higher token budget
