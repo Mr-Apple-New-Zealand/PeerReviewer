@@ -99,9 +99,78 @@ jobs:
 
           truncation_note = "[Note: the source listing below was truncated to fit the context window]" if truncated else ""
           prompt_template = (
-              "Please review the following source files from branch '{branch_name}' (commit {commit_sha}) "
-              "for bugs, security issues, logic errors, and code quality problems.\n\n"
-              "{truncation_note}\n\n{diff}"
+              "You are an expert software engineer performing a thorough peer code review.\n"
+              "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
+              "{truncation_note}\n\n"
+              "Work through EVERY category below methodically. For each category, read every file "
+              "carefully and report ALL issues you find, no matter how minor. Do not skip a category "
+              "because you found nothing — if a category is clean, say so.\n\n"
+              "---\n\n"
+              "## Review Categories\n\n"
+              "### 1. Security Vulnerabilities\n"
+              "Check for: SQL injection (including string-interpolated queries, LIKE clauses, UPDATE/DELETE/INSERT statements, "
+              "and helper methods that accept raw SQL fragments); hardcoded credentials, passwords, API keys, or backdoors "
+              "in source files or config; broken or weak cryptography (MD5, SHA1, no salt); JWT misconfiguration "
+              "(ValidateLifetime, weak secrets); broken access control (missing ownership checks on PUT/DELETE endpoints); "
+              "missing authorization attributes; open CORS policy; developer exception pages in production; HTTPS disabled; "
+              "debug symbols in release builds; production secrets committed to source control.\n\n"
+              "### 2. Logic Errors\n"
+              "Check for: off-by-one errors (especially in pagination — e.g. `page * pageSize` vs `(page-1) * pageSize`); "
+              "incorrect boundary conditions (e.g. `< 0` when `<= 0` is needed); balance or fee calculations that exclude "
+              "a component (e.g. checking balance >= amount but then deducting amount + fee); incorrect rates or constants "
+              "(e.g. interest rate applied as 5%% instead of 1%%); missing self-referential checks (e.g. transferring to yourself); "
+              "any operation that can produce a negative balance or nonsensical result.\n\n"
+              "### 3. Error Handling\n"
+              "Check for: methods that catch broad `Exception` and swallow it silently; catch blocks that return empty "
+              "collections — callers cannot distinguish 'no results' from 'error'; operations that lack a database "
+              "transaction where two or more writes must be atomic; side effects (e.g. email sending) that can throw "
+              "after a DB write has already committed; raw `ex.Message` or stack traces returned to HTTP clients; "
+              "missing rate limiting or account lockout on authentication endpoints.\n\n"
+              "### 4. Resource Leaks\n"
+              "Check for: `SqlConnection`, `SqlDataReader`, `SqlCommand` that are opened but never closed or disposed; "
+              "connections returned from helper methods where the caller never disposes them; `SmtpClient` held as an "
+              "instance field (not thread-safe, socket never released); `MailMessage` or other `IDisposable` objects "
+              "created but never disposed; any exception path that skips a `Close()` or `Dispose()` call.\n\n"
+              "### 5. Null Reference Risks\n"
+              "Check for: configuration values read with `_config[\"key\"]` passed directly to methods that cannot "
+              "accept null (e.g. `Encoding.UTF8.GetBytes`); `DataTable.Rows[0]` accessed without first checking "
+              "`Rows.Count > 0`; `.Value` on a nullable or `?.Value` result passed to `int.Parse` without null guard; "
+              "method parameters used (`.ToUpper()`, `.Length`, etc.) before a null check; model-bound request objects "
+              "used in controller actions without a null check.\n\n"
+              "### 6. Dead Code\n"
+              "Check for: private or public methods that are never called anywhere in the codebase; methods marked "
+              "`[Obsolete]` that are still present; code after an unconditional `return` statement (unreachable); "
+              "duplicate implementations where a fixed version exists alongside a broken one but only the broken one "
+              "is called; `throw new NotImplementedException()` in non-stub code.\n\n"
+              "### 7. Magic Strings and Numbers\n"
+              "Check for: numeric literals used inline without a named constant (e.g. fee rates, page size limits, "
+              "deposit caps, string length limits); string literals for email addresses, role names, or config keys "
+              "repeated in multiple places; values that belong in configuration (e.g. `appsettings.json`) but are "
+              "hardcoded in source.\n\n"
+              "### 8. Anti-patterns and Code Quality\n"
+              "Check for: string concatenation inside a loop (O(n²) — use `StringBuilder` or `string.Join`); "
+              "`new Regex(...)` inside a method called repeatedly (should be `static readonly`); shared mutable "
+              "static state accessed from multiple threads without synchronization; reimplementing standard library "
+              "methods that already exist (e.g. `string.IsNullOrWhiteSpace`); helper methods designed to leak "
+              "resource ownership to callers with no documented contract; duplicated validation logic that should "
+              "be extracted to a shared method.\n\n"
+              "### 9. Configuration Issues\n"
+              "Check for: `UseDeveloperExceptionPage()` called unconditionally; `ValidateLifetime = false` on JWT; "
+              "HTTPS redirection commented out; overly permissive CORS (`AllowAnyOrigin` + `AllowAnyMethod`); "
+              "debug log levels set for production namespaces; outdated or vulnerable NuGet packages (check `.csproj`); "
+              "missing environment-specific config overrides (`appsettings.Production.json`).\n\n"
+              "### 10. Missing Unit Tests\n"
+              "Check whether a test project exists. If not, list the specific methods and scenarios that are most "
+              "critical to test, focusing on boundary conditions, auth flows, financial calculations, and pagination.\n\n"
+              "---\n\n"
+              "## Output Format\n\n"
+              "Produce a Markdown report with one `##` section per category above. Within each section, use a "
+              "numbered list. For each issue include: the file and approximate line, the problematic code snippet "
+              "(if short), a one-sentence explanation of the risk, and a concrete fix. If a category has no issues, "
+              "write 'No issues found.' Do not skip any category.\n\n"
+              "---\n\n"
+              "## Source Files\n\n"
+              "{diff}"
           )
           prompt = prompt_template.format(
               branch_name=branch_name,
@@ -111,7 +180,7 @@ jobs:
           )
 
           num_ctx = num_ctx_tokens
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
               "model": model,
@@ -234,9 +303,9 @@ jobs:
           )
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          # Scorecard output is ~60 table rows; 2048 tokens is sufficient and avoids
+          # Scorecard output is ~60 table rows; 4096 tokens is sufficient and avoids
           # the slowdown caused by reserving a large num_predict budget.
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
