@@ -230,8 +230,9 @@ jobs:
           )
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
-          # Scoring output is larger than a normal review — use a higher token budget
-          num_predict = max(int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048")), 4096)
+          # Scorecard output is ~60 table rows; 2048 tokens is sufficient and avoids
+          # the slowdown caused by reserving a large num_predict budget.
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window,
