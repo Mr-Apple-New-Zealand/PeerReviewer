@@ -99,16 +99,9 @@ jobs:
           with open("branch_content.txt", "r", errors="replace") as f:
               diff = f.read()
 
-          # Truncate oversized content to avoid exceeding the model's context window.
-          # num_ctx is in tokens. Code tokenizes at ~2-3 chars/token (not 4 like prose),
-          # so multiply by 2 to stay well within the context window.
-          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
-          max_chars = num_ctx_tokens * 2
-          truncated = len(diff) > max_chars
-          if truncated:
-              diff = diff[:max_chars]
-
-          truncation_note = "[Note: the source listing below was truncated to fit the context window]" if truncated else ""
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          truncation_note = ""
           prompt_template = (
               "You are an expert software engineer performing a thorough peer code review.\n"
               "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
@@ -185,6 +178,22 @@ jobs:
               "## Source Files\n\n"
               "{diff}"
           )
+          # Measure instruction overhead (template without the diff) to correctly
+          # budget the remaining chars for source code. Code averages ~2.5 chars/token.
+          # Reserve tokens for: instructions overhead + response (num_predict) + safety buffer.
+          chars_per_token = 2.5
+          instruction_chars = len(prompt_template.format(
+              branch_name=branch_name, commit_sha=commit_sha, diff="", truncation_note=""))
+          available_tokens = num_ctx_tokens - num_predict_tokens - 500  # 500 token safety buffer
+          max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
+          truncated = len(diff) > max_diff_chars
+          if truncated:
+              diff = diff[:max_diff_chars]
+              truncation_note = "[Note: the source listing below was truncated to fit the context window]"
+
+          print(f"Context: {num_ctx_tokens} tokens, instruction overhead: {instruction_chars} chars, "
+                f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, truncated: {truncated}")
+
           prompt = prompt_template.format(
               branch_name=branch_name,
               commit_sha=commit_sha,
@@ -192,7 +201,7 @@ jobs:
               truncation_note=truncation_note,
           )
 
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_predict = num_predict_tokens
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
               "model": model,
