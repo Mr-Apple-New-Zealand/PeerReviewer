@@ -71,7 +71,7 @@ jobs:
       - name: Request review from Ollama
         if: steps.diff.outputs.empty == 'false'
         env:
-          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
+          AI_ASSISTANT_MODEL_NUM_PREDICT: 8192
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -182,7 +182,7 @@ jobs:
           )
 
           num_ctx = num_ctx_tokens
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "8192"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
               "model": model,
@@ -307,7 +307,7 @@ jobs:
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
           # Scorecard output is ~60 table rows; 4096 tokens is sufficient and avoids
           # the slowdown caused by reserving a large num_predict budget.
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "8192"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
