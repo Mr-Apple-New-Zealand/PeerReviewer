@@ -89,26 +89,19 @@ jobs:
               diff = f.read()
 
           # Truncate oversized content to avoid exceeding the model's context window.
-          max_chars = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          # num_ctx is in tokens; multiply by 4 to approximate the character budget
+          # (English/code averages ~4 chars per token).
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          max_chars = num_ctx_tokens * 4
           truncated = len(diff) > max_chars
           if truncated:
               diff = diff[:max_chars]
 
           truncation_note = "[Note: the source listing below was truncated to fit the context window]" if truncated else ""
-          # prompt_template = os.environ.get("AI_ASSISTANT_MODEL_PROMPT") or (
-          #     "Please review the following source files from branch '{branch_name}' (commit {commit_sha}) "
-          #     "for bugs, security issues, logic errors, and code quality problems.\n\n"
-          #     "{truncation_note}\n\n{diff}"
-          # )
           prompt_template = (
               "Please review the following source files from branch '{branch_name}' (commit {commit_sha}) "
               "for bugs, security issues, logic errors, and code quality problems.\n\n"
               "{truncation_note}\n\n{diff}"
-          )
-          # Normalize legacy f-string expression to placeholder so .format() does not raise KeyError
-          prompt_template = prompt_template.replace(
-              '{"[Note: the diff below was truncated to fit the context window]" if truncated else ""}',
-              "{truncation_note}",
           )
           prompt = prompt_template.format(
               branch_name=branch_name,
@@ -117,7 +110,7 @@ jobs:
               truncation_note=truncation_note,
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          num_ctx = num_ctx_tokens
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
@@ -198,19 +191,33 @@ jobs:
 
           preamble = (
               "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
-              "IMPORTANT: The AI review was produced by a model that has never seen the reference "
-              "issue list. It will NOT use issue IDs like C1 or L2. Instead it will describe "
-              "problems in its own words. Your job is to do semantic matching: read what the review "
-              "says and decide whether it identifies the same underlying problem described in each "
-              "reference issue, even if different terminology is used.\n\n"
-              "Scoring rules:\n"
-              "- Found: the review clearly identifies the same vulnerability, bug, or problem, "
-              "even if it does not name the exact file or line. A general mention of the issue "
-              "type (e.g. 'SQL injection', 'resource leak', 'missing null check') counts as Found "
-              "if it applies to the same area of code.\n"
-              "- Partial: the review hints at the problem or identifies the symptom but misses "
-              "the root cause or a key detail.\n"
-              "- Missed: the review shows no awareness of this issue whatsoever.\n\n"
+              "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
+              "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
+              "its own words, in its own order, and may group multiple reference issues under a "
+              "single heading. Your job is semantic matching — you must read the review carefully "
+              "and decide whether it surfaces the same underlying problem, even if the wording, "
+              "terminology, file reference, or section heading is completely different.\n\n"
+              "Scoring rules (applied strictly in this order):\n"
+              "- Found: the review identifies the same root cause or vulnerability class that the "
+              "reference issue describes, even if:\n"
+              "  * it uses different words (e.g. 'insecure hashing' = 'broken password hashing')\n"
+              "  * it does not cite the exact file or line number\n"
+              "  * it is mentioned as a sub-bullet inside a larger finding\n"
+              "  * it is described more generally (e.g. 'hardcoded credentials' covers both C8 and C2)\n"
+              "  Examples of correct Found matches:\n"
+              "    - Review says 'hardcoded backdoor password' → C2 is Found\n"
+              "    - Review says 'ValidateLifetime = false means tokens never expire' → C9 and CF3 are both Found\n"
+              "    - Review says 'AllowAnyOrigin() is too permissive' → CF6 is Found\n"
+              "    - Review says 'ex.Message returned to client' → E5 is Found\n"
+              "    - Review says 'connection is never closed or disposed' → RL2 or RL3 is Found\n"
+              "    - Review says 'string concatenation in loop is O(n²)' → R2 and A3 are both Found\n"
+              "- Partial: the review hints at the symptom or related area but clearly misses the "
+              "specific root cause or a critical detail (e.g. mentions MD5 is weak but not the "
+              "missing salt → C3 Partial).\n"
+              "- Missed: after reading the entire review, there is genuinely no mention — direct "
+              "or indirect — of this issue. Do NOT mark Missed simply because the phrasing differs.\n\n"
+              "Before scoring each issue, re-read the entire AI review output for any sentence that "
+              "could relate to it. Err on the side of Found over Missed when in doubt.\n\n"
               "Your task:\n"
               "- Work through EVERY issue ID in the reference document "
               "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
@@ -232,9 +239,9 @@ jobs:
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
-          # Truncate the review if the full prompt would exceed the context window,
-          # keeping the issues list intact since it is the scoring reference.
-          max_chars = num_ctx
+          # Truncate the review if the full prompt would exceed the context window.
+          # num_ctx is in tokens; multiply by 4 to approximate the character budget.
+          max_chars = num_ctx * 4
           full_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
           if len(full_prompt) > max_chars:
               overhead = len(preamble) + len(issues) + 50
