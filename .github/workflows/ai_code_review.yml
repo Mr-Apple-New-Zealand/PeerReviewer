@@ -9,7 +9,7 @@ permissions:
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
   OLLAMA_MODEL: Devstral-2-123B-Instruct-2512-f16-imatrix:Q3_K_M
-  AI_ASSISTANT_MODEL_NUM_CTX: 32768
+  AI_ASSISTANT_MODEL_NUM_CTX: 16384
 
 jobs:
   code-review:
@@ -192,7 +192,6 @@ jobs:
               truncation_note=truncation_note,
           )
 
-          num_ctx = num_ctx_tokens
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
@@ -201,7 +200,6 @@ jobs:
               "stream": False,
               "options": {
                   "temperature": temperature,
-                  "num_ctx": num_ctx,
                   "num_predict": num_predict,
               },
           }
@@ -315,9 +313,7 @@ jobs:
               "## Reference Issues\n\n"
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
-          # Scorecard output is ~60 table rows; 4096 tokens is sufficient and avoids
-          # the slowdown caused by reserving a large num_predict budget.
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
@@ -336,7 +332,6 @@ jobs:
               "stream": False,
               "options": {
                   "temperature": temperature,
-                  "num_ctx": num_ctx,
                   "num_predict": num_predict,
               },
           }
