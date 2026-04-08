@@ -186,7 +186,7 @@ jobs:
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
               "model": model,
-              "prompt": prompt,
+              "messages": [{"role": "user", "content": prompt}],
               "stream": False,
               "options": {
                   "temperature": temperature,
@@ -198,12 +198,12 @@ jobs:
           with open("payload.json", "w") as f:
               json.dump(payload, f)
 
-          print(f"Calling {base_url}/api/generate with model {model} …")
+          print(f"Calling {base_url}/api/chat with model {model} …")
 
           result = subprocess.run(
               [
                   "curl", "-sf", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/generate",
+                  "-X", "POST", f"{base_url}/api/chat",
                   "-H", "Content-Type: application/json",
                   "-d", "@payload.json",
               ],
@@ -222,7 +222,7 @@ jobs:
               print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
               sys.exit(1)
 
-          review = data.get("response", "").strip()
+          review = (data.get("message") or {}).get("content", "").strip()
           if not review:
               print("ERROR: Ollama returned an empty response.", file=sys.stderr)
               sys.exit(1)
@@ -321,7 +321,7 @@ jobs:
 
           payload = {
               "model": model,
-              "prompt": scoring_prompt,
+              "messages": [{"role": "user", "content": scoring_prompt}],
               "stream": False,
               "options": {
                   "temperature": temperature,
@@ -333,12 +333,12 @@ jobs:
           with open("scoring_payload.json", "w") as f:
               json.dump(payload, f)
 
-          print(f"Calling {base_url}/api/generate for scorecard (model: {model}) …")
+          print(f"Calling {base_url}/api/chat for scorecard (model: {model}) …")
 
           result = subprocess.run(
               [
                   "curl", "-sf", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/generate",
+                  "-X", "POST", f"{base_url}/api/chat",
                   "-H", "Content-Type: application/json",
                   "-d", "@scoring_payload.json",
               ],
@@ -357,7 +357,7 @@ jobs:
               print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
               sys.exit(1)
 
-          scorecard = data.get("response", "").strip()
+          scorecard = (data.get("message") or {}).get("content", "").strip()
           if not scorecard:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
