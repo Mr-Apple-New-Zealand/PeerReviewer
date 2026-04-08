@@ -31,43 +31,36 @@ jobs:
           if [ -n "$val" ]; then echo "AI_ASSISTANT_MODEL_NUM_CTX=$val" >> "$GITHUB_ENV"; fi
 
       # -----------------------------------------------------------------------
-      # Build the diff for the entire branch against the nearest base branch.
-      # Uses merge-base so that commits already on dev/main/master are excluded.
+      # Collect every tracked source file on the branch into a single document
+      # so the model reviews the full codebase, not just what changed.
       # -----------------------------------------------------------------------
-      - name: Get branch diff
+      - name: Collect branch source files
         id: diff
         run: |
-          BASE_BRANCH=""
-          for CANDIDATE in dev main master; do
-            if git fetch origin "${CANDIDATE}" 2>/dev/null; then
-              BASE_BRANCH="${CANDIDATE}"
-              break
-            fi
-          done
+          git ls-files \
+            -- '*.cs' '*.json' '*.csproj' '*.yml' '*.yaml' \
+               '*.config' '*.xml' '*.html' '*.css' '*.js' '*.ts' '*.md' \
+            ':!*.min.js' ':!*.min.css' ':!package-lock.json' \
+            ':!yarn.lock' ':!*.lock' ':!*.sum' \
+            > file_list.txt
 
-          if [ -z "$BASE_BRANCH" ]; then
-            echo "Could not find a base branch to compare against — skipping."
-            echo "empty=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          : > branch_content.txt
+          while IFS= read -r file; do
+            echo "### File: $file" >> branch_content.txt
+            echo '```' >> branch_content.txt
+            cat "$file" >> branch_content.txt
+            echo '```' >> branch_content.txt
+            echo "" >> branch_content.txt
+          done < file_list.txt
 
-          MERGE_BASE=$(git merge-base HEAD "origin/${BASE_BRANCH}" 2>/dev/null \
-            || git rev-list --max-parents=0 HEAD)
-          echo "Base branch: origin/${BASE_BRANCH}, merge-base: ${MERGE_BASE}"
+          CONTENT_SIZE=$(wc -c < branch_content.txt)
+          echo "diff_size=${CONTENT_SIZE}" >> "$GITHUB_OUTPUT"
 
-          git diff "${MERGE_BASE}..HEAD" \
-            --unified=5 \
-            -- ':!*.lock' ':!*.min.js' ':!*.min.css' ':!package-lock.json' \
-            ':!yarn.lock' ':!*.sum' ':!dist/' ':!build/' \
-            > branch_diff.txt
-
-          DIFF_SIZE=$(wc -c < branch_diff.txt)
-          echo "diff_size=${DIFF_SIZE}" >> "$GITHUB_OUTPUT"
-
-          if [ "$DIFF_SIZE" -eq 0 ]; then
+          if [ "$CONTENT_SIZE" -eq 0 ]; then
             echo "empty=true" >> "$GITHUB_OUTPUT"
           else
             echo "empty=false" >> "$GITHUB_OUTPUT"
+            echo "Collected $(wc -l < file_list.txt) files (${CONTENT_SIZE} bytes)"
           fi
 
       - name: Skip if no relevant changes
@@ -94,19 +87,20 @@ jobs:
           model = os.environ.get("OLLAMA_MODEL")
           base_url = os.environ.get("OLLAMA_URL")
 
-          with open("branch_diff.txt", "r", errors="replace") as f:
+          with open("branch_content.txt", "r", errors="replace") as f:
               diff = f.read()
 
-          # Truncate oversized diffs to avoid exceeding the model's context window.
-          # Adjust max_chars to match your num_ctx setting minus prompt overhead.
+          # Truncate oversized content to avoid exceeding the model's context window.
           max_chars = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
           truncated = len(diff) > max_chars
           if truncated:
               diff = diff[:max_chars]
 
-          truncation_note = "[Note: the diff below was truncated to fit the context window]" if truncated else ""
+          truncation_note = "[Note: the source listing below was truncated to fit the context window]" if truncated else ""
           prompt_template = os.environ.get("AI_ASSISTANT_MODEL_PROMPT") or (
-              "Branch: {branch_name}\nCommit: {commit_sha}\n\n{truncation_note}\n\n```diff\n{diff}\n```"
+              "Please review the following source files from branch '{branch_name}' (commit {commit_sha}) "
+              "for bugs, security issues, logic errors, and code quality problems.\n\n"
+              "{truncation_note}\n\n{diff}"
           )
           # Normalize legacy f-string expression to placeholder so .format() does not raise KeyError
           prompt_template = prompt_template.replace(
@@ -166,10 +160,10 @@ jobs:
               print("ERROR: Ollama returned an empty response.", file=sys.stderr)
               sys.exit(1)
 
-          with open("review.txt", "w") as f:
+          with open("review.md", "w") as f:
               f.write(review)
 
-          print("Review saved to review.txt")
+          print("Review saved to review.md")
           PYEOF
 
       # -----------------------------------------------------------------------
@@ -193,7 +187,7 @@ jobs:
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
 
-          with open("review.txt", "r", errors="replace") as f:
+          with open("review.md", "r", errors="replace") as f:
               review = f.read()
 
           with open("ISSUES.md", "r", errors="replace") as f:
@@ -309,6 +303,11 @@ jobs:
           echo "  ISSUES.md SCORECARD"
           echo "======================================================================"
           cat issues_scorecard.md
+          echo ""
+          echo "======================================================================"
+          echo "  AI REVIEW"
+          echo "======================================================================"
+          cat review.md
 
       # -----------------------------------------------------------------------
       # Upload review and scorecard as downloadable workflow artifacts
@@ -318,7 +317,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
-          path: review.txt
+          path: review.md
           retention-days: 90
 
       - name: Upload scorecard artifact
