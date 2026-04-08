@@ -9,7 +9,7 @@ permissions:
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
   OLLAMA_MODEL: Devstral-2-123B-Instruct-2512-f16-imatrix:Q3_K_M
-  AI_ASSISTANT_MODEL_NUM_CTX: 16384
+  AI_ASSISTANT_MODEL_NUM_CTX: 32768
 
 jobs:
   code-review:
@@ -61,6 +61,17 @@ jobs:
             echo "Collected $(wc -l < file_list.txt) files (${CONTENT_SIZE} bytes)"
           fi
 
+      - name: Debug prompt size
+        if: steps.diff.outputs.empty == 'false'
+        run: |
+          CHARS=$(wc -c < branch_content.txt)
+          WORDS=$(wc -w < branch_content.txt)
+          echo "Content: ${CHARS} chars, ${WORDS} words"
+          echo "Char budget (num_ctx * 4): $(( 16384 * 4 ))"
+          echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
+          echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
+
+            
       - name: Skip if no relevant changes
         if: steps.diff.outputs.empty == 'true'
         run: echo "No reviewable changes on this branch — skipping AI review."
@@ -89,10 +100,10 @@ jobs:
               diff = f.read()
 
           # Truncate oversized content to avoid exceeding the model's context window.
-          # num_ctx is in tokens; multiply by 4 to approximate the character budget
-          # (English/code averages ~4 chars per token).
-          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          max_chars = num_ctx_tokens * 4
+          # num_ctx is in tokens. Code tokenizes at ~2-3 chars/token (not 4 like prose),
+          # so multiply by 2 to stay well within the context window.
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
+          max_chars = num_ctx_tokens * 2
           truncated = len(diff) > max_chars
           if truncated:
               diff = diff[:max_chars]
@@ -304,15 +315,15 @@ jobs:
               "## Reference Issues\n\n"
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
           # Scorecard output is ~60 table rows; 4096 tokens is sufficient and avoids
           # the slowdown caused by reserving a large num_predict budget.
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
-          # num_ctx is in tokens; multiply by 4 to approximate the character budget.
-          max_chars = num_ctx * 4
+          # Code tokenizes at ~2-3 chars/token; multiply by 2 to stay safe.
+          max_chars = num_ctx * 2
           full_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
           if len(full_prompt) > max_chars:
               overhead = len(preamble) + len(issues) + 50
