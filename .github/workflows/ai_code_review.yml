@@ -259,6 +259,7 @@ jobs:
       - name: Score review against ISSUES.md
         if: steps.diff.outputs.empty == 'false'
         env:
+          SCORECARD_MODEL: Qwen3-32B-f16-imatrix:Q4_K_M
           AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -267,7 +268,7 @@ jobs:
           python3 - <<'PYEOF'
           import json, os, subprocess, sys
 
-          model = os.environ.get("OLLAMA_MODEL")
+          model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
           base_url = os.environ.get("OLLAMA_URL")
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
@@ -348,7 +349,8 @@ jobs:
           with open("scoring_payload.json", "w") as f:
               json.dump(payload, f)
 
-          print(f"Calling {base_url}/api/chat for scorecard (model: {model}) …")
+          review_model = os.environ.get("OLLAMA_MODEL")
+          print(f"Scoring with {model} (review was by {review_model}) …")
 
           result = subprocess.run(
               [
