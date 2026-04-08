@@ -37,11 +37,9 @@ jobs:
       - name: Collect branch source files
         id: diff
         run: |
-          git ls-files \
-            -- '*.cs' '*.json' '*.csproj' '*.yml' '*.yaml' \
-               '*.config' '*.xml' '*.html' '*.css' '*.js' '*.ts' '*.md' \
-            ':!*.min.js' ':!*.min.css' ':!package-lock.json' \
-            ':!yarn.lock' ':!*.lock' ':!*.sum' \
+          git ls-files -- 'SampleBankingApp/' \
+            | grep -E '\.(cs|json|csproj|yml|yaml|config|xml|html|css|js|ts|md)$' \
+            | grep -v -E '(\.min\.js|\.min\.css|package-lock\.json|yarn\.lock|\.lock|\.sum)$' \
             > file_list.txt
 
           : > branch_content.txt
@@ -91,7 +89,7 @@ jobs:
               diff = f.read()
 
           # Truncate oversized content to avoid exceeding the model's context window.
-          max_chars = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
+          max_chars = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
           truncated = len(diff) > max_chars
           if truncated:
               diff = diff[:max_chars]
@@ -119,7 +117,7 @@ jobs:
               truncation_note=truncation_note,
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
@@ -228,7 +226,7 @@ jobs:
               "## Reference Issues\n\n"
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "262144"))
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
           # Scorecard output is ~60 table rows; 2048 tokens is sufficient and avoids
           # the slowdown caused by reserving a large num_predict budget.
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "2048"))
