@@ -8,7 +8,7 @@ permissions:
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Qwen3-32B-f16-imatrix:Q4_K_M
+  OLLAMA_MODEL: MiniMax-M2.7-imatrix:Q4_K_M
   AI_ASSISTANT_MODEL_NUM_CTX: 32768
 
 jobs:
@@ -266,7 +266,7 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, subprocess, sys
+          import json, os, re, subprocess, sys
 
           model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
           base_url = os.environ.get("OLLAMA_URL")
@@ -309,15 +309,34 @@ jobs:
               "Before scoring each issue, re-read the entire AI review output for any sentence that "
               "could relate to it. Err on the side of Found over Missed when in doubt.\n\n"
               "Your task:\n"
-              "- Work through EVERY issue ID in the reference document "
-              "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
-              "and the missing unit tests section).\n"
+              "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
+              "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
+              "row for the entire '## Missing Unit Tests' prose section (see below).\n"
               "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
-              "  1. A summary line: total Found / Partial / Missed counts out of 69 issues.\n"
+              "  1. Exactly ONE summary line of the form: "
+              "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
+              "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
+              "tables after every row is written; T must equal N+P+M (the same as the number of "
+              "data rows in those tables). If your draft counts disagree with the tables, fix "
+              "either the tables or the summary before you stop — never leave contradictory numbers.\n"
               "  2. One table per category matching the categories in the reference document.\n"
               "     Each table must have columns: | ID | Description | Status | Notes |\n"
               "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed.\n"
+              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed. "
+              "If Status is Found or Partial, the Note must clearly relate to THAT issue's "
+              "description (not a generic unrelated finding); reuse the same vague note for "
+              "many different IDs is invalid — use Partial or Missed instead.\n"
+              "  3. Row-count rules (strict):\n"
+              "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
+              "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
+              "ONE row for Missing Unit Tests.\n"
+              "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
+              "Description cell, briefly summarize the whole section (no test project / missing "
+              "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
+              "that aggregate topic (missing tests, need for coverage, etc.).\n"
+              "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
+              "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
+              "C1-CF9 and UT.\n"
               "- Do not add any commentary outside the scorecard document.\n\n"
               "---\n"
               "## Reference Issues\n\n"
@@ -379,13 +398,67 @@ jobs:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
 
+          def count_table_statuses(md: str) -> tuple[int, int, int]:
+              """Count Found / Partial / Missed from | ID | Description | Status | Notes | rows."""
+              found = partial = missed = 0
+              for raw in md.splitlines():
+                  line = raw.strip()
+                  if not line.startswith("|"):
+                      continue
+                  cells = [c.strip() for c in line.split("|")[1:-1]]
+                  if len(cells) < 4:
+                      continue
+                  id_cell, _desc, status = cells[0], cells[1], cells[2]
+                  if id_cell.lower() == "id" or "---" in id_cell:
+                      continue
+                  s = status.lower()
+                  if s == "found":
+                      found += 1
+                  elif s == "partial":
+                      partial += 1
+                  elif s == "missed":
+                      missed += 1
+              return found, partial, missed
+
+          def reconcile_summary_line(md: str) -> str:
+              fnd, prt, mis = count_table_statuses(md)
+              total = fnd + prt + mis
+              if total == 0:
+                  print("WARN: Could not parse any table Status cells; leaving model summary unchanged.")
+                  return md
+              new_line = f"Total: {fnd} Found / {prt} Partial / {mis} Missed out of {total} issues."
+              pattern = re.compile(
+                  r"^Total:\s*\d+\s*Found\s*/\s*\d+\s*Partial\s*/\s*\d+\s*Missed\s*out\s*of\s*\d+\s*issues\.?\s*$",
+                  re.MULTILINE | re.IGNORECASE,
+              )
+              md2, n = pattern.subn(new_line, md, count=1)
+              if n:
+                  print(f"Scorecard summary reconciled from tables: {new_line}")
+                  return md2
+              # No matching summary line — insert machine-derived counts after the first line.
+              insert = "\n" + new_line + "\n"
+              first_nl = md.find("\n")
+              if first_nl != -1:
+                  return md[: first_nl + 1] + insert + md[first_nl + 1 :]
+              return insert + md
+
           header = (
               f"# AI Review Scorecard\n\n"
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
           )
 
+          body = reconcile_summary_line(scorecard)
+          rf, rp, rm = count_table_statuses(body)
+          row_total = rf + rp + rm
+          if row_total != 70:
+              print(
+                  f"WARN: Scorecard has {row_total} table data rows; expected exactly 70 "
+                  f"(69 IDs C1-CF9 plus one UT row for Missing Unit Tests).",
+                  file=sys.stderr,
+              )
+
           with open("issues_scorecard.md", "w") as f:
-              f.write(header + scorecard)
+              f.write(header + body)
 
           print("Scorecard saved to issues_scorecard.md")
           PYEOF
