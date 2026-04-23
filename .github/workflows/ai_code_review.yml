@@ -1,0 +1,427 @@
+name: AI Code Review
+
+on:
+  workflow_dispatch
+
+permissions:
+  contents: read
+
+env:
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  OLLAMA_MODEL: Devstral-2-123B-Instruct-2512:Q4_K_M
+  AI_ASSISTANT_MODEL_NUM_CTX: 16384
+
+jobs:
+  code-review:
+    # REQUIRED: must use a self-hosted runner that can reach 192.168.10.100
+    # Add additional labels (e.g. [self-hosted, linux]) to target a specific runner
+    runs-on: mra-ubuntu
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: Devstral-2-123B
+          fetch-depth: 0
+
+      - name: Set AI assistant context from variable
+        run: |
+          val="${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}"
+          if [ -n "$val" ]; then echo "AI_ASSISTANT_MODEL_NUM_CTX=$val" >> "$GITHUB_ENV"; fi
+
+      # -----------------------------------------------------------------------
+      # Collect every tracked source file on the branch into a single document
+      # so the model reviews the full codebase, not just what changed.
+      # -----------------------------------------------------------------------
+      - name: Collect branch source files
+        id: diff
+        run: |
+          git ls-files -- 'SampleBankingApp/' \
+            | grep -E '\.(cs|json|csproj|yml|yaml|config|xml|html|css|js|ts|md)$' \
+            | grep -v -E '(\.min\.js|\.min\.css|package-lock\.json|yarn\.lock|\.lock|\.sum)$' \
+            > file_list.txt
+
+          : > branch_content.txt
+          while IFS= read -r file; do
+            echo "### File: $file" >> branch_content.txt
+            echo '```' >> branch_content.txt
+            cat "$file" >> branch_content.txt
+            echo '```' >> branch_content.txt
+            echo "" >> branch_content.txt
+          done < file_list.txt
+
+          CONTENT_SIZE=$(wc -c < branch_content.txt)
+          echo "diff_size=${CONTENT_SIZE}" >> "$GITHUB_OUTPUT"
+
+          if [ "$CONTENT_SIZE" -eq 0 ]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+            echo "Collected $(wc -l < file_list.txt) files (${CONTENT_SIZE} bytes)"
+          fi
+
+      - name: Debug prompt size
+        if: steps.diff.outputs.empty == 'false'
+        run: |
+          CHARS=$(wc -c < branch_content.txt)
+          WORDS=$(wc -w < branch_content.txt)
+          echo "Content: ${CHARS} chars, ${WORDS} words"
+          echo "Char budget (num_ctx * 4): $(( 16384 * 4 ))"
+          echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
+          echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
+
+            
+      - name: Skip if no relevant changes
+        if: steps.diff.outputs.empty == 'true'
+        run: echo "No reviewable changes on this branch — skipping AI review."
+
+      # -----------------------------------------------------------------------
+      # Send the diff to Ollama and save the review to review.txt
+      # -----------------------------------------------------------------------
+      - name: Request review from Ollama
+        if: steps.diff.outputs.empty == 'false'
+        env:
+          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
+          AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, subprocess, sys
+
+          branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
+          commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
+          model = os.environ.get("OLLAMA_MODEL")
+          base_url = os.environ.get("OLLAMA_URL")
+
+          with open("branch_content.txt", "r", errors="replace") as f:
+              diff = f.read()
+
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          truncation_note = ""
+          prompt_template = (
+              "You are an expert software engineer performing a thorough peer code review.\n"
+              "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
+              "{truncation_note}\n\n"
+              "Work through EVERY category below methodically. For each category, read every file "
+              "carefully and report ALL issues you find, no matter how minor. Do not skip a category "
+              "because you found nothing — if a category is clean, say so.\n\n"
+              "---\n\n"
+              "## Review Categories\n\n"
+              "### 1. Security Vulnerabilities\n"
+              "Check for: SQL injection (including string-interpolated queries, LIKE clauses, UPDATE/DELETE/INSERT statements, "
+              "and helper methods that accept raw SQL fragments); hardcoded credentials, passwords, API keys, or backdoors "
+              "in source files or config; broken or weak cryptography (MD5, SHA1, no salt); JWT misconfiguration "
+              "(ValidateLifetime, weak secrets); broken access control (missing ownership checks on PUT/DELETE endpoints); "
+              "missing authorization attributes; open CORS policy; developer exception pages in production; HTTPS disabled; "
+              "debug symbols in release builds; production secrets committed to source control.\n\n"
+              "### 2. Logic Errors\n"
+              "Check for: off-by-one errors (especially in pagination — e.g. `page * pageSize` vs `(page-1) * pageSize`); "
+              "incorrect boundary conditions (e.g. `< 0` when `<= 0` is needed); balance or fee calculations that exclude "
+              "a component (e.g. checking balance >= amount but then deducting amount + fee); incorrect rates or constants "
+              "(e.g. interest rate applied as 5%% instead of 1%%); missing self-referential checks (e.g. transferring to yourself); "
+              "any operation that can produce a negative balance or nonsensical result.\n\n"
+              "### 3. Error Handling\n"
+              "Check for: methods that catch broad `Exception` and swallow it silently; catch blocks that return empty "
+              "collections — callers cannot distinguish 'no results' from 'error'; operations that lack a database "
+              "transaction where two or more writes must be atomic; side effects (e.g. email sending) that can throw "
+              "after a DB write has already committed; raw `ex.Message` or stack traces returned to HTTP clients; "
+              "missing rate limiting or account lockout on authentication endpoints.\n\n"
+              "### 4. Resource Leaks\n"
+              "Check for: `SqlConnection`, `SqlDataReader`, `SqlCommand` that are opened but never closed or disposed; "
+              "connections returned from helper methods where the caller never disposes them; `SmtpClient` held as an "
+              "instance field (not thread-safe, socket never released); `MailMessage` or other `IDisposable` objects "
+              "created but never disposed; any exception path that skips a `Close()` or `Dispose()` call.\n\n"
+              "### 5. Null Reference Risks\n"
+              "Check for: configuration values read with `_config[\"key\"]` passed directly to methods that cannot "
+              "accept null (e.g. `Encoding.UTF8.GetBytes`); `DataTable.Rows[0]` accessed without first checking "
+              "`Rows.Count > 0`; `.Value` on a nullable or `?.Value` result passed to `int.Parse` without null guard; "
+              "method parameters used (`.ToUpper()`, `.Length`, etc.) before a null check; model-bound request objects "
+              "used in controller actions without a null check.\n\n"
+              "### 6. Dead Code\n"
+              "Check for: private or public methods that are never called anywhere in the codebase; methods marked "
+              "`[Obsolete]` that are still present; code after an unconditional `return` statement (unreachable); "
+              "duplicate implementations where a fixed version exists alongside a broken one but only the broken one "
+              "is called; `throw new NotImplementedException()` in non-stub code.\n\n"
+              "### 7. Magic Strings and Numbers\n"
+              "Check for: numeric literals used inline without a named constant (e.g. fee rates, page size limits, "
+              "deposit caps, string length limits); string literals for email addresses, role names, or config keys "
+              "repeated in multiple places; values that belong in configuration (e.g. `appsettings.json`) but are "
+              "hardcoded in source.\n\n"
+              "### 8. Anti-patterns and Code Quality\n"
+              "Check for: string concatenation inside a loop (O(n²) — use `StringBuilder` or `string.Join`); "
+              "`new Regex(...)` inside a method called repeatedly (should be `static readonly`); shared mutable "
+              "static state accessed from multiple threads without synchronization; reimplementing standard library "
+              "methods that already exist (e.g. `string.IsNullOrWhiteSpace`); helper methods designed to leak "
+              "resource ownership to callers with no documented contract; duplicated validation logic that should "
+              "be extracted to a shared method.\n\n"
+              "### 9. Configuration Issues\n"
+              "Check for: `UseDeveloperExceptionPage()` called unconditionally; `ValidateLifetime = false` on JWT; "
+              "HTTPS redirection commented out; overly permissive CORS (`AllowAnyOrigin` + `AllowAnyMethod`); "
+              "debug log levels set for production namespaces; outdated or vulnerable NuGet packages (check `.csproj`); "
+              "missing environment-specific config overrides (`appsettings.Production.json`).\n\n"
+              "### 10. Missing Unit Tests\n"
+              "Check whether a test project exists. If not, list the specific methods and scenarios that are most "
+              "critical to test, focusing on boundary conditions, auth flows, financial calculations, and pagination.\n\n"
+              "---\n\n"
+              "## Output Format\n\n"
+              "Produce a Markdown report with one `##` section per category above.\n"
+              "**You MUST include all 10 sections.** If a category has no issues, write 'No issues found.'\n\n"
+              "Within each section use a compact Markdown table with columns:\n"
+              "| File | Line | Issue | Fix |\n"
+              "Keep each cell to one sentence maximum — no code blocks, no nested bullets.\n\n"
+              "Complete all 10 sections before adding any additional commentary.\n\n"
+              "---\n\n"
+              "## Source Files\n\n"
+              "{diff}"
+          )
+          # Measure instruction overhead (template without the diff) to correctly
+          # budget the remaining chars for source code. Code averages ~2.5 chars/token.
+          # Reserve tokens for: instructions overhead + response (num_predict) + safety buffer.
+          chars_per_token = 2.5
+          instruction_chars = len(prompt_template.format(
+              branch_name=branch_name, commit_sha=commit_sha, diff="", truncation_note=""))
+          available_tokens = num_ctx_tokens - num_predict_tokens - 500  # 500 token safety buffer
+          max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
+          truncated = len(diff) > max_diff_chars
+          if truncated:
+              diff = diff[:max_diff_chars]
+              truncation_note = "[Note: the source listing below was truncated to fit the context window]"
+
+          print(f"Context: {num_ctx_tokens} tokens, instruction overhead: {instruction_chars} chars, "
+                f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, truncated: {truncated}")
+
+          prompt = prompt_template.format(
+              branch_name=branch_name,
+              commit_sha=commit_sha,
+              diff=diff,
+              truncation_note=truncation_note,
+          )
+
+          num_predict = num_predict_tokens
+          temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          payload = {
+              "model": model,
+              "messages": [{"role": "user", "content": prompt}],
+              "stream": False,
+              "options": {
+                  "temperature": temperature,
+                  "num_predict": num_predict,
+              },
+          }
+
+          with open("payload.json", "w") as f:
+              json.dump(payload, f)
+
+          print(f"Calling {base_url}/api/chat with model {model} …")
+
+          result = subprocess.run(
+              [
+                  "curl", "-sf", "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/api/chat",
+                  "-H", "Content-Type: application/json",
+                  "-d", "@payload.json",
+              ],
+              capture_output=True,
+              text=True,
+          )
+
+          if result.returncode != 0:
+              print(f"ERROR: curl failed (exit {result.returncode})\n{result.stderr}", file=sys.stderr)
+              sys.exit(1)
+
+          try:
+              data = json.loads(result.stdout)
+          except json.JSONDecodeError as exc:
+              print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
+              print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
+              sys.exit(1)
+
+          review = (data.get("message") or {}).get("content", "").strip()
+          if not review:
+              print("ERROR: Ollama returned an empty response.", file=sys.stderr)
+              sys.exit(1)
+
+          with open("review.md", "w") as f:
+              f.write(review)
+
+          print("Review saved to review.md")
+          PYEOF
+
+      # -----------------------------------------------------------------------
+      # Score the review against every known issue in ISSUES.md.
+      # A second Ollama call receives both the review and the issues reference
+      # and produces a scorecard table (Found / Partial / Missed per issue ID).
+      # -----------------------------------------------------------------------
+      - name: Score review against ISSUES.md
+        if: steps.diff.outputs.empty == 'false'
+        env:
+          SCORECARD_MODEL: Qwen3-32B-f16-imatrix:Q4_K_M
+          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, subprocess, sys
+
+          model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
+          base_url = os.environ.get("OLLAMA_URL")
+          branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
+          commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
+
+          with open("review.md", "r", errors="replace") as f:
+              review = f.read()
+
+          with open("ISSUES.md", "r", errors="replace") as f:
+              issues = f.read()
+
+          preamble = (
+              "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
+              "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
+              "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
+              "its own words, in its own order, and may group multiple reference issues under a "
+              "single heading. Your job is semantic matching — you must read the review carefully "
+              "and decide whether it surfaces the same underlying problem, even if the wording, "
+              "terminology, file reference, or section heading is completely different.\n\n"
+              "Scoring rules (applied strictly in this order):\n"
+              "- Found: the review identifies the same root cause or vulnerability class that the "
+              "reference issue describes, even if:\n"
+              "  * it uses different words (e.g. 'insecure hashing' = 'broken password hashing')\n"
+              "  * it does not cite the exact file or line number\n"
+              "  * it is mentioned as a sub-bullet inside a larger finding\n"
+              "  * it is described more generally (e.g. 'hardcoded credentials' covers both C8 and C2)\n"
+              "  Examples of correct Found matches:\n"
+              "    - Review says 'hardcoded backdoor password' → C2 is Found\n"
+              "    - Review says 'ValidateLifetime = false means tokens never expire' → C9 and CF3 are both Found\n"
+              "    - Review says 'AllowAnyOrigin() is too permissive' → CF6 is Found\n"
+              "    - Review says 'ex.Message returned to client' → E5 is Found\n"
+              "    - Review says 'connection is never closed or disposed' → RL2 or RL3 is Found\n"
+              "    - Review says 'string concatenation in loop is O(n²)' → R2 and A3 are both Found\n"
+              "- Partial: the review hints at the symptom or related area but clearly misses the "
+              "specific root cause or a critical detail (e.g. mentions MD5 is weak but not the "
+              "missing salt → C3 Partial).\n"
+              "- Missed: after reading the entire review, there is genuinely no mention — direct "
+              "or indirect — of this issue. Do NOT mark Missed simply because the phrasing differs.\n\n"
+              "Before scoring each issue, re-read the entire AI review output for any sentence that "
+              "could relate to it. Err on the side of Found over Missed when in doubt.\n\n"
+              "Your task:\n"
+              "- Work through EVERY issue ID in the reference document "
+              "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
+              "and the missing unit tests section).\n"
+              "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
+              "  1. A summary line: total Found / Partial / Missed counts out of 69 issues.\n"
+              "  2. One table per category matching the categories in the reference document.\n"
+              "     Each table must have columns: | ID | Description | Status | Notes |\n"
+              "     Status must be exactly one of: Found | Partial | Missed\n"
+              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed.\n"
+              "- Do not add any commentary outside the scorecard document.\n\n"
+              "---\n"
+              "## Reference Issues\n\n"
+          )
+
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+
+          # Truncate the review if the full prompt would exceed the context window.
+          # Code tokenizes at ~2-3 chars/token; multiply by 2 to stay safe.
+          max_chars = num_ctx * 2
+          full_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
+          if len(full_prompt) > max_chars:
+              overhead = len(preamble) + len(issues) + 50
+              review = review[: max(0, max_chars - overhead)]
+          scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
+
+          payload = {
+              "model": model,
+              "messages": [{"role": "user", "content": scoring_prompt}],
+              "stream": False,
+              "options": {
+                  "temperature": temperature,
+                  "num_predict": num_predict,
+              },
+          }
+
+          with open("scoring_payload.json", "w") as f:
+              json.dump(payload, f)
+
+          review_model = os.environ.get("OLLAMA_MODEL")
+          print(f"Scoring with {model} (review was by {review_model}) …")
+
+          result = subprocess.run(
+              [
+                  "curl", "-sf", "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/api/chat",
+                  "-H", "Content-Type: application/json",
+                  "-d", "@scoring_payload.json",
+              ],
+              capture_output=True,
+              text=True,
+          )
+
+          if result.returncode != 0:
+              print(f"ERROR: curl failed (exit {result.returncode})\n{result.stderr}", file=sys.stderr)
+              sys.exit(1)
+
+          try:
+              data = json.loads(result.stdout)
+          except json.JSONDecodeError as exc:
+              print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
+              print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
+              sys.exit(1)
+
+          scorecard = (data.get("message") or {}).get("content", "").strip()
+          if not scorecard:
+              print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
+              sys.exit(1)
+
+          header = (
+              f"# AI Review Scorecard\n\n"
+              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
+          )
+
+          with open("issues_scorecard.md", "w") as f:
+              f.write(header + scorecard)
+
+          print("Scorecard saved to issues_scorecard.md")
+          PYEOF
+
+      # -----------------------------------------------------------------------
+      # Print the scorecard to the workflow log so it is visible without
+      # navigating away from the Actions run page.
+      # -----------------------------------------------------------------------
+      - name: Print scorecard to workflow log
+        if: steps.diff.outputs.empty == 'false'
+        run: |
+          echo "======================================================================"
+          echo "  ISSUES.md SCORECARD"
+          echo "======================================================================"
+          cat issues_scorecard.md
+          echo ""
+          echo "======================================================================"
+          echo "  AI REVIEW"
+          echo "======================================================================"
+          cat review.md
+
+      # -----------------------------------------------------------------------
+      # Upload review and scorecard as downloadable workflow artifacts
+      # -----------------------------------------------------------------------
+      - name: Upload review artifact
+        if: steps.diff.outputs.empty == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
+          path: review.md
+          retention-days: 90
+
+      - name: Upload scorecard artifact
+        if: steps.diff.outputs.empty == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
+          path: issues_scorecard.md
+          retention-days: 90
