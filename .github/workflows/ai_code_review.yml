@@ -321,6 +321,10 @@ jobs:
               "either the tables or the summary before you stop — never leave contradictory numbers.\n"
               "  2. One table per category matching the categories in the reference document.\n"
               "     Each table must have columns: | ID | Description | Status | Notes |\n"
+              "     Use EXACTLY those four columns — do not insert an extra file/location column "
+              "between ID and Description (ISSUES.md already embeds file and lines inside the "
+              "Description text). Extra columns break automated counting; Notes may contain `|` "
+              "characters, so keep pipe delimiters only between the four columns.\n"
               "     Status must be exactly one of: Found | Partial | Missed\n"
               "     Notes: one sentence quoting the relevant part of the review, or blank if Missed. "
               "If Status is Found or Partial, the Note must clearly relate to THAT issue's "
@@ -398,20 +402,34 @@ jobs:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
 
+          _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
+
           def count_table_statuses(md: str) -> tuple[int, int, int]:
-              """Count Found / Partial / Missed from | ID | Description | Status | Notes | rows."""
+              """Count Found / Partial / Missed from scorecard tables.
+
+              Rows must be | ID | Description | Status | Notes | but models sometimes insert an
+              extra column (e.g. file path) or put pipes inside Notes. Naive split("|") then mis-
+              classifies Status. We detect the Status column by the first | Found|Partial|Missed |
+              marker, which precedes the Notes cell (even when Notes contains additional pipes).
+              """
               found = partial = missed = 0
               for raw in md.splitlines():
                   line = raw.strip()
                   if not line.startswith("|"):
                       continue
-                  cells = [c.strip() for c in line.split("|")[1:-1]]
-                  if len(cells) < 4:
+                  parts = [p.strip() for p in line.split("|")]
+                  if len(parts) < 3:
                       continue
-                  id_cell, _desc, status = cells[0], cells[1], cells[2]
-                  if id_cell.lower() == "id" or "---" in id_cell:
+                  id_cell = parts[1] if len(parts) > 1 else ""
+                  if id_cell.lower() == "id" or not id_cell:
                       continue
-                  s = status.lower()
+                  # Markdown separator row (first cell is ---)
+                  if re.match(r"^-{3,}$", id_cell):
+                      continue
+                  m = _STATUS_CELL.search(line)
+                  if not m:
+                      continue
+                  s = m.group(1).lower()
                   if s == "found":
                       found += 1
                   elif s == "partial":
