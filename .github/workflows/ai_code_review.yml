@@ -8,8 +8,8 @@ permissions:
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Devstral-2-123B-Instruct-2512:Q4_K_M
-  AI_ASSISTANT_MODEL_NUM_CTX: 16384
+  OLLAMA_MODEL: Qwen3-32B-f16-imatrix:Q4_K_M
+  AI_ASSISTANT_MODEL_NUM_CTX: 32768
 
 jobs:
   code-review:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: Devstral-2-123B
+          ref: main
           fetch-depth: 0
 
       - name: Set AI assistant context from variable
@@ -99,8 +99,8 @@ jobs:
           with open("branch_content.txt", "r", errors="replace") as f:
               diff = f.read()
 
-          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
+          num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
           truncation_note = ""
           prompt_template = (
               "You are an expert software engineer performing a thorough peer code review.\n"
@@ -259,7 +259,7 @@ jobs:
       - name: Score review against ISSUES.md
         if: steps.diff.outputs.empty == 'false'
         env:
-          SCORECARD_MODEL: Qwen3-32B-f16-imatrix:Q4_K_M
+          SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -323,8 +323,8 @@ jobs:
               "## Reference Issues\n\n"
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
