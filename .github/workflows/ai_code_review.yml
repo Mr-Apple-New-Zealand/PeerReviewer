@@ -8,8 +8,8 @@ permissions:
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Codestral-22B:Q3_K_M
-  AI_ASSISTANT_MODEL_NUM_CTX: ${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}
+  OLLAMA_MODEL: Codestral-22B-imatrix:Q3_K_M
+  AI_ASSISTANT_MODEL_NUM_CTX: 32768
 
 jobs:
   code-review:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: Codestral-22B
+          ref: main
           fetch-depth: 0
 
       - name: Set AI assistant context from variable
@@ -61,6 +61,17 @@ jobs:
             echo "Collected $(wc -l < file_list.txt) files (${CONTENT_SIZE} bytes)"
           fi
 
+      - name: Debug prompt size
+        if: steps.diff.outputs.empty == 'false'
+        run: |
+          CHARS=$(wc -c < branch_content.txt)
+          WORDS=$(wc -w < branch_content.txt)
+          echo "Content: ${CHARS} chars, ${WORDS} words"
+          echo "Char budget (num_ctx * 4): $(( 16384 * 4 ))"
+          echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
+          echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
+
+            
       - name: Skip if no relevant changes
         if: steps.diff.outputs.empty == 'true'
         run: echo "No reviewable changes on this branch — skipping AI review."
@@ -88,16 +99,9 @@ jobs:
           with open("branch_content.txt", "r", errors="replace") as f:
               diff = f.read()
 
-          # Truncate oversized content to avoid exceeding the model's context window.
-          # num_ctx is in tokens; multiply by 4 to approximate the character budget
-          # (English/code averages ~4 chars per token).
-          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          max_chars = num_ctx_tokens * 4
-          truncated = len(diff) > max_chars
-          if truncated:
-              diff = diff[:max_chars]
-
-          truncation_note = "[Note: the source listing below was truncated to fit the context window]" if truncated else ""
+          num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
+          num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
+          truncation_note = ""
           prompt_template = (
               "You are an expert software engineer performing a thorough peer code review.\n"
               "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
@@ -174,6 +178,22 @@ jobs:
               "## Source Files\n\n"
               "{diff}"
           )
+          # Measure instruction overhead (template without the diff) to correctly
+          # budget the remaining chars for source code. Code averages ~2.5 chars/token.
+          # Reserve tokens for: instructions overhead + response (num_predict) + safety buffer.
+          chars_per_token = 2.5
+          instruction_chars = len(prompt_template.format(
+              branch_name=branch_name, commit_sha=commit_sha, diff="", truncation_note=""))
+          available_tokens = num_ctx_tokens - num_predict_tokens - 500  # 500 token safety buffer
+          max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
+          truncated = len(diff) > max_diff_chars
+          if truncated:
+              diff = diff[:max_diff_chars]
+              truncation_note = "[Note: the source listing below was truncated to fit the context window]"
+
+          print(f"Context: {num_ctx_tokens} tokens, instruction overhead: {instruction_chars} chars, "
+                f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, truncated: {truncated}")
+
           prompt = prompt_template.format(
               branch_name=branch_name,
               commit_sha=commit_sha,
@@ -181,30 +201,27 @@ jobs:
               truncation_note=truncation_note,
           )
 
-          num_ctx = num_ctx_tokens
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_predict = num_predict_tokens
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
           payload = {
               "model": model,
-              "prompt": prompt,
+              "messages": [{"role": "user", "content": prompt}],
               "stream": False,
               "options": {
                   "temperature": temperature,
-                  "num_ctx": num_ctx,
                   "num_predict": num_predict,
-                  "num_ctx": num_ctx_tokens,
               },
           }
 
           with open("payload.json", "w") as f:
               json.dump(payload, f)
 
-          print(f"Calling {base_url}/api/generate with model {model} …")
+          print(f"Calling {base_url}/api/chat with model {model} …")
 
           result = subprocess.run(
               [
                   "curl", "-sf", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/generate",
+                  "-X", "POST", f"{base_url}/api/chat",
                   "-H", "Content-Type: application/json",
                   "-d", "@payload.json",
               ],
@@ -223,7 +240,7 @@ jobs:
               print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
               sys.exit(1)
 
-          review = data.get("response", "").strip()
+          review = (data.get("message") or {}).get("content", "").strip()
           if not review:
               print("ERROR: Ollama returned an empty response.", file=sys.stderr)
               sys.exit(1)
@@ -242,14 +259,14 @@ jobs:
       - name: Score review against ISSUES.md
         if: steps.diff.outputs.empty == 'false'
         env:
-          SCORECARD_MODEL: Qwen3-Coder-30B:Q3_K_M
+          SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, subprocess, sys
+          import json, os, re, subprocess, sys
 
           model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
           base_url = os.environ.get("OLLAMA_URL")
@@ -292,22 +309,45 @@ jobs:
               "Before scoring each issue, re-read the entire AI review output for any sentence that "
               "could relate to it. Err on the side of Found over Missed when in doubt.\n\n"
               "Your task:\n"
-              "- Work through EVERY issue ID in the reference document "
-              "(C1-C11, L1-L5, R1-R3, E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9, "
-              "and the missing unit tests section).\n"
+              "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
+              "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
+              "row for the entire '## Missing Unit Tests' prose section (see below).\n"
               "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
-              "  1. A summary line: total Found / Partial / Missed counts out of 69 issues.\n"
+              "  1. Exactly ONE summary line of the form: "
+              "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
+              "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
+              "tables after every row is written; T must equal N+P+M (the same as the number of "
+              "data rows in those tables). If your draft counts disagree with the tables, fix "
+              "either the tables or the summary before you stop — never leave contradictory numbers.\n"
               "  2. One table per category matching the categories in the reference document.\n"
               "     Each table must have columns: | ID | Description | Status | Notes |\n"
+              "     Use EXACTLY those four columns — do not insert an extra file/location column "
+              "between ID and Description (ISSUES.md already embeds file and lines inside the "
+              "Description text). Extra columns break automated counting; Notes may contain `|` "
+              "characters, so keep pipe delimiters only between the four columns.\n"
               "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed.\n"
+              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed. "
+              "If Status is Found or Partial, the Note must clearly relate to THAT issue's "
+              "description (not a generic unrelated finding); reuse the same vague note for "
+              "many different IDs is invalid — use Partial or Missed instead.\n"
+              "  3. Row-count rules (strict):\n"
+              "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
+              "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
+              "ONE row for Missing Unit Tests.\n"
+              "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
+              "Description cell, briefly summarize the whole section (no test project / missing "
+              "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
+              "that aggregate topic (missing tests, need for coverage, etc.).\n"
+              "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
+              "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
+              "C1-CF9 and UT.\n"
               "- Do not add any commentary outside the scorecard document.\n\n"
               "---\n"
               "## Reference Issues\n\n"
           )
 
-          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "16384"))
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "4096"))
+          num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
@@ -362,13 +402,81 @@ jobs:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
 
+          _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
+
+          def count_table_statuses(md: str) -> tuple[int, int, int]:
+              """Count Found / Partial / Missed from scorecard tables.
+
+              Rows must be | ID | Description | Status | Notes | but models sometimes insert an
+              extra column (e.g. file path) or put pipes inside Notes. Naive split("|") then mis-
+              classifies Status. We detect the Status column by the first | Found|Partial|Missed |
+              marker, which precedes the Notes cell (even when Notes contains additional pipes).
+              """
+              found = partial = missed = 0
+              for raw in md.splitlines():
+                  line = raw.strip()
+                  if not line.startswith("|"):
+                      continue
+                  parts = [p.strip() for p in line.split("|")]
+                  if len(parts) < 3:
+                      continue
+                  id_cell = parts[1] if len(parts) > 1 else ""
+                  if id_cell.lower() == "id" or not id_cell:
+                      continue
+                  # Markdown separator row (first cell is ---)
+                  if re.match(r"^-{3,}$", id_cell):
+                      continue
+                  m = _STATUS_CELL.search(line)
+                  if not m:
+                      continue
+                  s = m.group(1).lower()
+                  if s == "found":
+                      found += 1
+                  elif s == "partial":
+                      partial += 1
+                  elif s == "missed":
+                      missed += 1
+              return found, partial, missed
+
+          def reconcile_summary_line(md: str) -> str:
+              fnd, prt, mis = count_table_statuses(md)
+              total = fnd + prt + mis
+              if total == 0:
+                  print("WARN: Could not parse any table Status cells; leaving model summary unchanged.")
+                  return md
+              new_line = f"Total: {fnd} Found / {prt} Partial / {mis} Missed out of {total} issues."
+              pattern = re.compile(
+                  r"^Total:\s*\d+\s*Found\s*/\s*\d+\s*Partial\s*/\s*\d+\s*Missed\s*out\s*of\s*\d+\s*issues\.?\s*$",
+                  re.MULTILINE | re.IGNORECASE,
+              )
+              md2, n = pattern.subn(new_line, md, count=1)
+              if n:
+                  print(f"Scorecard summary reconciled from tables: {new_line}")
+                  return md2
+              # No matching summary line — insert machine-derived counts after the first line.
+              insert = "\n" + new_line + "\n"
+              first_nl = md.find("\n")
+              if first_nl != -1:
+                  return md[: first_nl + 1] + insert + md[first_nl + 1 :]
+              return insert + md
+
           header = (
               f"# AI Review Scorecard\n\n"
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
           )
 
+          body = reconcile_summary_line(scorecard)
+          rf, rp, rm = count_table_statuses(body)
+          row_total = rf + rp + rm
+          if row_total != 70:
+              print(
+                  f"WARN: Scorecard has {row_total} table data rows; expected exactly 70 "
+                  f"(69 IDs C1-CF9 plus one UT row for Missing Unit Tests).",
+                  file=sys.stderr,
+              )
+
           with open("issues_scorecard.md", "w") as f:
-              f.write(header + scorecard)
+              f.write(header + body)
 
           print("Scorecard saved to issues_scorecard.md")
           PYEOF
@@ -395,7 +503,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Upload review artifact
         if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
           path: review.md
@@ -403,7 +511,7 @@ jobs:
 
       - name: Upload scorecard artifact
         if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
           path: issues_scorecard.md
