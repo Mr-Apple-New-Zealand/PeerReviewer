@@ -248,6 +248,35 @@ jobs:
           with open("review.md", "w") as f:
               f.write(review)
 
+          def _ns_to_s(ns):
+              return round(ns / 1e9, 1) if ns else 0.0
+          def _tps(tokens, duration_ns):
+              return round(tokens / max(duration_ns / 1e9, 0.001), 1) if tokens and duration_ns else 0.0
+
+          review_metrics = {
+              "model": model,
+              "total_duration_s": _ns_to_s(data.get("total_duration")),
+              "load_duration_s": _ns_to_s(data.get("load_duration")),
+              "prompt_tokens": data.get("prompt_eval_count", 0),
+              "output_tokens": data.get("eval_count", 0),
+              "output_token_limit": num_predict_tokens,
+              "prompt_tps": _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
+              "output_tps": _tps(data.get("eval_count"), data.get("eval_duration")),
+              "context_window": num_ctx_tokens,
+              "context_utilization_pct": round(
+                  (data.get("prompt_eval_count", 0) + data.get("eval_count", 0)) / num_ctx_tokens * 100, 1
+              ),
+              "content_truncated": truncated,
+              "done_reason": data.get("done_reason", ""),
+          }
+          with open("metrics.json", "w") as mf:
+              json.dump({"review": review_metrics}, mf, indent=2)
+
+          print(f"Review metrics: {review_metrics['total_duration_s']}s total | "
+                f"prompt {review_metrics['prompt_tokens']:,} tok @ {review_metrics['prompt_tps']} tok/s | "
+                f"output {review_metrics['output_tokens']:,} tok @ {review_metrics['output_tps']} tok/s | "
+                f"context {review_metrics['context_utilization_pct']}% used | "
+                f"done_reason={review_metrics['done_reason']}")
           print("Review saved to review.md")
           PYEOF
 
@@ -478,7 +507,135 @@ jobs:
           with open("issues_scorecard.md", "w") as f:
               f.write(header + body)
 
+          def _ns_to_s(ns):
+              return round(ns / 1e9, 1) if ns else 0.0
+          def _tps(tokens, duration_ns):
+              return round(tokens / max(duration_ns / 1e9, 0.001), 1) if tokens and duration_ns else 0.0
+
+          scoring_metrics = {
+              "model": model,
+              "total_duration_s": _ns_to_s(data.get("total_duration")),
+              "load_duration_s": _ns_to_s(data.get("load_duration")),
+              "prompt_tokens": data.get("prompt_eval_count", 0),
+              "output_tokens": data.get("eval_count", 0),
+              "prompt_tps": _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
+              "output_tps": _tps(data.get("eval_count"), data.get("eval_duration")),
+              "done_reason": data.get("done_reason", ""),
+          }
+          score_result = {
+              "found": rf, "partial": rp, "missed": rm,
+              "total": row_total,
+              "score_pct": round(rf / max(row_total, 1) * 100, 1),
+          }
+          try:
+              with open("metrics.json") as mf:
+                  all_metrics = json.load(mf)
+          except (FileNotFoundError, json.JSONDecodeError):
+              all_metrics = {}
+          all_metrics["scoring"] = scoring_metrics
+          all_metrics["score"] = score_result
+          all_metrics["combined_total_s"] = round(
+              all_metrics.get("review", {}).get("total_duration_s", 0.0) +
+              scoring_metrics["total_duration_s"], 1
+          )
+          with open("metrics.json", "w") as mf:
+              json.dump(all_metrics, mf, indent=2)
+
+          print(f"Scoring metrics: {scoring_metrics['total_duration_s']}s total | "
+                f"output {scoring_metrics['output_tokens']:,} tok @ {scoring_metrics['output_tps']} tok/s | "
+                f"done_reason={scoring_metrics['done_reason']}")
+          print(f"Combined review + scoring: {all_metrics['combined_total_s']}s")
           print("Scorecard saved to issues_scorecard.md")
+          PYEOF
+
+      # -----------------------------------------------------------------------
+      # Generate a human-readable metrics.md from metrics.json
+      # -----------------------------------------------------------------------
+      - name: Generate metrics report
+        if: steps.diff.outputs.empty == 'false'
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os
+
+          branch_name = os.environ.get("BRANCH_NAME", "")
+          commit_sha  = os.environ.get("COMMIT_SHA", "")
+          run_number  = os.environ.get("RUN_NUMBER", "")
+
+          try:
+              with open("metrics.json") as f:
+                  m = json.load(f)
+          except (FileNotFoundError, json.JSONDecodeError) as exc:
+              print(f"No metrics.json found ({exc}); skipping metrics report.")
+              raise SystemExit(0)
+
+          r  = m.get("review", {})
+          s  = m.get("scoring", {})
+          sc = m.get("score", {})
+          combined = m.get("combined_total_s", 0)
+
+          def fmt_s(secs):
+              if secs >= 60:
+                  return f"{int(secs // 60)}m {secs % 60:.0f}s"
+              return f"{secs:.1f}s"
+
+          out_tokens   = r.get("output_tokens", 0)
+          out_limit    = r.get("output_token_limit", 0)
+          done_review  = r.get("done_reason", "")
+          done_scoring = s.get("done_reason", "")
+          truncated    = r.get("content_truncated", False)
+
+          lines = [
+              "# AI Model Performance Metrics\n",
+              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; "
+              f"**Commit:** `{commit_sha[:7]}` &nbsp;·&nbsp; **Run:** #{run_number}\n",
+              "",
+              "## Score",
+              f"Total: {sc.get('found','?')} Found / {sc.get('partial','?')} Partial / "
+              f"{sc.get('missed','?')} Missed out of {sc.get('total','?')} issues "
+              f"({sc.get('score_pct','?')}% Found)",
+              "",
+              "## Review Performance",
+              f"**Model:** `{r.get('model','?')}`\n",
+              "| Metric | Value |",
+              "|--------|-------|",
+              f"| Total time | {fmt_s(r.get('total_duration_s', 0))} |",
+              f"| Model load time | {fmt_s(r.get('load_duration_s', 0))} |",
+              f"| Inference time | {fmt_s(r.get('total_duration_s', 0) - r.get('load_duration_s', 0))} |",
+              f"| Prompt tokens | {r.get('prompt_tokens', 0):,} |",
+              f"| Output tokens | {out_tokens:,} of {out_limit:,} limit |",
+              f"| Output speed | {r.get('output_tps', 0)} tok/s |",
+              f"| Prompt speed | {r.get('prompt_tps', 0)} tok/s |",
+              f"| Context window | {r.get('context_window', 0):,} tokens |",
+              f"| Context utilization | {r.get('context_utilization_pct', 0)}% |",
+              f"| Content truncated | {'**Yes ⚠**' if truncated else 'No'} |",
+              f"| Completed naturally | {'No ⚠ (hit token limit)' if done_review == 'length' else 'Yes'} |",
+              "",
+              "## Scoring Performance",
+              f"**Model:** `{s.get('model','?')}`\n",
+              "| Metric | Value |",
+              "|--------|-------|",
+              f"| Total time | {fmt_s(s.get('total_duration_s', 0))} |",
+              f"| Model load time | {fmt_s(s.get('load_duration_s', 0))} |",
+              f"| Prompt tokens | {s.get('prompt_tokens', 0):,} |",
+              f"| Output tokens | {s.get('output_tokens', 0):,} |",
+              f"| Output speed | {s.get('output_tps', 0)} tok/s |",
+              f"| Prompt speed | {s.get('prompt_tps', 0)} tok/s |",
+              f"| Completed naturally | {'No ⚠ (hit token limit)' if done_scoring == 'length' else 'Yes'} |",
+              "",
+              "## Combined",
+              "| Metric | Value |",
+              "|--------|-------|",
+              f"| Review + scoring time | {fmt_s(combined)} |",
+          ]
+
+          with open("metrics.md", "w") as f:
+              f.write("\n".join(lines) + "\n")
+
+          print("Metrics report saved to metrics.md")
           PYEOF
 
       # -----------------------------------------------------------------------
@@ -488,6 +645,11 @@ jobs:
       - name: Print scorecard to workflow log
         if: steps.diff.outputs.empty == 'false'
         run: |
+          echo "======================================================================"
+          echo "  PERFORMANCE METRICS"
+          echo "======================================================================"
+          cat metrics.md
+          echo ""
           echo "======================================================================"
           echo "  ISSUES.md SCORECARD"
           echo "======================================================================"
@@ -515,4 +677,14 @@ jobs:
         with:
           name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
           path: issues_scorecard.md
+          retention-days: 90
+
+      - name: Upload metrics artifact
+        if: steps.diff.outputs.empty == 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ai-metrics-${{ github.ref_name }}-${{ github.run_number }}
+          path: |
+            metrics.md
+            metrics.json
           retention-days: 90
