@@ -719,30 +719,16 @@ jobs:
           cat review.md
 
       # -----------------------------------------------------------------------
-      # Upload review and scorecard as downloadable workflow artifacts
+      # Upload review, scorecard, and metrics as one downloadable artifact
       # -----------------------------------------------------------------------
-      - name: Upload review artifact
+      - name: Upload AI review artifact
         if: steps.diff.outputs.empty == 'false'
         uses: actions/upload-artifact@v7
         with:
           name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
-          path: review.md
-          retention-days: 90
-
-      - name: Upload scorecard artifact
-        if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
-          path: issues_scorecard.md
-          retention-days: 90
-
-      - name: Upload metrics artifact
-        if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ai-metrics-${{ github.ref_name }}-${{ github.run_number }}
           path: |
+            review.md
+            issues_scorecard.md
             metrics.md
             metrics.json
           retention-days: 90
