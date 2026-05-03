@@ -1,25 +1,25 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Gemma-4` &nbsp;·&nbsp; **Commit:** `58107d3` &nbsp;·&nbsp; **Run:** #69
+> **Branch:** `Qwen3.5-122B` &nbsp;·&nbsp; **Commit:** `c3570e5` &nbsp;·&nbsp; **Run:** #78
 
 
 ## Score
 Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
 
 ## Review Performance
-**Model:** `Gemma-4-31B-it-imatrix:Q4_K_M`
+**Model:** `Qwen3.5-122B-imatrix:Q4_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 21m 54s |
-| Model load time | 17.0s |
-| Inference time | 21m 37s |
-| Prompt tokens | 8,241 |
-| Output tokens | 4,186 of 16,384 limit |
-| Output speed | 4.1 tok/s |
-| Prompt speed | 30.0 tok/s |
+| Total time | 4m 15s |
+| Model load time | 23.0s |
+| Inference time | 3m 52s |
+| Prompt tokens | 7,841 |
+| Output tokens | 13,175 of 16,384 limit |
+| Output speed | 59.1 tok/s |
+| Prompt speed | 1731.1 tok/s |
 | Context window | 32,768 tokens |
-| Context utilization | 37.9% |
+| Context utilization | 64.1% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +28,15 @@ Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 8m 31s |
-| Model load time | 39.3s |
-| Prompt tokens | 6,405 |
-| Output tokens | 3,150 |
-| Output speed | 7.7 tok/s |
-| Prompt speed | 105.9 tok/s |
+| Total time | 45.4s |
+| Model load time | 7.4s |
+| Prompt tokens | 16,679 |
+| Output tokens | 3,829 |
+| Output speed | 113.4 tok/s |
+| Prompt speed | 5144.6 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 30m 25s |
+| Review + scoring time | 5m 1s |
