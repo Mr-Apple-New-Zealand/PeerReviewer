@@ -1,563 +1,183 @@
-**## 1. Security Vulnerabilities**
+**Code Review Report – Branch `gpt-oss-120B` (commit 3345fac8)**  
 
+---
+
+## 1. Security Vulnerabilities
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 23 | Builds SQL with interpolated `username` and `hashedPassword` → SQL injection risk. | Use parameterised query (`@username`, `@pwd`) with `SqlCommand.Parameters`. |
-| AuthService.cs | 9 | Stores admin back‑door password in source (`AdminBypassPassword`). | Remove back‑door; use proper admin account with hashed password. |
-| AuthService.cs | 12 | Passwords hashed with MD5 (broken cryptography). | Replace with a strong algorithm (e.g., BCrypt, Argon2). |
-| AuthService.cs | 71 | `ValidateLifetime = false` disables JWT expiration checks. | Set `ValidateLifetime = true` and use reasonable token lifetime. |
-| Program.cs | 31 | `app.UseDeveloperExceptionPage();` runs in all environments. | Enable only in Development (`if (app.Environment.IsDevelopment())`). |
-| Program.cs | 35 | HTTPS redirection is commented out. | Uncomment `app.UseHttpsRedirection();`. |
-| Program.cs | 37 | CORS policy allows any origin, method, header. | Restrict to known origins and required methods. |
-| EmailService.cs | 15 | `EnableSsl = false` when sending email. | Set `EnableSsl = true` and use TLS. |
-| EmailService.cs | 9‑12 | SMTP credentials (`Email:Username`, `Email:Password`) stored in plain text config. | Move secrets to a secure store (Azure Key Vault, user‑secrets, env vars). |
-| DatabaseHelper.cs | 15 | Fallback connection string contains hard‑coded SA credentials. | Remove fallback; require proper config and never commit credentials. |
-| DatabaseHelper.cs | 31 | `ExecuteQuery` concatenates `tableName` and `whereClause` → SQL injection. | Remove method or enforce whitelist and parameterisation. |
-| UserService.cs | 46 | `UpdateUser` builds SQL with interpolated `email` and `username`. | Use parameterised query. |
-| UserService.cs | 58 | `DeleteUser` builds SQL with interpolated `id`. | Use parameterised query. |
-| UserService.cs | 78 | `SearchUsers` builds raw `LIKE` clause with user input → injection. | Use parameterised query (`@q`) with `%` wildcards. |
-| appsettings.json | 5‑9 | Connection string, JWT secret, email password are hard‑coded secrets. | Move to secure secret store; never commit plaintext secrets. |
-| appsettings.json | 12‑14 | JWT secret key is short and predictable (`mysecretkey`). | Generate a strong random key (≥256‑bit). |
-| StringHelper.cs | 9 | `IsValidEmail` does not check for null before `email.Length`. | Add null guard (`if (string.IsNullOrEmpty(email)) return false`). |
-| EmailService.cs | 7 | `SmtpClient` is stored as a field and never disposed. | Implement `IDisposable` on `EmailService` and dispose the client. |
-| TransactionService.cs | 30 | Fee is calculated but balance check ignores fee (`fromBalance >= amount`). | Compare against `totalDebit`. |
-| TransactionService.cs | 44‑45 | Updates to two accounts are separate statements without a transaction. | Wrap updates in a DB transaction (`BEGIN TRANSACTION`). |
-| TransactionService.cs | 71 | `RecordTransaction` interpolates `description` directly into SQL. | Parameterise `description`. |
-| TransactionService.cs | 23 | `ExecuteNonQuery` called with interpolated numeric values; connection not disposed. | Use `using` and parameterised command. |
-| TransactionService.cs | 12 | `TransactionFeeRate` and `MaxTransactionsPerDay` are magic numbers in code. | Move to configuration. |
-| TransactionService.cs | 84 | `IsWithinDailyLimit` is never used, allowing unlimited daily transfers. | Call the method before processing a transfer. |
-| TransactionService.cs | 98 | `RefundTransaction` throws `NotImplementedException` but controller catches it and returns 500. | Implement refund or return proper 501 Not Implemented. |
-| TransactionService.cs | 5 | `TransactionFeeRate` is a constant but not configurable per business rules. | Externalise to config. |
-| TransactionService.cs | 6 | `MaxTransactionsPerDay` is a constant but not enforced. | Enforce limit in `Transfer`. |
-| TransactionService.cs | 71 | `description` may be null; inserted as empty string – could hide missing data. | Allow null in DB or provide default. |
-| TransactionService.cs | 71 | SQL string uses single quotes around `type` and `status` – risk if values contain quotes. | Parameterise all string values. |
-| TransactionService.cs | 71 | `GETDATE()` used directly – may cause timezone issues. | Use UTC (`GETUTCDATE()`). |
-| TransactionService.cs | 71 | No check that `toUserId` exists before updating balance. | Verify recipient exists. |
-| TransactionService.cs | 71 | No check that `fromUserId` != `toUserId` (self‑transfer). | Add self‑transfer guard. |
-| TransactionService.cs | 71 | No audit logging for transfers. | Add audit entry. |
-| TransactionService.cs | 71 | No rate‑limiting on transfers. | Implement throttling. |
-| TransactionService.cs | 71 | No validation of `description` length. | Enforce max length. |
-| TransactionService.cs | 71 | No validation that `amount` > 0 (only `<0` check). | Change to `<= 0`. |
-| TransactionService.cs | 71 | No check for overflow when adding fee to balance. | Validate resulting balance within limits. |
-| TransactionService.cs | 71 | No handling of DB errors (e.g., deadlocks). | Add retry logic or proper exception handling. |
-| TransactionService.cs | 71 | No logging of failed transfers. | Log failures with context. |
-| TransactionService.cs | 71 | No unit tests for fee calculation. | Add tests. |
-| TransactionService.cs | 71 | No concurrency control; race condition on balance updates. | Use row‑level locking or optimistic concurrency. |
-| TransactionService.cs | 71 | No check for user `IsActive` before transfer. | Verify both accounts are active. |
-| TransactionService.cs | 71 | No check for negative `amount` in `Deposit`. | Already present but ensure same logic. |
-| TransactionService.cs | 71 | No check that `interestBonus` does not exceed limits. | Validate. |
-| TransactionService.cs | 71 | No audit for deposits. | Add audit. |
-| TransactionService.cs | 71 | No verification that `userId` exists before deposit. | Verify. |
-| TransactionService.cs | 71 | No handling of DB connection failures. | Add retry/exception handling. |
-| TransactionService.cs | 71 | No logging of exceptions. | Log. |
-| TransactionService.cs | 71 | No unit tests for daily limit logic. | Add tests. |
-| TransactionService.cs | 71 | No check for `description` length. | Enforce. |
-| TransactionService.cs | 71 | No check for `amount` precision (cents). | Round to 2 decimals. |
-| TransactionService.cs | 71 | No check for `amount` exceeding max deposit limit (already). | Ensure consistent. |
-| TransactionService.cs | 71 | No check for `amount` negative in `Transfer`. | Already. |
-| TransactionService.cs | 71 | No check for `amount` zero. | Disallow zero. |
-| TransactionService.cs | 71 | No check for `fromUserId` existence. | Verify. |
-| TransactionService.cs | 71 | No check for `toUserId` existence. | Verify. |
-| TransactionService.cs | 71 | No check for `fromUserId` being active. | Verify. |
-| TransactionService.cs | 71 | No check for `toUserId` being active. | Verify. |
-| TransactionService.cs | 71 | No check for `fromUserId` having sufficient funds after fee. | Already. |
-| TransactionService.cs | 71 | No check for `fromUserId` having enough balance for fee. | Already. |
-| TransactionService.cs | 71 | No check for `toUserId` being same as `fromUserId`. | Add guard. |
-| TransactionService.cs | 71 | No check for `description` null handling. | Ensure safe. |
-| TransactionService.cs | 71 | No check for `description` length. | Enforce. |
-| TransactionService.cs | 71 | No check for `description` injection. | Parameterise. |
-| TransactionService.cs | 71 | No check for `amount` overflow. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` underflow. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` exceeding max transaction amount. | Enforce business rule. |
-| TransactionService.cs | 71 | No check for `amount` being negative. | Already. |
-| TransactionService.cs | 71 | No check for `amount` being zero. | Disallow. |
-| TransactionService.cs | 71 | No check for `amount` being too small (e.g., < $0.01). | Enforce min. |
-| TransactionService.cs | 71 | No check for `amount` being too large for daily limit. | Enforce. |
-| TransactionService.cs | 71 | No check for `amount` being a valid decimal. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being NaN/Infinity. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being too precise (more than 2 decimals). | Round. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being zero after fee rounding. | Validate. |
-| TransactionService.cs | 71 | No check for `amount` being negative after fee rounding. | Validate.
+| AuthService.cs | 22 | SQL query built with string interpolation → SQL injection risk. | Use parameterised `SqlCommand` with `@Username` and `@Password`. |
+| AuthService.cs | 24 | Password hashed with MD5 – weak, unsalted. | Switch to a strong algorithm (e.g., PBKDF2, BCrypt, Argon2) with a per‑user salt. |
+| AuthService.cs | 30 | Hard‑coded admin bypass password. | Remove back‑door; enforce normal authentication only. |
+| Program.cs | 30 | `ValidateLifetime = false` disables JWT expiry validation. | Set `ValidateLifetime = true` and configure reasonable clock skew. |
+| Program.cs | 12 | `UseDeveloperExceptionPage()` always enabled – exposes stack traces. | Enable only in Development environment (`if (app.Environment.IsDevelopment())`). |
+| Program.cs | 15 | HTTPS redirection commented out – traffic may be plain HTTP. | Uncomment `app.UseHttpsRedirection();`. |
+| Program.cs | 17 | CORS policy `AllowAnyOrigin/Method/Header` – overly permissive. | Restrict origins to known clients and limit methods/headers. |
+| appsettings.json | 3 | Connection string contains hard‑coded SA password. | Move credentials to a secret store / environment variable; never commit passwords. |
+| appsettings.json | 12 | JWT secret key hard‑coded in source. | Store secret in a secure vault or environment variable. |
+| appsettings.json | 18 | Email SMTP credentials hard‑coded. | Move to secret store; enable TLS (`EnableSsl = true`). |
+| EmailService.cs | 13 | `EnableSsl = false` – sends credentials in clear text. | Set `EnableSsl = true` and use STARTTLS/SMTPS. |
+| DatabaseHelper.cs | 22 | `ExecuteQuery` builds SQL from `tableName` and `whereClause` via interpolation → injection. | Validate identifiers and use parameters for `whereClause`. |
+| DatabaseHelper.cs | 33 | `ExecuteNonQuery` uses interpolated SQL → injection. | Use parameterised commands. |
+| TransactionService.cs | 30 | `Transfer` updates balances with interpolated SQL → injection. | Use parameters for new balances and IDs. |
+| TransactionService.cs | 61 | `Deposit` updates balance with interpolated SQL → injection. | Use parameters. |
+| UserService.cs | 45 | `UpdateUser` builds SQL with interpolated email/username → injection. | Use parameters and validate inputs. |
+| UserService.cs | 58 | `DeleteUser` builds SQL with interpolated ID → injection. | Use parameters. |
+| UserService.cs | 84 | `SearchUsers` builds raw `LIKE` clause with user input → injection. | Use parameterised query (`WHERE Username LIKE @q`). |
+| TransactionService.cs | 84 | `RecordTransaction` inserts `description` directly → injection & null handling. | Parameterise all fields; handle null safely. |
+| AuthService.cs | 84 | `ValidateToken` returns `true` before any validation – token bypass. | Remove early `return`; perform proper validation. |
+| EmailService.cs | 9‑10 | `SmtpClient` stored as a field (not thread‑safe) and never disposed. | Create a new `SmtpClient` per send or wrap in `using`; dispose after use. |
+| DatabaseHelper.cs | 12 | Fallback connection string contains hard‑coded credentials. | Remove fallback or load from secure source. |
+
+---
+
+## 2. Logic Errors
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| TransactionService.cs | 27 | Fee not included in balance check (`fromBalance >= amount`). | Check `fromBalance >= totalDebit`. |
+| TransactionService.cs | 22 | Allows zero or negative amount (`amount < 0` only). | Change to `if (amount <= 0)`. |
+| TransactionService.cs | 84 | `description` may be `null`; inserted as literal `null` string in SQL. | Pass `DBNull.Value` or use parameter with nullable handling. |
+| TransactionService.cs | 44 | Interest bonus calculation multiplies by `1` unnecessarily. | Simplify to `amount * 0.05m`. |
+| UserService.cs | 30 | Pagination offset calculated as `page * pageSize` (off‑by‑one). | Use `int skip = (page - 1) * pageSize;`. |
+| UserService.cs | 30 | No validation that `page` is ≥ 1; negative pages produce large skips. | Clamp `page` to minimum 1. |
+| AuthService.cs | 30 | Admin bypass password grants unrestricted access. | Remove bypass; enforce normal credential check. |
+| TransactionService.cs | 24 | No check for self‑transfer (`fromUserId == toUserId`). | Reject or treat as no‑op. |
+| TransactionService.cs | 24 | Does not enforce `MaxTransactionsPerDay`. | Call `IsWithinDailyLimit` before proceeding. |
+| TransactionService.cs | 24 | Does not verify that `toUserId` exists before debit. | Ensure `toUserTable.Rows.Count > 0` and handle missing target. |
+| AuthService.cs | 84 | Unreachable validation code after early `return`. | Remove dead code and implement proper validation. |
+| UserService.cs | 84 | `SearchUsers` may throw if `query` contains `'` or is null. | Escape input or use parameterised query; validate null. |
+| UserService.cs | 45 | No validation of `email`/`username` format before update. | Validate with `StringHelper.IsValidEmail/Username`. |
+| UserService.cs | 58 | No check that user exists before delete; may silently succeed. | Verify existence and return appropriate status. |
+
+---
+
+## 3. Error Handling
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| AuthService.cs | 22‑30 | `SqlConnection`, `SqlCommand`, `SqlDataReader` not wrapped in `using`; exceptions bubble up. | Wrap in `using` blocks and log/return a generic error. |
+| TransactionService.cs | 30‑70 | No `try/catch` around DB updates; any failure returns 500 without context. | Add exception handling, log, and return a controlled error response. |
+| EmailService.cs | 38‑45 | `SendTransferNotification` re‑throws after max retries – controller may not handle. | Return a result indicating failure; log appropriately. |
+| EmailService.cs | 55‑60 | `SendWelcomeEmail` catches generic `Exception` and only writes to console. | Log via `ILogger`, propagate or return status. |
+| EmailService.cs | 71‑76 | `SendWelcomeEmailHtml` has no exception handling. | Wrap send in `try/catch` and log failures. |
+| UserService.cs | 84‑92 | `SearchUsers` catches generic `Exception` and returns empty list, hiding errors. | Log the exception and return appropriate error code. |
+| DatabaseHelper.cs | 22‑28 | `ExecuteQuery` opens connection and never disposes it. | Use `using` for connection, command, and adapter. |
+| DatabaseHelper.cs | 33‑38 | `ExecuteNonQuery` opens connection, closes it, but does not dispose. | Use `using` for connection and command. |
+| Program.cs | 12 | `UseDeveloperExceptionPage` always enabled – leaks internal errors to clients. | Enable only in Development environment. |
+| AuthService.cs | 84 | Early `return true` bypasses token validation; errors not reported. | Remove early return and perform proper validation. |
+| EmailService.cs | 13 | Uses `Console.WriteLine` for error output instead of structured logging. | Inject `ILogger<EmailService>` and log errors. |
+
+---
+
+## 4. Resource Leaks
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| AuthService.cs | 22‑30 | `SqlConnection`, `SqlCommand`, `SqlDataReader` never disposed. | Wrap each in `using`. |
+| DatabaseHelper.cs | 12‑14 | `GetOpenConnection` returns an open connection; callers do not dispose. | Return a closed connection or provide a `using` pattern; ensure callers dispose. |
+| DatabaseHelper.cs | 22‑28 | `ExecuteQuery` leaves connection open. | Use `using` for connection/command/adapter. |
+| DatabaseHelper.cs | 33‑38 | `ExecuteNonQuery` leaves connection undisposed. | Use `using`. |
+| EmailService.cs | 9‑15 | `SmtpClient` stored as a field and never disposed. | Dispose in `Dispose` method or create per‑send with `using`. |
+| EmailService.cs | 38‑45 | `MailMessage` created but not disposed. | Wrap in `using`. |
+| EmailService.cs | 55‑60 | `MailMessage` in `SendWelcomeEmail` not disposed. | Wrap in `using`. |
+| EmailService.cs | 71‑76 | `MailMessage` in `SendWelcomeEmailHtml` not disposed. | Wrap in `using`. |
+| TransactionService.cs | 30‑70 | Calls to `ExecuteNonQuery` (which leaks connections) for balance updates. | Ensure `ExecuteNonQuery` disposes its connection or use `using` directly. |
+| TransactionService.cs | 84‑90 | `RecordTransaction` uses `ExecuteNonQuery` → connection leak. | Same as above. |
+
+---
+
+## 5. Null Reference Risks
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| TransactionController.cs | 23 | `userIdClaim` may be `null`; `int.Parse(userIdClaim!)` will throw. | Validate claim existence and return `Unauthorized` if missing. |
+| TransactionController.cs | 38 | Same issue for deposit endpoint. | Same fix. |
+| AuthService.cs | 71 | `_config["Jwt:SecretKey"]!` may be `null` → `ArgumentNullException`. | Validate and throw a clear configuration error. |
+| EmailService.cs | 38‑45 | `toEmail` could be `null`; `MailMessage` constructor will throw. | Validate email before sending. |
+| EmailService.cs | 55‑60 | `username` may be `null`; `.ToUpper()` throws. | Guard against null or use `?.ToUpper()`. |
+| UserService.cs | 84‑92 | `query` may be `null`; string interpolation creates `LIKE '%null%'`. | Return empty result or treat null as empty string. |
+| StringHelper.cs | 31‑33 | `IsBlank` checks `value == ""` before `Trim`; fine but could be simplified. | No immediate NRE, but could be streamlined. |
+| EmailService.cs | 71‑76 | `toEmail` may be `null` in HTML email method. | Validate before creating `MailMessage`. |
+
+---
+
+## 6. Dead Code
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| AuthService.cs | 84‑92 | `ValidateToken` returns before any validation; remaining code unreachable. | Remove dead code and implement proper validation. |
+| DatabaseHelper.cs | 55‑66 | `ExecuteQueryWithParams` marked `[Obsolete]` but still compiled; not used anywhere. | Delete or replace with `ExecuteQuerySafe`. |
+| TransactionService.cs | 20‑22 | `IsWithinDailyLimit` never called. | Either use it in `Transfer` or remove. |
+| TransactionService.cs | 98‑101 | `FormatCurrency` never used. | Remove or expose if needed. |
+| StringHelper.cs | 31‑38 | `JoinWithSeparator` (inefficient) not referenced anywhere. | Delete or replace calls with `JoinWithSeparatorFixed`. |
+| Program.cs | 15 | HTTPS redirection line commented out. | Either enable or remove comment. |
+| TransactionService.cs | 108‑112 | `RefundTransaction` throws `NotImplementedException`; controller catches and returns generic 500. | Implement refund logic or return `NotImplemented` status (501). |
+
+---
+
+## 7. Magic Strings and Numbers
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| DatabaseHelper.cs | 12 | Fallback connection string hard‑coded with credentials. | Move to secure configuration. |
+| AuthService.cs | 30 | Hard‑coded admin bypass password. | Remove; use proper auth. |
+| EmailService.cs | 9‑12 | Email subjects, from address, support address hard‑coded. | Store in configuration. |
+| Program.cs | 17 | CORS policy `AllowAnyOrigin/Method/Header`. | Replace with named policy and configurable origins. |
+| UserService.cs | 30 | Page size limit `50` hard‑coded. | Move to a constant or config. |
+| EmailService.cs | 13‑15 | `MaxRetries = 3`, `SmtpTimeoutMs = 5000`. | Move to config if needed. |
+| TransactionService.cs | 13 | `TransactionFeeRate = 0.015m`. | Move to config/constant with comment. |
+| TransactionService.cs | 14 | `MaxTransactionsPerDay = 10`. | Move to config. |
+| TransactionService.cs | 44 | Interest bonus rate `0.05m`. | Move to config. |
+| AuthService.cs | 71 | JWT secret key, issuer, audience read from config but defaults are hard‑coded in `appsettings.json`. | Store secrets in environment/secret manager. |
+| Program.cs | 30 | JWT token expiry `AddDays(30)`. | Make configurable. |
+| appsettings.json | 5‑7 | Logging levels set to `Debug` for all categories. | Use `Information` or `Warning` for production. |
+
+---
+
+## 8. Anti‑patterns and Code Quality
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| StringHelper.cs | 31‑38 | `JoinWithSeparator` builds string via repeated concatenation (O(n²)). | Use `string.Join` or `StringBuilder`. |
+| StringHelper.cs | 13‑15, 19‑21 | `new Regex` created on each call. | Cache compiled regex as `static readonly`. |
+| AuthService.cs | 24 | MD5 hashing for passwords. | Replace with a strong password‑hashing algorithm. |
+| AuthService.cs | 22‑30 | Raw SQL built with string interpolation. | Use parameterised queries. |
+| DatabaseHelper.cs | 22‑38 | Many methods open connections without `using`. | Refactor to `using` or async equivalents. |
+| TransactionService.cs | 30‑70 | Direct SQL string interpolation for updates. | Parameterise. |
+| UserService.cs | 45‑58 | Direct SQL interpolation for updates/deletes. | Parameterise. |
+| UserService.cs | 5‑6 | Static mutable lists (`_auditLog`, `_requestCount`) – not thread‑safe. | Use concurrent collections or remove static state. |
+| EmailService.cs | 9‑15 | `SmtpClient` stored as a field (not thread‑safe) and never disposed. | Create per‑send or wrap in `using`. |
+| EmailService.cs | 38‑45, 55‑60, 71‑76 | Uses `Console.WriteLine` for error reporting. | Inject `ILogger<EmailService>` and log. |
+| TransactionService.cs | 84‑90 | `RecordTransaction` builds SQL with string interpolation, including nullable `description`. | Parameterise and handle nulls. |
+| Program.cs | 12 | `UseDeveloperExceptionPage` enabled in all environments. | Guard with environment check. |
+| All services | – | No async/await usage for I/O‑bound DB/email calls. | Implement async APIs (`ExecuteNonQueryAsync`, etc.). |
+| All services | – | No input validation before DB writes (e.g., email format, username). | Centralise validation (e.g., `StringHelper`). |
+| All services | – | No unit‑testable separation; business logic tightly coupled to ADO.NET. | Introduce repository interfaces and mockable abstractions. |
+
+---
+
+## 9. Configuration Issues
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| Program.cs | 12 | `UseDeveloperExceptionPage()` always on – leaks details. | Enable only in Development (`if (app.Environment.IsDevelopment())`). |
+| Program.cs | 30 | `ValidateLifetime = false` disables JWT expiry checks. | Set to `true`. |
+| Program.cs | 17 | CORS policy `AllowAnyOrigin/Method/Header` – insecure. | Define a named policy with allowed origins. |
+| Program.cs | 15 | HTTPS redirection commented out. | Uncomment to enforce HTTPS. |
+| appsettings.json | 3‑7 | Database credentials, JWT secret, email password stored in plain text. | Move to secret manager / environment variables; never commit. |
+| appsettings.json | 11‑13 | Logging level set to `Debug` for all categories. | Use `Information`/`Warning` for production. |
+| appsettings.json | – | No `appsettings.Production.json` override. | Add environment‑specific config files. |
+| Program.cs | – | No rate‑limiting or lockout on authentication endpoints. | Add middleware (e.g., `AspNetCoreRateLimit`). |
+| Program.cs | – | No HSTS header configuration. | Add `app.UseHsts();` in production. |
+| Program.cs | – | No health‑check endpoint configured. | Add `app.MapHealthChecks("/health")`. |
+
+---
+
+## 10. Missing Unit Tests
+| Area | Reason | Suggested Tests |
+|------|--------|-----------------|
+| **AuthService.Login** | Critical authentication path; contains SQL & password logic. | Valid credentials succeed; invalid credentials fail; SQL injection attempt is rejected; admin bypass removed. |
+| **AuthService.GenerateJwtToken / ValidateToken** | JWT creation and validation. | Token contains correct claims; expired token rejected; malformed token rejected; `ValidateLifetime` enforced. |
+| **TransactionService.Transfer** | Money movement, fee calculation, balance checks. | Successful transfer updates balances correctly (including fee); insufficient funds rejected; self‑transfer rejected; daily‑limit enforcement; negative/zero amount rejected; SQL injection attempts blocked. |
+| **TransactionService.Deposit** | Deposit with interest bonus. | Valid deposit updates balance with bonus; amount limits enforced; negative/zero amount rejected. |
+| **TransactionService.IsWithinDailyLimit** | Daily transaction cap logic. | Returns false after reaching limit; true otherwise. |
+| **UserService.GetUsersPage** | Pagination logic. | Correct number of items returned; off‑by‑one offset fixed; pageSize capped at 50; negative page handled gracefully. |
+| **UserService.SearchUsers** | Search with user‑supplied input. | Proper results returned; SQL injection attempt does not break; empty query returns all or none as defined. |
+| **StringHelper.IsValidEmail / IsValidUsername** | Input validation. | Accepts valid formats; rejects invalid ones; edge‑case lengths. |
+| **EmailService.SendTransferNotification & SendWelcomeEmail** | Email sending flow and error handling. | Successful send; SMTP failure retries; exception handling does not crash service; TLS enabled. |
+| **DatabaseHelper.ExecuteQuerySafe / ExecuteNonQuery** | Parameterised query handling. | Queries return expected data; injection attempts fail; connections disposed. |
+| **Overall API Controllers** | End‑to‑end request handling. | Authentication required for protected routes; proper status codes for success/failure; model validation errors return 400. |
+
+*No test project was found in the repository; creating a dedicated `SampleBankingApp.Tests` project with the above test cases is strongly recommended.*
