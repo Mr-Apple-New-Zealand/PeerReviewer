@@ -9,7 +9,8 @@ permissions:
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
   OLLAMA_MODEL: Qwen3-Coder-30B-imatrix:Q3_K_M
-  AI_ASSISTANT_MODEL_NUM_CTX: 32768
+  AI_ASSISTANT_MODEL_NUM_CTX: 49152
+  AI_ASSISTANT_MODEL_NUM_PREDICT: 24576
 
 jobs:
   code-review:
@@ -29,6 +30,8 @@ jobs:
         run: |
           val="${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}"
           if [ -n "$val" ]; then echo "AI_ASSISTANT_MODEL_NUM_CTX=$val" >> "$GITHUB_ENV"; fi
+          pred="${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}"
+          if [ -n "$pred" ]; then echo "AI_ASSISTANT_MODEL_NUM_PREDICT=$pred" >> "$GITHUB_ENV"; fi
 
       # -----------------------------------------------------------------------
       # Collect every tracked source file on the branch into a single document
@@ -82,7 +85,6 @@ jobs:
       - name: Request review from Ollama
         if: steps.diff.outputs.empty == 'false'
         env:
-          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -289,7 +291,6 @@ jobs:
         if: steps.diff.outputs.empty == 'false'
         env:
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
-          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
