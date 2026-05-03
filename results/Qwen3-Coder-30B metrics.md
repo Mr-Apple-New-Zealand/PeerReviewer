@@ -1,23 +1,23 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Qwen3-Coder-30B` &nbsp;·&nbsp; **Commit:** `fd69971` &nbsp;·&nbsp; **Run:** #70
+> **Branch:** `Qwen3-Coder-30B` &nbsp;·&nbsp; **Commit:** `07355f9` &nbsp;·&nbsp; **Run:** #80
 
 
 ## Score
-Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
+Total: 55 Found / 15 Partial / 0 Missed out of 70 issues (78.6% Found)
 
 ## Review Performance
 **Model:** `Qwen3-Coder-30B-imatrix:Q3_K_M`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 62m 31s |
+| Total time | 2m 20s |
 | Model load time | 0.1s |
-| Inference time | 62m 31s |
-| Prompt tokens | 7,101 |
+| Inference time | 2m 20s |
+| Prompt tokens | 7,103 |
 | Output tokens | 16,384 of 16,384 limit |
-| Output speed | 4.4 tok/s |
-| Prompt speed | 461.9 tok/s |
+| Output speed | 121.1 tok/s |
+| Prompt speed | 5653.3 tok/s |
 | Context window | 32,768 tokens |
 | Context utilization | 71.7% |
 | Content truncated | No |
@@ -28,15 +28,15 @@ Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 12m 45s |
+| Total time | 32.8s |
 | Model load time | 0.1s |
-| Prompt tokens | 15,412 |
-| Output tokens | 3,027 |
-| Output speed | 4.1 tok/s |
-| Prompt speed | 498.3 tok/s |
+| Prompt tokens | 17,096 |
+| Output tokens | 3,244 |
+| Output speed | 113.8 tok/s |
+| Prompt speed | 4997.7 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 75m 16s |
+| Review + scoring time | 2m 53s |
