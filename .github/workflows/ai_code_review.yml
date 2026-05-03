@@ -355,10 +355,16 @@ jobs:
               "Description text). Extra columns break automated counting; Notes may contain `|` "
               "characters, so keep pipe delimiters only between the four columns.\n"
               "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting the relevant part of the review, or blank if Missed. "
-              "If Status is Found or Partial, the Note must clearly relate to THAT issue's "
-              "description (not a generic unrelated finding); reuse the same vague note for "
-              "many different IDs is invalid — use Partial or Missed instead.\n"
+              "     Notes: one sentence quoting or closely paraphrasing the relevant part of the "
+              "review, or blank if Missed. If Status is Found or Partial, the Note must clearly "
+              "relate to THAT row's Description (same vulnerability, bug, or symbol named there). "
+              "Reusing the same Note text for multiple different IDs is invalid — use Partial or "
+              "Missed instead for rows the review does not actually cover.\n"
+              "     Concretely: for dead-code rows D1-D11, each Found/Partial Note must mention "
+              "that row's specific unused symbol or scenario (e.g. D1 → HashPasswordSha1, D4 → "
+              "ExecuteQueryWithParams). Copy-pasting one JoinWithSeparator sentence for every "
+              "D-row is wrong. Likewise, do not paste one SmtpClient or Transfer paragraph "
+              "under unrelated SQL-injection or pagination IDs.\n"
               "  3. Row-count rules (strict):\n"
               "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
               "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
@@ -431,7 +437,17 @@ jobs:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
 
+          # Workflow prepends its own H1 + branch/commit line; drop duplicate title from model.
+          scorecard = re.sub(
+              r"^#\s*AI\s+Review\s+Scorecard\s*\n+",
+              "",
+              scorecard,
+              count=1,
+              flags=re.IGNORECASE,
+          ).lstrip()
+
           _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
+          _ROW_ID = re.compile(r"^\|\s*([A-Z]{1,3}\d*|UT)\s*\|", re.IGNORECASE)
 
           def count_table_statuses(md: str) -> tuple[int, int, int]:
               """Count Found / Partial / Missed from scorecard tables.
@@ -467,6 +483,47 @@ jobs:
                       missed += 1
               return found, partial, missed
 
+          def warn_repeated_notes(md: str) -> None:
+              """Emit WARN when the scorer pasted identical Notes for many distinct issue IDs."""
+              from collections import defaultdict
+
+              note_to_ids = defaultdict(list)
+              for raw in md.splitlines():
+                  line = raw.strip()
+                  if not line.startswith("|"):
+                      continue
+                  m_id = _ROW_ID.match(line)
+                  if not m_id:
+                      continue
+                  issue_id = m_id.group(1).upper()
+                  if issue_id == "ID":
+                      continue
+                  if re.match(r"^-{3,}$", issue_id):
+                      continue
+                  m = _STATUS_CELL.search(line)
+                  if not m:
+                      continue
+                  status = m.group(1).lower()
+                  if status not in ("found", "partial"):
+                      continue
+                  notes = line[m.end() :].lstrip("|").strip()
+                  if len(notes) < 20:
+                      continue
+                  norm = re.sub(r"\s+", " ", notes).strip().lower()
+                  note_to_ids[norm].append(issue_id)
+
+              for norm, ids in note_to_ids.items():
+                  if len(ids) >= 3:
+                      uniq = sorted(set(ids), key=lambda x: (len(x), x))
+                      preview = norm[:140] + ("…" if len(norm) > 140 else "")
+                      print(
+                          "WARN: Scorecard reused the same Notes text for "
+                          f"{len(uniq)} issues ({', '.join(uniq)}). "
+                          "Scorer model ignored per-issue Notes rules; compare review.md. "
+                          f"Example: {preview!r}",
+                          file=sys.stderr,
+                      )
+
           def reconcile_summary_line(md: str) -> str:
               fnd, prt, mis = count_table_statuses(md)
               total = fnd + prt + mis
@@ -495,6 +552,7 @@ jobs:
           )
 
           body = reconcile_summary_line(scorecard)
+          warn_repeated_notes(body)
           rf, rp, rm = count_table_statuses(body)
           row_total = rf + rp + rm
           if row_total != 70:
@@ -661,31 +719,16 @@ jobs:
           cat review.md
 
       # -----------------------------------------------------------------------
-      # Upload review and scorecard as downloadable workflow artifacts
+      # Upload review, scorecard, and metrics as one downloadable artifact
       # -----------------------------------------------------------------------
-      - name: Upload review artifact
+      - name: Upload AI review artifact
         if: steps.diff.outputs.empty == 'false'
         uses: actions/upload-artifact@v7
         with:
           name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
-          path: review.md
-          retention-days: 90
-
-      - name: Upload scorecard artifact
-        if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ai-scorecard-${{ github.ref_name }}-${{ github.run_number }}
-          path: issues_scorecard.md
-          retention-days: 90
-
-      - name: Upload metrics artifact
-        if: steps.diff.outputs.empty == 'false'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ai-metrics-${{ github.ref_name }}-${{ github.run_number }}
           path: |
+            review.md
+            issues_scorecard.md
             metrics.md
             metrics.json
           retention-days: 90
-
