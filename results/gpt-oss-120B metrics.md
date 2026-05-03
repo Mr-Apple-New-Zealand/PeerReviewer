@@ -1,42 +1,42 @@
 # AI Model Performance Metrics
 
-> **Branch:** `gpt-oss-120B` &nbsp;·&nbsp; **Commit:** `4d1f610` &nbsp;·&nbsp; **Run:** #63
+> **Branch:** `gpt-oss-120B` &nbsp;·&nbsp; **Commit:** `5264b8a` &nbsp;·&nbsp; **Run:** #82
 
 
 ## Score
-Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
+Total: 69 Found / 1 Partial / 0 Missed out of 70 issues (98.6% Found)
 
 ## Review Performance
 **Model:** `gpt-oss:120b`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 1m 18s |
-| Model load time | 5.6s |
-| Inference time | 1m 13s |
+| Total time | 3m 17s |
+| Model load time | 17.6s |
+| Inference time | 2m 60s |
 | Prompt tokens | 7,299 |
-| Output tokens | 6,652 of 16,384 limit |
-| Output speed | 97.7 tok/s |
-| Prompt speed | 3143.4 tok/s |
+| Output tokens | 16,384 of 16,384 limit |
+| Output speed | 95.1 tok/s |
+| Prompt speed | 3123.1 tok/s |
 | Context window | 32,768 tokens |
-| Context utilization | 42.6% |
+| Context utilization | 72.3% |
 | Content truncated | No |
-| Completed naturally | Yes |
+| Completed naturally | No ⚠ (hit token limit) |
 
 ## Scoring Performance
 **Model:** `Qwen3-Coder-30B-imatrix:Q3_K_M`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 46.4s |
-| Model load time | 5.5s |
-| Prompt tokens | 9,459 |
-| Output tokens | 4,758 |
-| Output speed | 125.0 tok/s |
-| Prompt speed | 5718.6 tok/s |
+| Total time | 44.0s |
+| Model load time | 7.4s |
+| Prompt tokens | 16,599 |
+| Output tokens | 3,700 |
+| Output speed | 114.1 tok/s |
+| Prompt speed | 5287.2 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 2m 5s |
+| Review + scoring time | 4m 1s |
