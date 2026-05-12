@@ -1,154 +1,142 @@
-# Code Review Report for SampleBankingApp (Branch: Qwen3-32B)
+# Peer Code Review Report
 
 ## 1. Security Vulnerabilities
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Services/AuthService.cs | 23 | SQL injection vulnerability in Login method due to string interpolation in SQL query | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/AuthService.cs | 23 | MD5 used for password hashing which is insecure | Replace with a modern password hashing algorithm like bcrypt or Argon2 |
-| SampleBankingApp/Services/AuthService.cs | 43 | Hardcoded admin bypass password in source code | Remove hardcoded credentials and use secure authentication mechanism |
-| SampleBankingApp/Program.cs | 18 | Developer exception page enabled unconditionally | Remove or wrap UseDeveloperExceptionPage() in development environment check |
-| SampleBankingApp/Program.cs | 20 | CORS policy allows any origin, method, and header | Restrict CORS policy to specific trusted origins and required methods |
-| SampleBankingApp/Program.cs | 19 | HTTPS redirection is commented out | Uncomment and configure HTTPS redirection |
-| SampleBankingApp/Services/EmailService.cs | 16 | SMTP client uses insecure connection (EnableSsl = false) | Enable SSL/TLS for secure email transmission |
-| SampleBankingApp/Services/TransactionService.cs | 37 | SQL injection vulnerability in UPDATE statements | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/TransactionService.cs | 52 | SQL injection vulnerability in INSERT statement | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/UserService.cs | 39 | SQL injection vulnerability in DELETE statement | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/UserService.cs | 58 | SQL injection vulnerability in UPDATE statement | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/UserService.cs | 100 | SQL injection vulnerability in ExecuteQuery call | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/appsettings.json | 5 | JWT secret key is hardcoded in configuration | Store secrets securely in environment variables or secret management system |
+|---|---|---|---|
+| SampleBankingApp/Services/AuthService.cs | 24 | SQL injection vulnerability in Login method using string interpolation | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/AuthService.cs | 24 | MD5 used for password hashing which is insecure | Replace with stronger password hashing algorithm like bcrypt |
+| SampleBankingApp/Services/AuthService.cs | 37 | Hardcoded admin bypass password in source code | Remove hardcoded credentials and use secure authentication mechanism |
+| SampleBankingApp/Services/AuthService.cs | 63 | JWT ValidateLifetime set to false allowing token reuse after expiration | Set ValidateLifetime to true for proper token expiration enforcement |
+| SampleBankingApp/Services/AuthService.cs | 63 | Weak JWT secret key "mysecretkey" used in configuration | Use a cryptographically secure random key for JWT signing |
+| SampleBankingApp/Services/TransactionService.cs | 28 | SQL injection risk in Transfer method using string interpolation for updates | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/TransactionService.cs | 39 | SQL injection risk in RecordTransaction method using string interpolation | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 37 | SQL injection vulnerability in SearchUsers method using LIKE clause | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Program.cs | 22 | Developer exception page enabled unconditionally | Only enable UseDeveloperExceptionPage in development environment |
+| SampleBankingApp/Program.cs | 24 | HTTPS redirection is commented out | Uncomment and enable HTTPS redirection for security |
+| SampleBankingApp/Program.cs | 26 | Overly permissive CORS policy allowing any origin, method, and header | Restrict CORS policy to specific trusted origins and required methods/headers |
 
 ## 2. Logic Errors
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Services/TransactionService.cs | 34 | Transaction fee is not being applied correctly | Add fee to totalDebit and ensure it's being subtracted from sender's balance |
-| SampleBankingApp/Services/TransactionService.cs | 34 | Missing check for self-transfer | Add validation to prevent users from transferring to themselves |
-| SampleBankingApp/Services/TransactionService.cs | 40 | Transfer logic doesn't check if fromBalance is sufficient for totalDebit (amount + fee) | Update condition to check if fromBalance >= totalDebit |
-| SampleBankingApp/Services/TransactionService.cs | 51 | Deposit logic applies interest bonus with incorrect multiplier (1 instead of 0.05) | Fix the interest bonus calculation to use 0.05 as the multiplier |
-| SampleBankingApp/Services/TransactionService.cs | 51 | No validation for deposit amount limits | Add validation for minimum and maximum deposit amounts |
-| SampleBankingApp/Services/TransactionService.cs | 51 | SQL injection vulnerability in UPDATE statement | Use parameterized queries instead of string interpolation |
-| SampleBankingApp/Services/UserService.cs | 44 | Pagination calculation uses page * pageSize which is incorrect for 1-based indexing | Change to (page - 1) * pageSize for correct pagination offset |
-| SampleBankingApp/Services/UserService.cs | 100 | No validation for search query parameter | Add validation to prevent potential SQL injection or excessive query length |
+|---|---|---|---|
+| SampleBankingApp/Services/TransactionService.cs | 22 | Missing self-referential check for transferring to oneself | Add validation to prevent users from transferring to their own account |
+| SampleBankingApp/Services/TransactionService.cs | 25 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Fee calculation may cause insufficient funds error | Adjust logic to check if fromBalance >= totalDebit (amount + fee) instead of just amount |
+| SampleBankingApp/Services/TransactionService.cs | 45 | Potential negative balance if multiple transfers happen concurrently | Add transaction isolation or locking mechanism to prevent race conditions |
+| SampleBankingApp/Services/TransactionService.cs | 57 | Missing validation for deposit amount limits | Add validation for minimum and maximum deposit amounts |
+| SampleBankingApp/Services/TransactionService.cs | 59 | Interest bonus calculation uses hardcoded multiplier | Extract interest rate to configuration or constant |
+| SampleBankingApp/Services/TransactionService.cs | 61 | SQL injection risk in Deposit method using string interpolation | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 26 | Inconsistent error handling for invalid user IDs | Return consistent error responses instead of throwing exceptions |
+| SampleBankingApp/Services/UserService.cs | 45 | SQL injection vulnerability in UpdateUser method using string interpolation | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 58 | SQL injection vulnerability in DeleteUser method | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 66 | Pagination calculation uses page * pageSize which may skip records | Use (page - 1) * pageSize for correct pagination offset |
 
 ## 3. Error Handling
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Services/AuthService.cs | 30 | No transaction scope for database operations | Wrap database operations in a transaction |
-| SampleBankingApp/Services/AuthService.cs | 57 | Exception is caught but not logged or handled | Add proper error handling and logging |
-| SampleBankingApp/Services/EmailService.cs | 25 | SmtpClient is not properly disposed | Use using statement for SmtpClient |
-| SampleBankingApp/Services/EmailService.cs | 25 | SmtpClient is held as an instance field (not thread-safe) | Create SmtpClient on demand instead of storing as instance field |
-| SampleBankingApp/Services/EmailService.cs | 35 | Exception is caught but not logged or handled | Add proper error handling and logging |
-| SampleBankingApp/Services/EmailService.cs | 35 | No rate limiting for email sending | Add rate limiting to prevent abuse |
-| SampleBankingApp/Services/TransactionService.cs | 30 | No validation for negative amount | Add validation to ensure amount is positive |
-| SampleBankingApp/Services/TransactionService.cs | 37 | No transaction scope for database operations | Wrap database operations in a transaction |
-| SampleBankingApp/Services/TransactionService.cs | 51 | No transaction scope for database operations | Wrap database operations in a transaction |
-| SampleBankingApp/Services/TransactionService.cs | 51 | No validation for deposit amount | Add validation for minimum and maximum deposit amounts |
-| SampleBankingApp/Services/TransactionService.cs | 86 | NotImplementedException is used as placeholder | Implement refund functionality or remove placeholder |
-| SampleBankingApp/Services/UserService.cs | 100 | No transaction scope for database operations | Wrap database operations in a transaction |
-| SampleBankingApp/Services/UserService.cs | 100 | No validation for search query | Add validation for search query length and content |
-| SampleBankingApp/Services/UserService.cs | 100 | No error handling for database operations | Add proper error handling and logging |
+|---|---|---|---|
+| SampleBankingApp/Services/AuthService.cs | 42 | Potential NullReferenceException if reader has no rows | Add null/empty check before accessing reader fields |
+| SampleBankingApp/Services/TransactionService.cs | 25 | Missing error handling for database query failures | Add try/catch blocks and proper error handling |
+| SampleBankingApp/Services/TransactionService.cs | 45 | Missing transaction scope for balance updates | Wrap balance updates in a database transaction |
+| SampleBankingApp/Services/TransactionService.cs | 51 | Email sending is a side effect after database update | Move email sending inside transaction or handle failures properly |
+| SampleBankingApp/Services/TransactionService.cs | 69 | Exception swallowed in RefundTransaction method | Add proper error handling and logging |
+| SampleBankingApp/Services/UserService.cs | 68 | Exception swallowed in SearchUsers method | Add proper error handling and logging |
+| SampleBankingApp/Services/UserService.cs | 70 | Returns empty list on error without distinction from actual results | Return appropriate error response instead of empty list |
+| SampleBankingApp/Controllers/TransactionController.cs | 38 | Raw exception message returned to client | Return generic error message instead of exposing internal details |
+| SampleBankingApp/Controllers/UserController.cs | 35 | Exception swallowed in UpdateUser method | Add proper error handling and logging |
+| SampleBankingApp/Controllers/UserController.cs | 41 | Raw exception message returned to client | Return generic error message instead of exposing internal details |
 
 ## 4. Resource Leaks
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Data/DatabaseHelper.cs | 18 | SqlConnection is not properly disposed | Use using statement for SqlConnection |
-| SampleBankingApp/Data/DatabaseHelper.cs | 27 | SqlConnection is not properly disposed | Use using statement for SqlConnection |
-| SampleBankingApp/Data/DatabaseHelper.cs | 50 | SqlConnection is not properly disposed | Use using statement for SqlConnection |
-| SampleBankingApp/Data/DatabaseHelper.cs | 68 | SqlConnection is not properly disposed | Use using statement for SqlConnection |
-| SampleBankingApp/Services/EmailService.cs | 25 | SmtpClient is not properly disposed | Use using statement for SmtpClient |
-| SampleBankingApp/Services/EmailService.cs | 35 | MailMessage is not properly disposed | Use using statement for MailMessage |
-| SampleBankingApp/Services/EmailService.cs | 67 | MailMessage is not properly disposed | Use using statement for MailMessage |
+|---|---|---|---|
+| SampleBankingApp/Data/DatabaseHelper.cs | 24 | SqlConnection opened but not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Data/DatabaseHelper.cs | 33 | SqlConnection opened but not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Data/DatabaseHelper.cs | 50 | SqlConnection opened but not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Data/DatabaseHelper.cs | 50 | SqlDataReader not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Data/DatabaseHelper.cs | 66 | SqlConnection opened but not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Services/EmailService.cs | 24 | SmtpClient instance held as field (not thread-safe) | Create SmtpClient instance per use instead of holding as field |
+| SampleBankingApp/Services/EmailService.cs | 29 | MailMessage not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Services/EmailService.cs | 48 | MailMessage not properly disposed | Use using statement or ensure proper disposal |
+| SampleBankingApp/Services/EmailService.cs | 66 | MailMessage not properly disposed | Use using statement or ensure proper disposal |
 
 ## 5. Null Reference Risks
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Controllers/AuthController.cs | 19 | No null check for _authService.Login() result | Add null check before using the user object |
-| SampleBankingApp/Controllers/TransactionController.cs | 10 | No null check for User.FindFirst() result | Add null check before parsing userIdClaim |
-| SampleBankingApp/Controllers/TransactionController.cs | 25 | No null check for User.FindFirst() result | Add null check before parsing userIdClaim |
-| SampleBankingApp/Services/AuthService.cs | 30 | No null check for reader.Read() result | Add null check before accessing database results |
-| SampleBankingApp/Services/TransactionService.cs | 43 | No null check for fromUserTable.Rows[0] | Add null check before accessing database results |
-| SampleBankingApp/Services/TransactionService.cs | 44 | No null check for toUserTable.Rows[0] | Add null check before accessing database results |
-| SampleBankingApp/Services/TransactionService.cs | 86 | NotImplementedException is used as placeholder | Implement refund functionality or remove placeholder |
-| SampleBankingApp/Services/UserService.cs | 33 | No null check for table.Rows[0] | Add null check before accessing database results |
-| SampleBankingApp/Services/UserService.cs | 104 | No null check for table.Rows[0] | Add null check before accessing database results |
+|---|---|---|---|
+| SampleBankingApp/Services/AuthService.cs | 42 | Potential NullReferenceException if reader has no rows | Add null/empty check before accessing reader fields |
+| SampleBankingApp/Services/TransactionService.cs | 25 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 28 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 31 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 33 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 47 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 51 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/TransactionService.cs | 53 | Potential NullReferenceException if fromUserTable or toUserTable has no rows | Add null/empty checks before accessing Rows[0] |
+| SampleBankingApp/Services/UserService.cs | 40 | Potential NullReferenceException if table has no rows | Add null/empty check before accessing Rows[0] |
+| SampleBankingApp/Services/UserService.cs | 42 | Potential NullReferenceException if table has no rows | Add null/empty check before accessing Rows[0] |
 
 ## 6. Dead Code
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Data/DatabaseHelper.cs | 68 | Obsolete method marked as obsolete but still present | Remove obsolete method |
-| SampleBankingApp/Services/AuthService.cs | 57 | HashPasswordSha1 method is unused | Remove unused method |
-| SampleBankingApp/Services/EmailService.cs | 67 | SendWelcomeEmailHtml method is unused | Remove unused method |
-| SampleBankingApp/Services/TransactionService.cs | 86 | NotImplementedException is used as placeholder | Implement refund functionality or remove placeholder |
-| SampleBankingApp/Helpers/StringHelper.cs | 20 | JoinWithSeparator method has O(n²) performance | Remove in favor of JoinWithSeparatorFixed |
+|---|---|---|---|
+| SampleBankingApp/Data/DatabaseHelper.cs | 66 | Obsolete method marked with [Obsolete] but still present | Remove obsolete method |
+| SampleBankingApp/Services/AuthService.cs | 66 | Unused HashPasswordSha1 method | Remove unused method |
+| SampleBankingApp/Services/AuthService.cs | 69 | Unused ValidateToken method | Remove unused method |
+| SampleBankingApp/Helpers/StringHelper.cs | 19 | Duplicate implementation with JoinWithSeparatorFixed | Remove duplicate implementation |
+| SampleBankingApp/Services/TransactionService.cs | 71 | NotImplementedException in RefundTransaction | Implement functionality or remove placeholder |
 
 ## 7. Magic Strings and Numbers
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Services/AuthService.cs | 23 | Magic string "Users" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/AuthService.cs | 23 | Magic string "Username" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/AuthService.cs | 23 | Magic string "Password" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/AuthService.cs | 23 | Magic string "IsActive" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 34 | Magic number 0.015m for transaction fee | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 35 | Magic number 2 for decimal places | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 51 | Magic number 0.05m for interest bonus | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 51 | Magic number 1 for interest bonus multiplier | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 51 | Magic number 1000000 for deposit limit | Extract to a constant |
-| SampleBankingApp/Services/TransactionService.cs | 17 | Magic number 10 for max transactions per day | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 44 | Magic number 50 for page size limit | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 44 | Magic number 0 for page offset | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 100 | Magic string "Users" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 100 | Magic string "Username" in SQL query | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 100 | Magic number 1000000 for user ID range | Extract to a constant |
-| SampleBankingApp/Services/UserService.cs | 100 | Magic number 0 for user ID range | Extract to a constant |
+|---|---|---|---|
+| SampleBankingApp/Services/TransactionService.cs | 11 | Magic number for transaction fee rate | Extract to named constant or configuration |
+| SampleBankingApp/Services/TransactionService.cs | 12 | Magic number for max transactions per day | Extract to named constant or configuration |
+| SampleBankingApp/Services/TransactionService.cs | 58 | Magic number for deposit amount limit | Extract to named constant or configuration |
+| SampleBankingApp/Services/TransactionService.cs | 59 | Magic number for interest rate | Extract to named constant or configuration |
+| SampleBankingApp/Services/UserService.cs | 26 | Magic number for user ID validation | Extract to named constants or configuration |
+| SampleBankingApp/Services/UserService.cs | 27 | Magic number for user ID validation | Extract to named constants or configuration |
+| SampleBankingApp/Services/AuthService.cs | 24 | Magic string for SQL query | Extract to constant or use parameterized queries |
+| SampleBankingApp/Services/AuthService.cs | 37 | Hardcoded admin username | Extract to configuration |
+| SampleBankingApp/Services/TransactionService.cs | 28 | Magic string for SQL update | Extract to constant or use parameterized queries |
+| SampleBankingApp/Services/TransactionService.cs | 39 | Magic string for SQL insert | Extract to constant or use parameterized queries |
 
 ## 8. Anti-patterns and Code Quality
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Helpers/StringHelper.cs | 20 | String concatenation inside loop (O(n²)) | Replace with string.Join() |
-| SampleBankingApp/Services/AuthService.cs | 23 | Regex is created inside method (should be static readonly) | Make regex static readonly |
-| SampleBankingApp/Services/AuthService.cs | 43 | Hardcoded admin bypass password | Remove hardcoded credentials |
-| SampleBankingApp/Services/EmailService.cs | 25 | SmtpClient is held as an instance field (not thread-safe) | Create SmtpClient on demand |
-| SampleBankingApp/Services/EmailService.cs | 25 | String concatenation for email body | Use string interpolation or StringBuilder |
-| SampleBankingApp/Services/TransactionService.cs | 37 | String interpolation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/TransactionService.cs | 51 | String interpolation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/TransactionService.cs | 51 | String concatenation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/TransactionService.cs | 86 | NotImplementedException used as placeholder | Implement functionality or remove placeholder |
-| SampleBankingApp/Services/UserService.cs | 39 | String interpolation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 58 | String interpolation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 100 | String interpolation for SQL queries | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 100 | String concatenation for SQL queries | Use parameterized queries |
+|---|---|---|---|
+| SampleBankingApp/Helpers/StringHelper.cs | 22 | String concatenation in loop (O(n²)) | Use string.Join instead |
+| SampleBankingApp/Services/EmailService.cs | 24 | Regex created inside method called repeatedly | Make Regex static readonly |
+| SampleBankingApp/Services/TransactionService.cs | 61 | String interpolation for SQL queries | Use parameterized queries |
+| SampleBankingApp/Services/UserService.cs | 68 | String concatenation for audit report | Use StringBuilder for better performance |
+| SampleBankingApp/Services/AuthService.cs | 24 | Reimplementing string.IsNullOrWhiteSpace | Use built-in method |
+| SampleBankingApp/Services/TransactionService.cs | 28 | Reimplementing string.IsNullOrWhiteSpace | Use built-in method |
+| SampleBankingApp/Services/TransactionService.cs | 39 | Reimplementing string.IsNullOrWhiteSpace | Use built-in method |
+| SampleBankingApp/Services/UserService.cs | 40 | Reimplementing string.IsNullOrWhiteSpace | Use built-in method |
+| SampleBankingApp/Services/UserService.cs | 42 | Reimplementing string.IsNullOrWhiteSpace | Use built-in method |
+| SampleBankingApp/Services/TransactionService.cs | 28 | Shared mutable static state without synchronization | Replace with thread-safe collection or instance-based approach |
 
 ## 9. Configuration Issues
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| SampleBankingApp/Program.cs | 18 | UseDeveloperExceptionPage() called unconditionally | Wrap in development environment check |
-| SampleBankingApp/Program.cs | 19 | HTTPS redirection is commented out | Uncomment and configure HTTPS redirection |
-| SampleBankingApp/Program.cs | 20 | CORS policy allows any origin, method, and header | Restrict CORS policy to specific trusted origins and required methods |
-| SampleBankingApp/Program.cs | 14 | JWT ValidateLifetime is set to false | Set to true for proper token validation |
-| SampleBankingApp/appsettings.json | 16 | Debug log level set for production | Set appropriate log levels for production environment |
-| SampleBankingApp/appsettings.json | 5 | JWT secret key is hardcoded | Store secrets securely in environment variables or secret management system |
-| SampleBankingApp/appsettings.json | 9 | Email password is hardcoded | Store secrets securely in environment variables or secret management system |
-| SampleBankingApp/SampleBankingApp.csproj | N/A | Missing environment-specific config overrides | Add appsettings.Production.json for production configuration |
+|---|---|---|---|
+| SampleBankingApp/Program.cs | 22 | UseDeveloperExceptionPage called unconditionally | Only enable in development environment |
+| SampleBankingApp/Program.cs | 24 | HTTPS redirection commented out | Uncomment and enable HTTPS redirection |
+| SampleBankingApp/Program.cs | 26 | Overly permissive CORS policy | Restrict to specific origins, methods, and headers |
+| SampleBankingApp/appsettings.json | 1 | Hardcoded production secrets in source control | Remove sensitive data from source control and use secure secret management |
+| SampleBankingApp/appsettings.json | 14 | Debug log level set for production | Set appropriate log levels for production environment |
+| SampleBankingApp/SampleBankingApp.csproj | 1 | Missing environment-specific config overrides | Add appsettings.Production.json for production configuration |
+| SampleBankingApp/SampleBankingApp.csproj | 1 | Outdated NuGet packages | Check for package updates and security advisories |
 
 ## 10. Missing Unit Tests
 
 | File | Line | Issue | Fix |
-|-----|-----|-----|-----|
-| N/A | N/A | No test project exists | Create a test project with unit tests for: | Create a test project |
-| N/A | N/A | | - AuthController's Login endpoint (success/failure scenarios) | Implement tests |
-| N/A | N/A | | - TransactionController's Transfer endpoint (sufficient/insufficient funds, self-transfer) | Implement tests |
-| N/A | N/A | | - TransactionController's Deposit endpoint (valid/invalid amounts) | Implement tests |
-| N/A | N/A | | - UserService's GetUserById (valid/invalid IDs) | Implement tests |
-| N/A | N/A | | - TransactionService's Transfer method (fee calculation, balance updates) | Implement tests |
-| N/A | N/A | | - AuthService's Login method (valid/invalid credentials, MD5 hashing) | Implement tests |
-| N/A | N/A | | - EmailService's SendTransferNotification (success/failure scenarios) | Implement tests |
-| N/A | N/A | | - Pagination in UserService.GetUsersPage (boundary conditions) | Implement tests |
-| N/A | N/A | | - JWT token validation and generation | Implement tests |
+|---|---|---|---|
+| SampleBankingApp/Services/AuthService.cs | 1 | No unit tests for authentication logic | Implement tests for login, JWT generation, and password validation |
+| SampleBankingApp/Services/TransactionService.cs | 1 | No unit tests for financial operations | Implement tests for transfer, deposit, and refund operations |
+| SampleBankingApp/Services/TransactionService.cs | 1 | No boundary condition tests for transaction limits | Implement tests for max transactions per day and amount limits |
+| SampleBankingApp/Controllers/TransactionController.cs | 1 | No unit tests for transaction endpoints | Implement tests for transfer, deposit, and refund endpoints |
+| SampleBankingApp/Controllers/AuthController.cs | 1 | No unit tests for authentication endpoints | Implement tests for login endpoint and error scenarios |
+| SampleBankingApp/Services/UserService.cs | 1 | No unit tests for user management | Implement tests for user creation, update, delete, and search |
+| SampleBankingApp/Services/TransactionService.cs | 1 | No unit tests for pagination logic | Implement tests for transaction history pagination |
+| SampleBankingApp/Services/TransactionService.cs | 1 | No unit tests for error handling | Implement tests for error scenarios and exception handling |
