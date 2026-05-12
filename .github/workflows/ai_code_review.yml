@@ -220,7 +220,7 @@ jobs:
 
           result = subprocess.run(
               [
-                  "curl", "-sf", "--max-time", "7200",
+                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
                   "-X", "POST", f"{base_url}/api/chat",
                   "-H", "Content-Type: application/json",
                   "-d", "@payload.json",
@@ -230,7 +230,12 @@ jobs:
           )
 
           if result.returncode != 0:
-              print(f"ERROR: curl failed (exit {result.returncode})\n{result.stderr}", file=sys.stderr)
+              print(
+                  f"ERROR: curl failed (exit {result.returncode})\n"
+                  f"stderr: {result.stderr}\n"
+                  f"body  : {result.stdout[:2000]}",
+                  file=sys.stderr,
+              )
               sys.exit(1)
 
           try:
@@ -412,7 +417,7 @@ jobs:
 
           result = subprocess.run(
               [
-                  "curl", "-sf", "--max-time", "7200",
+                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
                   "-X", "POST", f"{base_url}/api/chat",
                   "-H", "Content-Type: application/json",
                   "-d", "@scoring_payload.json",
@@ -422,7 +427,12 @@ jobs:
           )
 
           if result.returncode != 0:
-              print(f"ERROR: curl failed (exit {result.returncode})\n{result.stderr}", file=sys.stderr)
+              print(
+                  f"ERROR: curl failed (exit {result.returncode})\n"
+                  f"stderr: {result.stderr}\n"
+                  f"body  : {result.stdout[:2000]}",
+                  file=sys.stderr,
+              )
               sys.exit(1)
 
           try:
