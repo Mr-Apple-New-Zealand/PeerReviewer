@@ -3,98 +3,105 @@
 ### 1. Security Vulnerabilities
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Controllers/AuthController.cs | 23 | Hardcoded admin bypass password | Remove the hardcoded admin bypass password and implement a secure authentication mechanism for admins. |
-| SampleBankingApp/Data/DatabaseHelper.cs | 16, 30, 45 | SQL injection vulnerabilities | Use parameterized queries to prevent SQL injection attacks. |
-| SampleBankingApp/Services/AuthService.cs | 32-44 | Hardcoded credentials and weak password hashing | Remove hardcoded credentials and use a secure password hashing algorithm like bcrypt or Argon2. |
-| SampleBankingApp/Services/EmailService.cs | 16-20 | Hardcoded SMTP credentials | Store SMTP credentials in a secure location and retrieve them at runtime. |
-| SampleBankingApp/Program.cs | 29 | JWT lifetime validation disabled | Enable JWT lifetime validation to ensure the token is not used after it has expired. |
-| SampleBankingApp/Program.cs | 35-36 | CORS policy allows any origin and method | Limit allowed origins and methods in the CORS policy to prevent cross-site scripting (XSS) attacks. |
-| SampleBankingApp/appsettings.json | 2-4 | Hardcoded database credentials | Store database credentials in a secure location and retrieve them at runtime. |
-| SampleBankingApp/appsettings.json | 7-10 | Hardcoded JWT secret key | Store the JWT secret key in a secure location and retrieve it at runtime. |
-| SampleBankingApp/appsettings.json | 12-15 | Hardcoded email credentials | Store email credentials in a secure location and retrieve them at runtime. |
+| --- | --- | --- | --- |
+| AuthService.cs | 26-35 | Hardcoded credentials in source file | Move hardcoded credentials to a secure configuration source (e.g., environment variables, Azure Key Vault) |
+| AuthService.cs | 47-51 | Weak cryptography (MD5) | Replace MD5 with a stronger hashing algorithm like SHA256 or BCrypt |
+| AuthService.cs | 89-93 | JWT misconfiguration (ValidateLifetime set to false) | Enable ValidateLifetime to ensure the token is not expired |
+| DatabaseHelper.cs | 17, 30, 40, 52 | SQL injection vulnerabilities | Use parameterized queries or stored procedures to prevent SQL injection attacks |
+| Program.cs | 28 | Missing authorization attributes on endpoints | Add authorization attributes to ensure only authorized users can access certain endpoints |
+| Program.cs | 31-34 | Overly permissive CORS policy | Limit allowed origins, methods, and headers in the CORS policy |
+| Program.cs | 36 | Developer exception pages in production | Remove or conditionally disable UseDeveloperExceptionPage() in production |
+| Program.cs | 39 | HTTPS disabled | Enable HTTPS redirection or ensure it is configured properly |
+| AuthService.cs | 105-112 | Insecure token validation | Implement proper token validation to ensure the token is not tampered with |
+| appsettings.json | 2-6 | Hardcoded credentials in configuration file | Move hardcoded credentials to a secure configuration source (e.g., environment variables, Azure Key Vault) |
 
 ### 2. Logic Errors
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Controllers/UserController.cs | 31 | Off-by-one error in pagination | Change `page * pageSize` to `(page - 1) * pageSize` to correctly calculate the offset for pagination. |
-| SampleBankingApp/Services/TransactionService.cs | 29, 45 | Incorrect boundary conditions for deposit amount | Check if the deposit amount is greater than 0 and less than or equal to 1,000,000 to prevent invalid deposits. |
-| SampleBankingApp/Services/UserService.cs | 37-38 | Incorrect boundary conditions for user ID | Check if the user ID is greater than 0 and less than or equal to 1,000,000 to prevent invalid user operations. |
+| --- | --- | --- | --- |
+| TransactionService.cs | 36-41 | Incorrect boundary conditions for transfer amount (>= 0) | Change the condition to ensure the amount is greater than 0 |
+| TransactionService.cs | 57-62 | Incorrect boundary conditions for deposit amount (> 0 and <= 1,000,000) | Ensure the amount is greater than 0 and less than or equal to the maximum allowed deposit amount |
+| UserService.cs | 43-45, 52-54 | Incorrect boundary conditions for user ID (> 0 and <= 1,000,000) | Ensure the user ID is greater than 0 and less than or equal to the maximum allowed user ID |
+| UserService.cs | 73-76 | Off-by-one error in pagination (page * pageSize) | Change the calculation to (page - 1) * pageSize to ensure the correct number of rows are skipped |
 
 ### 3. Error Handling
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Controllers/AuthController.cs | 28-30 | Broad exception handling and no error logging | Catch specific exceptions and log the error message for debugging purposes. |
-| SampleBankingApp/Controllers/UserController.cs | 41-45, 56-59 | Broad exception handling and no error logging | Catch specific exceptions and log the error message for debugging purposes. |
-| SampleBankingApp/Services/EmailService.cs | 32-38 | No error handling for email sending failures | Handle email sending failures gracefully by catching exceptions and logging the error message. |
-| SampleBankingApp/Services/UserService.cs | 65-67 | No error handling for database query failures | Handle database query failures gracefully by catching exceptions and returning an appropriate error message to the caller. |
+| --- | --- | --- | --- |
+| AuthController.cs | 20-25 | Catching broad Exception and swallowing it silently | Log the exception or rethrow it to ensure errors are handled properly |
+| UserController.cs | 38-41, 46-50 | Catching broad Exception and returning a generic error message | Log the exception or rethrow it to ensure errors are handled properly |
+| EmailService.cs | 39-47 | Swallowing exceptions in email sending methods | Log the exception or rethrow it to ensure errors are handled properly |
+| UserService.cs | 58-62 | Swallowing exceptions in search method and returning an empty list | Log the exception or rethrow it to ensure errors are handled properly |
+| TransactionService.cs | 104-107 | Throwing NotImplementedException for refund transaction | Implement the refund transaction logic or return an appropriate error message |
 
 ### 4. Resource Leaks
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Data/DatabaseHelper.cs | 16, 30, 45 | Resource leaks in `GetOpenConnection` method | Close the database connection in a `finally` block or use a `using` statement to ensure the connection is properly disposed of. |
-| SampleBankingApp/Services/EmailService.cs | 18-20 | Resource leak in `EmailService` constructor | Dispose of the `SmtpClient` instance in a `finally` block or use a `using` statement to ensure the connection is properly disposed of. |
+| --- | --- | --- | --- |
+| DatabaseHelper.cs | 19-23, 30-34, 40-44, 52-56 | Not closing or disposing SqlConnection and SqlDataAdapter | Use using blocks or try-finally blocks to ensure resources are properly disposed |
+| EmailService.cs | 21-28 | Not closing or disposing SmtpClient | Use using blocks or try-finally blocks to ensure resources are properly disposed |
 
 ### 5. Null Reference Risks
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Controllers/TransactionController.cs | 14-15, 23-24 | Null reference risks in `Transfer` and `Deposit` methods | Check if the `userIdClaim` is null before parsing it to an integer. |
-| SampleBankingApp/Services/AuthService.cs | 60-61 | Null reference risk in `GenerateJwtToken` method | Check if the `_config["Jwt:SecretKey"]` is null before using it to generate a JWT. |
-| SampleBankingApp/Services/EmailService.cs | 18-20 | Null reference risks in `EmailService` constructor | Check if the SMTP host, port, username, and password are null or empty before using them to create an `SmtpClient` instance. |
+| --- | --- | --- | --- |
+| AuthController.cs | 23 | Using User.FindFirst() without null check | Check if the result of User.FindFirst() is null before using it |
+| TransactionController.cs | 14, 25 | Using User.FindFirst() without null check | Check if the result of User.FindFirst() is null before using it |
+| DatabaseHelper.cs | 17 | Using configuration.GetConnectionString() without null check | Check if the result of configuration.GetConnectionString() is null before using it |
+| StringHelper.cs | 29-31 | Using string.Length without null check | Check if the input string is null or empty before using its Length property |
+| EmailService.cs | 21-28 | Using configuration values without null checks | Check if the configuration values are null or empty before using them |
+| UserService.cs | 43-45, 52-54 | Using user input (id) without validation or null check | Validate and sanitize user input and check for null values before using them |
 
 ### 6. Dead Code
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Data/DatabaseHelper.cs | 49-53 | Obsolete method `ExecuteQueryWithParams` | Remove the obsolete method and use the `ExecuteQuerySafe` method instead. |
-| SampleBankingApp/Controllers/TransactionController.cs | 28-31 | Unimplemented method `RefundTransaction` | Implement the `RefundTransaction` method or remove it from the codebase. |
+| --- | --- | --- | --- |
+| DatabaseHelper.cs | 59-70 | Obsolete method ExecuteQueryWithParams() | Remove the obsolete method and use ExecuteQuerySafe() instead |
+| TransactionService.cs | 104-107 | NotImplementedException in RefundTransaction() | Implement the refund transaction logic or remove the method if it is not needed |
 
 ### 7. Magic Strings and Numbers
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Controllers/UserController.cs | 25-26 | Magic numbers in pagination | Replace magic numbers with named constants or configuration values. |
-| SampleBankingApp/Helpers/StringHelper.cs | 8, 13, 27 | Magic numbers and strings in email and username validation | Replace magic numbers and strings with named constants or configuration values. |
-| SampleBankingApp/Services/TransactionService.cs | 9, 42 | Magic numbers in transaction fee rate and deposit interest rate | Replace magic numbers with named constants or configuration values. |
-| SampleBankingApp/Services/UserService.cs | 37-38 | Magic number in page size limit | Replace the magic number with a named constant or configuration value. |
+| --- | --- | --- | --- |
+| TransactionService.cs | 15, 28, 63-64 | Magic numbers (0.015, 10) | Define constants for these values and use them instead of hardcoding them in the code |
+| UserController.cs | 79 | Magic number (50) | Define a constant for the maximum page size and use it instead of hardcoding it in the code |
+| EmailService.cs | 13-14, 20-21 | Magic strings (email subjects) | Define constants for these values and use them instead of hardcoding them in the code |
+| AuthService.cs | 19 | Magic string (AdminBypassPassword) | Move this value to a secure configuration source (e.g., environment variables, Azure Key Vault) |
+| Program.cs | 28-34 | Magic strings (JwtSecretKey, Issuer, Audience) | Move these values to a secure configuration source (e.g., environment variables, Azure Key Vault) |
+| EmailService.cs | 21-28 | Magic numbers (MaxRetries, SmtpTimeoutMs) | Define constants for these values and use them instead of hardcoding them in the code |
 
 ### 8. Anti-patterns and Code Quality
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Helpers/StringHelper.cs | 17-20 | String concatenation inside a loop | Use `StringBuilder` or `string.Join` to improve performance when concatenating strings in a loop. |
-| SampleBankingApp/Helpers/StringHelper.cs | 8, 13 | Regex objects created inside a method | Create the `Regex` objects as static readonly fields to improve performance and reduce object creation overhead. |
-| SampleBankingApp/Services/AuthService.cs | 47-52 | Shared mutable state accessed from multiple threads | Use thread-safe data structures or synchronization mechanisms to ensure thread safety when accessing shared mutable state. |
-| SampleBankingApp/Helpers/StringHelper.cs | 30-36 | Reimplementation of `string.IsNullOrWhiteSpace` method | Use the built-in `string.IsNullOrWhiteSpace` method instead of reimplementing it. |
-| SampleBankingApp/Data/DatabaseHelper.cs | 45 | Leaking resource ownership to callers | Refactor the `ExecuteQuerySafe` method to return a `SqlDataReader` or `DataTable` object and let the caller handle resource disposal. |
-| SampleBankingApp/Services/UserService.cs | 20-31, 46-57 | Duplicated validation logic | Extract the validation logic for user IDs into a separate method to avoid duplication. |
+| --- | --- | --- | --- |
+| StringHelper.cs | 12-16 | Reimplementing string concatenation inside a loop | Use StringBuilder or string.Join() to concatenate strings inside a loop for better performance |
+| StringHelper.cs | 37-40 | Not using string interpolation | Use string interpolation to concatenate strings for better readability and performance |
+| EmailService.cs | 52-61 | Leaking resource ownership to callers (SendWelcomeEmailHtml()) | Dispose the MailMessage object inside the method or return it as an IDisposable object to ensure proper resource management |
+| UserService.cs | 90-93 | Duplicated validation logic in UpdateUser() and DeleteUser() | Extract the validation logic to a separate method and call it from both methods |
 
 ### 9. Configuration Issues
 
 | File | Line | Issue | Fix |
-|---|---|---|---|
-| SampleBankingApp/Program.cs | 13 | `UseDeveloperExceptionPage` called unconditionally | Remove the `UseDeveloperExceptionPage` call or wrap it in an environment check to ensure it is only enabled in development environments. |
-| SampleBankingApp/Program.cs | 29 | JWT lifetime validation disabled | Enable JWT lifetime validation to ensure the token is not used after it has expired. |
-| SampleBankingApp/Program.cs | 31-32 | HTTPS redirection commented out | Uncomment the `UseHttpsRedirection` call to ensure all requests are redirected to HTTPS. |
-| SampleBankingApp/Program.cs | 35-36 | Overly permissive CORS policy | Limit allowed origins and methods in the CORS policy to prevent cross-site scripting (XSS) attacks. |
-| SampleBankingApp/SampleBankingApp.csproj | 14-15 | Debug symbols and type enabled in release build | Disable debug symbols and set the debug type to `none` for release builds to improve performance and reduce binary size. |
-| SampleBankingApp/appsettings.json | 18 | Outdated or vulnerable NuGet packages | Update all NuGet packages to the latest version to ensure security and compatibility. |
+| --- | --- | --- | --- |
+| Program.cs | 39 | HTTPS redirection commented out | Enable HTTPS redirection or ensure it is configured properly |
+| Program.cs | 10-16 | Outdated or vulnerable NuGet packages (Newtonsoft.Json) | Update the NuGet package to the latest version and ensure it is not vulnerable to known security issues |
+| appsettings.json | 2-6 | Missing environment-specific config overrides (appsettings.Production.json) | Create environment-specific configuration files to override default settings for different environments |
 
 ### 10. Missing Unit Tests
 
-No unit tests were found in the project. The following methods and scenarios are critical to test:
+The source code does not include a test project. To ensure the application's functionality and security, it is recommended to add unit tests for the following critical methods and scenarios:
 
-- `AuthService.Login`: Test with valid and invalid credentials, and verify that the JWT is generated correctly.
-- `TransactionService.Transfer`: Test with sufficient and insufficient funds, and verify that the transaction is recorded correctly in the database.
-- `TransactionService.Deposit`: Test with valid and invalid deposit amounts, and verify that the balance is updated correctly in the database.
-- `UserService.GetUserById`: Test with valid and invalid user IDs, and verify that the correct user object is returned.
-- `UserService.UpdateUser`: Test with valid and invalid user IDs, and verify that the user object is updated correctly in the database.
-- `UserService.DeleteUser`: Test with valid and invalid user IDs, and verify that the user object is deleted correctly from the database.
-- `UserService.GetUsersPage`: Test with different page sizes and page numbers, and verify that the correct subset of users is returned.
-- `UserService.SearchUsers`: Test with different search queries, and verify that the correct subset of users is returned.
-- `EmailService.SendTransferNotification`: Test with valid email addresses and verify that the email is sent correctly.
-- `EmailService.SendWelcomeEmail`: Test with valid email addresses and verify that the email is sent correctly.
+- AuthService.Login()
+- AuthService.GenerateJwtToken()
+- TransactionService.Transfer()
+- TransactionService.Deposit()
+- UserService.GetUserById()
+- UserService.UpdateUser()
+- UserService.DeleteUser()
+- UserService.SearchUsers()
+- StringHelper.IsValidEmail()
+- StringHelper.IsValidUsername()
+- EmailService.SendTransferNotification()
+- EmailService.SendWelcomeEmail()
+- DatabaseHelper.ExecuteQuerySafe()
+- DatabaseHelper.ExecuteNonQuery()
