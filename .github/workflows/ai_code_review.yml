@@ -241,7 +241,9 @@ jobs:
               print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
               sys.exit(1)
 
-          review = (data.get("message") or {}).get("content", "").strip()
+          import re as _re
+          _think_re = _re.compile(r"<think>.*?</think>\s*", _re.DOTALL | _re.IGNORECASE)
+          review = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
           if not review:
               print("ERROR: Ollama returned an empty response.", file=sys.stderr)
               sys.exit(1)
@@ -439,7 +441,8 @@ jobs:
               print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
               sys.exit(1)
 
-          scorecard = (data.get("message") or {}).get("content", "").strip()
+          _think_re = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+          scorecard = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
           if not scorecard:
               print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
               sys.exit(1)
