@@ -1,268 +1,203 @@
-**## 1. Security Vulnerabilities**
-
-| File | Line | Issue | Fix |
-|------|------|-------|-----|
-| DatabaseHelper.cs | 12 | Fallback connection string contains hard‑coded SA credentials. | Remove fallback or read from secure store; never commit credentials. |
-| appsettings.json | 5 | Plain‑text DB password (`Admin1234!`). | Move secrets to Azure Key Vault / user‑secrets; never store in repo. |
-| AuthService.cs | 31 | Uses MD5 for password hashing – insecure and unsalted. | Switch to a strong algorithm (e.g., PBKDF2, BCrypt, Argon2) with a per‑user salt. |
-| AuthService.cs | 27 | `AdminBypassPassword` is hard‑coded backdoor. | Remove backdoor; enforce normal authentication. |
-| AuthService.cs | 38‑44 | SQL built with string interpolation using `username` → SQL injection. | Use parameterised query (`@username`) via `ExecuteQuerySafe`. |
-| AuthService.cs | 61‑66 | `SqlConnection`, `SqlCommand`, `SqlDataReader` not disposed. | Wrap in `using` statements or `await using`. |
-| TransactionService.cs | 27‑30 | `ExecuteNonQuery` called with interpolated balances – possible SQL injection if IDs are tampered. | Use parameterised queries. |
-| TransactionService.cs | 70‑73 | `ExecuteNonQuery` called with interpolated values for `UPDATE Users …`. | Use parameters. |
-| TransactionService.cs | 84‑86 | `ExecuteNonQuery` called with interpolated values for `INSERT INTO Transactions …`. | Use parameters; also sanitise `description`. |
-| UserService.cs | 71‑73 | `UPDATE Users SET Email = '{email}', Username = '{username}' …` – SQL injection. | Use parameters. |
-| UserService.cs | 84‑86 | `DELETE FROM Users WHERE Id = {id}` – SQL injection. | Use parameters. |
-| UserService.cs | 108‑110 | `ExecuteQuery("Users", $"Username LIKE '%{query}%'")` – injection. | Use `ExecuteQuerySafe` with parameters. |
-| Program.cs | 27‑31 | `ValidateLifetime = false` disables JWT expiration validation. | Set to `true` and enforce token expiry. |
-| Program.cs | 33‑35 | `UseDeveloperExceptionPage()` always enabled – leaks stack traces in prod. | Enable only in Development environment. |
-| Program.cs | 38 | HTTPS redirection commented out – traffic may be plain HTTP. | Uncomment `app.UseHttpsRedirection();`. |
-| Program.cs | 40‑42 | CORS policy `AllowAnyOrigin/AnyMethod/AnyHeader` – overly permissive. | Restrict origins, methods, and headers as needed. |
-| EmailService.cs | 15‑19 | SMTP credentials (`Email:Password`) stored in plain text. | Move to secret store; consider using OAuth2. |
-| EmailService.cs | 23 | `EnableSsl = false` – email sent unencrypted. | Set `EnableSsl = true` and use TLS. |
-| EmailService.cs | 27‑31 | `SmtpClient` held as a singleton field – not thread‑safe and never disposed. | Create per‑use `SmtpClient` inside `using` or inject a factory. |
-| EmailService.cs | 44‑48 | `MailMessage` not disposed after send. | Wrap in `using`. |
-| EmailService.cs | 61‑66 | `MailMessage` not disposed in `SendWelcomeEmail`. | Wrap in `using`. |
-| EmailService.cs | 78‑82 | `MailMessage` not disposed in `SendWelcomeEmailHtml`. | Wrap in `using`. |
-| StringHelper.cs | 12‑14 | `new Regex(...)` created on each call – potential DoS if called repeatedly. | Cache compiled regex as `static readonly`. |
-| StringHelper.cs | 24‑28 | `JoinWithSeparator` uses string concatenation in a loop (O(n²)). | Replace with `string.Join` or `StringBuilder`. |
-| DatabaseHelper.cs | 22‑26 | `ExecuteQuery` builds SQL from `tableName` and `whereClause` without sanitisation – injection risk. | Remove; use only parameterised methods. |
-| DatabaseHelper.cs | 38‑44 | `ExecuteNonQuery` opens connection via `GetOpenConnection()` but never disposes it. | Use `using` or `await using`. |
-| DatabaseHelper.cs | 46‑48 | `ExecuteNonQuery` does not use parameters – vulnerable to injection. | Provide overload that accepts parameters. |
-| DatabaseHelper.cs | 58‑62 | `ExecuteQuerySafe` creates `SqlDataAdapter` without disposing it. | Wrap in `using`. |
-| DatabaseHelper.cs | 70‑73 | `ExecuteQueryWithParams` marked `[Obsolete]` but still present – may be used inadvertently. | Remove or replace with safe method. |
-| AuthService.cs | 84‑88 | `ValidateToken` returns early, leaving dead code that attempts to read token. | Remove dead code or implement proper validation. |
-| AuthService.cs | 90‑92 | `ValidateToken` does not actually validate token expiry or signature. | Implement full validation using `TokenValidationParameters`. |
-| AuthService.cs | 100‑102 | `HashPasswordSha1` present but never used; SHA‑1 is insecure. | Remove or replace with strong hash if needed. |
-| AuthService.cs | 108‑110 | `ValidateToken` returns `true` for any non‑empty token. | Fix to perform real validation. |
-| AuthService.cs | 115‑117 | `Jwt:SecretKey` in `appsettings.json` is a weak static secret. | Use a strong, randomly generated secret stored securely. |
-| AuthService.cs | 119‑121 | `Jwt:Issuer` and `Jwt:Audience` are static strings – may be acceptable but should be configurable per environment. | Move to environment‑specific config. |
-| EmailService.cs | 31‑33 | `Timeout = 5000` ms may be too low for slow SMTP servers, causing failures. | Adjust timeout based on environment. |
-| TransactionService.cs | 15‑16 | `TransactionFeeRate` and `MaxTransactionsPerDay` are magic numbers; no config. | Move to configuration. |
-| UserService.cs | 13‑14 | Static mutable `_auditLog` and `_requestCount` are not thread‑safe. | Use concurrent collections or lock. |
-| UserService.cs | 31‑33 | `GetUserById` throws `ArgumentException` for invalid IDs – may expose internal details. | Return null or a proper error result. |
-| UserService.cs | 84‑86 | `UpdateUser` does not validate `email` or `username` format. | Validate inputs before DB update. |
-| UserService.cs | 108‑110 | `SearchUsers` catches generic `Exception` and returns empty list, hiding errors. | Log exception and return appropriate error response. |
-| Program.cs | 45‑47 | Logging level set to `Debug` for all categories in production. | Reduce to `Information` or `Warning` in prod. |
-| SampleBankingApp.csproj | 13‑15 | `DebugSymbols` and `DebugType` enabled – may expose PDBs in production. | Disable for Release builds. |
-| SampleBankingApp.csproj | 16‑18 | `TreatWarningsAsErrors=false` may allow unchecked warnings. | Consider enabling in CI. |
+**Code Review Report – branch `gpt-oss-120B` (commit `ccc6a3d5cfe4eae99739eb196fd8b8374fa5d30e`)**
 
 ---
 
-**## 2. Logic Errors**
-
+## 1. Security Vulnerabilities
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| TransactionService.cs | 33‑35 | Checks `fromBalance >= amount` but ignores transaction fee, allowing overdraft after fee. | Check `fromBalance >= totalDebit`. |
-| TransactionService.cs | 55‑57 | `ExecuteNonQuery` updates balances without a transaction – partial updates possible on failure. | Wrap both updates in a DB transaction. |
-| TransactionService.cs | 71‑73 | `RecordTransaction` inserts `description` directly; if `null` it becomes the string `"null"` in DB. | Use `DBNull.Value` when description is null. |
-| TransactionService.cs | 84‑86 | `Deposit` adds `interestBonus` unconditionally (5% of amount) – may be unintended business rule. | Clarify requirement; make rate configurable. |
-| TransactionService.cs | 86‑87 | `Deposit` adds `amount + interestBonus` in a single statement without transaction – race condition possible. | Use transaction or atomic update. |
-| TransactionService.cs | 94‑96 | `IsWithinDailyLimit` is never called, so daily limit is not enforced. | Call method in `Transfer` and `Deposit`. |
-| UserService.cs | 57‑59 | Pagination `skip = page * pageSize` should be `(page - 1) * pageSize`; first page skips `pageSize` rows. | Change to `int skip = (page - 1) * pageSize;`. |
-| UserService.cs | 57‑58 | No validation that `page` is >= 1; negative pages cause negative skip. | Clamp `page` to minimum 1. |
-| UserService.cs | 71‑73 | `UpdateUser` does not verify that the user exists before updating. | Check affected rows and return appropriate result. |
-| UserService.cs | 84‑86 | `DeleteUser` does not verify existence; may report success even if no row deleted. | Check rows affected. |
-| AuthService.cs | 27‑31 | `Login` returns a `User` without the `Password` field populated; later code may assume it exists. | Ensure password is never exposed; remove from returned object. |
-| AuthService.cs | 38‑44 | `Login` opens a connection but never disposes it; also no transaction for login check. | Use `using`. |
-| AuthService.cs | 70‑71 | `GenerateJwtToken` sets expiration to 30 days; with `ValidateLifetime = false` token never expires. | Enable lifetime validation. |
-| AuthService.cs | 84‑88 | `ValidateToken` returns `true` for any non‑empty token; logic after `return true` is unreachable. | Implement proper validation or remove method. |
-| EmailService.cs | 45‑49 | `SendTransferNotification` retries on `SmtpException` but re‑uses same `MailMessage` which may be in an invalid state after failure. | Recreate `MailMessage` each attempt or reset. |
-| EmailService.cs | 71‑73 | `SendWelcomeEmail` catches generic `Exception` and only logs to console; caller cannot know failure. | Propagate exception or return status. |
-| TransactionController.cs | 15‑17 | `int fromUserId = int.Parse(userIdClaim!);` will throw if claim missing or not an int. | Validate claim existence and parse safely with `int.TryParse`. |
-| TransactionController.cs | 27‑29 | Same issue for `userId` in Deposit. | Validate claim. |
-| TransactionController.cs | 38‑44 | `Refund` catches only `NotImplementedException`; other errors return 500 without logging. | Catch generic exceptions and log. |
-| UserController.cs | 23‑25 | `GetUser` returns `NotFound` but does not log missing user. | Optionally log for audit. |
-| UserController.cs | 31‑33 | `GetUsers` does not validate `page`/`pageSize` bounds; could cause huge queries. | Clamp values. |
-| UserController.cs | 45‑49 | `UpdateUser` catches `ArgumentException` and returns its message directly – may expose internal details. | Return generic error. |
-| UserController.cs | 55‑59 | `DeleteUser` catches generic `Exception` and returns generic message, but logs error – acceptable. | No change needed. |
-| UserController.cs | 71‑73 | `SearchUsers` passes raw `query` to `ExecuteQuery` which is vulnerable; also no null/empty check. | Validate query length and use safe method. |
+| `AuthService.cs` | 31 | SQL built with string interpolation using raw `username` → SQL injection risk | Use parameterized query (`@username`) with `SqlCommand.Parameters` |
+| `AuthService.cs` | 31 | Password hashed with MD5 – weak, fast hash | Replace with a strong password hash (e.g., PBKDF2, Argon2, BCrypt) |
+| `AuthService.cs` | 23 | Hard‑coded admin bypass password | Remove backdoor; enforce normal authentication only |
+| `AuthService.cs` | 71 | `ValidateLifetime = false` disables token expiry validation | Set `ValidateLifetime = true` and configure reasonable token lifetime |
+| `Program.cs` | 30 | JWT secret key read from config but stored in plain text in `appsettings.json` | Move secret to environment variable or secret manager |
+| `Program.cs` | 38 | `UseDeveloperExceptionPage()` enabled unconditionally → detailed errors in production | Enable only in Development environment |
+| `Program.cs` | 41 | HTTPS redirection commented out → traffic may be plain HTTP | Uncomment `app.UseHttpsRedirection();` |
+| `Program.cs` | 44 | CORS policy `AllowAnyOrigin/Method/Header` → open to CSRF | Restrict origins, methods, and headers to required set |
+| `DatabaseHelper.cs` | 13 | Fallback connection string contains hard‑coded DB credentials | Remove fallback or load credentials securely |
+| `appsettings.json` | 5‑9 | Database password, JWT secret, and email credentials stored in source control | Move all secrets to environment variables or secret store |
+| `EmailService.cs` | 15‑18 | SMTP credentials (username/password) read from config in plain text | Secure via secret manager; avoid storing in repo |
+| `EmailService.cs` | 23 | `EnableSsl = false` – sends credentials in clear text | Set `EnableSsl = true` and use TLS |
+| `UserService.cs` | 55 | SQL built with string interpolation for `email` and `username` → injection | Use parameterized queries |
+| `UserService.cs` | 84 | SQL built with string interpolation for `DELETE` → injection | Use parameterized query |
+| `UserService.cs` | 100 | `ExecuteQuery` used with raw `WHERE` clause containing user input → injection | Replace with `ExecuteQuerySafe` and parameters |
+| `TransactionService.cs` | 31‑33 | `ExecuteNonQuery` called with interpolated balances → injection if values tampered | Use parameters for all SQL statements |
+| `TransactionService.cs` | 71 | No check that `fromUserId != toUserId` → self‑transfer may be abused | Add guard against self‑transfer |
+| `TransactionService.cs` | 78 | Fee not considered in balance check (`fromBalance >= amount` instead of `>= totalDebit`) → possible overdraft | Compare against `totalDebit` |
+| `TransactionService.cs` | 86 | No daily‑transaction limit enforcement (`IsWithinDailyLimit` never called) | Call `IsWithinDailyLimit` before proceeding |
+| `TransactionService.cs` | 115 | `description` inserted directly into SQL without escaping → injection if contains `'` | Parameterize `description` field |
+| `TransactionService.cs` | 124 | `RefundTransaction` throws `NotImplementedException` but endpoint returns 500 with generic message | Implement proper handling or return 501 Not Implemented |
+| `StringHelper.cs` | 13‑16 | `Regex` compiled on each call → potential DoS via complex patterns | Cache compiled regex as `static readonly` |
+| `StringHelper.cs` | 23‑27 | `JoinWithSeparator` builds string via repeated concatenation → O(n²) | Replace with `string.Join` (already provided) and remove this method |
+| `EmailService.cs` | 9‑11 | `SmtpClient` is a disposable field never disposed → resource leak & possible socket exhaustion | Dispose `SmtpClient` (e.g., via `IAsyncDisposable` or create per‑send) |
+| `EmailService.cs` | 31‑34 | `MailMessage` objects not disposed | Wrap in `using` statements |
+| `DatabaseHelper.cs` | 23‑28 | `ExecuteQuery` opens connection and never disposes it | Use `using` for `SqlConnection`, `SqlCommand`, and `SqlDataAdapter` |
+| `DatabaseHelper.cs` | 41‑45 | `ExecuteNonQuery` opens connection via `GetOpenConnection` but never disposes connection/command | Use `using` and dispose both |
+| `DatabaseHelper.cs` | 55‑61 | `ExecuteQuerySafe` does not dispose `SqlDataAdapter` | Wrap adapter in `using` |
+| `AuthService.cs` | 45‑53 | `SqlConnection`, `SqlCommand`, and `SqlDataReader` not disposed | Use `using` statements |
+| `AuthService.cs` | 66‑71 | `ValidateToken` returns `true` before any validation, making token validation ineffective | Remove early `return true;` and implement proper validation |
 
 ---
 
-**## 3. Error Handling**
-
+## 2. Logic Errors
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 38‑44 | `SqlConnection`, `SqlCommand`, `SqlDataReader` not wrapped in try/catch; any DB error bubbles up as unhandled exception. | Add proper exception handling and return null or error result. |
-| TransactionService.cs | 55‑57 | No transaction; if first `UPDATE` succeeds and second fails, balances become inconsistent. | Use `BEGIN TRANSACTION`/`COMMIT` or `SqlTransaction`. |
-| TransactionService.cs | 70‑73 | `RecordTransaction` may throw on DB error; not caught, causing 500. | Wrap in try/catch and log. |
-| TransactionService.cs | 84‑86 | `Deposit` may throw on DB error; not caught. | Add error handling. |
-| TransactionService.cs | 94‑96 | `IsWithinDailyLimit` not used; daily limit logic missing – not an error but a missing feature. | Call method and handle limit exceeded. |
-| UserService.cs | 71‑73 | `UpdateUser` builds SQL with string interpolation; any DB error propagates as unhandled exception. | Catch DB exceptions, log, and return false. |
-| UserService.cs | 84‑86 | `DeleteUser` same issue; unhandled DB errors. | Add try/catch. |
-| UserService.cs | 108‑110 | `SearchUsers` catches generic `Exception` and returns empty list, hiding failures. | Log exception and return appropriate error response. |
-| UserController.cs | 45‑49 | `UpdateUser` catches `ArgumentException` and returns its message directly – may expose internal validation details. | Return generic validation error. |
-| UserController.cs | 55‑59 | `DeleteUser` catches generic `Exception` and returns generic message – acceptable but could include logging. | Already logs; fine. |
-| TransactionController.cs | 15‑17 | `int.Parse` on claim may throw `FormatException`. No try/catch. | Use `int.TryParse` and return Unauthorized if invalid. |
-| TransactionController.cs | 27‑29 | Same for Deposit. | Same fix. |
-| TransactionController.cs | 38‑44 | `Refund` catches only `NotImplementedException`; other exceptions bubble up as 500 without logging. | Catch generic `Exception`, log, and return appropriate status. |
-| EmailService.cs | 44‑48 | `SendTransferNotification` retries but re‑throws after max attempts, causing unhandled exception in controller. | Return status or handle at higher level. |
-| EmailService.cs | 61‑66 | `SendWelcomeEmail` catches generic `Exception` and only writes to console; caller cannot know failure. | Propagate or return bool. |
-| Program.cs | 33‑35 | `ValidateLifetime = false` disables token expiry validation – not an error handling issue but a security mis‑config. | Set to true. |
-| AuthService.cs | 84‑88 | `ValidateToken` returns early; dead code after return never executed. | Remove dead code. |
-| AuthService.cs | 90‑92 | `ValidateToken` does not actually validate token; any non‑empty token is accepted. | Implement proper validation. |
-| DatabaseHelper.cs | 38‑44 | `ExecuteNonQuery` does not catch DB errors; caller must handle. | Document contract or add try/catch. |
-| DatabaseHelper.cs | 22‑26 | `ExecuteQuery` does not catch errors; may leak connection. | Use try/finally to ensure disposal. |
-| DatabaseHelper.cs | 58‑62 | `ExecuteQuerySafe` does not catch errors; may leak adapter. | Add error handling. |
-| StringHelper.cs | 24‑28 | `JoinWithSeparator` silently returns empty string on empty collection – may be unexpected. | Document behavior or return empty. |
+| `TransactionService.cs` | 78‑80 | Balance check ignores transaction fee (`fromBalance >= amount`); fee can cause negative balance | Change condition to `fromBalance >= totalDebit` |
+| `TransactionService.cs` | 71‑73 | No guard against transferring to self (`fromUserId == toUserId`) | Add `if (fromUserId == toUserId) return (false, "Cannot transfer to yourself");` |
+| `TransactionService.cs` | 84‑86 | Daily transaction limit (`IsWithinDailyLimit`) defined but never used | Call `IsWithinDailyLimit` before performing transfer |
+| `UserService.cs` | 108‑110 | Pagination offset calculated as `page * pageSize` (0‑based) → skips first page | Compute `skip = (page - 1) * pageSize` and validate `page >= 1` |
+| `AuthService.cs` | 71‑78 | `ValidateToken` returns `true` for any non‑empty token, bypassing expiry check | Remove early return and evaluate `jwtToken.ValidTo` |
+| `AuthService.cs` | 23‑27 | Admin bypass password grants full access without hashing or audit | Remove backdoor; enforce normal login flow |
+| `TransactionService.cs` | 115‑119 | `description` may be `null`; inserted into SQL as `'null'` string → possible data inconsistency | Pass `NULL` via parameter when description is null |
+| `TransactionService.cs` | 124‑128 | `RefundTransaction` not implemented but controller catches `NotImplementedException` and returns 500 → misleading error | Implement refund logic or return 501 Not Implemented |
+| `UserService.cs` | 55‑57 | `GetUserById` throws `ArgumentException` for invalid IDs; API returns 500 instead of 400 | Return `BadRequest` from controller or avoid throwing |
+| `UserService.cs` | 71‑73 | `_requestCount` incremented but never used → unnecessary state | Remove or expose for monitoring |
+| `UserService.cs` | 84‑86 | `_auditLog` is static but not thread‑safe; concurrent writes may corrupt list | Use concurrent collection (`ConcurrentBag`) or lock |
+| `EmailService.cs` | 23‑27 | `SmtpClient` reused across calls without synchronization; not thread‑safe | Create a new `SmtpClient` per send or protect with lock |
+| `StringHelper.cs` | 23‑27 | `JoinWithSeparator` adds trailing separator and is O(n²) | Replace with `string.Join(separator, items)` (already provided) |
+| `TransactionService.cs` | 108‑110 | `interestBonus = amount * 0.05m * 1` – the `* 1` is redundant and may confuse readers | Remove unnecessary multiplication |
+| `TransactionService.cs` | 112‑113 | Deposit adds `amount + interestBonus` directly; no check for overflow or daily limit | Validate resulting balance and enforce limits |
 
 ---
 
-**## 4. Resource Leaks**
-
+## 3. Error Handling
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 38‑44 | `SqlConnection`, `SqlCommand`, `SqlDataReader` opened without `using`. | Wrap each in `using`. |
-| DatabaseHelper.cs | 22‑26 | `SqlConnection`, `SqlCommand`, `SqlDataAdapter` not disposed. | Use `using` for all. |
-| DatabaseHelper.cs | 38‑44 | `SqlConnection` from `GetOpenConnection()` not disposed. | Return `using` or let caller dispose. |
-| DatabaseHelper.cs | 58‑62 | `SqlDataAdapter` not disposed. | Wrap in `using`. |
-| DatabaseHelper.cs | 38‑44 | `ExecuteNonQuery` opens connection but never disposes it. | Use `using`. |
-| EmailService.cs | 44‑48 | `MailMessage` created and sent without disposal. | Wrap in `using`. |
-| EmailService.cs | 61‑66 | `MailMessage` in `SendWelcomeEmail` not disposed. | Wrap in `using`. |
-| EmailService.cs | 78‑82 | `MailMessage` in `SendWelcomeEmailHtml` not disposed. | Wrap in `using`. |
-| EmailService.cs | 23‑31 | `_smtpClient` is a field never disposed; may hold socket indefinitely. | Implement `IDisposable` on `EmailService` and dispose client, or create per‑use. |
-| TransactionService.cs | 55‑57 | Two separate `ExecuteNonQuery` calls; each opens a connection that is not disposed. | Ensure `ExecuteNonQuery` disposes its connection (fix in helper). |
-| TransactionService.cs | 70‑73 | `RecordTransaction` builds SQL and calls `ExecuteNonQuery` which leaks connection. | Fix in helper. |
-| TransactionController.cs | 15‑17 | `int.Parse(userIdClaim!)` may throw; no disposal needed but claim parsing may cause exception before any resource use. | Use safe parsing. |
-| UserService.cs | 71‑73 | `ExecuteQuerySafe` returns `DataTable`; underlying connection is disposed, but `DataTable` holds data – acceptable. | No leak. |
-| Program.cs | 33‑35 | `Jwt:SecretKey` read via `_config["Jwt:SecretKey"]!` – if null, `Encoding.UTF8.GetBytes` will throw; not a leak. | Validate config. |
+| `AuthService.cs` | 45‑53 | Database objects opened but not wrapped in try/catch; exceptions bubble and connections stay open | Use `using` and catch `SqlException` to return null or proper error |
+| `TransactionService.cs` | 31‑84 | No transaction scope; two `UPDATE` statements can leave accounts inconsistent on failure | Wrap updates in a DB transaction (`BEGIN TRANSACTION` / `COMMIT`) |
+| `TransactionService.cs` | 31‑84 | No catch for database errors; unhandled exceptions return 500 without context | Add try/catch, log error, return appropriate `BadRequest` |
+| `TransactionService.cs` | 115‑119 | `description` may be null; inserting directly may cause SQL error | Parameterize and allow null values |
+| `EmailService.cs` | 31‑44 | Swallows `SmtpException` after max retries and rethrows generic exception; controller returns 500 with no details | Return a specific error object or status code (e.g., 503 Service Unavailable) |
+| `EmailService.cs` | 55‑61 | Catches generic `Exception` and only writes to console; error lost to caller | Propagate exception or return result indicating failure |
+| `UserService.cs` | 100‑108 | `SearchUsers` catches all exceptions and returns empty list, hiding failures | Log exception and return appropriate error response |
+| `UserService.cs` | 55‑57 | Throws `ArgumentException` for invalid IDs; controller does not handle, leading to 500 | Validate inputs in controller and return `BadRequest` |
+| `AuthService.cs` | 71‑78 | `ValidateToken` returns early, making later validation unreachable (logic error) | Remove early return and handle validation properly |
+| `Program.cs` | 38‑40 | JWT configuration missing `ValidateLifetime`; tokens never expire, increasing risk if stolen | Set `ValidateLifetime = true` and configure reasonable clock skew |
+| `DatabaseHelper.cs` | 23‑28 | `ExecuteQuery` does not catch SQL errors; caller may receive empty table without knowing why | Add try/catch, log, and rethrow or return error indicator |
+| `DatabaseHelper.cs` | 41‑45 | `ExecuteNonQuery` returns rows affected but does not handle exceptions | Wrap in try/catch and log failures |
 
 ---
 
-**## 5. Null Reference Risks**
-
+## 4. Resource Leaks
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthController.cs | 15‑16 | `request` could be null if body missing; accessing `request.Username` would NRE. | Add `[FromBody]` null check and return BadRequest. |
-| TransactionController.cs | 15‑17 | `User.FindFirst(...)?` may return null; `userIdClaim!` forces non‑null, causing NRE on `int.Parse`. | Validate claim existence and format. |
-| TransactionController.cs | 27‑29 | Same issue for Deposit. | Same fix. |
-| TransactionService.cs | 70‑73 | `description` may be null; interpolated into SQL as `'null'`. | Pass `DBNull.Value` or handle null. |
-| EmailService.cs | 23‑31 | `_config["Email:SmtpHost"]` etc. may be null; `SmtpClient` constructor will throw. | Validate config values and throw meaningful error. |
-| EmailService.cs | 44‑48 | `toEmail` may be null; `MailMessage` constructor will NRE. | Validate parameters. |
-| EmailService.cs | 61‑66 | `toEmail` may be null. | Validate. |
-| EmailService.cs | 78‑82 | `toEmail` may be null. | Validate. |
-| StringHelper.cs | 34‑38 | `accountNumber` may be null; `accountNumber.Length` throws. | Add null guard. |
-| StringHelper.cs | 40‑44 | `account` may be null; `account[^4..]` throws. | Add null guard. |
-| UserService.cs | 108‑110 | `query` may be null; string interpolation in `ExecuteQuery` will produce `"Username LIKE '%'+null+'%'"` causing SQL error. | Validate `query` not null/empty. |
-| UserService.cs | 71‑73 | `email` and `username` may be null; interpolated into SQL causing syntax error. | Validate before use. |
-| UserService.cs | 84‑86 | `id` may be invalid; but method checks earlier. | No issue. |
-| Program.cs | 27‑31 | `_config["Jwt:SecretKey"]!` may be null; `Encoding.UTF8.GetBytes(null)` throws. | Validate secret key presence. |
-| AuthService.cs | 84‑88 | `ValidateToken` returns early; later code uses `jwtToken` which could be null if token malformed. | Remove dead code. |
-| TransactionService.cs | 94‑96 | `IsWithinDailyLimit` reads `CreatedAt` cast; if DB returns null, cast fails. | Ensure column not null. |
+| `AuthService.cs` | 45‑53 | `SqlConnection`, `SqlCommand`, `SqlDataReader` never disposed | Use `using` statements for all three |
+| `DatabaseHelper.cs` | 23‑28 | Connection opened, never closed/disposed | Wrap connection, command, and adapter in `using` |
+| `DatabaseHelper.cs` | 41‑45 | `ExecuteNonQuery` returns open connection without disposing it | Dispose connection and command via `using` |
+| `DatabaseHelper.cs` | 55‑61 | `SqlDataAdapter` not disposed | Wrap in `using` |
+| `EmailService.cs` | 15‑23 | `SmtpClient` stored as field and never disposed | Implement `IDisposable` on `EmailService` and dispose client, or create per‑send |
+| `EmailService.cs` | 31‑34, 55‑61 | `MailMessage` objects not disposed | Use `using (var message = new MailMessage(...))` |
+| `UserService.cs` | 100‑108 | `ExecuteQuery` leaks connection (see above) | Fix in `DatabaseHelper` |
+| `Program.cs` | 38‑40 | `JwtBearer` options create `SymmetricSecurityKey` each request; not a leak but could be cached | Cache the key if performance is a concern |
+| `TransactionService.cs` | 31‑84 | No transaction scope; if one `UPDATE` succeeds and the other fails, DB resources stay locked | Use `SqlTransaction` and ensure disposal |
 
 ---
 
-**## 6. Dead Code**
-
+## 5. Null Reference Risks
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 84‑88 | `ValidateToken` returns before any validation; the code after `return true` is unreachable. | Remove dead code or implement proper validation. |
-| AuthService.cs | 100‑102 | `HashPasswordSha1` is never used. | Remove if not needed. |
-| DatabaseHelper.cs | 70‑73 | `ExecuteQueryWithParams` marked `[Obsolete]` but still present; not used anywhere. | Delete or replace with safe method. |
-| StringHelper.cs | 24‑28 | `JoinWithSeparator` is never called; inefficient implementation. | Remove or make private. |
-| TransactionService.cs | 94‑96 | `IsWithinDailyLimit` is defined but never invoked. | Call it in `Transfer`/`Deposit` or remove. |
-| TransactionService.cs | 108‑110 | `RefundTransaction` throws `NotImplementedException`; controller catches it and returns 500. | Implement or return proper NotImplemented response. |
-| TransactionService.cs | 112‑114 | `FormatCurrency` is never used. | Remove or use in responses. |
-| Program.cs | 38 | `app.UseHttpsRedirection();` is commented out. | Uncomment or remove comment if not needed. |
-| SampleBankingApp.csproj | 16‑18 | `TreatWarningsAsErrors=false` may hide important warnings. | Consider enabling in CI. |
+| `AuthService.cs` | 31 | `username` or `password` could be null, leading to `HashPasswordMd5(null)` → exception | Validate inputs before use |
+| `AuthService.cs` | 71 | `_config["Jwt:SecretKey"]!` assumes non‑null; missing key throws `ArgumentNullException` | Add null check and fallback error |
+| `TransactionService.cs` | 71‑73 | `fromUserTable.Rows[0]` accessed without verifying `Rows.Count > 0` → possible `IndexOutOfRangeException` | Check `Rows.Count` before accessing |
+| `TransactionService.cs` | 71‑73 | `toUserTable.Rows[0]` same risk | Add guard |
+| `TransactionService.cs` | 84‑86 | `description` may be null; passed to `RecordTransaction` which builds SQL string with `'null'` → may cause error | Parameterize and allow null |
+| `TransactionService.cs` | 95‑99 | Email address retrieved from DB may be null; passed to `SendTransferNotification` → `MailMessage` throws | Validate email before sending |
+| `EmailService.cs` | 15‑18 | Config values (`Email:SmtpHost`, `Email:SmtpPort`, etc.) may be null; `int.Parse(null)` throws | Validate config and provide defaults or error |
+| `UserService.cs` | 55‑57 | `id` validated but `email` and `username` may be null; SQL string will contain `null` literal | Validate parameters before building query |
+| `UserService.cs` | 100‑108 | `query` could be null; `ExecuteQuery` builds `LIKE '%{query}%'` → results in `LIKE '%null%'` | Guard against null or treat as empty string |
+| `StringHelper.cs` | 45‑48 | `accountNumber` may be null; `accountNumber.Length` throws | Add null check |
+| `StringHelper.cs` | 55‑58 | `account` may be null; `account[^4..]` throws | Validate before slicing |
+| `StringHelper.cs` | 61‑63 | `input` may be null; `input.ToLower()` throws | Add null guard |
+| `StringHelper.cs` | 71‑75 | `value` may be null; `value.Trim()` throws if not checked earlier | Already checks null, but `value == ""` could be replaced with `string.IsNullOrWhiteSpace` |
 
 ---
 
-**## 7. Magic Strings and Numbers**
-
+## 6. Dead Code
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| DatabaseHelper.cs | 12‑14 | Fallback connection string hard‑codes server, DB, user, password. | Remove fallback; use secure config. |
-| AuthService.cs | 15 | `AdminBypassPassword = "SuperAdmin2024"` hard‑coded backdoor. | Remove. |
-| AuthService.cs | 84‑88 | `ValidateToken` returns `true` for any non‑empty token – magic logic. | Implement proper validation. |
-| AuthService.cs | 115‑117 | JWT secret key, issuer, audience are hard‑coded in `appsettings.json`. | Move to secure secret store. |
-| EmailService.cs | 15‑19 | Email subjects are hard‑coded strings. | Move to resources or config if needed. |
-| EmailService.cs | 23‑31 | SMTP host, port, username, password are read from config but defaults may be missing. | Validate and document. |
-| TransactionService.cs | 15‑16 | `TransactionFeeRate = 0.015m` and `MaxTransactionsPerDay = 10` are magic constants. | Move to configuration. |
-| TransactionService.cs | 84‑86 | Interest bonus multiplier `0.05m * 1` is a magic number. | Define as constant or config. |
-| UserService.cs | 57‑58 | `pageSize` capped at 50 – magic limit. | Define as constant or config. |
-| UserService.cs | 57‑58 | `skip = page * pageSize` uses magic pagination formula (incorrect). | Use proper formula. |
-| StringHelper.cs | 12‑14 | Regex patterns are hard‑coded strings. | Cache as static readonly. |
-| Program.cs | 33‑35 | `ValidateLifetime = false` is a magic security setting. | Set to true. |
-| Program.cs | 40‑42 | CORS policy `AllowAnyOrigin/AnyMethod/AnyHeader` – magic permissive values. | Restrict to known origins. |
-| Program.cs | 45‑47 | Logging levels set to `Debug` for all categories. | Use environment‑specific levels. |
-| SampleBankingApp.csproj | 13‑15 | `DebugSymbols = true`, `DebugType = full` – debug build settings in production. | Adjust for Release. |
+| `AuthService.cs` | 71‑78 | `return true;` makes subsequent token validation unreachable | Remove early return and keep validation logic |
+| `TransactionService.cs` | 108‑110 | `IsWithinDailyLimit` defined but never called | Either call it where needed or remove it |
+| `TransactionService.cs` | 124‑126 | `FormatCurrency` never used | Remove or use in responses |
+| `DatabaseHelper.cs` | 71‑81 | `ExecuteQueryWithParams` marked `[Obsolete]` but still present and unused | Delete method or replace all callers with `ExecuteQuerySafe` |
+| `AuthService.cs` | 64‑66 | `HashPasswordSha1` never used | Remove method |
+| `EmailService.cs` | 71‑73 | `BuildHtmlTemplate` used only by `SendWelcomeEmailHtml`; if that method is never called, the helper is dead | Verify usage; if unused, remove |
+| `Program.cs` | 41‑44 | CORS policy defined but may be overridden elsewhere; not dead but could be refined | No immediate action needed |
+| `StringHelper.cs` | 23‑27 | `JoinWithSeparator` is inefficient and not used elsewhere (fixed version exists) | Delete method |
 
 ---
 
-**## 8. Anti‑patterns and Code Quality**
-
+## 7. Magic Strings and Numbers
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| StringHelper.cs | 24‑28 | `JoinWithSeparator` uses string concatenation in a loop (O(n²)). | Replace with `string.Join` or `StringBuilder`. |
-| StringHelper.cs | 12‑14 | New `Regex` created on each call; costly. | Cache compiled regex as static readonly. |
-| StringHelper.cs | 34‑38 | `MaskAccountNumber` does not check for null; could NRE. | Add null guard. |
-| StringHelper.cs | 40‑44 | `ObfuscateAccount` does not check for null; could NRE. | Add null guard. |
-| DatabaseHelper.cs | 22‑26 | `ExecuteQuery` builds SQL from raw strings – SQL injection risk. | Remove; use parameterised queries only. |
-| DatabaseHelper.cs | 38‑44 | `ExecuteNonQuery` opens connection without `using`. | Use `using`. |
-| DatabaseHelper.cs | 58‑62 | `ExecuteQuerySafe` creates `SqlDataAdapter` without disposing. | Use `using`. |
-| EmailService.cs | 23‑31 | `_smtpClient` stored as a field and reused across threads – not thread‑safe. | Create per‑use or protect with lock. |
-| EmailService.cs | 44‑48 | `MailMessage` not disposed. | Wrap in `using`. |
-| EmailService.cs | 61‑66 | Same for welcome email. | Wrap in `using`. |
-| EmailService.cs | 78‑82 | Same for HTML email. | Wrap in `using`. |
-| UserService.cs | 13‑14 | Static mutable `_auditLog` and `_requestCount` accessed without synchronization – race conditions. | Use `ConcurrentBag`/`Interlocked.Increment`. |
-| UserService.cs | 71‑73 | `UpdateUser` builds SQL via interpolation – re‑implements ORM poorly. | Use parameterised queries. |
-| UserService.cs | 84‑86 | `DeleteUser` same issue. | Use parameters. |
-| TransactionService.cs | 55‑57 | Two separate `UPDATE` statements without transaction – violates atomicity. | Wrap in DB transaction. |
-| TransactionService.cs | 70‑73 | `RecordTransaction` builds raw SQL with string interpolation – risk of injection and formatting errors. | Use parameters. |
-| AuthService.cs | 84‑88 | `ValidateToken` contains dead code after early return. | Remove dead code. |
-| AuthService.cs | 100‑102 | `HashPasswordSha1` unused and insecure. | Delete. |
-| Program.cs | 33‑35 | `ValidateLifetime = false` disables a core security feature. | Set to true. |
-| Program.cs | 38 | HTTPS redirection disabled – anti‑pattern for production APIs. | Enable HTTPS. |
-| Program.cs | 40‑42 | Open CORS policy – anti‑pattern. | Restrict origins. |
-| SampleBankingApp.csproj | 16‑18 | `DebugSymbols` enabled in production build. | Disable for Release. |
+| `DatabaseHelper.cs` | 13 | Fallback connection string hard‑codes DB password | Move to secure config |
+| `AuthService.cs` | 23 | `AdminBypassPassword` hard‑coded | Remove backdoor |
+| `AuthService.cs` | 71 | JWT secret key read from config but key length is short (`mysecretkey`) | Use a longer, randomly generated secret |
+| `EmailService.cs` | 9‑11 | Email subjects and from address hard‑coded | Move to config or constants |
+| `TransactionService.cs` | 13 | `TransactionFeeRate = 0.015m` magic fee rate | Define as configurable setting |
+| `TransactionService.cs` | 14 | `MaxTransactionsPerDay = 10` magic limit | Move to config |
+| `UserService.cs` | 108 | Page size capped at 50 (magic) | Expose as configurable constant |
+| `Program.cs` | 44 | CORS `AllowAnyOrigin/Method/Header` magic permissive settings | Restrict to known origins |
+| `Program.cs` | 38‑40 | JWT `ValidateLifetime = false` (magic) | Set to true |
+| `StringHelper.cs` | 13‑16 | Email regex pattern hard‑coded | Consider moving to constant if reused |
+| `StringHelper.cs` | 20‑23 | Username regex pattern hard‑coded | Same as above |
+| `appsettings.json` | 5‑9 | Database password, JWT secret, email credentials hard‑coded | Store in environment variables or secret manager |
+| `appsettings.json` | 12‑14 | JWT `Issuer` and `Audience` hard‑coded strings | Keep but ensure they match production values |
+| `appsettings.json` | 19‑22 | Email SMTP host/port hard‑coded | Move to secure config if varies per environment |
 
 ---
 
-**## 9. Configuration Issues**
-
+## 8. Anti‑patterns and Code Quality
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| Program.cs | 33‑35 | `ValidateLifetime = false` disables JWT expiration checks. | Set to `true`. |
-| Program.cs | 27‑31 | `UseDeveloperExceptionPage()` always enabled – exposes stack traces. | Guard with `if (app.Environment.IsDevelopment())`. |
-| Program.cs | 38 | HTTPS redirection commented out – app may serve HTTP. | Uncomment `app.UseHttpsRedirection();`. |
-| Program.cs | 40‑42 | CORS policy `AllowAnyOrigin/AnyMethod/AnyHeader` – too permissive. | Restrict to known origins and methods. |
-| appsettings.json | 5‑7 | JWT secret key (`mysecretkey`) is weak and stored in source control. | Use a strong random key stored in secret manager. |
-| appsettings.json | 5‑7 | JWT issuer/audience are static strings; may be okay but should be environment‑specific. | Move to environment‑specific config. |
-| appsettings.json | 2‑4 | DB connection string contains plain password. | Store in secret store or use integrated security. |
-| appsettings.json | 12‑14 | Email SMTP credentials stored in plain text. | Move to secret store. |
-| appsettings.json | 16‑18 | Logging level set to `Debug` for all categories – noisy in production. | Set to `Information` or `Warning` for prod. |
-| SampleBankingApp.csproj | 13‑15 | `DebugSymbols=true` and `DebugType=full` – releases will ship symbols. | Set to false for Release configuration. |
-| SampleBankingApp.csproj | 16‑18 | `TreatWarningsAsErrors=false` – may allow problematic code to compile. | Consider enabling in CI. |
-| SampleBankingApp.csproj | 12‑14 | No explicit package version lock for `System.Data.SqlClient` (v4.8.6) – may have known vulnerabilities. | Verify latest secure version or switch to `Microsoft.Data.SqlClient`. |
-| SampleBankingApp.csproj | 12‑14 | `Newtonsoft.Json` version 12.0.3 – outdated; known CVEs. | Upgrade to latest stable version. |
-| SampleBankingApp.csproj | 12‑14 | `System.IdentityModel.Tokens.Jwt` version 7.0.0 – check for updates. | Upgrade if newer secure version exists. |
-| Program.cs | 45‑47 | Logging configuration not environment‑aware; same Debug level in all envs. | Use `appsettings.Development.json` and `appsettings.Production.json`. |
-| Program.cs | 45‑47 | No rate‑limiting or lockout on login endpoint. | Add ASP.NET Core rate limiting middleware. |
+| `StringHelper.cs` | 23‑27 | Concatenates strings in a loop → O(n²) | Use `string.Join` (already provided) or `StringBuilder` |
+| `StringHelper.cs` | 13‑16, 20‑23 | Compiles new `Regex` on each call | Cache compiled regex as `static readonly` |
+| `DatabaseHelper.cs` | 23‑28, 41‑45 | Direct string interpolation for SQL → injection risk & no disposal | Use parameterized queries and `using` |
+| `DatabaseHelper.cs` | 55‑61 | `ExecuteQuerySafe` creates `SqlDataAdapter` without disposing | Wrap in `using` |
+| `AuthService.cs` | 45‑53 | Manual ADO.NET handling instead of async/EF Core | Consider using async EF Core for readability and safety |
+| `TransactionService.cs` | 31‑84 | No transaction scope; two separate `UPDATE`s can leave data inconsistent | Use `SqlTransaction` or `TransactionScope` |
+| `UserService.cs` | 55‑86 | Static mutable `_auditLog` and `_requestCount` not thread‑safe | Replace with thread‑safe collections or lock |
+| `EmailService.cs` | 15‑23 | Reuses non‑thread‑safe `SmtpClient` across requests | Create per‑send or protect with lock |
+| `Program.cs` | 38‑40 | JWT validation disables lifetime check | Configure correctly |
+| `Program.cs` | 41‑44 | Open CORS policy | Restrict origins |
+| `AuthService.cs` | 23‑27 | Hard‑coded admin bypass – security anti‑pattern | Remove |
+| `TransactionService.cs` | 115‑119 | Inserts raw `description` into SQL without sanitization | Parameterize |
+| `UserService.cs` | 100‑108 | Swallows all exceptions in `SearchUsers` and returns empty list | Log and propagate appropriate error |
+| `TransactionService.cs` | 108‑110 | `IsWithinDailyLimit` never used – dead code | Remove or integrate |
 
 ---
 
-**## 10. Missing Unit Tests**
-
+## 9. Configuration Issues
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| *No test project found* | – | The repository contains no unit‑test project. | Add a test project (e.g., `SampleBankingApp.Tests`). |
-| AuthService.cs | 27‑44 | `Login` logic (password hashing, DB lookup, admin bypass). | Write tests for successful login, failed login, admin bypass, and SQL injection attempts. |
-| AuthService.cs | 84‑88 | `GenerateJwtToken` token creation and claims. | Test token contains correct claims and expiration. |
-| AuthService.cs | 84‑88 | `ValidateToken` (once fixed). | Test valid and expired tokens. |
-| TransactionService.cs | 33‑77 | `Transfer` – fee calculation, balance checks, atomicity, email notification. | Test successful transfer, insufficient funds, fee deduction, and that both balances update atomically. |
-| TransactionService.cs | 84‑86 | `Deposit` – amount validation, interest bonus, balance update. | Test valid deposit, invalid amounts, and correct bonus applied. |
-| TransactionService.cs | 94‑96 | `IsWithinDailyLimit` – daily transaction count enforcement. | Test limit reached and under limit scenarios. |
-| UserService.cs | 71‑73 | `GetUserById` – null handling, invalid IDs. | Test valid ID, non‑existent ID, and invalid ID exceptions. |
-| UserService.cs | 71‑73 | `UpdateUser` – SQL injection protection, input validation. | Test successful update, injection attempt, and invalid inputs. |
-| UserService.cs | 84‑86 | `DeleteUser` – deletion of existing and non‑existing users. | Test deletion success and handling of missing user. |
-| UserService.cs | 108‑110 | `SearchUsers` – correct LIKE query and injection safety. | Test search returns expected users and rejects malicious input. |
-| UserController.cs | 15‑17 | `GetUser` endpoint returns correct status codes. | Integration tests for 200, 404. |
-| TransactionController.cs | 15‑17 | `Transfer` endpoint parses claims safely and returns proper responses. | Test with valid/invalid JWT, insufficient funds, and successful transfer. |
-| TransactionController.cs | 38‑44 | `Refund` endpoint returns 500 for unimplemented method. | Verify proper error handling. |
-| EmailService.cs | 44‑48 | `SendTransferNotification` – email composition and retry logic. | Mock `SmtpClient` and verify retries and message content. |
-| Program.cs | 33‑35 | JWT validation settings affect authentication. | Integration test with expired token when `ValidateLifetime` is true. |
-| Configuration | – | Ensure secrets are not loaded from source control. | Test that app fails to start when required secrets are missing. |
+| `Program.cs` | 38 | `UseDeveloperExceptionPage()` enabled for all environments | Wrap in `if (app.Environment.IsDevelopment())` |
+| `Program.cs` | 41 | `ValidateLifetime = false` in JWT options | Set to `true` |
+| `Program.cs` | 44 | CORS policy `AllowAnyOrigin/Method/Header` – overly permissive | Restrict to specific origins and methods |
+| `Program.cs` | 41 | HTTPS redirection commented out | Uncomment `app.UseHttpsRedirection();` |
+| `appsettings.json` | 5‑9 | Secrets (DB password, JWT secret, email password) stored in source control | Move to environment variables or secret manager |
+| `appsettings.json` | 12‑14 | JWT `Issuer`/`Audience` hard‑coded but may differ per environment | Use per‑environment config files |
+| `appsettings.json` | 19‑22 | Email SMTP credentials in plain text | Secure via secret store |
+| `SampleBankingApp.csproj` | 13‑15 | `DebugSymbols=true` and `DebugType=full` in production build | Set to `false` for Release |
+| `SampleBankingApp.csproj` | 13‑15 | `TreatWarningsAsErrors=false` – may hide important warnings | Consider enabling for CI |
+| `SampleBankingApp.csproj` | 13‑15 | `Nullable=enable` – good, but ensure all code respects nullability | Review warnings |
+| `Program.cs` | 38‑40 | Logging level set to `Debug` for all categories in `appsettings.json` | Reduce to `Information` or `Warning` for production |
+| `Program.cs` | 38‑40 | No rate‑limiting or lockout on login endpoint | Add ASP.NET Core rate limiting middleware |
+| `Program.cs` | 38‑40 | No HSTS header configuration | Add `app.UseHsts();` for production |
 
-*All critical paths should have unit and integration tests covering success, failure, boundary conditions, and security aspects.*
+---
+
+## 10. Missing Unit Tests
+| File | Line | Issue | Fix |
+|------|------|-------|-----|
+| (entire project) | – | No test project present in the solution | Add an xUnit/NUnit/MSTest project `SampleBankingApp.Tests` |
+| `AuthService.cs` | 31‑53 | Login logic (SQL injection, password hashing, admin bypass) needs tests for valid/invalid credentials, injection attempts, and admin path | Write unit tests covering success, failure, and security edge cases |
+| `AuthService.cs` | 71‑78 | `ValidateToken` always returns true – test token validation, expiry, and signature | Add tests for valid, expired, and tampered tokens |
+| `TransactionService.cs` | 31‑84 | Transfer flow – balance checks, fee calculation, self‑transfer guard, daily limit, atomicity | Unit tests for sufficient/insufficient funds, fee deduction, self‑transfer rejection, and transaction limit |
+| `TransactionService.cs` | 95‑103 | Deposit – amount bounds, interest bonus, balance update | Tests for valid deposit, exceeding max amount, and negative amount |
+| `UserService.cs` | 108‑110 | Pagination – correct `skip` calculation, page size cap, empty result handling | Tests for first page, middle page, page beyond range |
+| `UserService.cs` | 100‑108 | SearchUsers – SQL injection risk, empty query handling | Tests ensuring query is escaped/parameterized and that null/empty queries behave correctly |
+| `StringHelper.cs` | 13‑16, 20‑23 | Email and username validation regexes – valid and invalid inputs | Parameterized tests for edge cases |
+| `StringHelper.cs` | 23‑27 | `JoinWithSeparator` inefficiency (optional) – correctness of output | Test that result matches `string.Join` |
+| `EmailService.cs` | 31‑44, 55‑61 | Email sending – retry logic, exception handling, proper disposal | Mock `SmtpClient` and verify retries and disposal |
+| `DatabaseHelper.cs` | 23‑28, 41‑45 | ExecuteQuery / ExecuteNonQuery – proper disposal and error handling | Integration tests with an in‑memory DB or mock to ensure connections close |
+| `Program.cs` | 38‑40 | JWT configuration – token lifetime validation, CORS policy | Tests that middleware is configured as expected (can be done via integration test) |
+
+*All critical paths (authentication, transaction processing, user management, and configuration) should have unit/integration tests covering success, failure, and security edge cases.*
