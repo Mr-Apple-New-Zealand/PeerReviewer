@@ -9,7 +9,7 @@ permissions:
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
   OLLAMA_MODEL: Qwen3.5-4B-imatrix:Q5_K_S
-  AI_ASSISTANT_MODEL_NUM_CTX: 32768
+  AI_ASSISTANT_MODEL_NUM_CTX: 49152
 
 jobs:
   code-review:
@@ -24,11 +24,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-
-      - name: Set AI assistant context from variable
-        run: |
-          val="${{ vars.AI_ASSISTANT_MODEL_NUM_CTX }}"
-          if [ -n "$val" ]; then echo "AI_ASSISTANT_MODEL_NUM_CTX=$val" >> "$GITHUB_ENV"; fi
 
       # -----------------------------------------------------------------------
       # Collect every tracked source file on the branch into a single document
@@ -84,7 +79,7 @@ jobs:
         env:
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: '0.6'
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -210,6 +205,7 @@ jobs:
               "options": {
                   "temperature": temperature,
                   "num_predict": num_predict,
+                  "num_ctx": num_ctx_tokens,
               },
           }
 
@@ -295,7 +291,7 @@ jobs:
         env:
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: '0.6'
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -406,6 +402,7 @@ jobs:
               "options": {
                   "temperature": temperature,
                   "num_predict": num_predict,
+                  "num_ctx": num_ctx,
               },
           }
 
