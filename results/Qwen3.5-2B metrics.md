@@ -1,25 +1,25 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Qwen3.5-2B` &nbsp;·&nbsp; **Commit:** `36c6592` &nbsp;·&nbsp; **Run:** #88
+> **Branch:** `Qwen3.5-2B` &nbsp;·&nbsp; **Commit:** `b783a4e` &nbsp;·&nbsp; **Run:** #110
 
 
 ## Score
-Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
+Total: 16 Found / 53 Partial / 1 Missed out of 70 issues (22.9% Found)
 
 ## Review Performance
 **Model:** `Qwen3.5-2B-imatrix:Q4_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 1m 18s |
-| Model load time | 1.6s |
-| Inference time | 1m 16s |
-| Prompt tokens | 7,810 |
-| Output tokens | 16,384 of 16,384 limit |
-| Output speed | 238.3 tok/s |
-| Prompt speed | 12307.4 tok/s |
-| Context window | 32,768 tokens |
-| Context utilization | 73.8% |
+| Total time | 1m 54s |
+| Model load time | 1.9s |
+| Inference time | 1m 52s |
+| Prompt tokens | 7,880 |
+| Output tokens | 24,000 of 24,000 limit |
+| Output speed | 234.6 tok/s |
+| Prompt speed | 12419.5 tok/s |
+| Context window | 49,152 tokens |
+| Context utilization | 64.9% |
 | Content truncated | No |
 | Completed naturally | No ⚠ (hit token limit) |
 
@@ -28,15 +28,15 @@ Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 31.0s |
-| Model load time | 0.1s |
-| Prompt tokens | 15,347 |
-| Output tokens | 3,205 |
-| Output speed | 118.1 tok/s |
-| Prompt speed | 5039.1 tok/s |
+| Total time | 50.8s |
+| Model load time | 2.6s |
+| Prompt tokens | 28,941 |
+| Output tokens | 3,876 |
+| Output speed | 95.4 tok/s |
+| Prompt speed | 4482.1 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 1m 49s |
+| Review + scoring time | 2m 45s |
