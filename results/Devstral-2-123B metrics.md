@@ -1,25 +1,25 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Devstral-2-123B` &nbsp;·&nbsp; **Commit:** `a779b05` &nbsp;·&nbsp; **Run:** #74
+> **Branch:** `Devstral-2-123B` &nbsp;·&nbsp; **Commit:** `9f9c910` &nbsp;·&nbsp; **Run:** #115
 
 
 ## Score
-Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
+Total: 56 Found / 14 Partial / 0 Missed out of 70 issues (80.0% Found)
 
 ## Review Performance
 **Model:** `Devstral-2-123B-Instruct-2512:Q4_K_M`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 11m 60s |
-| Model load time | 24.0s |
-| Inference time | 11m 36s |
-| Prompt tokens | 7,477 |
-| Output tokens | 2,193 of 16,384 limit |
-| Output speed | 3.3 tok/s |
-| Prompt speed | 229.6 tok/s |
-| Context window | 32,768 tokens |
-| Context utilization | 29.5% |
+| Total time | 4m 29s |
+| Model load time | 7.8s |
+| Inference time | 4m 22s |
+| Prompt tokens | 7,476 |
+| Output tokens | 2,202 of 24,000 limit |
+| Output speed | 8.9 tok/s |
+| Prompt speed | 617.4 tok/s |
+| Context window | 49,152 tokens |
+| Context utilization | 19.7% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +28,15 @@ Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 33.6s |
-| Model load time | 7.5s |
-| Prompt tokens | 6,727 |
-| Output tokens | 3,338 |
-| Output speed | 138.8 tok/s |
-| Prompt speed | 5743.8 tok/s |
+| Total time | 37.8s |
+| Model load time | 5.8s |
+| Prompt tokens | 7,104 |
+| Output tokens | 4,006 |
+| Output speed | 135.1 tok/s |
+| Prompt speed | 5793.2 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 12m 33s |
+| Review + scoring time | 5m 7s |
