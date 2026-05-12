@@ -1,25 +1,25 @@
 # AI Model Performance Metrics
 
-> **Branch:** `MiniMax-M2.7` &nbsp;·&nbsp; **Commit:** `d71bbc0` &nbsp;·&nbsp; **Run:** #76
+> **Branch:** `MiniMax-M2.7` &nbsp;·&nbsp; **Commit:** `53f7cf1` &nbsp;·&nbsp; **Run:** #113
 
 
 ## Score
-Total: 50 Found / 20 Partial / 0 Missed out of 70 issues (71.4% Found)
+Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
 
 ## Review Performance
 **Model:** `MiniMax-M2.7:Q3_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 2m 14s |
-| Model load time | 15.0s |
-| Inference time | 1m 59s |
+| Total time | 3m 19s |
+| Model load time | 15.2s |
+| Inference time | 3m 4s |
 | Prompt tokens | 7,290 |
-| Output tokens | 915 of 16,384 limit |
-| Output speed | 10.1 tok/s |
-| Prompt speed | 258.4 tok/s |
-| Context window | 32,768 tokens |
-| Context utilization | 25.0% |
+| Output tokens | 1,357 of 24,000 limit |
+| Output speed | 8.9 tok/s |
+| Prompt speed | 249.3 tok/s |
+| Context window | 49,152 tokens |
+| Context utilization | 17.6% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +28,15 @@ Total: 50 Found / 20 Partial / 0 Missed out of 70 issues (71.4% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 35.6s |
-| Model load time | 6.3s |
-| Prompt tokens | 5,544 |
-| Output tokens | 3,930 |
-| Output speed | 143.4 tok/s |
-| Prompt speed | 5952.7 tok/s |
+| Total time | 46.3s |
+| Model load time | 7.5s |
+| Prompt tokens | 6,364 |
+| Output tokens | 4,986 |
+| Output speed | 136.8 tok/s |
+| Prompt speed | 5795.3 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 2m 50s |
+| Review + scoring time | 4m 5s |
