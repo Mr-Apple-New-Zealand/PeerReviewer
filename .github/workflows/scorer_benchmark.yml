@@ -1,0 +1,521 @@
+name: Scorer Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: >
+          Comma-separated list of Ollama models to benchmark.
+          Leave blank to use the four defaults.
+        required: false
+        default: ''
+
+env:
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+
+jobs:
+  scorer-benchmark:
+    runs-on: mra-ubuntu
+    timeout-minutes: 480
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # -----------------------------------------------------------------------
+      # Run every candidate scorer against two synthetic reviews:
+      #
+      #   perfect  — auto-generated from ISSUES.md; names every planted bug
+      #              explicitly.  A good scorer should return ~70/70 Found.
+      #
+      #   null     — a positive review that mentions nothing specific.
+      #              A good scorer should return 0/70 Found (all Missed).
+      #
+      # Metrics:
+      #   TPR   = Found / 70  on the perfect review  (sensitivity)
+      #   TNR   = Missed / 70 on the null review      (specificity)
+      #   Score = harmonic mean of TPR and TNR
+      # -----------------------------------------------------------------------
+      - name: Run scorer benchmark
+        env:
+          MODELS_INPUT: ${{ github.event.inputs.models }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, re, subprocess, sys
+          from datetime import datetime
+          from pathlib import Path
+
+          # ── Config ─────────────────────────────────────────────────────────
+          DEFAULT_MODELS = [
+              "Qwen3-Coder-30B-imatrix:Q3_K_M",  # current production scorer
+              "Qwen3.6-27B:Q4_K_S",               # best overall reviewer
+              "Qwen3.5-9B:Q4_K_S",                # best-value model
+              "gpt-oss-120B",                      # fastest top-tier
+          ]
+
+          raw_input = os.environ.get("MODELS_INPUT", "").strip()
+          MODELS = [m.strip() for m in raw_input.split(",") if m.strip()] or DEFAULT_MODELS
+
+          OLLAMA_URL  = os.environ.get("OLLAMA_URL")
+          RUN_NUMBER  = os.environ.get("RUN_NUMBER", "?")
+          NUM_CTX     = 49152
+          NUM_PREDICT = 24000
+          TEMPERATURE = 0.3
+
+          OUT_DIR = Path("scorer_benchmark_results")
+          OUT_DIR.mkdir(exist_ok=True)
+          (OUT_DIR / "perfect").mkdir(exist_ok=True)
+          (OUT_DIR / "null").mkdir(exist_ok=True)
+
+          print(f"Models to benchmark: {MODELS}")
+
+          # ── Scoring preamble (identical to main workflow) ───────────────────
+          PREAMBLE = (
+              "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
+              "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
+              "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
+              "its own words. Your job is STRICT semantic matching: for each reference issue you "
+              "must locate a specific sentence in the review that names the SAME target — the same "
+              "file, the same method or symbol, or the same concrete behavior described in the "
+              "reference Description. If you cannot locate such a sentence, the issue is Missed. "
+              "Wording differences are fine; target differences are NOT.\n\n"
+              "Scoring rules (apply strictly, with evidence):\n"
+              "- Found: the review identifies THIS specific issue. There must exist a sentence in "
+              "the review that names the same method/file/symbol/behavior as the Description. "
+              "Generic class-level mentions are NOT enough when the Description names a specific "
+              "target. Each Found rating must be backed by its OWN sentence — you cannot reuse one "
+              "sentence to mark multiple unrelated rows Found.\n"
+              "  Concretely:\n"
+              "  * SQL-injection rows C1, C4, C5, C6, C7 each name a different method (Login, "
+              "UpdateUser/DeleteUser, SearchUsers, Transfer/Deposit, RecordTransaction). Found "
+              "requires the review to mention THAT method or its specific parameters. A generic "
+              "'SQL injection exists' sentence credits AT MOST one of these — the others are Partial.\n"
+              "  * Dead-code rows D1-D11 each name a different unused symbol (HashPasswordSha1, "
+              "ValidateToken's unreachable code, TableExists, ExecuteQueryWithParams, "
+              "BuildHtmlTemplate, SendWelcomeEmailHtml, FormatCurrency, IsWithinDailyLimit, "
+              "ObfuscateAccount, ToTitleCase, JoinWithSeparatorFixed). Found requires the review "
+              "to name THAT symbol. 'Dead code exists' or naming ONE unused method does not credit "
+              "the others — those are Missed.\n"
+              "  * Access-control rows C10, C11, L5, E7, N7 each name a different missing check. "
+              "'ValidateToken returns true' is NOT evidence for any of them — it covers ONLY D2 "
+              "(unreachable code). Found requires the review to name the specific endpoint or "
+              "missing check.\n"
+              "  * C2 (backdoor password constant 'AdminBypassPassword') and C8 (production "
+              "secrets in appsettings.json) and CF1 (secrets in source control) are RELATED but "
+              "DISTINCT. The review must name AdminBypassPassword to credit C2; a generic "
+              "'hardcoded credentials' sentence credits C8 or CF1 but not C2.\n"
+              "- Partial: the review touches the right area but materially misses the specific "
+              "point. Examples: mentions MD5 is weak but not the missing salt (C3); mentions SQL "
+              "injection generally but not the specific method named in the row; mentions "
+              "hardcoded values broadly but not the specific constant in the row.\n"
+              "- Missed: the review does not identify this specific issue. After careful reading, "
+              "you cannot quote a sentence that addresses THIS row's specific target. Phrasing "
+              "differences are fine — semantic match is required, but the semantic TARGET "
+              "(method/symbol/file/behavior) must be the same. DO NOT default to Found when in "
+              "doubt — default to Missed if you cannot point to specific evidence.\n\n"
+              "Evidence rule for the Notes column (NON-NEGOTIABLE):\n"
+              "- For every Found or Partial rating, the Note must quote or closely paraphrase the "
+              "supporting sentence and MUST name the same target (method/file/symbol/behavior) as "
+              "THIS row's Description. If your Note text names a different target than the "
+              "Description, the rating is wrong — downgrade to Missed.\n"
+              "- Self-check before finalizing each row: read your Note next to the row's "
+              "Description. Do they refer to the same specific thing? If not, change Status to "
+              "Missed and clear the Note.\n"
+              "- Do not reuse identical Note text across multiple IDs. Each row needs independent "
+              "evidence drawn from a different part of the review.\n\n"
+              "Your task:\n"
+              "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
+              "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
+              "row for the entire '## Missing Unit Tests' prose section (see below).\n"
+              "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
+              "  1. Exactly ONE summary line of the form: "
+              "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
+              "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
+              "tables after every row is written; T must equal N+P+M (the same as the number of "
+              "data rows in those tables). If your draft counts disagree with the tables, fix "
+              "either the tables or the summary before you stop — never leave contradictory numbers.\n"
+              "  2. One table per category matching the categories in the reference document.\n"
+              "     Each table must have columns: | ID | Description | Status | Notes |\n"
+              "     Use EXACTLY those four columns — do not insert an extra file/location column "
+              "between ID and Description (ISSUES.md already embeds file and lines inside the "
+              "Description text). Extra columns break automated counting; Notes may contain `|` "
+              "characters, so keep pipe delimiters only between the four columns.\n"
+              "     Status must be exactly one of: Found | Partial | Missed\n"
+              "     Notes: one sentence quoting or closely paraphrasing the relevant part of the "
+              "review, or blank if Missed. If Status is Found or Partial, the Note must clearly "
+              "relate to THAT row's Description (same vulnerability, bug, or symbol named there). "
+              "Reusing the same Note text for multiple different IDs is invalid — use Partial or "
+              "Missed instead for rows the review does not actually cover.\n"
+              "     Concretely: for dead-code rows D1-D11, each Found/Partial Note must mention "
+              "that row's specific unused symbol or scenario (e.g. D1 → HashPasswordSha1, D4 → "
+              "ExecuteQueryWithParams). Copy-pasting one JoinWithSeparator sentence for every "
+              "D-row is wrong. Likewise, do not paste one SmtpClient or Transfer paragraph "
+              "under unrelated SQL-injection or pagination IDs.\n"
+              "  3. Row-count rules (strict):\n"
+              "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
+              "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
+              "ONE row for Missing Unit Tests.\n"
+              "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
+              "Description cell, briefly summarize the whole section (no test project / missing "
+              "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
+              "that aggregate topic (missing tests, need for coverage, etc.).\n"
+              "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
+              "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
+              "C1-CF9 and UT.\n"
+              "- Do not add any commentary outside the scorecard document.\n\n"
+              "---\n"
+              "## Reference Issues\n\n"
+          )
+
+          # ── Null review ─────────────────────────────────────────────────────
+          # Deliberately vague — no specific file names, method names, or
+          # vulnerability types.  A well-calibrated scorer should mark everything
+          # Missed.  Any Found or Partial rating here is a false positive.
+          NULL_REVIEW = (
+              "# Code Review — SampleBankingApp\n\n"
+              "The codebase was reviewed across all source files. "
+              "The implementation follows standard .NET conventions and is structured clearly. "
+              "No significant issues were identified. "
+              "The code appears maintainable and consistent with the framework patterns in use.\n"
+          )
+
+          # ── Perfect review: auto-generated from ISSUES.md ───────────────────
+          # Parses every table row and produces a review sentence that names the
+          # specific file, symbol, and behaviour — giving the scorer unambiguous
+          # evidence for every issue.  The UT row is appended as prose.
+          def build_perfect_review(issues_md: str) -> str:
+              row_re = re.compile(
+                  r"^\|\s*([A-Z]{1,3}\d+)\s*"   # ID
+                  r"\|\s*`([^`]+)`\s*"            # file (backtick-quoted)
+                  r"\|\s*([^|]*?)\s*"             # lines
+                  r"\|\s*(.+?)\s*\|?\s*$"         # description
+              )
+              cat_order = ["C", "L", "R", "E", "RL", "N", "M", "D", "A", "CF"]
+              cat_names = {
+                  "C":  "Security Vulnerabilities",
+                  "L":  "Logic Errors",
+                  "R":  "Refactoring Opportunities",
+                  "E":  "Error Handling",
+                  "RL": "Resource Leaks",
+                  "N":  "Missing Null Checks",
+                  "M":  "Magic Strings and Numbers",
+                  "D":  "Dead Code",
+                  "A":  "Anti-patterns",
+                  "CF": "Configuration Issues",
+              }
+              findings: dict[str, list[str]] = {k: [] for k in cat_order}
+
+              for raw in issues_md.splitlines():
+                  m = row_re.match(raw.strip())
+                  if not m:
+                      continue
+                  issue_id, file_path, lines, desc = m.groups()
+                  # Strip markdown bold markers for cleaner prose
+                  desc = re.sub(r"\*{1,2}([^*]*)\*{1,2}", r"\1", desc).strip()
+                  prefix = re.match(r"^([A-Z]{1,3})", issue_id).group(1)
+                  if prefix in findings:
+                      line_ref = lines.strip()
+                      findings[prefix].append(
+                          f"- **`{file_path}`** (line {line_ref}): {desc}"
+                      )
+
+              sections = ["# Code Review — SampleBankingApp\n",
+                          "The following issues were identified during review of the full source tree.\n"]
+              for prefix in cat_order:
+                  rows = findings.get(prefix, [])
+                  if not rows:
+                      continue
+                  sections.append(f"\n## {cat_names[prefix]}\n")
+                  sections.extend(rows)
+
+              sections.append(
+                  "\n## Missing Unit Tests\n"
+                  "\nThe project contains no test project and no test files of any kind. "
+                  "AuthService.Login, AuthService.GenerateJwtToken, TransactionService.Transfer, "
+                  "TransactionService.Deposit, UserService.GetUsersPage, StringHelper methods, "
+                  "and all controller actions lack any test coverage whatsoever.\n"
+              )
+              return "\n".join(sections)
+
+          # ── Status counter (mirrors main workflow) ──────────────────────────
+          _STATUS_RE = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
+
+          def count_statuses(md: str) -> tuple[int, int, int]:
+              found = partial = missed = 0
+              for raw in md.splitlines():
+                  line = raw.strip()
+                  if not line.startswith("|"):
+                      continue
+                  parts = [p.strip() for p in line.split("|")]
+                  if len(parts) < 3:
+                      continue
+                  id_cell = parts[1] if len(parts) > 1 else ""
+                  if not id_cell or id_cell.lower() == "id" or re.match(r"^-{3,}$", id_cell):
+                      continue
+                  m = _STATUS_RE.search(line)
+                  if not m:
+                      continue
+                  s = m.group(1).lower()
+                  if s == "found":
+                      found += 1
+                  elif s == "partial":
+                      partial += 1
+                  elif s == "missed":
+                      missed += 1
+              return found, partial, missed
+
+          # ── Ollama call ─────────────────────────────────────────────────────
+          def call_ollama(model: str, prompt: str) -> tuple[str, dict]:
+              payload = json.dumps({
+                  "model": model,
+                  "messages": [{"role": "user", "content": prompt}],
+                  "stream": False,
+                  "options": {
+                      "temperature": TEMPERATURE,
+                      "num_predict": NUM_PREDICT,
+                      "num_ctx": NUM_CTX,
+                  },
+              }).encode()
+
+              result = subprocess.run(
+                  ["curl", "-s", "--show-error", "--fail-with-body",
+                   "--max-time", "7200",
+                   "-X", "POST", f"{OLLAMA_URL}/api/chat",
+                   "-H", "Content-Type: application/json",
+                   "--data-binary", "@-"],
+                  input=payload,
+                  capture_output=True,
+              )
+              if result.returncode != 0:
+                  raise RuntimeError(
+                      f"curl failed (exit {result.returncode})\n"
+                      f"stderr: {result.stderr.decode()}\n"
+                      f"body:   {result.stdout.decode()[:500]}"
+                  )
+
+              data = json.loads(result.stdout.decode())
+              _think = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+              content = _think.sub("", (data.get("message") or {}).get("content", "")).strip()
+
+              def ns(k): return round(data.get(k, 0) / 1e9, 1)
+              def tps(tok, dur):
+                  t = data.get(tok, 0); d = data.get(dur, 0)
+                  return round(t / max(d / 1e9, 0.001), 1) if t and d else 0.0
+
+              metrics = {
+                  "total_duration_s": ns("total_duration"),
+                  "output_tokens":    data.get("eval_count", 0),
+                  "output_tps":       tps("eval_count", "eval_duration"),
+                  "done_reason":      data.get("done_reason", ""),
+              }
+              return content, metrics
+
+          def fmt_s(secs):
+              if secs >= 60:
+                  return f"{int(secs // 60)}m {secs % 60:.0f}s"
+              return f"{secs:.1f}s"
+
+          def harmonic(a: float, b: float) -> float:
+              return round(2 * a * b / (a + b), 1) if (a + b) > 0 else 0.0
+
+          # ── Load inputs ─────────────────────────────────────────────────────
+          issues_md     = Path("ISSUES.md").read_text()
+          perfect_review = build_perfect_review(issues_md)
+
+          # Save the synthetic reviews so they can be inspected in the artifact.
+          (OUT_DIR / "perfect_review.md").write_text(perfect_review)
+          (OUT_DIR / "null_review.md").write_text(NULL_REVIEW)
+
+          print(f"\nPerfect review: {len(perfect_review)} chars, "
+                f"{len(perfect_review.splitlines())} lines")
+
+          # ── Benchmark loop ──────────────────────────────────────────────────
+          all_results: list[dict] = []
+
+          for model in MODELS:
+              sep = "=" * 64
+              print(f"\n{sep}\n  Model: {model}\n{sep}")
+
+              result: dict = {"model": model}
+
+              for review_name, review_text in [
+                  ("perfect", perfect_review),
+                  ("null",    NULL_REVIEW),
+              ]:
+                  prompt = (PREAMBLE + issues_md +
+                            "\n\n---\n## AI Review Output\n\n" + review_text + "\n")
+
+                  print(f"  → {review_name} review … ", end="", flush=True)
+                  try:
+                      content, metrics = call_ollama(model, prompt)
+                      found, partial, missed = count_statuses(content)
+                      total = found + partial + missed
+
+                      trunc = "⚠ TRUNCATED" if metrics["done_reason"] == "length" else ""
+                      print(f"{fmt_s(metrics['total_duration_s'])} | "
+                            f"{metrics['output_tps']} t/s | "
+                            f"{found}F / {partial}P / {missed}M of {total} "
+                            f"{trunc}")
+
+                      # Save individual scorecard
+                      safe = re.sub(r"[:/\\]", "_", model)
+                      (OUT_DIR / review_name / f"{safe}_scorecard.md").write_text(
+                          f"# Scorer: {model}\n"
+                          f"# Review type: {review_name}\n\n"
+                          + content
+                      )
+
+                      result[review_name] = {
+                          "found":            found,
+                          "partial":          partial,
+                          "missed":           missed,
+                          "total":            total,
+                          "total_duration_s": metrics["total_duration_s"],
+                          "output_tps":       metrics["output_tps"],
+                          "done_reason":      metrics["done_reason"],
+                      }
+
+                  except Exception as exc:
+                      print(f"ERROR — {exc}")
+                      result[review_name] = {"error": str(exc)}
+
+              all_results.append(result)
+
+              # Save incrementally so a crash doesn't lose earlier results.
+              (OUT_DIR / "results.json").write_text(
+                  json.dumps(all_results, indent=2)
+              )
+
+          # ── Summary report ──────────────────────────────────────────────────
+          timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+          def tpr(r):
+              p = r.get("perfect", {})
+              return p.get("found", 0) / 70 * 100 if "error" not in p else None
+
+          def tnr(r):
+              n = r.get("null", {})
+              return n.get("missed", 0) / 70 * 100 if "error" not in n else None
+
+          def score(r):
+              t, s = tpr(r), tnr(r)
+              return harmonic(t, s) if t is not None and s is not None else None
+
+          ranked = sorted(
+              all_results,
+              key=lambda r: score(r) if score(r) is not None else -1,
+              reverse=True,
+          )
+
+          def trunc_flag(r, key):
+              d = r.get(key, {})
+              return "⚠️ Yes" if d.get("done_reason") == "length" else "No"
+
+          lines = [
+              "# Scorer Benchmark Summary",
+              "",
+              f"> **Run:** #{RUN_NUMBER} &nbsp;·&nbsp; **Generated:** {timestamp}",
+              "",
+              "## Methodology",
+              "",
+              "| Review | Purpose | Expected output |",
+              "|--------|---------|-----------------|",
+              "| **Perfect** | Explicitly names every planted bug by file, symbol, and behaviour | All 70 Found |",
+              "| **Null** | Generic positive review — nothing specific mentioned | All 70 Missed |",
+              "",
+              "- **TPR** (sensitivity): Found / 70 on the perfect review",
+              "- **TNR** (specificity): Missed / 70 on the null review",
+              "- **Score**: harmonic mean of TPR and TNR — a model that aces one but fails the other is penalised",
+              "",
+              "The current production scorer is `Qwen3-Coder-30B-imatrix:Q3_K_M`.",
+              "",
+              "## Ranked Results",
+              "",
+              "| # | Model | TPR | TNR | Score | Perfect time | Null time | Truncated? |",
+              "|---|-------|-----|-----|-------|--------------|-----------|------------|",
+          ]
+
+          for rank, r in enumerate(ranked, 1):
+              t = tpr(r); s_val = tnr(r); sc = score(r)
+              if t is None or s_val is None:
+                  lines.append(f"| {rank} | {r['model']} | ERROR | ERROR | — | — | — | — |")
+                  continue
+              p = r.get("perfect", {}); n = r.get("null", {})
+              trunc = (trunc_flag(r, "perfect") if trunc_flag(r, "perfect") != "No"
+                       else trunc_flag(r, "null"))
+              lines.append(
+                  f"| {rank} | {r['model']} "
+                  f"| {t:.1f}% | {s_val:.1f}% | {sc:.1f}% "
+                  f"| {fmt_s(p.get('total_duration_s', 0))} "
+                  f"| {fmt_s(n.get('total_duration_s', 0))} "
+                  f"| {trunc} |"
+              )
+
+          lines += [
+              "",
+              "## Detail — Perfect Review (sensitivity)",
+              "",
+              "A good scorer should return close to 70 Found.",
+              "Missed = issues the scorer failed to recognise despite being clearly stated.",
+              "",
+              "| Model | Found | Partial | Missed | Total | Time | Speed |",
+              "|-------|-------|---------|--------|-------|------|-------|",
+          ]
+          for r in all_results:
+              p = r.get("perfect", {})
+              if "error" in p:
+                  lines.append(f"| {r['model']} | — | — | — | ERROR | — | — |")
+              else:
+                  lines.append(
+                      f"| {r['model']} | {p['found']} | {p['partial']} | {p['missed']} "
+                      f"| {p['total']} | {fmt_s(p['total_duration_s'])} | {p['output_tps']} t/s |"
+                  )
+
+          lines += [
+              "",
+              "## Detail — Null Review (specificity)",
+              "",
+              "A good scorer should return 0 Found and 0 Partial.",
+              "Found or Partial = false positives (the scorer invented matches that aren't there).",
+              "",
+              "| Model | Found | Partial | Missed | Total | Time | Speed |",
+              "|-------|-------|---------|--------|-------|------|-------|",
+          ]
+          for r in all_results:
+              n = r.get("null", {})
+              if "error" in n:
+                  lines.append(f"| {r['model']} | — | — | — | ERROR | — | — |")
+              else:
+                  lines.append(
+                      f"| {r['model']} | {n['found']} | {n['partial']} | {n['missed']} "
+                      f"| {n['total']} | {fmt_s(n['total_duration_s'])} | {n['output_tps']} t/s |"
+                  )
+
+          summary_path = OUT_DIR / "summary.md"
+          summary_path.write_text("\n".join(lines) + "\n")
+          print(f"\nSummary written to {summary_path}")
+          PYEOF
+
+      # -----------------------------------------------------------------------
+      # Print the summary so it's visible in the Actions log without
+      # downloading the artifact.
+      # -----------------------------------------------------------------------
+      - name: Print summary
+        if: always()
+        run: |
+          echo "======================================================================"
+          echo "  SCORER BENCHMARK SUMMARY"
+          echo "======================================================================"
+          cat scorer_benchmark_results/summary.md || echo "(summary not generated)"
+
+      # -----------------------------------------------------------------------
+      # Upload scorecards, synthetic reviews, and raw JSON as one artifact.
+      # -----------------------------------------------------------------------
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: scorer-benchmark-${{ github.run_number }}
+          path: scorer_benchmark_results/
+          retention-days: 90
