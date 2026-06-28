@@ -7,14 +7,17 @@ permissions:
   contents: read
 
 env:
-  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Qwen3-32B-imatrix:Q4_K_M
+  # Hosted Ollama cloud. OLLAMA_API_KEY must be set as a repository/Org secret.
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL || 'https://ollama.com' }}
+  OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+  OLLAMA_MODEL: glm-5.2:cloud
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
 
 jobs:
   code-review:
-    # REQUIRED: must use a self-hosted runner that can reach 192.168.10.100
-    # Add additional labels (e.g. [self-hosted, linux]) to target a specific runner
+    # The hosted Ollama cloud (ollama.com) is reachable over the public internet,
+    # so any runner with outbound HTTPS works — a GitHub-hosted `ubuntu-latest`
+    # is fine. Kept on the self-hosted runner for now; switch if no longer needed.
     runs-on: mra-ubuntu
     timeout-minutes: 180
 
@@ -66,7 +69,7 @@ jobs:
           echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
           echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
 
-            
+
       - name: Skip if no relevant changes
         if: steps.diff.outputs.empty == 'true'
         run: echo "No reviewable changes on this branch — skipping AI review."
@@ -214,16 +217,21 @@ jobs:
 
           print(f"Calling {base_url}/api/chat with model {model} …")
 
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
+          api_key = os.environ.get("OLLAMA_API_KEY", "").strip()
+          if "ollama.com" in base_url and not api_key:
+              print("ERROR: OLLAMA_URL targets the hosted cloud but OLLAMA_API_KEY is unset.",
+                    file=sys.stderr)
+              sys.exit(1)
+          curl_cmd = [
+              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+              "-X", "POST", f"{base_url}/api/chat",
+              "-H", "Content-Type: application/json",
+          ]
+          if api_key:
+              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+          curl_cmd += ["-d", "@payload.json"]
+
+          result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
           if result.returncode != 0:
               print(
@@ -300,7 +308,9 @@ jobs:
           python3 - <<'PYEOF'
           import json, os, re, subprocess, sys
 
-          model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
+          # Fall back to the review model when the scorer var is unset OR empty
+          # (an undefined GitHub var renders as "", which .get() would not replace).
+          model = os.environ.get("SCORECARD_MODEL", "").strip() or os.environ.get("OLLAMA_MODEL")
           base_url = os.environ.get("OLLAMA_URL")
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
@@ -438,16 +448,21 @@ jobs:
           review_model = os.environ.get("OLLAMA_MODEL")
           print(f"Scoring with {model} (review was by {review_model}) …")
 
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@scoring_payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
+          api_key = os.environ.get("OLLAMA_API_KEY", "").strip()
+          if "ollama.com" in base_url and not api_key:
+              print("ERROR: OLLAMA_URL targets the hosted cloud but OLLAMA_API_KEY is unset.",
+                    file=sys.stderr)
+              sys.exit(1)
+          curl_cmd = [
+              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+              "-X", "POST", f"{base_url}/api/chat",
+              "-H", "Content-Type: application/json",
+          ]
+          if api_key:
+              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+          curl_cmd += ["-d", "@scoring_payload.json"]
+
+          result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
           if result.returncode != 0:
               print(
