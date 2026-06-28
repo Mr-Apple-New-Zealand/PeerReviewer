@@ -11,7 +11,11 @@ on:
         default: ''
 
 env:
+  # Internal Ollama instance (default for on-prem models).
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  # Hosted Ollama cloud — used automatically for any model tagged ':cloud'.
+  OLLAMA_CLOUD_URL: https://ollama.com
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
 
 jobs:
   scorer-benchmark:
@@ -58,6 +62,8 @@ jobs:
           MODELS = [m.strip() for m in raw_input.split(",") if m.strip()] or DEFAULT_MODELS
 
           OLLAMA_URL  = os.environ.get("OLLAMA_URL")
+          CLOUD_URL   = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").rstrip("/")
+          API_KEY     = os.environ.get("OLLAMA_API_KEY", "").strip()
           RUN_NUMBER  = os.environ.get("RUN_NUMBER", "?")
           NUM_CTX     = 49152
           NUM_PREDICT = 24000
@@ -266,7 +272,17 @@ jobs:
               return found, partial, missed
 
           # ── Ollama call ─────────────────────────────────────────────────────
+          # Models tagged ':cloud' (e.g. glm-5.2:cloud) are served by the hosted
+          # Ollama cloud and need a Bearer key; everything else goes to the
+          # internal instance with no auth.
           def call_ollama(model: str, prompt: str) -> tuple[str, dict]:
+              is_cloud = model.strip().endswith(":cloud")
+              base_url = CLOUD_URL if is_cloud else OLLAMA_URL
+              if is_cloud and not API_KEY:
+                  raise RuntimeError(
+                      f"'{model}' is a cloud model but OLLAMA_API_KEY is unset."
+                  )
+
               payload = json.dumps({
                   "model": model,
                   "messages": [{"role": "user", "content": prompt}],
@@ -278,15 +294,17 @@ jobs:
                   },
               }).encode()
 
-              result = subprocess.run(
-                  ["curl", "-s", "--show-error", "--fail-with-body",
-                   "--max-time", "7200",
-                   "-X", "POST", f"{OLLAMA_URL}/api/chat",
-                   "-H", "Content-Type: application/json",
-                   "--data-binary", "@-"],
-                  input=payload,
-                  capture_output=True,
-              )
+              curl_cmd = [
+                  "curl", "-s", "--show-error", "--fail-with-body",
+                  "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/api/chat",
+                  "-H", "Content-Type: application/json",
+              ]
+              if is_cloud:
+                  curl_cmd += ["-H", f"Authorization: Bearer {API_KEY}"]
+              curl_cmd += ["--data-binary", "@-"]
+
+              result = subprocess.run(curl_cmd, input=payload, capture_output=True)
               if result.returncode != 0:
                   raise RuntimeError(
                       f"curl failed (exit {result.returncode})\n"
