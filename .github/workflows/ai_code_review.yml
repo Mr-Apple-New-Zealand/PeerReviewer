@@ -19,9 +19,9 @@ env:
 
 jobs:
   code-review:
-    # The hosted Ollama cloud (ollama.com) is reachable over the public internet,
-    # so any runner with outbound HTTPS works — a GitHub-hosted `ubuntu-latest`
-    # is fine. Kept on the self-hosted runner for now; switch if no longer needed.
+    # REQUIRED: self-hosted runner. The review step calls the Ollama cloud
+    # (outbound HTTPS), but the scoring step calls the INTERNAL Ollama instance
+    # (vars.AI_ASSISTANT_OLLAMA_URL), so the runner must reach both.
     runs-on: mra-ubuntu
     timeout-minutes: 180
 
@@ -303,6 +303,11 @@ jobs:
       - name: Score review against ISSUES.md
         if: steps.diff.outputs.empty == 'false'
         env:
+          # Scoring runs on the INTERNAL Ollama instance, not the cloud. Override
+          # the workflow-level cloud URL and blank the cloud key so it isn't sent
+          # to the internal server (which needs no auth).
+          OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+          OLLAMA_API_KEY: ''
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
