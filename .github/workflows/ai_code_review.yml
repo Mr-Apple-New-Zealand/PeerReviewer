@@ -8,7 +8,9 @@ permissions:
 
 env:
   # Hosted Ollama cloud. OLLAMA_API_KEY must be set as a repository/Org secret.
-  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL || 'https://ollama.com' }}
+  # URL is hardcoded (not vars.AI_ASSISTANT_OLLAMA_URL) so the old on-prem
+  # server address can't override it from a stale repo variable.
+  OLLAMA_URL: https://ollama.com
   OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
   OLLAMA_MODEL: glm-5.2:cloud
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
