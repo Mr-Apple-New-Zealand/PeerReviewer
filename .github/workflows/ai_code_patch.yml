@@ -23,13 +23,13 @@ on:
           Should NOT be the same as the patcher (a model marking its
           own work is not an independent check).
         required: true
-        default: 'Qwen3.6-27B-imatrix:Q4_K_S'
+        default: 'Qwen3.6-27B:Q4_K_S'
       scorer_model:
         description: >
           Model that maps the peer review onto ISSUES.md rows.
           Leave blank to reuse the reviewer model.
         required: false
-        default: ''
+        default: 'Qwen3-Coder-30B-imatrix:Q3_K_M'
       skip_baseline:
         description: >
           Skip the baseline peer review (only score the patched tree).
@@ -67,6 +67,7 @@ jobs:
           fetch-depth: 0
 
       - name: Sanity-check inputs
+        id: sanity
         run: |
           # Cloud models require an API key up-front.
           NEEDS_KEY='false'
@@ -80,6 +81,11 @@ jobs:
           if [ '${{ inputs.patcher_model }}' = '${{ inputs.reviewer_model }}' ]; then
             echo "::warning::patcher_model and reviewer_model are the same — the review is not an independent check of the patch."
           fi
+
+          # GitHub artifact names disallow: " : < > | * ? \ /  (and control chars).
+          # Squash any of those to '-' so tags like 'glm-5.2:cloud' still work.
+          SAFE_MODEL=$(printf '%s' '${{ inputs.patcher_model }}' | tr ':"<>|*?\\/' '-')
+          echo "safe_patcher_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
 
       - name: Run patcher + peer review
         env:
@@ -130,7 +136,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ai-patch-${{ inputs.patcher_model }}-${{ github.run_number }}
+          name: ai-patch-${{ steps.sanity.outputs.safe_patcher_model }}-${{ github.run_number }}
           path: |
             .ai-patch/patch_summary.md
             .ai-patch/patch_summary.json
