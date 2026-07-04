@@ -61,7 +61,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Use whichever branch the workflow was dispatched from, so per-branch
+          # patcher/reviewer setups don't accidentally run stale code from main.
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Sanity-check inputs
