@@ -18,8 +18,15 @@ this script:
    you can see how many issues the coding agent actually resolved.
 
 Env vars (all optional; sensible defaults for Ollama's hosted cloud):
-  OLLAMA_URL                              Default: https://ollama.com
-  OLLAMA_API_KEY                          Bearer token when using ollama.com.
+  OLLAMA_URL                              On-prem Ollama endpoint used for any
+                                          model tag that does NOT end in ':cloud'.
+                                          Default: https://ollama.com
+  OLLAMA_CLOUD_URL                        Hosted Ollama endpoint used for any
+                                          ':cloud' model tag. Default: https://ollama.com
+  OLLAMA_API_KEY                          Bearer token; sent ONLY to the cloud
+                                          endpoint (local Ollama rejects auth
+                                          headers with 400). Required if any of
+                                          the three model roles use ':cloud'.
   AI_PATCHER_MODEL                        Model that produces the fix.
                                           Default: glm-5.2:cloud
   AI_REVIEWER_MODEL                       Model that reviews + scores. Passed
@@ -60,6 +67,7 @@ try:
         fmt_s,
         ns_to_s,
         ollama_chat,
+        resolve_endpoint,
         run,
         strip_thinking,
         tps,
@@ -378,19 +386,19 @@ def write_comparison_report(
 
 
 def main() -> int:
-    base_url = os.environ.get("OLLAMA_URL", "https://ollama.com").rstrip("/")
-    api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
     patcher_model = os.environ.get("AI_PATCHER_MODEL", "glm-5.2:cloud")
     reviewer_model = os.environ.get("AI_REVIEWER_MODEL", patcher_model)
     scorer_model = os.environ.get("AI_SCORER_MODEL", reviewer_model)
 
-    if "ollama.com" in base_url and not api_key:
-        print(
-            "ERROR: OLLAMA_URL points at the hosted Ollama cloud but "
-            "OLLAMA_API_KEY is not set. Export your API key, e.g. "
-            "`export OLLAMA_API_KEY=...`.",
-            file=sys.stderr,
-        )
+    # Each model routes independently: :cloud tags go to OLLAMA_CLOUD_URL, all
+    # others to OLLAMA_URL. Validate all three up-front so a missing key for
+    # the scorer doesn't surface only after the patcher run.
+    try:
+        patcher_url, patcher_key = resolve_endpoint(patcher_model)
+        resolve_endpoint(reviewer_model)
+        resolve_endpoint(scorer_model)
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
     num_ctx = int(os.environ.get("AI_PATCH_MODEL_NUM_CTX", "49152"))
@@ -448,7 +456,7 @@ def main() -> int:
         "options": {"temperature": temperature, "num_predict": num_predict, "num_ctx": num_ctx},
     }
 
-    data = ollama_chat(base_url, payload, output_dir / "patch_payload.json", "patch", api_key)
+    data = ollama_chat(patcher_url, payload, output_dir / "patch_payload.json", "patch", patcher_key)
     raw = (data.get("message") or {}).get("content", "")
     patch_output = strip_thinking(raw).strip()
     if not patch_output:
