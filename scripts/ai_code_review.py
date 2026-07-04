@@ -104,27 +104,43 @@ def collect_branch_content(source_root: str) -> tuple[str, int]:
 def resolve_endpoint(model: str) -> tuple[str, str | None]:
     """Pick the Ollama base URL + API key for a given model tag.
 
-    Models tagged ':cloud' route to OLLAMA_CLOUD_URL (default https://ollama.com)
-    using OLLAMA_API_KEY. Everything else routes to OLLAMA_URL (on-prem;
-    default is also https://ollama.com but typically overridden). No auth
-    header is sent to on-prem endpoints — Ollama's local server rejects
-    Authorization headers with a 400.
+    The routing rule is dead simple: the model tag is the ONLY signal.
+      - Model ending in ':cloud' -> OLLAMA_CLOUD_URL (default https://ollama.com)
+        with OLLAMA_API_KEY as a Bearer token.
+      - Any other model tag       -> OLLAMA_URL (must be set explicitly), no
+        auth header. Local Ollama rejects Authorization headers with 400, so
+        the key is deliberately NOT forwarded to on-prem endpoints.
 
     This lets one run mix a cloud patcher (e.g. glm-5.2:cloud) with a local
-    reviewer (e.g. Qwen3.6-27B-imatrix:Q4_K_S) without them clobbering each
-    other's endpoint.
+    reviewer (e.g. Qwen3.6-27B:Q4_K_S) without either clobbering the other.
+
+    Raises RuntimeError if the configuration for the requested model is
+    missing — we fail loudly rather than silently sending a local model
+    request to the cloud (or vice versa).
     """
-    cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").rstrip("/")
-    onprem_url = os.environ.get("OLLAMA_URL", cloud_url).rstrip("/")
+    cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+    onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
     api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
 
-    if model.endswith(":cloud") or "ollama.com" in onprem_url:
+    if model.endswith(":cloud"):
+        if not cloud_url:
+            raise RuntimeError(
+                f"Model '{model}' is a cloud model but OLLAMA_CLOUD_URL is empty."
+            )
         if not api_key:
             raise RuntimeError(
                 f"Model '{model}' requires the hosted Ollama cloud, but "
                 "OLLAMA_API_KEY is not set."
             )
         return cloud_url, api_key
+
+    if not onprem_url:
+        raise RuntimeError(
+            f"Model '{model}' is a local (on-prem) model but OLLAMA_URL is not "
+            "set. Set OLLAMA_URL to your Ollama server (e.g. "
+            "http://192.168.10.100:11434), or use a ':cloud' model tag if you "
+            "meant to hit the hosted API."
+        )
     return onprem_url, None
 
 
