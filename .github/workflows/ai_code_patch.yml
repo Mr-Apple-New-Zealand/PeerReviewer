@@ -1,0 +1,165 @@
+name: AI Code Patch
+
+# Runs a specified coding-agent model against ISSUES.md as the fix spec,
+# applies the patched files to a scratch mirror of SampleBankingApp/, then
+# invokes the peer reviewer on the pristine tree (baseline) and the patched
+# tree (post-patch) so we can compare how many seeded bugs the agent resolved.
+#
+# Nothing in the repository working tree is modified — the patched code is
+# written to a temporary scratch directory and uploaded as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      patcher_model:
+        description: >
+          Ollama model that produces the fix. Any model tag is accepted
+          (on-prem or ':cloud'). Example: Qwen3.6-27B-imatrix:Q4_K_S
+        required: true
+        default: 'Qwen3.6-27B-imatrix:Q4_K_S'
+      reviewer_model:
+        description: >
+          Model used by the peer reviewer to grade the patched code.
+          Should NOT be the same as the patcher (a model marking its
+          own work is not an independent check).
+        required: true
+        default: 'gpt-oss:120b'
+      scorer_model:
+        description: >
+          Model that maps the peer review onto ISSUES.md rows.
+          Leave blank to reuse the reviewer model.
+        required: false
+        default: ''
+      skip_baseline:
+        description: >
+          Skip the baseline peer review (only score the patched tree).
+          Use when you only care about how many bugs remain after patching.
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+env:
+  # Internal Ollama instance for on-prem models.
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  # Hosted Ollama cloud — used automatically for any model tagged ':cloud'.
+  OLLAMA_CLOUD_URL: https://ollama.com
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+
+jobs:
+  patch-and-review:
+    runs-on: mra-ubuntu
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Route ':cloud' models to the hosted endpoint; everything else to the
+      # on-prem Ollama URL. Matches the pattern used by scorer_benchmark.yml.
+      - name: Resolve Ollama endpoint for patcher model
+        id: endpoint
+        run: |
+          PATCHER='${{ inputs.patcher_model }}'
+          REVIEWER='${{ inputs.reviewer_model }}'
+          SCORER='${{ inputs.scorer_model }}'
+          if [ -z "$SCORER" ]; then SCORER="$REVIEWER"; fi
+
+          # For simplicity we require every model in a single run to share the
+          # same endpoint. If any is ':cloud', we route the whole run to the
+          # cloud endpoint; otherwise on-prem.
+          USE_CLOUD='false'
+          for m in "$PATCHER" "$REVIEWER" "$SCORER"; do
+            case "$m" in *:cloud) USE_CLOUD='true' ;; esac
+          done
+
+          if [ "$USE_CLOUD" = 'true' ]; then
+            echo "ollama_url=${OLLAMA_CLOUD_URL}" >> "$GITHUB_OUTPUT"
+            if [ -z "$OLLAMA_API_KEY" ]; then
+              echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
+              exit 1
+            fi
+          else
+            echo "ollama_url=${OLLAMA_URL}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "scorer_model=${SCORER}" >> "$GITHUB_OUTPUT"
+
+      - name: Sanity-check patcher != reviewer
+        run: |
+          if [ '${{ inputs.patcher_model }}' = '${{ inputs.reviewer_model }}' ]; then
+            echo "::warning::patcher_model and reviewer_model are the same — the review is not an independent check of the patch."
+          fi
+
+      - name: Run patcher + peer review
+        env:
+          OLLAMA_URL: ${{ steps.endpoint.outputs.ollama_url }}
+          AI_PATCHER_MODEL: ${{ inputs.patcher_model }}
+          AI_REVIEWER_MODEL: ${{ inputs.reviewer_model }}
+          AI_SCORER_MODEL: ${{ steps.endpoint.outputs.scorer_model }}
+          AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
+          AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
+          # The reviewer sub-run uses these — keep in sync with ai_code_review.yml.
+          AI_ASSISTANT_MODEL_NUM_CTX: '49152'
+          AI_ASSISTANT_MODEL_NUM_PREDICT: '24000'
+          AI_ASSISTANT_MODEL_TEMPERATURE: '0.3'
+        run: |
+          python3 scripts/ai_code_patch.py
+
+      - name: Print patch summary to workflow log
+        if: always()
+        run: |
+          echo "======================================================================"
+          echo "  PATCH + REVIEW SUMMARY"
+          echo "======================================================================"
+          if [ -f .ai-patch/patch_summary.md ]; then
+            cat .ai-patch/patch_summary.md
+          else
+            echo "(no patch_summary.md — patcher likely failed before scoring)"
+          fi
+          echo ""
+          echo "======================================================================"
+          echo "  BASELINE SCORECARD"
+          echo "======================================================================"
+          if [ -f .ai-patch/baseline_review/issues_scorecard.md ]; then
+            cat .ai-patch/baseline_review/issues_scorecard.md
+          else
+            echo "(baseline skipped or not produced)"
+          fi
+          echo ""
+          echo "======================================================================"
+          echo "  POST-PATCH SCORECARD"
+          echo "======================================================================"
+          if [ -f .ai-patch/post_patch_review/issues_scorecard.md ]; then
+            cat .ai-patch/post_patch_review/issues_scorecard.md
+          else
+            echo "(post-patch scorecard not produced)"
+          fi
+
+      - name: Upload patch + review artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ai-patch-${{ inputs.patcher_model }}-${{ github.run_number }}
+          path: |
+            .ai-patch/patch_summary.md
+            .ai-patch/patch_summary.json
+            .ai-patch/patch_response.md
+            .ai-patch/baseline_review/review.md
+            .ai-patch/baseline_review/issues_scorecard.md
+            .ai-patch/baseline_review/metrics.md
+            .ai-patch/baseline_review/metrics.json
+            .ai-patch/post_patch_review/review.md
+            .ai-patch/post_patch_review/issues_scorecard.md
+            .ai-patch/post_patch_review/metrics.md
+            .ai-patch/post_patch_review/metrics.json
+            .ai-patch/scratch/**
+          if-no-files-found: warn
+          retention-days: 90
