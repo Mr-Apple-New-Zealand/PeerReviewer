@@ -280,9 +280,27 @@ def write_comparison_report(
         sign = "+" if d > 0 else ""
         return f"{sign}{d}"
 
-    resolved = None
-    if b.get("found") is not None and p.get("found") is not None:
-        resolved = p["found"] - b["found"]
+    # The success metric is the change in *undetectable* issues, not the
+    # change in Found. When the patcher genuinely fixes a bug, the reviewer
+    # can no longer point at it, so that bug moves into the Missed column.
+    # issues_resolved = post_missed - baseline_missed. A positive number is
+    # good news; zero or negative means the patch had no visible effect (or
+    # made things worse from the reviewer's perspective).
+    issues_resolved: int | None = None
+    detectable_before: int | None = None
+    detectable_after: int | None = None
+    resolution_pct: float | None = None
+    if (
+        b.get("missed") is not None
+        and p.get("missed") is not None
+        and b.get("total") is not None
+        and p.get("total") is not None
+    ):
+        issues_resolved = p["missed"] - b["missed"]
+        detectable_before = b["total"] - b["missed"]
+        detectable_after = p["total"] - p["missed"]
+        if b["total"]:
+            resolution_pct = round(issues_resolved / b["total"] * 100, 1)
 
     combined = {
         "patcher_model": patcher_model,
@@ -292,8 +310,16 @@ def write_comparison_report(
         "baseline": baseline_metrics,
         "post_patch": post_metrics,
         "delta": {
-            "issues_newly_resolved": resolved,
+            # Positive => issues moved from detectable to undetectable
+            # (i.e. the patcher successfully hid them from the reviewer).
+            "issues_resolved": issues_resolved,
+            "resolution_pct": resolution_pct,
+            "detectable_before": detectable_before,
+            "detectable_after": detectable_after,
+            # Raw column-level deltas kept for debugging. Note that
+            # `found_delta` is NOT a success signal — see comment above.
             "found_delta": delta(b.get("found"), p.get("found")),
+            "partial_delta": delta(b.get("partial"), p.get("partial")),
             "missed_delta": delta(b.get("missed"), p.get("missed")),
         },
         "patched_files": patched_paths,
@@ -330,25 +356,39 @@ def write_comparison_report(
         lines.append("| Baseline (before patch) | *skipped* |  |  |  |  |")
     lines.append(row("Post-patch", p))
     lines.append("")
+    lines += [
+        "> **How to read this table.** `%Found` is the peer reviewer's *recall*, "
+        "not the patcher's success. A patch that removes bugs makes them "
+        "undetectable, so those IDs move into `Missed` — that's the column to "
+        "watch. `Found` and `Partial` can even shift *upwards* post-patch when "
+        "the reviewer gets a cleaner view of the bugs that weren't fixed.",
+        "",
+    ]
 
-    if resolved is not None:
-        # Fewer 'Missed' after patching = the coding agent resolved that many
-        # of the seeded bugs, as judged by the peer reviewer.
-        missed_reduction = None
-        if b.get("missed") is not None and p.get("missed") is not None:
-            missed_reduction = b["missed"] - p["missed"]
+    if issues_resolved is not None:
+        good = issues_resolved > 0
+        emoji_label = "resolved" if good else ("unchanged" if issues_resolved == 0 else "regressed")
+        pct_str = f" ({resolution_pct}% of all seeded bugs)" if resolution_pct is not None else ""
         lines += [
             "## Verdict",
             "",
-            f"- Peer reviewer now flags **{p.get('missed', '?')}** issues as still "
-            f"present (vs **{b.get('missed', '?')}** before the patch).",
-            f"- Net issues that appear resolved: **{missed_reduction}**.",
-            "- Note: because the reviewer scores by *what it can still see*, "
-            "reduction in the `Missed` column is the meaningful signal — the "
-            "`Found` column measures the reviewer's recall, not the patcher's "
-            "success.",
-            "",
+            f"- **Issues {emoji_label}: {issues_resolved}**{pct_str}. "
+            "Computed as `post_missed - baseline_missed` — bugs that were "
+            "detectable before the patch but the reviewer can no longer name "
+            "afterwards.",
+            f"- Reviewer still detects **{detectable_after}** of the "
+            f"{p.get('total', '?')} seeded issues, down from "
+            f"**{detectable_before}** before the patch.",
         ]
+        if issues_resolved < 0:
+            lines.append(
+                "- Warning: `issues_resolved` is negative. The reviewer now "
+                "detects MORE seeded issues than it did against the pristine "
+                "tree — the patcher likely introduced regressions, or the "
+                "reviewer's recall improved coincidentally against the "
+                "rewritten code. Inspect the two scorecards side-by-side."
+            )
+        lines.append("")
 
     if patcher_metrics:
         lines += [
