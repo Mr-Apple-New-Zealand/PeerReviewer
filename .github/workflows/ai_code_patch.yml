@@ -16,7 +16,7 @@ on:
           Ollama model that produces the fix. Any model tag is accepted
           (on-prem or ':cloud'). Example: Qwen3.6-27B-imatrix:Q4_K_S
         required: true
-        default: 'Qwen3.6-27B-imatrix:Q4_K_S'
+        default: 'Qwen3.6-27B:Q4_K_S'
       reviewer_model:
         description: >
           Model used by the peer reviewer to grade the patched code.
@@ -45,10 +45,11 @@ permissions:
   contents: read
 
 env:
-  # Internal Ollama instance for on-prem models.
+  # On-prem Ollama used for any model tag NOT ending in ':cloud'.
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  # Hosted Ollama cloud — used automatically for any model tagged ':cloud'.
+  # Hosted Ollama cloud — used automatically for ':cloud' model tags.
   OLLAMA_CLOUD_URL: https://ollama.com
+  # Bearer token; sent ONLY to the cloud endpoint by resolve_endpoint().
   OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
 
 jobs:
@@ -60,50 +61,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Use whichever branch the workflow was dispatched from, so per-branch
+          # patcher/reviewer setups don't accidentally run stale code from main.
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      # Route ':cloud' models to the hosted endpoint; everything else to the
-      # on-prem Ollama URL. Matches the pattern used by scorer_benchmark.yml.
-      - name: Resolve Ollama endpoint for patcher model
-        id: endpoint
+      - name: Sanity-check inputs
+        id: sanity
         run: |
-          PATCHER='${{ inputs.patcher_model }}'
-          REVIEWER='${{ inputs.reviewer_model }}'
-          SCORER='${{ inputs.scorer_model }}'
-          if [ -z "$SCORER" ]; then SCORER="$REVIEWER"; fi
-
-          # For simplicity we require every model in a single run to share the
-          # same endpoint. If any is ':cloud', we route the whole run to the
-          # cloud endpoint; otherwise on-prem.
-          USE_CLOUD='false'
-          for m in "$PATCHER" "$REVIEWER" "$SCORER"; do
-            case "$m" in *:cloud) USE_CLOUD='true' ;; esac
+          # Cloud models require an API key up-front.
+          NEEDS_KEY='false'
+          for m in '${{ inputs.patcher_model }}' '${{ inputs.reviewer_model }}' '${{ inputs.scorer_model }}'; do
+            case "$m" in *:cloud) NEEDS_KEY='true' ;; esac
           done
-
-          if [ "$USE_CLOUD" = 'true' ]; then
-            echo "ollama_url=${OLLAMA_CLOUD_URL}" >> "$GITHUB_OUTPUT"
-            if [ -z "$OLLAMA_API_KEY" ]; then
-              echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
-              exit 1
-            fi
-          else
-            echo "ollama_url=${OLLAMA_URL}" >> "$GITHUB_OUTPUT"
+          if [ "$NEEDS_KEY" = 'true' ] && [ -z "$OLLAMA_API_KEY" ]; then
+            echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
+            exit 1
           fi
-          echo "scorer_model=${SCORER}" >> "$GITHUB_OUTPUT"
-
-      - name: Sanity-check patcher != reviewer
-        run: |
           if [ '${{ inputs.patcher_model }}' = '${{ inputs.reviewer_model }}' ]; then
             echo "::warning::patcher_model and reviewer_model are the same — the review is not an independent check of the patch."
           fi
 
+          # GitHub artifact names disallow: " : < > | * ? \ /  (and control chars).
+          # Squash any of those to '-' so tags like 'Qwen3.6-27B:Q4_K_S' still work.
+          SAFE_MODEL=$(printf '%s' '${{ inputs.patcher_model }}' | tr ':"<>|*?\\/' '-')
+          echo "safe_patcher_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
+
       - name: Run patcher + peer review
         env:
-          OLLAMA_URL: ${{ steps.endpoint.outputs.ollama_url }}
           AI_PATCHER_MODEL: ${{ inputs.patcher_model }}
           AI_REVIEWER_MODEL: ${{ inputs.reviewer_model }}
-          AI_SCORER_MODEL: ${{ steps.endpoint.outputs.scorer_model }}
+          # Blank scorer input falls through to the reviewer model inside the script.
+          AI_SCORER_MODEL: ${{ inputs.scorer_model }}
           AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
           AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
           # The reviewer sub-run uses these — keep in sync with ai_code_review.yml.
@@ -147,7 +136,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ai-patch-${{ inputs.patcher_model }}-${{ github.run_number }}
+          name: ai-patch-${{ steps.sanity.outputs.safe_patcher_model }}-${{ github.run_number }}
           path: |
             .ai-patch/patch_summary.md
             .ai-patch/patch_summary.json

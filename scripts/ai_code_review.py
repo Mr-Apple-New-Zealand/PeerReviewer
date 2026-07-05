@@ -10,9 +10,13 @@ the chosen output directory.
 
 Optional env vars (defaults target Ollama's hosted cloud and the
 `glm-5.2:cloud` model; override OLLAMA_URL/OLLAMA_MODEL to run elsewhere):
-  OLLAMA_URL                              Default: https://ollama.com
-  OLLAMA_API_KEY                          Bearer token for the hosted API.
-                                          Required when OLLAMA_URL is ollama.com.
+  OLLAMA_URL                              On-prem Ollama endpoint used for any
+                                          model tag NOT ending in ':cloud'.
+                                          Default: https://ollama.com
+  OLLAMA_CLOUD_URL                        Hosted endpoint used for ':cloud'
+                                          model tags. Default: https://ollama.com
+  OLLAMA_API_KEY                          Bearer token; sent only to the cloud
+                                          endpoint. Required for ':cloud' models.
   OLLAMA_MODEL                            Default: glm-5.2:cloud
   AI_ASSISTANT_OLLAMA_MODEL_REVIEWER      Scoring model. Default: OLLAMA_MODEL
   AI_ASSISTANT_MODEL_NUM_CTX              Default: 32768
@@ -95,6 +99,49 @@ def collect_branch_content(source_root: str) -> tuple[str, int]:
 
     content = "\n".join(chunks)
     return content, len(files)
+
+
+def resolve_endpoint(model: str) -> tuple[str, str | None]:
+    """Pick the Ollama base URL + API key for a given model tag.
+
+    The routing rule is dead simple: the model tag is the ONLY signal.
+      - Model ending in ':cloud' -> OLLAMA_CLOUD_URL (default https://ollama.com)
+        with OLLAMA_API_KEY as a Bearer token.
+      - Any other model tag       -> OLLAMA_URL (must be set explicitly), no
+        auth header. Local Ollama rejects Authorization headers with 400, so
+        the key is deliberately NOT forwarded to on-prem endpoints.
+
+    This lets one run mix a cloud patcher (e.g. glm-5.2:cloud) with a local
+    reviewer (e.g. Qwen3.6-27B:Q4_K_S) without either clobbering the other.
+
+    Raises RuntimeError if the configuration for the requested model is
+    missing — we fail loudly rather than silently sending a local model
+    request to the cloud (or vice versa).
+    """
+    cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+    onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
+    api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+
+    if model.endswith(":cloud"):
+        if not cloud_url:
+            raise RuntimeError(
+                f"Model '{model}' is a cloud model but OLLAMA_CLOUD_URL is empty."
+            )
+        if not api_key:
+            raise RuntimeError(
+                f"Model '{model}' requires the hosted Ollama cloud, but "
+                "OLLAMA_API_KEY is not set."
+            )
+        return cloud_url, api_key
+
+    if not onprem_url:
+        raise RuntimeError(
+            f"Model '{model}' is a local (on-prem) model but OLLAMA_URL is not "
+            "set. Set OLLAMA_URL to your Ollama server (e.g. "
+            "http://192.168.10.100:11434), or use a ':cloud' model tag if you "
+            "meant to hit the hosted API."
+        )
+    return onprem_url, None
 
 
 def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
@@ -416,18 +463,16 @@ def fmt_s(secs: float) -> str:
 
 
 def main() -> int:
-    base_url = os.environ.get("OLLAMA_URL", "https://ollama.com").rstrip("/")
-    api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
     review_model = os.environ.get("OLLAMA_MODEL", "glm-5.2:cloud")
     scoring_model = os.environ.get("AI_ASSISTANT_OLLAMA_MODEL_REVIEWER", review_model)
 
-    if "ollama.com" in base_url and not api_key:
-        print(
-            "ERROR: OLLAMA_URL points at the hosted Ollama cloud but OLLAMA_API_KEY "
-            "is not set. Export your API key, e.g. `export OLLAMA_API_KEY=...`.",
-            file=sys.stderr,
-        )
+    try:
+        review_url, review_key = resolve_endpoint(review_model)
+        scoring_url, scoring_key = resolve_endpoint(scoring_model)
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+
     num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
     num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
     temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
@@ -475,7 +520,7 @@ def main() -> int:
         "think": False,
         "options": {"temperature": temperature, "num_predict": num_predict},
     }
-    review_data = ollama_chat(base_url, review_payload, output_dir / "payload.json", "review", api_key)
+    review_data = ollama_chat(review_url, review_payload, output_dir / "payload.json", "review", review_key)
     review = strip_thinking((review_data.get("message") or {}).get("content", "")).strip()
     if not review:
         print("ERROR: Ollama returned an empty review.", file=sys.stderr)
@@ -526,7 +571,7 @@ def main() -> int:
         "options": {"temperature": temperature, "num_predict": num_predict},
     }
     scoring_data = ollama_chat(
-        base_url, scoring_payload, output_dir / "scoring_payload.json", "scoring", api_key,
+        scoring_url, scoring_payload, output_dir / "scoring_payload.json", "scoring", scoring_key,
     )
     scorecard = strip_thinking((scoring_data.get("message") or {}).get("content", "")).strip()
     if not scorecard:
