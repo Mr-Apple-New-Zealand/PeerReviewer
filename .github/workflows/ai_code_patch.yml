@@ -1,0 +1,154 @@
+name: AI Code Patch
+
+# Runs a specified coding-agent model against ISSUES.md as the fix spec,
+# applies the patched files to a scratch mirror of SampleBankingApp/, then
+# invokes the peer reviewer on the pristine tree (baseline) and the patched
+# tree (post-patch) so we can compare how many seeded bugs the agent resolved.
+#
+# Nothing in the repository working tree is modified — the patched code is
+# written to a temporary scratch directory and uploaded as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      patcher_model:
+        description: >
+          Ollama model that produces the fix. Any model tag is accepted
+          (on-prem or ':cloud'). Example: Qwen3.6-27B-imatrix:Q4_K_S
+        required: true
+        default: 'Qwen3.6-27B:Q4_K_S'
+      reviewer_model:
+        description: >
+          Model used by the peer reviewer to grade the patched code.
+          Should NOT be the same as the patcher (a model marking its
+          own work is not an independent check).
+        required: true
+        default: 'gpt-oss:120b'
+      scorer_model:
+        description: >
+          Model that maps the peer review onto ISSUES.md rows.
+          Leave blank to reuse the reviewer model.
+        required: false
+        default: ''
+      skip_baseline:
+        description: >
+          Skip the baseline peer review (only score the patched tree).
+          Use when you only care about how many bugs remain after patching.
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+env:
+  # On-prem Ollama used for any model tag NOT ending in ':cloud'.
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  # Hosted Ollama cloud — used automatically for ':cloud' model tags.
+  OLLAMA_CLOUD_URL: https://ollama.com
+  # Bearer token; sent ONLY to the cloud endpoint by resolve_endpoint().
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+
+jobs:
+  patch-and-review:
+    runs-on: mra-ubuntu
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          # Use whichever branch the workflow was dispatched from, so per-branch
+          # patcher/reviewer setups don't accidentally run stale code from main.
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Sanity-check inputs
+        id: sanity
+        run: |
+          # Cloud models require an API key up-front.
+          NEEDS_KEY='false'
+          for m in '${{ inputs.patcher_model }}' '${{ inputs.reviewer_model }}' '${{ inputs.scorer_model }}'; do
+            case "$m" in *:cloud) NEEDS_KEY='true' ;; esac
+          done
+          if [ "$NEEDS_KEY" = 'true' ] && [ -z "$OLLAMA_API_KEY" ]; then
+            echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
+            exit 1
+          fi
+          if [ '${{ inputs.patcher_model }}' = '${{ inputs.reviewer_model }}' ]; then
+            echo "::warning::patcher_model and reviewer_model are the same — the review is not an independent check of the patch."
+          fi
+
+          # GitHub artifact names disallow: " : < > | * ? \ /  (and control chars).
+          # Squash any of those to '-' so tags like 'Qwen3.6-27B:Q4_K_S' still work.
+          SAFE_MODEL=$(printf '%s' '${{ inputs.patcher_model }}' | tr ':"<>|*?\\/' '-')
+          echo "safe_patcher_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
+
+      - name: Run patcher + peer review
+        env:
+          AI_PATCHER_MODEL: ${{ inputs.patcher_model }}
+          AI_REVIEWER_MODEL: ${{ inputs.reviewer_model }}
+          # Blank scorer input falls through to the reviewer model inside the script.
+          AI_SCORER_MODEL: ${{ inputs.scorer_model }}
+          AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
+          AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
+          # The reviewer sub-run uses these — keep in sync with ai_code_review.yml.
+          AI_ASSISTANT_MODEL_NUM_CTX: '49152'
+          AI_ASSISTANT_MODEL_NUM_PREDICT: '24000'
+          AI_ASSISTANT_MODEL_TEMPERATURE: '0.3'
+        run: |
+          python3 scripts/ai_code_patch.py
+
+      - name: Print patch summary to workflow log
+        if: always()
+        run: |
+          echo "======================================================================"
+          echo "  PATCH + REVIEW SUMMARY"
+          echo "======================================================================"
+          if [ -f .ai-patch/patch_summary.md ]; then
+            cat .ai-patch/patch_summary.md
+          else
+            echo "(no patch_summary.md — patcher likely failed before scoring)"
+          fi
+          echo ""
+          echo "======================================================================"
+          echo "  BASELINE SCORECARD"
+          echo "======================================================================"
+          if [ -f .ai-patch/baseline_review/issues_scorecard.md ]; then
+            cat .ai-patch/baseline_review/issues_scorecard.md
+          else
+            echo "(baseline skipped or not produced)"
+          fi
+          echo ""
+          echo "======================================================================"
+          echo "  POST-PATCH SCORECARD"
+          echo "======================================================================"
+          if [ -f .ai-patch/post_patch_review/issues_scorecard.md ]; then
+            cat .ai-patch/post_patch_review/issues_scorecard.md
+          else
+            echo "(post-patch scorecard not produced)"
+          fi
+
+      - name: Upload patch + review artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ai-patch-${{ steps.sanity.outputs.safe_patcher_model }}-${{ github.run_number }}
+          path: |
+            .ai-patch/patch_summary.md
+            .ai-patch/patch_summary.json
+            .ai-patch/patch_response.md
+            .ai-patch/baseline_review/review.md
+            .ai-patch/baseline_review/issues_scorecard.md
+            .ai-patch/baseline_review/metrics.md
+            .ai-patch/baseline_review/metrics.json
+            .ai-patch/post_patch_review/review.md
+            .ai-patch/post_patch_review/issues_scorecard.md
+            .ai-patch/post_patch_review/metrics.md
+            .ai-patch/post_patch_review/metrics.json
+            .ai-patch/scratch/**
+          if-no-files-found: warn
+          retention-days: 90
