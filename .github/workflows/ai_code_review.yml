@@ -8,7 +8,7 @@ permissions:
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Qwen3.5-2B-imatrix:Q4_K_S
+  OLLAMA_MODEL: Qwen3.6-27B:Q4_K_S
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
 
 jobs:
@@ -79,7 +79,7 @@ jobs:
         env:
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: '0.6'
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -293,7 +293,7 @@ jobs:
         env:
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-          AI_ASSISTANT_MODEL_TEMPERATURE: '0.6'
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
