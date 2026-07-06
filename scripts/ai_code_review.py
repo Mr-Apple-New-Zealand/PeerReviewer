@@ -463,8 +463,11 @@ def fmt_s(secs: float) -> str:
 
 
 def main() -> int:
-    review_model = os.environ.get("OLLAMA_MODEL", "glm-5.2:cloud")
-    scoring_model = os.environ.get("AI_ASSISTANT_OLLAMA_MODEL_REVIEWER", review_model)
+    # `os.environ.get(k, default)` returns the default only when k is missing;
+    # an env var set to '' (as GitHub Actions passes for unset inputs) would
+    # otherwise slip through as an empty model tag. Use `or` to fall back.
+    review_model = (os.environ.get("OLLAMA_MODEL") or "").strip() or "glm-5.2:cloud"
+    scoring_model = (os.environ.get("AI_ASSISTANT_OLLAMA_MODEL_REVIEWER") or "").strip() or review_model
 
     try:
         review_url, review_key = resolve_endpoint(review_model)

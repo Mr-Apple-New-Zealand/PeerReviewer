@@ -16,20 +16,20 @@ on:
           Ollama model that produces the fix. Any model tag is accepted
           (on-prem or ':cloud'). Example: Qwen3.6-27B-imatrix:Q4_K_S
         required: true
-        default: 'glm-5.2:cloud'
+        default: 'Qwen3.6-27B:Q4_K_S'
       reviewer_model:
         description: >
           Model used by the peer reviewer to grade the patched code.
           Should NOT be the same as the patcher (a model marking its
           own work is not an independent check).
         required: true
-        default: 'Qwen3.6-27B:Q4_K_S'
+        default: 'gpt-oss:120b'
       scorer_model:
         description: >
           Model that maps the peer review onto ISSUES.md rows.
           Leave blank to reuse the reviewer model.
         required: false
-        default: 'Qwen3-Coder-30B-imatrix:Q3_K_M'
+        default: ''
       skip_baseline:
         description: >
           Skip the baseline peer review (only score the patched tree).
@@ -83,7 +83,7 @@ jobs:
           fi
 
           # GitHub artifact names disallow: " : < > | * ? \ /  (and control chars).
-          # Squash any of those to '-' so tags like 'glm-5.2:cloud' still work.
+          # Squash any of those to '-' so tags like 'Qwen3.6-27B:Q4_K_S' still work.
           SAFE_MODEL=$(printf '%s' '${{ inputs.patcher_model }}' | tr ':"<>|*?\\/' '-')
           echo "safe_patcher_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
 
