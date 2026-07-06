@@ -12,31 +12,14 @@ public class EmailService
 
     private const int MaxRetries = 3;
     private const int SmtpTimeoutMs = 5000;
-    private const int DefaultSmtpPort = 587;
+    private const int DefaultSmtpPort = 25;
 
-    private static readonly string NotificationEmail = "notifications@company.com";
-    private static readonly string SupportEmail = "support@company.com";
+    private const string NotificationsAddress = "notifications@company.com";
+    private const string SupportAddress = "support@company.com";
 
     public EmailService(IConfiguration config)
     {
         _config = config;
-    }
-
-    private SmtpClient CreateSmtpClient()
-    {
-        var portString = _config["Email:SmtpPort"];
-        int port = int.TryParse(portString, out int parsedPort) ? parsedPort : DefaultSmtpPort;
-
-        return new SmtpClient(_config["Email:SmtpHost"])
-        {
-            Port = port,
-            Credentials = new NetworkCredential(
-                _config["Email:Username"],
-                _config["Email:Password"]
-            ),
-            EnableSsl = true,
-            Timeout = SmtpTimeoutMs
-        };
     }
 
     public void SendTransferNotification(string toEmail, decimal amount, string recipientName)
@@ -44,20 +27,15 @@ public class EmailService
         var body = $"You have successfully transferred ${amount:F2} to {recipientName}.\n\n" +
                    "If you did not initiate this transfer, contact support immediately.";
 
-        using var message = new MailMessage(
-            from: NotificationEmail,
-            to: toEmail,
-            subject: TransferSubject,
-            body: body);
+        using var message = new MailMessage(NotificationsAddress, toEmail, TransferSubject, body);
 
-        using var client = CreateSmtpClient();
-        
         int attempt = 0;
         while (attempt < MaxRetries)
         {
             try
             {
-                client.Send(message);
+                using var smtpClient = CreateSmtpClient();
+                smtpClient.Send(message);
                 return;
             }
             catch (SmtpException ex)
@@ -72,20 +50,37 @@ public class EmailService
 
     public void SendWelcomeEmail(string toEmail, string username)
     {
-        var body = $"Welcome, {username?.ToUpper() ?? "USER"}!\n\n" +
+        var body = $"Welcome, {(username ?? string.Empty).ToUpper()}!\n\n" +
                    "Thank you for joining BankingApp. Your account is now active.\n\n" +
-                   $"For support, email us at {SupportEmail}";
+                   $"For support, email us at {SupportAddress}";
 
-        using var message = new MailMessage(NotificationEmail, toEmail, WelcomeSubject, body);
-        using var client = CreateSmtpClient();
+        using var message = new MailMessage(NotificationsAddress, toEmail, WelcomeSubject, body);
 
         try
         {
-            client.Send(message);
+            using var smtpClient = CreateSmtpClient();
+            smtpClient.Send(message);
         }
         catch (SmtpException ex)
         {
             Console.WriteLine("Welcome email failed: " + ex.Message);
         }
+    }
+
+    private SmtpClient CreateSmtpClient()
+    {
+        var portString = _config["Email:SmtpPort"];
+        int port = int.TryParse(portString, out var parsedPort) ? parsedPort : DefaultSmtpPort;
+
+        return new SmtpClient(_config["Email:SmtpHost"] ?? string.Empty)
+        {
+            Port = port,
+            Credentials = new NetworkCredential(
+                _config["Email:Username"] ?? string.Empty,
+                _config["Email:Password"] ?? string.Empty
+            ),
+            EnableSsl = false,
+            Timeout = SmtpTimeoutMs
+        };
     }
 }

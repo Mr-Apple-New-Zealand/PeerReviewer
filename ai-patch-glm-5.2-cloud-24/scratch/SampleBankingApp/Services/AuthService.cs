@@ -25,14 +25,15 @@ public class AuthService
     /// </summary>
     public User? Login(string username, string password)
     {
-        const string sql = "SELECT * FROM Users WHERE Username = @Username AND Password = @Password AND IsActive = 1";
-        var parameters = new Dictionary<string, object>
+        string hashedPassword = HashPassword(password);
+
+        string sql = "SELECT * FROM Users WHERE Username = @Username AND Password = @Password AND IsActive = 1";
+
+        var table = _db.ExecuteQuerySafe(sql, new Dictionary<string, object>
         {
             { "@Username", username },
-            { "@Password", HashPassword(password) }
-        };
-
-        var table = _db.ExecuteQuerySafe(sql, parameters);
+            { "@Password", hashedPassword }
+        });
 
         if (table.Rows.Count > 0)
         {
@@ -60,13 +61,7 @@ public class AuthService
 
     public string GenerateJwtToken(User user)
     {
-        var secretKey = _config["Jwt:SecretKey"];
-        if (string.IsNullOrEmpty(secretKey))
-        {
-            throw new InvalidOperationException("JWT SecretKey is not configured.");
-        }
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var key = GetSigningKey();
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = BuildClaims(user);
@@ -81,6 +76,16 @@ public class AuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private SymmetricSecurityKey GetSigningKey()
+    {
+        var secret = _config["Jwt:SecretKey"];
+        if (string.IsNullOrEmpty(secret))
+        {
+            throw new InvalidOperationException("JWT SecretKey is not configured.");
+        }
+        return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
     }
 
     private static Claim[] BuildClaims(User user)

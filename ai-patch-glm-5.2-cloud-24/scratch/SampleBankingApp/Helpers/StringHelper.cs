@@ -17,7 +17,10 @@ public static class StringHelper
 
     public static bool IsValidEmail(string? email)
     {
-        if (string.IsNullOrEmpty(email) || email.Length > MaxEmailLength)
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+
+        if (email.Length > MaxEmailLength)
             return false;
 
         return EmailRegex.IsMatch(email);
@@ -25,7 +28,10 @@ public static class StringHelper
 
     public static bool IsValidUsername(string? username)
     {
-        if (string.IsNullOrEmpty(username) || username.Length < MinUsernameLength || username.Length > MaxUsernameLength)
+        if (string.IsNullOrWhiteSpace(username))
+            return false;
+
+        if (username.Length < MinUsernameLength || username.Length > MaxUsernameLength)
             return false;
 
         return UsernameRegex.IsMatch(username);

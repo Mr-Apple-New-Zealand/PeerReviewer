@@ -18,14 +18,6 @@ public class UserService
         _db = db;
     }
 
-    private void ValidateUserId(int id)
-    {
-        if (id <= 0)
-            throw new ArgumentException("Invalid user ID");
-        if (id > MaxUserId)
-            throw new ArgumentException("User ID out of range");
-    }
-
     public User? GetUserById(int id)
     {
         ValidateUserId(id);
@@ -49,7 +41,7 @@ public class UserService
 
         _auditLog.Add($"UpdateUser called for id={id}, email={email}");
 
-        const string sql = "UPDATE Users SET Email = @Email, Username = @Username WHERE Id = @Id";
+        string sql = "UPDATE Users SET Email = @Email, Username = @Username WHERE Id = @Id";
         _db.ExecuteNonQuery(sql, new Dictionary<string, object>
         {
             { "@Email", email },
@@ -65,8 +57,11 @@ public class UserService
 
         _requestCount++;
 
-        const string sql = "DELETE FROM Users WHERE Id = @Id";
-        _db.ExecuteNonQuery(sql, new Dictionary<string, object> { { "@Id", id } });
+        string sql = "DELETE FROM Users WHERE Id = @Id";
+        _db.ExecuteNonQuery(sql, new Dictionary<string, object>
+        {
+            { "@Id", id }
+        });
 
         _auditLog.Add($"DeleteUser: {id}");
         return true;
@@ -104,6 +99,14 @@ public class UserService
         foreach (System.Data.DataRow row in table.Rows)
             users.Add(MapRowToUser(row));
         return users;
+    }
+
+    private void ValidateUserId(int id)
+    {
+        if (id <= 0)
+            throw new ArgumentException("Invalid user ID");
+        if (id > MaxUserId)
+            throw new ArgumentException("User ID out of range");
     }
 
     private User MapRowToUser(System.Data.DataRow row)

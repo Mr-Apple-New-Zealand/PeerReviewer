@@ -16,23 +16,6 @@ public class DatabaseHelper
             ?? "Server=localhost;Database=BankingDB;User Id=sa;Password=Admin1234!;";
     }
 
-    public SqlConnection CreateConnection()
-    {
-        var connection = new SqlConnection(_connectionString);
-        return connection;
-    }
-
-    public DataTable ExecuteQuery(string tableName, string whereClause)
-    {
-        using var connection = new SqlConnection(_connectionString);
-        connection.Open();
-        var command = new SqlCommand($"SELECT * FROM {tableName} WHERE {whereClause}", connection);
-        var adapter = new SqlDataAdapter(command);
-        var table = new DataTable();
-        adapter.Fill(table);
-        return table;
-    }
-
     public DataTable ExecuteQuerySafe(string sql, Dictionary<string, object> parameters)
     {
         using var connection = new SqlConnection(_connectionString);

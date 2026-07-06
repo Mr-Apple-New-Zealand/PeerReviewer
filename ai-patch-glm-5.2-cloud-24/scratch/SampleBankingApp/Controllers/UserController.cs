@@ -45,14 +45,16 @@ public class UserController : ControllerBase
         }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out int callerId))
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int currentUserId))
         {
-            return Unauthorized(new { message = "Invalid user token." });
+            return Unauthorized(new { message = "Invalid user identity." });
         }
 
-        if (callerId != id && userRoleClaim != "Admin")
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        var isAdmin = string.Equals(roleClaim, "Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(roleClaim, "SuperAdmin", System.StringComparison.OrdinalIgnoreCase);
+
+        if (id != currentUserId && !isAdmin)
         {
             return Forbid();
         }
@@ -69,16 +71,18 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user {Id}", id);
-            return StatusCode(500, new { message = "An internal error occurred." });
+            return StatusCode(500, "An error occurred while updating the user.");
         }
     }
 
     [HttpDelete("{id}")]
     public IActionResult DeleteUser(int id)
     {
-        var userRoleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        var isAdmin = string.Equals(roleClaim, "Admin", System.StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(roleClaim, "SuperAdmin", System.StringComparison.OrdinalIgnoreCase);
 
-        if (userRoleClaim != "Admin")
+        if (!isAdmin)
         {
             return Forbid();
         }

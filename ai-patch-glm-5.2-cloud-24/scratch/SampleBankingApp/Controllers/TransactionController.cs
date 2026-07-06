@@ -31,7 +31,7 @@ public class TransactionController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null || !int.TryParse(userIdClaim, out int fromUserId))
         {
-            return Unauthorized(new { message = "Invalid user token." });
+            return Unauthorized(new { message = "Invalid user identity." });
         }
 
         var (success, message) = _transactionService.Transfer(fromUserId, request.ToUserId, request.Amount, request.Description);
@@ -53,7 +53,7 @@ public class TransactionController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
         {
-            return Unauthorized(new { message = "Invalid user token." });
+            return Unauthorized(new { message = "Invalid user identity." });
         }
 
         var (success, message) = _transactionService.Deposit(userId, request.Amount);
