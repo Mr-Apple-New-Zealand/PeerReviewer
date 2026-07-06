@@ -425,10 +425,18 @@ def write_comparison_report(
     (output_dir / "patch_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _env_or(name: str, default: str) -> str:
+    """Like os.environ.get(name, default) but also falls back when the var
+    is set to an empty string. GitHub Actions passes `''` for unset inputs,
+    which would otherwise slip through and hit downstream APIs as model=''.
+    """
+    return (os.environ.get(name) or "").strip() or default
+
+
 def main() -> int:
-    patcher_model = os.environ.get("AI_PATCHER_MODEL", "glm-5.2:cloud")
-    reviewer_model = os.environ.get("AI_REVIEWER_MODEL", patcher_model)
-    scorer_model = os.environ.get("AI_SCORER_MODEL", reviewer_model)
+    patcher_model = _env_or("AI_PATCHER_MODEL", "glm-5.2:cloud")
+    reviewer_model = _env_or("AI_REVIEWER_MODEL", patcher_model)
+    scorer_model = _env_or("AI_SCORER_MODEL", reviewer_model)
 
     # Each model routes independently: :cloud tags go to OLLAMA_CLOUD_URL, all
     # others to OLLAMA_URL. Validate all three up-front so a missing key for
