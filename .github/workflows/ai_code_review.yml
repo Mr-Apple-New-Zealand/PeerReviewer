@@ -7,8 +7,13 @@ permissions:
   contents: read
 
 env:
+  # On-prem endpoint — used for any model tag NOT ending in ':cloud'
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Qwen3.6-27B:Q4_K_S
+  # Hosted cloud endpoint — used for ':cloud' model tags (default: https://ollama.com)
+  OLLAMA_CLOUD_URL: ${{ vars.AI_ASSISTANT_OLLAMA_CLOUD_URL || 'https://ollama.com' }}
+  # Bearer token for the hosted Ollama cloud API (required for ':cloud' models)
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+  OLLAMA_MODEL: kimi-k3:cloud
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
 
 jobs:
@@ -88,8 +93,26 @@ jobs:
 
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
-          model = os.environ.get("OLLAMA_MODEL")
-          base_url = os.environ.get("OLLAMA_URL")
+          model = os.environ.get("OLLAMA_MODEL", "").strip()
+
+          def resolve_endpoint(m):
+              cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+              onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
+              api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+              if m.endswith(":cloud"):
+                  if not cloud_url:
+                      print(f"ERROR: Model '{m}' is a cloud model but OLLAMA_CLOUD_URL is empty.", file=sys.stderr)
+                      sys.exit(1)
+                  if not api_key:
+                      print(f"ERROR: Model '{m}' requires OLLAMA_API_KEY to be set.", file=sys.stderr)
+                      sys.exit(1)
+                  return cloud_url, api_key
+              if not onprem_url:
+                  print(f"ERROR: Model '{m}' is a local model but OLLAMA_URL is not set.", file=sys.stderr)
+                  sys.exit(1)
+              return onprem_url, None
+
+          base_url, api_key = resolve_endpoint(model)
 
           with open("branch_content.txt", "r", errors="replace") as f:
               diff = f.read()
@@ -214,16 +237,16 @@ jobs:
 
           print(f"Calling {base_url}/api/chat with model {model} …")
 
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
+          curl_cmd = [
+              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+              "-X", "POST", f"{base_url}/api/chat",
+              "-H", "Content-Type: application/json",
+          ]
+          if api_key:
+              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+          curl_cmd += ["-d", "@payload.json"]
+
+          result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
           if result.returncode != 0:
               print(
@@ -300,10 +323,29 @@ jobs:
           python3 - <<'PYEOF'
           import json, os, re, subprocess, sys
 
-          model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
-          base_url = os.environ.get("OLLAMA_URL")
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
+          review_model = os.environ.get("OLLAMA_MODEL", "").strip()
+          model = (os.environ.get("SCORECARD_MODEL", "").strip() or review_model)
+
+          def resolve_endpoint(m):
+              cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+              onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
+              api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+              if m.endswith(":cloud"):
+                  if not cloud_url:
+                      print(f"ERROR: Model '{m}' is a cloud model but OLLAMA_CLOUD_URL is empty.", file=sys.stderr)
+                      sys.exit(1)
+                  if not api_key:
+                      print(f"ERROR: Model '{m}' requires OLLAMA_API_KEY to be set.", file=sys.stderr)
+                      sys.exit(1)
+                  return cloud_url, api_key
+              if not onprem_url:
+                  print(f"ERROR: Model '{m}' is a local model but OLLAMA_URL is not set.", file=sys.stderr)
+                  sys.exit(1)
+              return onprem_url, None
+
+          base_url, api_key = resolve_endpoint(model)
 
           with open("review.md", "r", errors="replace") as f:
               review = f.read()
@@ -435,19 +477,18 @@ jobs:
           with open("scoring_payload.json", "w") as f:
               json.dump(payload, f)
 
-          review_model = os.environ.get("OLLAMA_MODEL")
           print(f"Scoring with {model} (review was by {review_model}) …")
 
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@scoring_payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
+          curl_cmd = [
+              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+              "-X", "POST", f"{base_url}/api/chat",
+              "-H", "Content-Type: application/json",
+          ]
+          if api_key:
+              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+          curl_cmd += ["-d", "@scoring_payload.json"]
+
+          result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
           if result.returncode != 0:
               print(
