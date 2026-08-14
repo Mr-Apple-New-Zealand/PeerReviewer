@@ -44,6 +44,12 @@ Env vars (all optional; sensible defaults for Ollama's hosted cloud):
   AI_PATCH_OUTPUT_DIR                     Where scratch tree + reports go.
                                           Default: .ai-patch/
   AI_PATCH_SKIP_BASELINE=1                Skip the baseline review pass.
+  AI_PATCH_RESUME=1                       Skip the patcher API call and reuse
+                                          the existing scratch tree + patch
+                                          response under AI_PATCH_OUTPUT_DIR.
+                                          Use after a reviewer-side failure to
+                                          retry only the peer-review passes
+                                          without spending another patcher call.
 """
 
 from __future__ import annotations
@@ -64,6 +70,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 try:
     from ai_code_review import (  # type: ignore
         collect_branch_content,
+        extract_response_text,
         fmt_s,
         ns_to_s,
         ollama_chat,
@@ -464,94 +471,158 @@ def main() -> int:
         output_dir = REPO_ROOT / output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    issues_path = REPO_ROOT / "ISSUES.md"
-    if not issues_path.exists():
-        print(f"ERROR: ISSUES.md not found at {issues_path}", file=sys.stderr)
-        return 1
-    issues = issues_path.read_text(encoding="utf-8", errors="replace")
-
-    print(f"Collecting source files under {source_root_rel} …")
-    diff, file_count = collect_branch_content(source_root_rel)
-    if not diff:
-        print("No reviewable source files — nothing to patch.", file=sys.stderr)
-        return 1
-    print(f"Collected {file_count} files ({len(diff)} bytes).")
-
-    chars_per_token = 2.5
-    instruction_chars = len(PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=""))
-    available_tokens = num_ctx - num_predict - 500
-    max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
-    truncated = len(diff) > max_diff_chars
-    if truncated:
-        diff = diff[:max_diff_chars]
-        print(
-            f"WARN: source listing truncated to fit context — patcher may miss "
-            f"issues in the trailing {file_count} files.",
-            file=sys.stderr,
-        )
-    print(
-        f"Context: {num_ctx} tokens; instruction overhead {instruction_chars} chars; "
-        f"diff budget {max_diff_chars} chars; actual diff {len(diff)} chars; "
-        f"truncated={truncated}"
-    )
-
-    prompt = PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=diff)
-    payload = {
-        "model": patcher_model,
-        "messages": [{"role": "user", "content": prompt}],
-        "stream": False,
-        "think": False,
-        "options": {"temperature": temperature, "num_predict": num_predict, "num_ctx": num_ctx},
-    }
-
-    data = ollama_chat(patcher_url, payload, output_dir / "patch_payload.json", "patch", patcher_key)
-    raw = (data.get("message") or {}).get("content", "")
-    patch_output = strip_thinking(raw).strip()
-    if not patch_output:
-        print("ERROR: patcher returned an empty response.", file=sys.stderr)
-        return 1
-    (output_dir / "patch_response.md").write_text(patch_output, encoding="utf-8")
-
-    patcher_metrics = {
-        "model": patcher_model,
-        "total_duration_s": ns_to_s(data.get("total_duration")),
-        "load_duration_s": ns_to_s(data.get("load_duration")),
-        "prompt_tokens": data.get("prompt_eval_count", 0),
-        "output_tokens": data.get("eval_count", 0),
-        "output_token_limit": num_predict,
-        "prompt_tps": tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
-        "output_tps": tps(data.get("eval_count"), data.get("eval_duration")),
-        "context_window": num_ctx,
-        "content_truncated": truncated,
-        "done_reason": data.get("done_reason", ""),
-    }
-    print(
-        f"Patcher: {patcher_metrics['total_duration_s']}s | "
-        f"in {patcher_metrics['prompt_tokens']:,} tok / "
-        f"out {patcher_metrics['output_tokens']:,} tok @ "
-        f"{patcher_metrics['output_tps']} tok/s | "
-        f"done_reason={patcher_metrics['done_reason']}"
-    )
-
-    blocks = extract_file_blocks(patch_output)
-    if not blocks:
-        print(
-            "ERROR: could not extract any `### File: <path>` blocks from the "
-            "patcher output. See patch_response.md for the raw response.",
-            file=sys.stderr,
-        )
-        return 1
-    print(f"Extracted {len(blocks)} patched files from response.")
+    resume = os.environ.get("AI_PATCH_RESUME", "").strip() in {"1", "true", "yes"}
 
     scratch_root = output_dir / "scratch"
-    files_copied, files_patched, rejected = build_scratch_tree(
-        source_root, scratch_root, blocks,
-    )
-    print(f"Scratch tree: {files_copied} copied, {files_patched} patched, "
-          f"{len(rejected)} rejected.")
-    if rejected:
-        for r in rejected:
-            print(f"  rejected: {r}", file=sys.stderr)
+    patch_response_path = output_dir / "patch_response.md"
+
+    if resume:
+        # Skip the patcher API call and reuse whatever we already produced on
+        # a previous run. Handy after a transient reviewer failure (e.g. a
+        # TCP reset from the on-prem Ollama during model load).
+        print(f"AI_PATCH_RESUME=1 — reusing existing scratch tree at {scratch_root}")
+        if not patch_response_path.exists():
+            print(
+                f"ERROR: resume requested but {patch_response_path} is missing. "
+                "Delete AI_PATCH_RESUME or point AI_PATCH_OUTPUT_DIR at a "
+                "previous run's directory.",
+                file=sys.stderr,
+            )
+            return 1
+        scratch_source_dir = scratch_root / source_root.name
+        if not scratch_source_dir.exists():
+            print(
+                f"ERROR: resume requested but scratch tree {scratch_source_dir} "
+                "is missing. Cannot review a patched tree that doesn't exist.",
+                file=sys.stderr,
+            )
+            return 1
+
+        patch_output = patch_response_path.read_text(encoding="utf-8")
+        blocks = extract_file_blocks(patch_output)
+        if not blocks:
+            print(
+                f"ERROR: could not extract any `### File: <path>` blocks from "
+                f"{patch_response_path}. Not safe to resume.",
+                file=sys.stderr,
+            )
+            return 1
+
+        # Reuse previous patcher metrics if the last run wrote a summary;
+        # otherwise placeholder so the report can still render.
+        prior_summary = output_dir / "patch_summary.json"
+        patcher_metrics: dict = {"model": patcher_model, "resumed": True}
+        if prior_summary.exists():
+            try:
+                prior = json.loads(prior_summary.read_text(encoding="utf-8"))
+                if isinstance(prior.get("patcher"), dict):
+                    patcher_metrics = dict(prior["patcher"])
+                    patcher_metrics["resumed"] = True
+            except json.JSONDecodeError:
+                pass
+        print(f"Reused {len(blocks)} patched files from previous run.")
+        files_copied = files_patched = 0
+        rejected: list[str] = []
+    else:
+        issues_path = REPO_ROOT / "ISSUES.md"
+        if not issues_path.exists():
+            print(f"ERROR: ISSUES.md not found at {issues_path}", file=sys.stderr)
+            return 1
+        issues = issues_path.read_text(encoding="utf-8", errors="replace")
+
+        print(f"Collecting source files under {source_root_rel} …")
+        diff, file_count = collect_branch_content(source_root_rel)
+        if not diff:
+            print("No reviewable source files — nothing to patch.", file=sys.stderr)
+            return 1
+        print(f"Collected {file_count} files ({len(diff)} bytes).")
+
+        chars_per_token = 2.5
+        instruction_chars = len(PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=""))
+        available_tokens = num_ctx - num_predict - 500
+        max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
+        truncated = len(diff) > max_diff_chars
+        if truncated:
+            diff = diff[:max_diff_chars]
+            print(
+                f"WARN: source listing truncated to fit context — patcher may miss "
+                f"issues in the trailing {file_count} files.",
+                file=sys.stderr,
+            )
+        print(
+            f"Context: {num_ctx} tokens; instruction overhead {instruction_chars} chars; "
+            f"diff budget {max_diff_chars} chars; actual diff {len(diff)} chars; "
+            f"truncated={truncated}"
+        )
+
+        prompt = PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=diff)
+        payload = {
+            "model": patcher_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "think": False,
+            "options": {"temperature": temperature, "num_predict": num_predict, "num_ctx": num_ctx},
+        }
+
+        data = ollama_chat(patcher_url, payload, output_dir / "patch_payload.json", "patch", patcher_key)
+        patch_output, patch_source = extract_response_text(data)
+        if not patch_output:
+            print(
+                f"ERROR: patcher '{patcher_model}' returned an empty response.\n"
+                f"  Response top-level keys: {sorted((data or {}).keys())}\n"
+                f"  message keys           : {sorted((data.get('message') or {}).keys())}\n"
+                f"  done_reason            : {data.get('done_reason')!r}\n"
+                f"  See {output_dir / 'patch_payload.json.response.json'} for the full body.\n"
+                "  Common causes: (1) model tag doesn't exist on the endpoint; "
+                "(2) reasoning model returned everything in <think> tags — try a "
+                "non-thinking model or set `think: true` in the payload; "
+                "(3) provider blocked/truncated the response.",
+                file=sys.stderr,
+            )
+            return 1
+        if patch_source != "message.content":
+            print(f"WARN: patcher content was in {patch_source}, not message.content.")
+        patch_response_path.write_text(patch_output, encoding="utf-8")
+
+        patcher_metrics = {
+            "model": patcher_model,
+            "total_duration_s": ns_to_s(data.get("total_duration")),
+            "load_duration_s": ns_to_s(data.get("load_duration")),
+            "prompt_tokens": data.get("prompt_eval_count", 0),
+            "output_tokens": data.get("eval_count", 0),
+            "output_token_limit": num_predict,
+            "prompt_tps": tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
+            "output_tps": tps(data.get("eval_count"), data.get("eval_duration")),
+            "context_window": num_ctx,
+            "content_truncated": truncated,
+            "done_reason": data.get("done_reason", ""),
+        }
+        print(
+            f"Patcher: {patcher_metrics['total_duration_s']}s | "
+            f"in {patcher_metrics['prompt_tokens']:,} tok / "
+            f"out {patcher_metrics['output_tokens']:,} tok @ "
+            f"{patcher_metrics['output_tps']} tok/s | "
+            f"done_reason={patcher_metrics['done_reason']}"
+        )
+
+        blocks = extract_file_blocks(patch_output)
+        if not blocks:
+            print(
+                "ERROR: could not extract any `### File: <path>` blocks from the "
+                "patcher output. See patch_response.md for the raw response.",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"Extracted {len(blocks)} patched files from response.")
+
+        files_copied, files_patched, rejected = build_scratch_tree(
+            source_root, scratch_root, blocks,
+        )
+        print(f"Scratch tree: {files_copied} copied, {files_patched} patched, "
+              f"{len(rejected)} rejected.")
+        if rejected:
+            for r in rejected:
+                print(f"  rejected: {r}", file=sys.stderr)
 
     # Compute the repo-relative path for the reviewer to walk.
     patched_source_rel = (scratch_root / source_root.name).relative_to(REPO_ROOT).as_posix() + "/"

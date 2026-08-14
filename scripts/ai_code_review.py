@@ -146,8 +146,15 @@ def resolve_endpoint(model: str) -> tuple[str, str | None]:
 
 def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
                 api_key: str | None = None) -> dict:
-    """POST a chat request to Ollama via curl and return the parsed response."""
+    """POST a chat request to Ollama via curl and return the parsed response.
+
+    The full response body is also written to `<payload_path>.response.json`
+    for debugging — some cloud reasoning models return content in
+    `message.reasoning`/`message.thinking` instead of `message.content`, and
+    without the raw JSON we can't see what happened.
+    """
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
+    response_path = payload_path.with_suffix(payload_path.suffix + ".response.json")
     print(f"Calling {base_url}/api/chat — {label} (model: {payload['model']}) …")
 
     cmd = [
@@ -161,19 +168,46 @@ def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
 
     res = run(cmd)
     if res.returncode != 0:
+        # Persist the failure body too — helpful for 4xx bodies from cloud APIs.
+        response_path.write_text(res.stdout or "", encoding="utf-8")
         print(
             f"ERROR: curl failed (exit {res.returncode})\n"
             f"stderr: {res.stderr}\n"
-            f"body  : {res.stdout[:2000]}",
+            f"body  : {res.stdout[:2000]}\n"
+            f"(full body saved to {response_path})",
             file=sys.stderr,
         )
         sys.exit(1)
+    response_path.write_text(res.stdout, encoding="utf-8")
     try:
         return json.loads(res.stdout)
     except json.JSONDecodeError as exc:
         print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
         print(f"Raw output (first 500 chars): {res.stdout[:500]}", file=sys.stderr)
+        print(f"(full body saved to {response_path})", file=sys.stderr)
         sys.exit(1)
+
+
+def extract_response_text(data: dict) -> tuple[str, str]:
+    """Pull the assistant's text out of an Ollama chat response, handling the
+    non-standard shapes some cloud reasoning models emit.
+
+    Returns (text, source_field). `text` has `<think>` blocks removed. When
+    `message.content` is empty, falls back (in order) to top-level `response`
+    (generate-endpoint shape), `message.reasoning`, `message.thinking`.
+    `source_field` names where the content was found, for logging.
+    """
+    message = data.get("message") or {}
+    for field in ("content", "reasoning", "thinking"):
+        raw = message.get(field) or ""
+        cleaned = strip_thinking(raw).strip()
+        if cleaned:
+            return cleaned, f"message.{field}"
+    top_response = data.get("response") or ""
+    cleaned = strip_thinking(top_response).strip()
+    if cleaned:
+        return cleaned, "response"
+    return "", "(none)"
 
 
 REVIEW_PROMPT_TEMPLATE = (
@@ -524,10 +558,19 @@ def main() -> int:
         "options": {"temperature": temperature, "num_predict": num_predict},
     }
     review_data = ollama_chat(review_url, review_payload, output_dir / "payload.json", "review", review_key)
-    review = strip_thinking((review_data.get("message") or {}).get("content", "")).strip()
+    review, review_source = extract_response_text(review_data)
     if not review:
-        print("ERROR: Ollama returned an empty review.", file=sys.stderr)
+        print(
+            f"ERROR: Ollama returned an empty review from model '{review_model}'.\n"
+            f"  Response top-level keys: {sorted((review_data or {}).keys())}\n"
+            f"  message keys           : {sorted((review_data.get('message') or {}).keys())}\n"
+            f"  done_reason            : {review_data.get('done_reason')!r}\n"
+            f"  See {output_dir / 'payload.json.response.json'} for the full body.",
+            file=sys.stderr,
+        )
         return 1
+    if review_source != "message.content":
+        print(f"WARN: review content was in {review_source}, not message.content.")
     (output_dir / "review.md").write_text(review, encoding="utf-8")
 
     review_metrics = {
@@ -576,10 +619,19 @@ def main() -> int:
     scoring_data = ollama_chat(
         scoring_url, scoring_payload, output_dir / "scoring_payload.json", "scoring", scoring_key,
     )
-    scorecard = strip_thinking((scoring_data.get("message") or {}).get("content", "")).strip()
+    scorecard, scorecard_source = extract_response_text(scoring_data)
     if not scorecard:
-        print("ERROR: Ollama returned an empty scorecard.", file=sys.stderr)
+        print(
+            f"ERROR: Ollama returned an empty scorecard from model '{scoring_model}'.\n"
+            f"  Response top-level keys: {sorted((scoring_data or {}).keys())}\n"
+            f"  message keys           : {sorted((scoring_data.get('message') or {}).keys())}\n"
+            f"  done_reason            : {scoring_data.get('done_reason')!r}\n"
+            f"  See {output_dir / 'scoring_payload.json.response.json'} for the full body.",
+            file=sys.stderr,
+        )
         return 1
+    if scorecard_source != "message.content":
+        print(f"WARN: scorecard content was in {scorecard_source}, not message.content.")
 
     scorecard = re.sub(
         r"^#\s*AI\s+Review\s+Scorecard\s*\n+", "", scorecard, count=1, flags=re.IGNORECASE,
