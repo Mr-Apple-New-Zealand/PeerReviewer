@@ -166,14 +166,14 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, subprocess, sys
+          import hashlib, json, os, subprocess, sys
 
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
           model = os.environ.get("OLLAMA_MODEL")
           base_url = os.environ.get("OLLAMA_URL")
 
-          with open("branch_content.txt", "r", errors="replace") as f:
+          with open("branch_content.txt", "r", encoding="utf-8", errors="replace") as f:
               diff = f.read()
 
           num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
@@ -401,7 +401,7 @@ jobs:
               )
               sys.exit(1)
 
-          with open("review.md", "w") as f:
+          with open("review.md", "w", encoding="utf-8") as f:
               f.write(review)
 
           def _ns_to_s(ns):
@@ -416,6 +416,7 @@ jobs:
               "top_k": options.get("top_k"),
               "reasoning": reasoning or None,
               "think": payload.get("think"),
+              "prompt_sha": hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()[:12],
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
@@ -464,18 +465,19 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, re, subprocess, sys
+          import hashlib, json, os, re, subprocess, sys
 
           model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
           base_url = os.environ.get("OLLAMA_URL")
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
 
-          with open("review.md", "r", errors="replace") as f:
+          with open("review.md", "r", encoding="utf-8", errors="replace") as f:
               review = f.read()
 
-          with open("ISSUES.md", "r", errors="replace") as f:
+          with open("ISSUES.md", "r", encoding="utf-8", errors="replace") as f:
               issues = f.read()
+          issues_sha = hashlib.sha256(issues.encode("utf-8")).hexdigest()[:12]
 
           preamble = (
               "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
@@ -615,53 +617,58 @@ jobs:
               },
           }
 
-          with open("scoring_payload.json", "w") as f:
-              json.dump(payload, f)
-
-          review_model = os.environ.get("OLLAMA_MODEL")
-          print(f"Scoring with {model} (review was by {review_model}) …")
-
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@scoring_payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
-
-          if result.returncode != 0:
-              print(
-                  f"ERROR: curl failed (exit {result.returncode})\n"
-                  f"stderr: {result.stderr}\n"
-                  f"body  : {result.stdout[:2000]}",
-                  file=sys.stderr,
-              )
-              sys.exit(1)
-
-          try:
-              data = json.loads(result.stdout)
-          except json.JSONDecodeError as exc:
-              print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
-              print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
-              sys.exit(1)
-
           _think_re = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
-          scorecard = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
-          if not scorecard:
-              print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
-              sys.exit(1)
 
-          # Workflow prepends its own H1 + branch/commit line; drop duplicate title from model.
-          scorecard = re.sub(
-              r"^#\s*AI\s+Review\s+Scorecard\s*\n+",
-              "",
-              scorecard,
-              count=1,
-              flags=re.IGNORECASE,
-          ).lstrip()
+          def call_scorer(attempt):
+              """One scoring round-trip. Returns (response_json, scorecard_markdown)."""
+              with open("scoring_payload.json", "w") as f:
+                  json.dump(payload, f)
+
+              review_model = os.environ.get("OLLAMA_MODEL")
+              suffix = "" if attempt == 1 else f" [attempt {attempt}]"
+              print(f"Scoring with {model} (review was by {review_model}){suffix} …")
+
+              result = subprocess.run(
+                  [
+                      "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                      "-X", "POST", f"{base_url}/api/chat",
+                      "-H", "Content-Type: application/json",
+                      "-d", "@scoring_payload.json",
+                  ],
+                  capture_output=True,
+                  text=True,
+              )
+
+              if result.returncode != 0:
+                  print(
+                      f"ERROR: curl failed (exit {result.returncode})\n"
+                      f"stderr: {result.stderr}\n"
+                      f"body  : {result.stdout[:2000]}",
+                      file=sys.stderr,
+                  )
+                  sys.exit(1)
+
+              try:
+                  response = json.loads(result.stdout)
+              except json.JSONDecodeError as exc:
+                  print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
+                  print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
+                  sys.exit(1)
+
+              text = _think_re.sub("", (response.get("message") or {}).get("content", "")).strip()
+              if not text:
+                  print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
+                  sys.exit(1)
+
+              # Workflow prepends its own H1 + branch/commit line; drop the model's copy.
+              text = re.sub(
+                  r"^#\s*AI\s+Review\s+Scorecard\s*\n+",
+                  "",
+                  text,
+                  count=1,
+                  flags=re.IGNORECASE,
+              ).lstrip()
+              return response, text
 
           _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
           _ROW_ID = re.compile(r"^\|\s*\*{0,2}([A-Z]{1,3}\d*|UT)\*{0,2}\s*\|", re.IGNORECASE)
@@ -873,24 +880,64 @@ jobs:
                   return md[: first_nl + 1] + insert + md[first_nl + 1 :]
               return insert + md
 
-          header = (
-              f"# AI Review Scorecard\n\n"
-              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
-          )
-
           grounding_mode = os.environ.get("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce").strip().lower()
           if grounding_mode not in ("enforce", "warn", "off"):
               print(f"WARN: unknown grounding mode {grounding_mode!r}; using 'enforce'.",
                     file=sys.stderr)
               grounding_mode = "enforce"
 
-          body = drop_duplicate_ids(scorecard)
-          body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
-          # Recount only after dedupe and downgrades, so the summary matches the tables.
-          body = reconcile_summary_line(body)
-          warn_repeated_notes(body)
-          rf, rp, rm = count_table_statuses(body)
+          # This scorer is bimodal. Most runs it matches carefully and emits a handful of
+          # Partial ratings; occasionally it collapses into crediting every row on whatever
+          # sentence is nearest, producing a full sheet of Found and ZERO Partial. Runs #137
+          # and #139 both did this, and both contained mis-attributions verifiable by grep
+          # (D5 credited to SendWelcomeEmail, R3 to the admin bypass). Runs with a non-zero
+          # Partial count have been clean every time. So a zero-Partial sheet on a full-size
+          # scorecard is treated as a failed round and re-scored once -- this selects against
+          # a validated failure mode, not against an unwelcome score.
+          MAX_ATTEMPTS = max(1, int(os.environ.get("AI_ASSISTANT_SCORER_MAX_ATTEMPTS", "2")))
+
+          attempts = []
+          for attempt in range(1, MAX_ATTEMPTS + 1):
+              data, scorecard = call_scorer(attempt)
+              body = drop_duplicate_ids(scorecard)
+              body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
+              # Recount only after dedupe and downgrades, so the summary matches the tables.
+              body = reconcile_summary_line(body)
+              rf, rp, rm = count_table_statuses(body)
+              attempts.append(
+                  {"body": body, "data": data, "downgrades": grounding_downgrades,
+                   "found": rf, "partial": rp, "missed": rm, "n": attempt}
+              )
+              if rp > 0 or (rf + rp + rm) < 40:
+                  break
+              print(
+                  f"WARN: scoring attempt {attempt} returned {rf} Found and ZERO Partial "
+                  f"across {rf + rp + rm} rows -- the scorer's credit-everything mode. "
+                  + ("Re-scoring." if attempt < MAX_ATTEMPTS else "No attempts left."),
+                  file=sys.stderr,
+              )
+
+          chosen = next((a for a in attempts if a["partial"] > 0), attempts[0])
+          body = chosen["body"]
+          data = chosen["data"]
+          grounding_downgrades = chosen["downgrades"]
+          rf, rp, rm = chosen["found"], chosen["partial"], chosen["missed"]
           row_total = rf + rp + rm
+          scorer_mode_suspect = rp == 0 and row_total >= 40
+          if len(attempts) > 1:
+              print("Scoring attempts: "
+                    + "; ".join(f"#{a['n']} {a['found']}F/{a['partial']}P/{a['missed']}M"
+                                for a in attempts)
+                    + f" -> using #{chosen['n']}")
+          if scorer_mode_suspect:
+              print(
+                  "WARN: every scoring attempt came back with zero Partial ratings. Treat this "
+                  "score as an UPPER BOUND -- spot-check rows whose Note names a different "
+                  "method or symbol than the reference Description.",
+                  file=sys.stderr,
+              )
+
+          warn_repeated_notes(body)
           if row_total != 70:
               print(
                   f"WARN: Scorecard has {row_total} table data rows; expected exactly 70 "
@@ -898,8 +945,59 @@ jobs:
                   file=sys.stderr,
               )
 
-          with open("issues_scorecard.md", "w") as f:
-              f.write(header + body)
+          header = (
+              f"# AI Review Scorecard\n\n"
+              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
+          )
+          if scorer_mode_suspect:
+              header += (
+                  "> ⚠ **Scorer returned zero Partial ratings on every attempt.** Historically "
+                  "this indicates rows credited on neighbouring evidence; treat the score as an "
+                  "upper bound.\n\n"
+              )
+
+          # Everything needed to reproduce this run, recorded from what was actually sent
+          # rather than from the config file, which may have moved on since.
+          try:
+              with open("metrics.json") as _mf:
+                  _rev = json.load(_mf).get("review", {})
+          except (FileNotFoundError, json.JSONDecodeError):
+              _rev = {}
+
+          def _val(v, blank="(model default)"):
+              if v is None or v == "":
+                  return blank
+              return f"`{v}`"
+
+          config_rows = [
+              ("Review model", _val(_rev.get("model"), "(unknown)")),
+              ("Reasoning strength (system prompt)", _val(_rev.get("reasoning"))),
+              ("Ollama `think`", _val(_rev.get("think"), "(unset)")),
+              ("Temperature", _val(_rev.get("temperature"), "(unknown)")),
+              ("top_p", _val(_rev.get("top_p"))),
+              ("top_k", _val(_rev.get("top_k"))),
+              ("num_ctx", _val(_rev.get("context_window"), "(unknown)")),
+              ("num_predict", _val(_rev.get("output_token_limit"), "(unknown)")),
+              ("Source truncated", _val("yes" if _rev.get("content_truncated") else "no")),
+              ("Review prompt SHA-256", _val(_rev.get("prompt_sha"), "(unknown)")),
+              ("Scorer model", _val(model, "(unknown)")),
+              ("Scorer temperature", _val(temperature, "(unknown)")),
+              ("Scorer attempts", _val(len(attempts))),
+              ("Grounding mode", _val(grounding_mode)),
+              ("Grounding downgrades", _val(len(grounding_downgrades))),
+              ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
+              ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
+          ]
+          appendix = (
+              "\n---\n\n## Run Configuration\n\n"
+              "Values as actually sent to Ollama for this run. Blank sampler entries mean the "
+              "request omitted them, so the model's own Modelfile applied.\n\n"
+              "| Setting | Value |\n|---|---|\n"
+              + "".join(f"| {k} | {v} |\n" for k, v in config_rows)
+          )
+
+          with open("issues_scorecard.md", "w", encoding="utf-8") as f:
+              f.write(header + body + appendix)
 
           def _ns_to_s(ns):
               return round(ns / 1e9, 1) if ns else 0.0
@@ -921,6 +1019,8 @@ jobs:
               "total": row_total,
               "score_pct": round(rf / max(row_total, 1) * 100, 1),
               "grounding_mode": grounding_mode,
+              "scoring_attempts": len(attempts),
+              "scorer_mode_suspect": scorer_mode_suspect,
               "grounding_downgrades": len(grounding_downgrades),
               "grounding_downgraded_ids": [r for r, _s, _b in grounding_downgrades],
           }
@@ -1005,6 +1105,10 @@ jobs:
               f"{sc.get('missed','?')} Missed out of {sc.get('total','?')} issues "
               f"({sc.get('score_pct','?')}% Found)",
               "",
+              ("> **⚠ Scorer returned zero Partial ratings" +
+               (f" on all {sc.get('scoring_attempts')} attempts" if sc.get('scoring_attempts', 1) > 1 else "") +
+               " — treat this score as an upper bound.**\n"
+               if sc.get("scorer_mode_suspect") else ""),
               f"Scorer grounding: {sc.get('grounding_mode','?')} mode, "
               f"{sc.get('grounding_downgrades', 0)} row(s) downgraded for unsupported evidence"
               + (f" ({', '.join(sc.get('grounding_downgraded_ids', []))})"
@@ -1048,7 +1152,7 @@ jobs:
               f"| Review + scoring time | {fmt_s(combined)} |",
           ]
 
-          with open("metrics.md", "w") as f:
+          with open("metrics.md", "w", encoding="utf-8") as f:
               f.write("\n".join(lines) + "\n")
 
           print("Metrics report saved to metrics.md")
