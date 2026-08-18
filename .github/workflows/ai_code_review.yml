@@ -8,23 +8,31 @@ on:
         required: false
         type: string
       num_ctx:
-        description: "Context window. Blank = 65536 (benchmark default). Lower only if VRAM-bound."
+        description: "Context window (num_ctx). Blank = 65536 (benchmark default). Lower only if VRAM-bound."
         required: false
         type: string
       num_predict:
-        description: "Output token cap. Blank = 40000 (benchmark default). Raise num_ctx with it."
+        description: "Output token cap (num_predict). Blank = 40000 (benchmark default). Raise num_ctx with it."
+        required: false
+        type: string
+      reasoning:
+        description: "Reasoning strength via system prompt (low/medium/high/xhigh). Blank = model's Modelfile."
+        required: false
+        type: string
+      think:
+        description: "Ollama think field for Qwen3-family models (true/false/low/medium/high). Blank = unset."
         required: false
         type: string
       temperature:
-        description: "Blank = 0.3 (benchmark default). Small Qwen3.5 variants used 0.6."
+        description: "Temperature: (0.3=benchmark default). Small Qwen3.5 variants used 0.6."
         required: false
         type: string
       top_p:
-        description: "Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        description: "top_p: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
         required: false
         type: string
       top_k:
-        description: "Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        description: "top_k: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
         required: false
         type: string
 
@@ -64,6 +72,17 @@ env:
   # measured between two identical runs, so treat it as "no evidence either way" and
   # keep the benchmark default.
   AI_ASSISTANT_MODEL_TEMPERATURE: ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+
+  # Reasoning effort. Two mechanisms because models differ, and BOTH are blank by
+  # default so every model keeps whatever its own Modelfile declares:
+  #   reasoning -> sends a "Reasoning strength: <level>" system message. This is how
+  #                Muse-Glimmer-30B is controlled; its Modelfile bakes in "high".
+  #   think     -> sets Ollama's top-level `think` field, used by Qwen3-family models
+  #                (SUMMARY finding 7: Qwen3.8-27B needs think=medium to emit content).
+  # Setting `reasoning` REPLACES the model's entire Modelfile SYSTEM block, so the
+  # assistant line is reproduced alongside the level.
+  AI_ASSISTANT_MODEL_REASONING: ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING }}
+  AI_ASSISTANT_MODEL_THINK: ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK }}
 
   # top_p / top_k: DELIBERATELY BLANK by default. Each model ships its own card-tuned
   # values in its Modelfile, and Ollama applies those when the request omits them.
@@ -298,16 +317,36 @@ jobs:
           if _top_k:
               options["top_k"] = int(_top_k)
 
+          # Reasoning effort. Blank leaves the model's own Modelfile in charge, which is
+          # the benchmark default -- do not set these for a cross-model comparison run.
+          messages = []
+          reasoning = os.environ.get("AI_ASSISTANT_MODEL_REASONING", "").strip()
+          if reasoning:
+              # A system message REPLACES the Modelfile SYSTEM block wholesale, so the
+              # assistant line has to be reproduced or it is silently dropped.
+              messages.append({
+                  "role": "system",
+                  "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
+              })
+          messages.append({"role": "user", "content": prompt})
+
           payload = {
               "model": model,
-              "messages": [{"role": "user", "content": prompt}],
+              "messages": messages,
               "stream": False,
               "options": options,
           }
 
+          think = os.environ.get("AI_ASSISTANT_MODEL_THINK", "").strip()
+          if think:
+              _t = think.lower()
+              payload["think"] = True if _t == "true" else False if _t == "false" else think
+
           print(f"Sampler: temperature={temperature} "
                 f"top_p={options.get('top_p', '(model default)')} "
                 f"top_k={options.get('top_k', '(model default)')}")
+          print(f"Reasoning: system={reasoning or '(model default)'} "
+                f"think={payload.get('think', '(unset)')}")
 
           with open("payload.json", "w") as f:
               json.dump(payload, f)
@@ -375,6 +414,8 @@ jobs:
               "temperature": temperature,
               "top_p": options.get("top_p"),
               "top_k": options.get("top_k"),
+              "reasoning": reasoning or None,
+              "think": payload.get("think"),
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
@@ -977,6 +1018,7 @@ jobs:
               f"| Model load time | {fmt_s(r.get('load_duration_s', 0))} |",
               f"| Inference time | {fmt_s(r.get('total_duration_s', 0) - r.get('load_duration_s', 0))} |",
               f"| Sampler | {sampler} |",
+              f"| Reasoning | {_samp('reasoning', 'system')}, {_samp('think', 'think')} |",
               f"| Prompt tokens | {r.get('prompt_tokens', 0):,} |",
               f"| Output tokens | {out_tokens:,} of {out_limit:,} limit |",
               f"| Answer / reasoning split | {r.get('content_chars', 0):,} chars answer, "
