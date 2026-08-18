@@ -993,8 +993,55 @@ jobs:
                   rows.append((rid, status, targets[0], "yes" if present else "**no**", verdict))
               return rows, miscredits, undercredits
 
+          # ------------------------------------------------------------------------
+          # Self-hedged ratings.
+          #
+          # The scorer sometimes writes the counter-argument into its own Note and then
+          # records Found anyway -- "implicitly covering the null request case", "does not
+          # specifically name the fee rate". That phrasing describes a Partial. It is a
+          # far better signal than the Partial count: on the Qwen3.8-27B run it caught 3
+          # of the 4 over-credits with zero false positives across 70 rows, whereas the
+          # zero-Partial heuristic fired on a review that was genuinely near-perfect.
+          #
+          # Reported, never auto-applied: a hedged Note can still sit on a correct Found
+          # when the conceded detail is incidental to the reference issue.
+          # ------------------------------------------------------------------------
+          _HEDGE = re.compile(
+              r"implicitly"
+              r"|does not (?:specifically|explicitly)?\s*(?:name|mention|cover|address)"
+              r"|but does not|though it does not|without naming|only partially"
+              r"|not specifically name",
+              re.IGNORECASE,
+          )
+
+          def hedge_check(md):
+              out = []
+              for line in md.splitlines():
+                  m_id = _ROW_ID.match(line.strip())
+                  m = _STATUS_CELL.search(line)
+                  if not m_id or not m or m.group(1).lower() != "found":
+                      continue
+                  note = line[m.end():].lstrip("|").strip().rstrip("|").strip()
+                  if len(note) < 25:
+                      continue
+                  hit = _HEDGE.search(note)
+                  if hit:
+                      out.append((m_id.group(1).upper(), hit.group(0), note))
+              return out
+
           spot_rows, miscredits, undercredits = spot_check(body, review)
+          hedged = hedge_check(body)
           adjusted_found = rf - len(miscredits)
+          # Lower bound: every self-hedged row treated as an over-credit too.
+          found_floor = adjusted_found - len([h for h in hedged if h[0] not in miscredits])
+
+          if hedged:
+              print(
+                  "WARN: %d row(s) rated Found whose Note concedes the review fell short "
+                  "(%s). Each is likely an over-credit; plausible floor %d of %d."
+                  % (len(hedged), ", ".join(h[0] for h in hedged), found_floor, row_total),
+                  file=sys.stderr,
+              )
 
           print("Evidence spot-check: %d/%d watchlist rows present in review; "
                 "%d mis-credited (%s); %d possibly under-credited (%s)"
@@ -1026,6 +1073,12 @@ jobs:
                   f"> ⚠ **{len(miscredits)} row(s) rated Found name a target that never appears "
                   f"in the review** ({', '.join(miscredits)}). Adjusted Found: "
                   f"**{adjusted_found}** of {row_total}. See the spot-check below.\n\n"
+              )
+          elif hedged:
+              header += (
+                  f"> ⚠ **{len(hedged)} row(s) rated Found concede in their own Note that the "
+                  f"review fell short** ({', '.join(h[0] for h in hedged)}). Plausible floor: "
+                  f"**{found_floor}** of {row_total}. See the spot-check below.\n\n"
               )
           elif scorer_mode_suspect:
               header += (
@@ -1078,6 +1131,22 @@ jobs:
                  if miscredits else "\nNo mis-credits detected in the watchlist.\n")
           )
 
+          if hedged:
+              spot_section += (
+                  "\n### Self-hedged ratings\n\n"
+                  "Rows rated `Found` whose own Note concedes the review did not cover the "
+                  "target. That phrasing describes a Partial; each is likely an over-credit, "
+                  "though a conceded detail can be incidental to the reference issue.\n\n"
+                  "| ID | Hedge | Note |\n|---|---|---|\n"
+                  + "".join(
+                      f"| {rid} | `{phrase}` | {note[:180].replace('|', '\\|')} |\n"
+                      for rid, phrase, note in hedged
+                  )
+                  + f"\n**Plausible floor: {found_floor} of {row_total}** "
+                    f"(adjusted {adjusted_found}, less {len([h for h in hedged if h[0] not in miscredits])} "
+                    "self-hedged).\n"
+              )
+
           appendix = (
               "\n---\n\n## Run Configuration\n\n"
               "Values as actually sent to Ollama for this run. Blank sampler entries mean the "
@@ -1114,6 +1183,8 @@ jobs:
               "spotcheck_miscredits": miscredits,
               "spotcheck_undercredits": undercredits,
               "found_adjusted": adjusted_found,
+              "found_floor": found_floor,
+              "hedged_rows": [h[0] for h in hedged],
               "score_pct_adjusted": round(adjusted_found / max(row_total, 1) * 100, 1),
               "grounding_downgrades": len(grounding_downgrades),
               "grounding_downgraded_ids": [r for r, _s, _b in grounding_downgrades],
@@ -1204,6 +1275,10 @@ jobs:
                f"review. Adjusted: {sc.get('found_adjusted','?')} Found "
                f"({sc.get('score_pct_adjusted','?')}%).**\n"
                if sc.get("spotcheck_miscredits") else
+               f"> **⚠ {len(sc.get('hedged_rows', []))} row(s) rated Found concede in their own "
+               f"Note that the review fell short ({', '.join(sc.get('hedged_rows', []))}). "
+               f"Plausible floor: {sc.get('found_floor','?')} Found.**\n"
+               if sc.get("hedged_rows") else
                "> Zero Partial ratings — spot-check found no mis-credits, but worth a second look.\n"
                if sc.get("scorer_mode_suspect") else ""),
               f"Scorer grounding: {sc.get('grounding_mode','?')} mode, "
