@@ -105,13 +105,18 @@ Issues are tagged by category, file, and approximate line numbers.
 | D2 | `Services/AuthService.cs` | ~87–92 | Unreachable code after `return true` in `ValidateToken`. |
 | D3 | `Data/DatabaseHelper.cs` | ~49 | `TableExists` — never called from any service or controller. |
 | D4 | `Data/DatabaseHelper.cs` | ~56 | `ExecuteQueryWithParams` — marked `[Obsolete]` and never called; should be removed. |
-| D5 | `Services/EmailService.cs` | ~79 | `BuildHtmlTemplate` — private method never invoked from `SendTransferNotification` or `SendWelcomeEmail`. |
+| D5 | `Services/EmailService.cs` | ~79 | `BuildHtmlTemplate` — private method reachable only from `SendWelcomeEmailHtml` (D6), which itself has no callers; it is therefore dead transitively rather than uninvoked. |
 | D6 | `Services/EmailService.cs` | ~85 | `SendWelcomeEmailHtml` — public method, never registered or called. |
 | D7 | `Services/TransactionService.cs` | ~91 | `FormatCurrency` — private, never called. |
 | D8 | `Services/TransactionService.cs` | ~72 | `IsWithinDailyLimit` — defined but never called; daily limit is therefore never enforced. |
 | D9 | `Helpers/StringHelper.cs` | ~49 | `ObfuscateAccount` — superseded by `MaskAccountNumber`, never called. |
 | D10 | `Helpers/StringHelper.cs` | ~54 | `ToTitleCase` — "experimental utility never integrated", never called. |
 | D11 | `Helpers/StringHelper.cs` | ~37 | `JoinWithSeparatorFixed` — correct implementation exists alongside the broken `JoinWithSeparator`, but fixed version is never used. |
+
+> **Known gap in this answer key — not scored.** `MaskAccountNumber` (`Helpers/StringHelper.cs`) also has no callers anywhere in the codebase. D9 describes
+> `ObfuscateAccount` as "superseded by `MaskAccountNumber`", which implies the latter is live; it is not — both are dead. A review that flags `MaskAccountNumber` is correct and
+> must not be penalised for it. It is deliberately left without an ID: adding one would move the total from 70 and invalidate comparison against every archived scorecard.
+> Promote it to `D12` only as part of a deliberate re-baseline.
 
 ---
 
