@@ -8,11 +8,11 @@ on:
         required: false
         type: string
       num_ctx:
-        description: "Context window. Blank = 49152. Qwen3.8-27B needs 65536."
+        description: "Context window. Blank = 65536 (benchmark default). Lower only if VRAM-bound."
         required: false
         type: string
       num_predict:
-        description: "Output token cap. Blank = 24000. Qwen3.8-27B needs 40000."
+        description: "Output token cap. Blank = 40000 (benchmark default). Raise num_ctx with it."
         required: false
         type: string
       temperature:
@@ -40,8 +40,24 @@ env:
   # defeated the run #134 sampler experiment).
   # ---------------------------------------------------------------------------
   OLLAMA_MODEL: ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }}
-  AI_ASSISTANT_MODEL_NUM_CTX: ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '49152' }}
-  AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '24000' }}
+  # Token budgets. These two are coupled: the source listing sent to the model is
+  # budgeted as (num_ctx - num_predict - 500) * 2.5 chars, so raising num_predict on its
+  # own SHRINKS the codebase the model sees, silently and without an error. Measured on
+  # run #137: 49152/40000 would have truncated the source AND overflowed the window.
+  #
+  # 65536/40000 is the uniform benchmark setting. It satisfies Qwen3.8-27B, which will
+  # not emit any content at a lower budget (SUMMARY finding 7), so there is no longer a
+  # per-model exception. Headroom at these values: 55,691 chars of source budget against
+  # a 34,694-char payload, and 50,469 tokens needed against a 65,536 window.
+  #
+  # Output has grown 6,743 -> 9,628 -> 15,315 tokens as the prompt got more exhaustive;
+  # 24000 was not yet binding but had little margin left.
+  #
+  # VRAM canary: every run so far held 39.8-40.0 tok/s against the Modelfile's 41.52 TPS
+  # benchmark, i.e. fully GPU-resident. 49152 -> 65536 is +33% KV cache. If output speed
+  # drops materially below ~40 tok/s, layers spilled to CPU -- drop to 57344/40000.
+  AI_ASSISTANT_MODEL_NUM_CTX: ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
+  AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }}
 
   # Temperature: benchmark default 0.3. Muse-Glimmer's card recommends 1.0; run #134
   # tested that and scored 53 vs 54 at 0.3 -- inside the +/-4 run-to-run spread later
