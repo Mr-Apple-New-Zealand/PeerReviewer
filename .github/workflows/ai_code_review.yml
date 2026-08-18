@@ -1,31 +1,60 @@
 name: AI Code Review
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Ollama model tag, e.g. Qwen3.5-9B-imatrix:Q4_K_S (blank = repo default)"
+        required: false
+        type: string
+      num_ctx:
+        description: "Context window. Blank = 49152. Qwen3.8-27B needs 65536."
+        required: false
+        type: string
+      num_predict:
+        description: "Output token cap. Blank = 24000. Qwen3.8-27B needs 40000."
+        required: false
+        type: string
+      temperature:
+        description: "Blank = 0.3 (benchmark default). Small Qwen3.5 variants used 0.6."
+        required: false
+        type: string
+      top_p:
+        description: "Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        required: false
+        type: string
+      top_k:
+        description: "Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Muse-Glimmer-30B-imatrix:Q4_K_S
-  AI_ASSISTANT_MODEL_NUM_CTX: 49152
-  AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-  # Sampler. These job-level values are authoritative -- do NOT redeclare them in a
-  # step's own env block, because step-level env silently overrides job-level.
-  #
-  # Temperature stays at the benchmark default of 0.3. The Muse-Glimmer-30B model card
-  # recommends 1.0, and run #134 tested exactly that against run #133 at 0.3 (same
-  # prompt, same scorer): 51 Found vs 54, losing the RecordTransaction and DeleteUser
-  # injections, the accountNumber null check, and the duplicated-validation refactor.
-  # High temperature suits open-ended generation; this task is exhaustive enumeration
-  # against a checklist, and sharpening the distribution helps it.
-  #
-  # top_p/top_k are the card's values, set explicitly so the effective sampler does not
-  # depend on which Modelfile happens to be loaded on the Ollama server.
-  AI_ASSISTANT_MODEL_TEMPERATURE: 0.3
-  AI_ASSISTANT_MODEL_TOP_P: 0.95
-  AI_ASSISTANT_MODEL_TOP_K: 64
+  # ---------------------------------------------------------------------------
+  # Per-run knobs. Precedence: workflow_dispatch input > repo variable > default.
+  # These are job-level and authoritative -- do NOT redeclare any of them in a step's
+  # own env block, because step-level env silently overrides job-level (that bug
+  # defeated the run #134 sampler experiment).
+  # ---------------------------------------------------------------------------
+  OLLAMA_MODEL: ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }}
+  AI_ASSISTANT_MODEL_NUM_CTX: ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '49152' }}
+  AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '24000' }}
+
+  # Temperature: benchmark default 0.3. Muse-Glimmer's card recommends 1.0; run #134
+  # tested that and scored 53 vs 54 at 0.3 -- inside the +/-4 run-to-run spread later
+  # measured between two identical runs, so treat it as "no evidence either way" and
+  # keep the benchmark default.
+  AI_ASSISTANT_MODEL_TEMPERATURE: ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+
+  # top_p / top_k: DELIBERATELY BLANK by default. Each model ships its own card-tuned
+  # values in its Modelfile, and Ollama applies those when the request omits them.
+  # Hardcoding one model's sampler here silently forces it onto every other model and
+  # invalidates cross-model comparison -- set these only for a single-model experiment.
+  AI_ASSISTANT_MODEL_TOP_P: ${{ inputs.top_p || vars.AI_ASSISTANT_MODEL_TOP_P }}
+  AI_ASSISTANT_MODEL_TOP_K: ${{ inputs.top_k || vars.AI_ASSISTANT_MODEL_TOP_K }}
 
 jobs:
   code-review:
@@ -401,15 +430,22 @@ jobs:
               "reference Description. If you cannot locate such a sentence, the issue is Missed. "
               "Wording differences are fine; target differences are NOT.\n\n"
               "HOW TO READ THE REVIEW: it is written as Markdown tables with the columns "
-              "| File | Line | Issue | Fix |. Treat the WHOLE ROW as a single piece of "
-              "evidence -- File and Line locate the finding, Issue states the problem, and "
-              "Fix states the remedy. The Fix cell frequently carries the exact detail a "
-              "reference issue asks for, so a row can satisfy a reference issue through its "
-              "Fix cell alone. For example a row reading | UserService.cs | 20 | Validation "
-              "of id range duplicated across methods | Extract shared validation method | "
-              "fully satisfies a reference issue about duplicated validation that should be "
-              "extracted to a shared method, and must be rated Found rather than Partial. "
-              "Never judge a row on its Issue cell in isolation.\n\n"
+              "| File | Line | Issue | Fix |. Read all four cells before judging a row -- the "
+              "Fix cell sometimes carries a detail the Issue cell leaves out, so a row can "
+              "supply evidence through its Fix cell. Example: | UserService.cs | 20 | "
+              "Validation of id range duplicated across methods | Extract shared validation "
+              "method | evidences a reference issue about duplicated validation that should "
+              "be extracted to a shared method.\n"
+              "This does NOT lower the bar for Found. The row you cite must still name THIS "
+              "row's target -- its method, symbol, file or specific behaviour. Reading the "
+              "whole row helps you RECOGNISE the right row; it never makes a row about a "
+              "different finding acceptable. If the closest row you can cite concerns another "
+              "method or another defect, the correct rating is Partial or Missed, and you "
+              "must say in the Note which part of THIS row it fails to cover.\n"
+              "Partial and Missed are expected outcomes, not failures of effort. A finished "
+              "scorecard containing zero Partial ratings is a strong signal that rows were "
+              "credited on neighbouring evidence rather than their own -- re-check any row "
+              "whose Note quotes a different method or symbol than its Description names.\n\n"
               "Scoring rules (apply strictly, with evidence):\n"
               "- Found: the review identifies THIS specific issue. There must exist a sentence in "
               "the review that names the same method/file/symbol/behavior as the Description. "
