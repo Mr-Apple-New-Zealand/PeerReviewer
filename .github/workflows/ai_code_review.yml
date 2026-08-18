@@ -11,14 +11,13 @@ env:
   OLLAMA_MODEL: Muse-Glimmer-30B-imatrix:Q4_K_S
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
   AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-  # Per-model sampler overrides. Leave the repo variables unset to keep the benchmark
-  # default (temperature 0.3, and whatever top_p/top_k the model Modelfile declares).
-  # For a card-faithful Muse-Glimmer-30B pass, set the repo variables to:
+  # Sampler. These job-level values are authoritative -- do NOT redeclare them in a
+  # step's own env block, because step-level env silently overrides job-level.
+  # Benchmark default is temperature 0.3 with the model Modelfile's own top_p/top_k.
+  # Values below are the Muse-Glimmer-30B model card's recommended configuration.
   AI_ASSISTANT_MODEL_TEMPERATURE: 1.0
   AI_ASSISTANT_MODEL_TOP_P: 0.95
   AI_ASSISTANT_MODEL_TOP_K: 64
-  #AI_ASSISTANT_MODEL_TOP_P: ${{ vars.AI_ASSISTANT_MODEL_TOP_P }}
-  #AI_ASSISTANT_MODEL_TOP_K: ${{ vars.AI_ASSISTANT_MODEL_TOP_K }}
 
 jobs:
   code-review:
@@ -91,7 +90,6 @@ jobs:
         if: steps.diff.outputs.empty == 'false'
         env:
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -340,8 +338,14 @@ jobs:
         if: steps.diff.outputs.empty == 'false'
         env:
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
+          # enforce = downgrade ungrounded Found/Partial rows to Missed (default)
+          # warn    = log them but leave the scorecard untouched
+          # off     = skip the check entirely (use when reproducing an archived run)
+          AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+          # The scorer is the measuring instrument: keep it pinned low and unchanged
+          # even when the review sampler is retuned, or scores stop being comparable.
+          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -458,7 +462,7 @@ jobs:
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
           num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
-          temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
           # Code tokenizes at ~2-3 chars/token; multiply by 2 to stay safe.
@@ -529,7 +533,99 @@ jobs:
           ).lstrip()
 
           _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
-          _ROW_ID = re.compile(r"^\|\s*([A-Z]{1,3}\d*|UT)\s*\|", re.IGNORECASE)
+          _ROW_ID = re.compile(r"^\|\s*\*{0,2}([A-Z]{1,3}\d*|UT)\*{0,2}\s*\|", re.IGNORECASE)
+
+          # Minimum fraction of a Note's content words that must appear in a single
+          # line of the review for that Note to count as evidence. Tuned against run
+          # #133, where the scorer invented three quotes by copying ISSUES.md wording
+          # verbatim (D6 scored 0.43, N4 0.33, D10 0.17) while every legitimate row
+          # scored >= 0.55.
+          _GROUNDING_MIN = 0.5
+          _STOPWORDS = frozenset(
+              "the a an is are was were be been in on of to and or for with without not "
+              "no this that it its as at by from than then so if but review mentions "
+              "does doesn specifically name named issue context".split()
+          )
+
+          def _content_words(text: str) -> set:
+              text = re.sub(r"[^a-z0-9_]+", " ", text.lower())
+              return {w for w in text.split() if len(w) > 2 and w not in _STOPWORDS}
+
+          def drop_duplicate_ids(md: str) -> str:
+              """Keep the first row per issue ID; models sometimes emit an ID twice
+              with contradictory statuses, which inflates the denominator."""
+              seen, out, dropped = {}, [], []
+              for line in md.splitlines():
+                  m_id = _ROW_ID.match(line.strip())
+                  m = _STATUS_CELL.search(line)
+                  if m_id and m:
+                      rid = m_id.group(1).upper()
+                      status = m.group(1).capitalize()
+                      if rid in seen:
+                          dropped.append((rid, seen[rid], status))
+                          continue
+                      seen[rid] = status
+                  out.append(line)
+              for rid, kept, dup in dropped:
+                  print(
+                      f"WARN: duplicate scorecard row for {rid} "
+                      f"(kept '{kept}', dropped '{dup}').",
+                      file=sys.stderr,
+                  )
+              return "\n".join(out)
+
+          def enforce_note_grounding(md: str, review_text: str, mode: str):
+              """Downgrade Found/Partial rows whose Notes are not supported by the review.
+
+              The scorer is asked to quote the review, but it can instead paraphrase the
+              reference issue back at us -- producing confident evidence for text the
+              review never contained. Comparing each Note against the review the scorer
+              actually received catches that mechanically.
+              """
+              if mode == "off":
+                  return md, []
+              spans = [_content_words(l) for l in review_text.splitlines() if l.strip()]
+              spans = [s for s in spans if s]
+              if not spans:
+                  print("WARN: review has no comparable text; skipping grounding check.",
+                        file=sys.stderr)
+                  return md, []
+
+              out, downgraded = [], []
+              for line in md.splitlines():
+                  m_id = _ROW_ID.match(line.strip())
+                  m = _STATUS_CELL.search(line)
+                  if not m_id or not m:
+                      out.append(line)
+                      continue
+                  status = m.group(1).capitalize()
+                  if status == "Missed":
+                      out.append(line)
+                      continue
+                  note_words = _content_words(line[m.end():].lstrip("|"))
+                  if len(note_words) < 3:
+                      out.append(line)
+                      continue
+                  best = max(len(note_words & s) / len(note_words) for s in spans)
+                  if best >= _GROUNDING_MIN:
+                      out.append(line)
+                      continue
+                  rid = m_id.group(1).upper()
+                  downgraded.append((rid, status, round(best, 2)))
+                  if mode == "enforce":
+                      line = (line[: m.start()]
+                              + "| Missed | _(ungrounded: no matching sentence in review)_ |")
+                  out.append(line)
+
+              if downgraded:
+                  verb = "Downgraded" if mode == "enforce" else "Would downgrade"
+                  print(
+                      f"WARN: {verb} {len(downgraded)} scorecard row(s) whose Notes are not "
+                      f"supported by review.md: "
+                      + ", ".join(f"{r}({s}, overlap {b})" for r, s, b in downgraded),
+                      file=sys.stderr,
+                  )
+              return "\n".join(out), downgraded
 
           def count_table_statuses(md: str) -> tuple[int, int, int]:
               """Count Found / Partial / Missed from scorecard tables.
@@ -633,7 +729,16 @@ jobs:
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
           )
 
-          body = reconcile_summary_line(scorecard)
+          grounding_mode = os.environ.get("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce").strip().lower()
+          if grounding_mode not in ("enforce", "warn", "off"):
+              print(f"WARN: unknown grounding mode {grounding_mode!r}; using 'enforce'.",
+                    file=sys.stderr)
+              grounding_mode = "enforce"
+
+          body = drop_duplicate_ids(scorecard)
+          body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
+          # Recount only after dedupe and downgrades, so the summary matches the tables.
+          body = reconcile_summary_line(body)
           warn_repeated_notes(body)
           rf, rp, rm = count_table_statuses(body)
           row_total = rf + rp + rm
@@ -666,6 +771,9 @@ jobs:
               "found": rf, "partial": rp, "missed": rm,
               "total": row_total,
               "score_pct": round(rf / max(row_total, 1) * 100, 1),
+              "grounding_mode": grounding_mode,
+              "grounding_downgrades": len(grounding_downgrades),
+              "grounding_downgraded_ids": [r for r, _s, _b in grounding_downgrades],
           }
           try:
               with open("metrics.json") as mf:
@@ -747,6 +855,11 @@ jobs:
               f"Total: {sc.get('found','?')} Found / {sc.get('partial','?')} Partial / "
               f"{sc.get('missed','?')} Missed out of {sc.get('total','?')} issues "
               f"({sc.get('score_pct','?')}% Found)",
+              "",
+              f"Scorer grounding: {sc.get('grounding_mode','?')} mode, "
+              f"{sc.get('grounding_downgrades', 0)} row(s) downgraded for unsupported evidence"
+              + (f" ({', '.join(sc.get('grounding_downgraded_ids', []))})"
+                 if sc.get('grounding_downgraded_ids') else ""),
               "",
               "## Review Performance",
               f"**Model:** `{r.get('model','?')}`\n",
