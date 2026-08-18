@@ -10,6 +10,15 @@ env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
   OLLAMA_MODEL: Muse-Glimmer-30B-imatrix:Q4_K_S
   AI_ASSISTANT_MODEL_NUM_CTX: 49152
+  AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
+  # Per-model sampler overrides. Leave the repo variables unset to keep the benchmark
+  # default (temperature 0.3, and whatever top_p/top_k the model Modelfile declares).
+  # For a card-faithful Muse-Glimmer-30B pass, set the repo variables to:
+  AI_ASSISTANT_MODEL_TEMPERATURE: 1.0
+  AI_ASSISTANT_MODEL_TOP_P: 0.95
+  AI_ASSISTANT_MODEL_TOP_K: 64
+  #AI_ASSISTANT_MODEL_TOP_P: ${{ vars.AI_ASSISTANT_MODEL_TOP_P }}
+  #AI_ASSISTANT_MODEL_TOP_K: ${{ vars.AI_ASSISTANT_MODEL_TOP_K }}
 
 jobs:
   code-review:
@@ -41,7 +50,7 @@ jobs:
           while IFS= read -r file; do
             echo "### File: $file" >> branch_content.txt
             echo '```' >> branch_content.txt
-            cat "$file" >> branch_content.txt
+            nl -ba "$file" >> branch_content.txt
             echo '```' >> branch_content.txt
             echo "" >> branch_content.txt
           done < file_list.txt
@@ -61,10 +70,14 @@ jobs:
         run: |
           CHARS=$(wc -c < branch_content.txt)
           WORDS=$(wc -w < branch_content.txt)
+          # Mirror the review step budget: (num_ctx - num_predict - 500 safety) * 2.5
+          # chars/token, before the ~7.5k chars of instruction overhead it also subtracts.
+          BUDGET=$(( (AI_ASSISTANT_MODEL_NUM_CTX - AI_ASSISTANT_MODEL_NUM_PREDICT - 500) * 5 / 2 ))
           echo "Content: ${CHARS} chars, ${WORDS} words"
-          echo "Char budget (num_ctx * 4): $(( 16384 * 4 ))"
-          echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
-          echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
+          echo "num_ctx=${AI_ASSISTANT_MODEL_NUM_CTX} num_predict=${AI_ASSISTANT_MODEL_NUM_PREDICT}"
+          echo "Source char budget, before instruction overhead: ${BUDGET}"
+          echo "Conservative token estimate (chars / 2.5): $(( CHARS * 2 / 5 ))"
+          echo "Payload will be truncated: $([ $CHARS -gt $BUDGET ] && echo YES || echo NO)"
 
             
       - name: Skip if no relevant changes
@@ -77,7 +90,6 @@ jobs:
       - name: Request review from Ollama
         if: steps.diff.outputs.empty == 'false'
         env:
-          AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
           AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
@@ -198,16 +210,33 @@ jobs:
 
           num_predict = num_predict_tokens
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          options = {
+              "temperature": temperature,
+              "num_predict": num_predict,
+              "num_ctx": num_ctx_tokens,
+          }
+          # Optional per-model sampler overrides. Left unset, whatever the model
+          # Modelfile declares applies -- for Muse-Glimmer-30B that is top_p 0.95 and
+          # top_k 64, which combined with the harness default temperature of 0.3 is
+          # neither the model card config nor a clean deterministic one. Setting both
+          # here makes the effective sampler independent of the server-side Modelfile.
+          _top_p = os.environ.get("AI_ASSISTANT_MODEL_TOP_P", "").strip()
+          _top_k = os.environ.get("AI_ASSISTANT_MODEL_TOP_K", "").strip()
+          if _top_p:
+              options["top_p"] = float(_top_p)
+          if _top_k:
+              options["top_k"] = int(_top_k)
+
           payload = {
               "model": model,
               "messages": [{"role": "user", "content": prompt}],
               "stream": False,
-              "options": {
-                  "temperature": temperature,
-                  "num_predict": num_predict,
-                  "num_ctx": num_ctx_tokens,
-              },
+              "options": options,
           }
+
+          print(f"Sampler: temperature={temperature} "
+                f"top_p={options.get('top_p', '(model default)')} "
+                f"top_k={options.get('top_k', '(model default)')}")
 
           with open("payload.json", "w") as f:
               json.dump(payload, f)
@@ -243,9 +272,23 @@ jobs:
 
           import re as _re
           _think_re = _re.compile(r"<think>.*?</think>\s*", _re.DOTALL | _re.IGNORECASE)
-          review = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
+          _msg = data.get("message") or {}
+          # Ollama >= 0.9 returns reasoning in message.thinking rather than as inline
+          # <think> tags. Those tokens still count toward eval_count / num_predict, so
+          # a model can exhaust its output budget while returning empty content.
+          thinking = _msg.get("thinking") or ""
+          review = _think_re.sub("", _msg.get("content", "")).strip()
+          print(f"Response: content={len(review)} chars, thinking={len(thinking)} chars, "
+                f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}")
           if not review:
-              print("ERROR: Ollama returned an empty response.", file=sys.stderr)
+              print(
+                  f"ERROR: Ollama returned no content. thinking={len(thinking)} chars, "
+                  f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}. "
+                  "If thinking is large and done_reason is 'length', raise "
+                  "AI_ASSISTANT_MODEL_NUM_PREDICT -- and raise AI_ASSISTANT_MODEL_NUM_CTX "
+                  "with it, or the source budget shrinks silently.",
+                  file=sys.stderr,
+              )
               sys.exit(1)
 
           with open("review.md", "w") as f:
@@ -258,11 +301,16 @@ jobs:
 
           review_metrics = {
               "model": model,
+              "temperature": temperature,
+              "top_p": options.get("top_p"),
+              "top_k": options.get("top_k"),
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
               "output_tokens": data.get("eval_count", 0),
               "output_token_limit": num_predict_tokens,
+              "content_chars": len(review),
+              "thinking_chars": len(thinking),
               "prompt_tps": _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
               "output_tps": _tps(data.get("eval_count"), data.get("eval_duration")),
               "context_window": num_ctx_tokens,
@@ -680,6 +728,16 @@ jobs:
           done_scoring = s.get("done_reason", "")
           truncated    = r.get("content_truncated", False)
 
+          def _samp(key, label):
+              v = r.get(key)
+              return f"{label} {v}" if v is not None else f"{label} (model default)"
+
+          sampler = ", ".join([
+              f"temp {r.get('temperature', '?')}",
+              _samp("top_p", "top_p"),
+              _samp("top_k", "top_k"),
+          ])
+
           lines = [
               "# AI Model Performance Metrics\n",
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; "
@@ -697,8 +755,11 @@ jobs:
               f"| Total time | {fmt_s(r.get('total_duration_s', 0))} |",
               f"| Model load time | {fmt_s(r.get('load_duration_s', 0))} |",
               f"| Inference time | {fmt_s(r.get('total_duration_s', 0) - r.get('load_duration_s', 0))} |",
+              f"| Sampler | {sampler} |",
               f"| Prompt tokens | {r.get('prompt_tokens', 0):,} |",
               f"| Output tokens | {out_tokens:,} of {out_limit:,} limit |",
+              f"| Answer / reasoning split | {r.get('content_chars', 0):,} chars answer, "
+              f"{r.get('thinking_chars', 0):,} chars reasoning |",
               f"| Output speed | {r.get('output_tps', 0)} tok/s |",
               f"| Prompt speed | {r.get('prompt_tps', 0)} tok/s |",
               f"| Context window | {r.get('context_window', 0):,} tokens |",
