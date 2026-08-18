@@ -13,9 +13,17 @@ env:
   AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
   # Sampler. These job-level values are authoritative -- do NOT redeclare them in a
   # step's own env block, because step-level env silently overrides job-level.
-  # Benchmark default is temperature 0.3 with the model Modelfile's own top_p/top_k.
-  # Values below are the Muse-Glimmer-30B model card's recommended configuration.
-  AI_ASSISTANT_MODEL_TEMPERATURE: 1.0
+  #
+  # Temperature stays at the benchmark default of 0.3. The Muse-Glimmer-30B model card
+  # recommends 1.0, and run #134 tested exactly that against run #133 at 0.3 (same
+  # prompt, same scorer): 51 Found vs 54, losing the RecordTransaction and DeleteUser
+  # injections, the accountNumber null check, and the duplicated-validation refactor.
+  # High temperature suits open-ended generation; this task is exhaustive enumeration
+  # against a checklist, and sharpening the distribution helps it.
+  #
+  # top_p/top_k are the card's values, set explicitly so the effective sampler does not
+  # depend on which Modelfile happens to be loaded on the Ollama server.
+  AI_ASSISTANT_MODEL_TEMPERATURE: 0.3
   AI_ASSISTANT_MODEL_TOP_P: 0.95
   AI_ASSISTANT_MODEL_TOP_K: 64
 
@@ -541,6 +549,11 @@ jobs:
           # verbatim (D6 scored 0.43, N4 0.33, D10 0.17) while every legitimate row
           # scored >= 0.55.
           _GROUNDING_MIN = 0.5
+          # Fallback for Notes that legitimately summarise several review lines at once
+          # (the aggregate UT row, or a Note citing two findings). A Note can clear the
+          # check on whole-review vocabulary alone, but only at a much higher bar.
+          _GROUNDING_VOCAB_MIN = 0.8
+          _QUOTED = re.compile(r'"([^"]{4,})"')
           _STOPWORDS = frozenset(
               "the a an is are was were be been in on of to and or for with without not "
               "no this that it its as at by from than then so if but review mentions "
@@ -550,6 +563,17 @@ jobs:
           def _content_words(text: str) -> set:
               text = re.sub(r"[^a-z0-9_]+", " ", text.lower())
               return {w for w in text.split() if len(w) > 2 and w not in _STOPWORDS}
+
+          def _evidence_text(note: str) -> str:
+              """Isolate the quoted evidence inside a Note.
+
+              Scorers commonly write: "file" line N: "quoted finding" - explanation of
+              what it does or does not cover. That trailing explanation is drawn from
+              the reference issue, not the review, so matching the whole Note punishes
+              correctly-evidenced rows. Match the quoted spans when there are any.
+              """
+              quoted = " ".join(_QUOTED.findall(note))
+              return quoted if len(_content_words(quoted)) >= 3 else note
 
           def drop_duplicate_ids(md: str) -> str:
               """Keep the first row per issue ID; models sometimes emit an ID twice
@@ -590,6 +614,7 @@ jobs:
                   print("WARN: review has no comparable text; skipping grounding check.",
                         file=sys.stderr)
                   return md, []
+              review_vocab = set().union(*spans)
 
               out, downgraded = [], []
               for line in md.splitlines():
@@ -602,12 +627,13 @@ jobs:
                   if status == "Missed":
                       out.append(line)
                       continue
-                  note_words = _content_words(line[m.end():].lstrip("|"))
+                  note_words = _content_words(_evidence_text(line[m.end():].lstrip("|")))
                   if len(note_words) < 3:
                       out.append(line)
                       continue
                   best = max(len(note_words & s) / len(note_words) for s in spans)
-                  if best >= _GROUNDING_MIN:
+                  vocab = len(note_words & review_vocab) / len(note_words)
+                  if best >= _GROUNDING_MIN or vocab >= _GROUNDING_VOCAB_MIN:
                       out.append(line)
                       continue
                   rid = m_id.group(1).upper()
