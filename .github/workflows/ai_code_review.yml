@@ -886,15 +886,13 @@ jobs:
                     file=sys.stderr)
               grounding_mode = "enforce"
 
-          # This scorer is bimodal. Most runs it matches carefully and emits a handful of
-          # Partial ratings; occasionally it collapses into crediting every row on whatever
-          # sentence is nearest, producing a full sheet of Found and ZERO Partial. Runs #137
-          # and #139 both did this, and both contained mis-attributions verifiable by grep
-          # (D5 credited to SendWelcomeEmail, R3 to the admin bypass). Runs with a non-zero
-          # Partial count have been clean every time. So a zero-Partial sheet on a full-size
-          # scorecard is treated as a failed round and re-scored once -- this selects against
-          # a validated failure mode, not against an unwelcome score.
-          MAX_ATTEMPTS = max(1, int(os.environ.get("AI_ASSISTANT_SCORER_MAX_ATTEMPTS", "2")))
+          # A zero-Partial scorecard CORRELATES with the scorer's credit-everything mode,
+          # but it is not proof of it: as the review improves, a genuinely clean sheet
+          # becomes plausible, and re-rolling one would be selecting for the answer we
+          # expect. So this is a warning, not a gate -- the decisive evidence comes from
+          # the spot-check below, which tests whether a row's target appears in the review
+          # at all. Set AI_ASSISTANT_SCORER_MAX_ATTEMPTS > 1 to opt back into re-scoring.
+          MAX_ATTEMPTS = max(1, int(os.environ.get("AI_ASSISTANT_SCORER_MAX_ATTEMPTS", "1")))
 
           attempts = []
           for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -931,9 +929,83 @@ jobs:
                     + f" -> using #{chosen['n']}")
           if scorer_mode_suspect:
               print(
-                  "WARN: every scoring attempt came back with zero Partial ratings. Treat this "
-                  "score as an UPPER BOUND -- spot-check rows whose Note names a different "
-                  "method or symbol than the reference Description.",
+                  f"NOTE: scorecard has {rf} Found and zero Partial. That is either a very "
+                  "good review or the scorer's credit-everything mode -- see the spot-check "
+                  "below, which distinguishes them.",
+                  file=sys.stderr,
+              )
+
+          # ------------------------------------------------------------------------
+          # Evidence spot-check.
+          #
+          # Hand-picked rows whose target is an unambiguous string. If that string does
+          # not appear ANYWHERE in the review, the review cannot have found the issue --
+          # absence is decisive, and no threshold or similarity metric is involved. The
+          # converse does NOT hold: a review can name GenerateJwtToken while saying
+          # nothing about splitting it, so a present target is not proof of a correct
+          # Found. Only the Found-but-absent direction is treated as an error.
+          #
+          # Curated by hand precisely because the automatic versions of this check were
+          # tried and failed: identifier matching against Descriptions ran at ~31%
+          # precision, and restricting to source-defined method names caught nothing.
+          # ------------------------------------------------------------------------
+          WATCHLIST = {
+              "C5":  ["SearchUsers"],
+              "C7":  ["RecordTransaction"],
+              "R3":  ["GenerateJwtToken"],
+              "E7":  ["rate limit", "rate-limit", "ratelimit", "lockout",
+                      "brute force", "brute-force", "throttl"],
+              "N3":  ["SmtpPort"],
+              "D1":  ["HashPasswordSha1"],
+              "D3":  ["TableExists"],
+              "D4":  ["ExecuteQueryWithParams"],
+              "D5":  ["BuildHtmlTemplate"],
+              "D6":  ["SendWelcomeEmailHtml"],
+              "D7":  ["FormatCurrency"],
+              "D8":  ["IsWithinDailyLimit"],
+              "D9":  ["ObfuscateAccount"],
+              "D10": ["ToTitleCase"],
+              "D11": ["JoinWithSeparatorFixed"],
+              "CF9": ["appsettings.Production", "Production.json"],
+          }
+
+          def spot_check(md, review_text):
+              status_by_id = {}
+              for line in md.splitlines():
+                  m_id = _ROW_ID.match(line.strip())
+                  m = _STATUS_CELL.search(line)
+                  if m_id and m:
+                      status_by_id.setdefault(m_id.group(1).upper(), m.group(1).capitalize())
+              low = review_text.lower()
+              rows, miscredits, undercredits = [], [], []
+              for rid, targets in WATCHLIST.items():
+                  status = status_by_id.get(rid)
+                  if status is None:
+                      continue
+                  present = any(t.lower() in low for t in targets)
+                  verdict = "-"
+                  if status == "Found" and not present:
+                      verdict = "**MIS-CREDIT**"
+                      miscredits.append(rid)
+                  elif status in ("Partial", "Missed") and present:
+                      verdict = "under-credited?"
+                      undercredits.append(rid)
+                  rows.append((rid, status, targets[0], "yes" if present else "**no**", verdict))
+              return rows, miscredits, undercredits
+
+          spot_rows, miscredits, undercredits = spot_check(body, review)
+          adjusted_found = rf - len(miscredits)
+
+          print("Evidence spot-check: %d/%d watchlist rows present in review; "
+                "%d mis-credited (%s); %d possibly under-credited (%s)"
+                % (sum(1 for r in spot_rows if r[3] == "yes"), len(spot_rows),
+                   len(miscredits), ", ".join(miscredits) or "none",
+                   len(undercredits), ", ".join(undercredits) or "none"))
+          if miscredits:
+              print(
+                  f"WARN: {len(miscredits)} row(s) rated Found whose target string never "
+                  f"appears in review.md: {', '.join(miscredits)}. Reported score {rf} "
+                  f"overstates by at least that much; adjusted = {adjusted_found}.",
                   file=sys.stderr,
               )
 
@@ -949,11 +1021,16 @@ jobs:
               f"# AI Review Scorecard\n\n"
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
           )
-          if scorer_mode_suspect:
+          if miscredits:
               header += (
-                  "> ⚠ **Scorer returned zero Partial ratings on every attempt.** Historically "
-                  "this indicates rows credited on neighbouring evidence; treat the score as an "
-                  "upper bound.\n\n"
+                  f"> ⚠ **{len(miscredits)} row(s) rated Found name a target that never appears "
+                  f"in the review** ({', '.join(miscredits)}). Adjusted Found: "
+                  f"**{adjusted_found}** of {row_total}. See the spot-check below.\n\n"
+              )
+          elif scorer_mode_suspect:
+              header += (
+                  f"> **{rf} Found, zero Partial.** The spot-check below found no mis-credited "
+                  "watchlist rows, but a zero-Partial sheet is worth a second look.\n\n"
               )
 
           # Everything needed to reproduce this run, recorded from what was actually sent
@@ -988,6 +1065,19 @@ jobs:
               ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
               ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
           ]
+          spot_section = (
+              "\n---\n\n## Evidence Spot-Check\n\n"
+              "Fixed list of rows whose target is an unambiguous string. If the string appears "
+              "nowhere in the review, the review cannot have found that issue, so a `Found` "
+              "rating is a mis-credit. The converse does not hold: a present target is not "
+              "proof the rating is right.\n\n"
+              "| ID | Status | Target string | In review | Verdict |\n|---|---|---|---|---|\n"
+              + "".join(f"| {r[0]} | {r[1]} | `{r[2]}` | {r[3]} | {r[4]} |\n" for r in spot_rows)
+              + (f"\n**Adjusted Found: {adjusted_found} of {row_total}** "
+                 f"({rf} reported, less {len(miscredits)} mis-credited).\n"
+                 if miscredits else "\nNo mis-credits detected in the watchlist.\n")
+          )
+
           appendix = (
               "\n---\n\n## Run Configuration\n\n"
               "Values as actually sent to Ollama for this run. Blank sampler entries mean the "
@@ -997,7 +1087,7 @@ jobs:
           )
 
           with open("issues_scorecard.md", "w", encoding="utf-8") as f:
-              f.write(header + body + appendix)
+              f.write(header + body + spot_section + appendix)
 
           def _ns_to_s(ns):
               return round(ns / 1e9, 1) if ns else 0.0
@@ -1021,6 +1111,10 @@ jobs:
               "grounding_mode": grounding_mode,
               "scoring_attempts": len(attempts),
               "scorer_mode_suspect": scorer_mode_suspect,
+              "spotcheck_miscredits": miscredits,
+              "spotcheck_undercredits": undercredits,
+              "found_adjusted": adjusted_found,
+              "score_pct_adjusted": round(adjusted_found / max(row_total, 1) * 100, 1),
               "grounding_downgrades": len(grounding_downgrades),
               "grounding_downgraded_ids": [r for r, _s, _b in grounding_downgrades],
           }
@@ -1105,9 +1199,12 @@ jobs:
               f"{sc.get('missed','?')} Missed out of {sc.get('total','?')} issues "
               f"({sc.get('score_pct','?')}% Found)",
               "",
-              ("> **⚠ Scorer returned zero Partial ratings" +
-               (f" on all {sc.get('scoring_attempts')} attempts" if sc.get('scoring_attempts', 1) > 1 else "") +
-               " — treat this score as an upper bound.**\n"
+              (f"> **⚠ Spot-check: {len(sc.get('spotcheck_miscredits', []))} row(s) rated Found "
+               f"({', '.join(sc.get('spotcheck_miscredits', []))}) name a target absent from the "
+               f"review. Adjusted: {sc.get('found_adjusted','?')} Found "
+               f"({sc.get('score_pct_adjusted','?')}%).**\n"
+               if sc.get("spotcheck_miscredits") else
+               "> Zero Partial ratings — spot-check found no mis-credits, but worth a second look.\n"
                if sc.get("scorer_mode_suspect") else ""),
               f"Scorer grounding: {sc.get('grounding_mode','?')} mode, "
               f"{sc.get('grounding_downgrades', 0)} row(s) downgraded for unsupported evidence"
