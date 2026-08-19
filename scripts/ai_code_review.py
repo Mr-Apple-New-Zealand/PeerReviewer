@@ -213,6 +213,42 @@ from scorecard_tools import (  # noqa: E402
 )
 
 
+# Used by strip_thinking() for models that emit inline <think> tags rather than
+# Ollama's separate message.thinking field.
+_THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+
+
+def reasoning_controls(prefix: str) -> tuple[list[dict], object]:
+    """Build the system message and `think` value for one model role.
+
+    prefix is AI_ASSISTANT_MODEL, AI_ASSISTANT_SCORER or AI_PATCH_MODEL. Both knobs
+    are blank by default so the model's own Modelfile applies -- the benchmark
+    default. Returns ([] or [system message], think value or None).
+
+    These payloads previously hardcoded `"think": False`, which did not merely omit
+    the control: it actively DISABLED reasoning for every model in the pipeline.
+    Qwen3.8-27B scores 71.4% with thinking off against ~96% with it on.
+    """
+    messages: list[dict] = []
+    reasoning = (os.environ.get(f"{prefix}_REASONING") or "").strip()
+    if reasoning:
+        # A system message replaces the Modelfile SYSTEM block wholesale, so the
+        # assistant line must be reproduced alongside the level.
+        messages.append({
+            "role": "system",
+            "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
+        })
+    raw = (os.environ.get(f"{prefix}_THINK") or "").strip()
+    think: object = None
+    if raw:
+        low = raw.lower()
+        think = True if low == "true" else False if low == "false" else raw
+    if reasoning or raw:
+        print(f"  {prefix}: reasoning={reasoning or '(model default)'} "
+              f"think={think if raw else '(unset)'}")
+    return messages, think
+
+
 def strip_thinking(text: str) -> str:
     """Remove Qwen3-style <think>…</think> blocks (including empty ones)."""
     return _THINK_BLOCK.sub("", text).lstrip()
@@ -286,13 +322,19 @@ def main() -> int:
         branch_name=branch, commit_sha=commit_sha, diff=diff, truncation_note=truncation_note,
     )
 
+    _msgs, _think = reasoning_controls("AI_ASSISTANT_MODEL")
     review_payload = {
         "model": review_model,
-        "messages": [{"role": "user", "content": review_prompt}],
+        "messages": _msgs + [{"role": "user", "content": review_prompt}],
         "stream": False,
-        "think": False,
-        "options": {"temperature": temperature, "num_predict": num_predict},
+        # num_ctx was computed and reported but never SENT: Ollama fell back to its
+        # server default (~4k), so the model saw a fraction of the source listing the
+        # budget maths had sized for.
+        "options": {"temperature": temperature, "num_predict": num_predict,
+                    "num_ctx": num_ctx},
     }
+    if _think is not None:
+        review_payload["think"] = _think
     review_data = ollama_chat(review_url, review_payload, output_dir / "payload.json", "review", review_key)
     review = strip_thinking((review_data.get("message") or {}).get("content", "")).strip()
     if not review:
@@ -336,13 +378,21 @@ def main() -> int:
         review_for_scoring = review[: max(0, max_chars - overhead)]
     scoring_prompt = SCORING_PREAMBLE + issues + "\n\n---\n## AI Review Output\n\n" + review_for_scoring + "\n"
 
+    # The scorer gets its own budget and temperature, matching ai_code_review.yml --
+    # it is the measuring instrument and must not move when the reviewer is retuned.
+    scorer_num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
+    scorer_temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
+    _smsgs, _sthink = reasoning_controls("AI_ASSISTANT_SCORER")
     scoring_payload = {
         "model": scoring_model,
-        "messages": [{"role": "user", "content": scoring_prompt}],
+        "messages": _smsgs + [{"role": "user", "content": scoring_prompt}],
         "stream": False,
-        "think": False,
-        "options": {"temperature": temperature, "num_predict": num_predict},
+        "options": {"temperature": scorer_temperature,
+                    "num_predict": scorer_num_predict,
+                    "num_ctx": num_ctx},
     }
+    if _sthink is not None:
+        scoring_payload["think"] = _sthink
     scoring_data = ollama_chat(
         scoring_url, scoring_payload, output_dir / "scoring_payload.json", "scoring", scoring_key,
     )

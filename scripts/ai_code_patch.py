@@ -142,6 +142,11 @@ PATCH_PROMPT_TEMPLATE = (
 _FILE_HEADER_RE = re.compile(r"^\s*#{1,6}\s*File\s*:\s*(.+?)\s*$", re.MULTILINE)
 
 
+# Reuse the reviewer's implementation rather than a fourth copy.
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+from ai_code_review import reasoning_controls as _reasoning_controls  # noqa: E402
+
+
 def extract_file_blocks(patch_output: str) -> dict[str, str]:
     """Parse `### File: <path>` + fenced-block pairs out of the LLM response.
 
@@ -496,13 +501,15 @@ def main() -> int:
     )
 
     prompt = PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=diff)
+    _pmsgs, _pthink = _reasoning_controls("AI_PATCH_MODEL")
     payload = {
         "model": patcher_model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": _pmsgs + [{"role": "user", "content": prompt}],
         "stream": False,
-        "think": False,
         "options": {"temperature": temperature, "num_predict": num_predict, "num_ctx": num_ctx},
     }
+    if _pthink is not None:
+        payload["think"] = _pthink
 
     data = ollama_chat(patcher_url, payload, output_dir / "patch_payload.json", "patch", patcher_key)
     raw = (data.get("message") or {}).get("content", "")
