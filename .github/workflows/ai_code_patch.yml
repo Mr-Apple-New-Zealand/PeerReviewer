@@ -30,6 +30,18 @@ on:
           Leave blank to reuse the reviewer model.
         required: false
         default: ''
+      patch_temperature:
+        description: "Temperature for PATCH GENERATION only. Blank = 0.2 (code should be near-deterministic)."
+        required: false
+        type: string
+      patch_num_ctx:
+        description: "Context window for patch generation. Blank = 65536."
+        required: false
+        type: string
+      patch_num_predict:
+        description: "Output cap for patch generation. Blank = 40000."
+        required: false
+        type: string
       skip_baseline:
         description: >
           Skip the baseline peer review (only score the patched tree).
@@ -95,10 +107,26 @@ jobs:
           AI_SCORER_MODEL: ${{ inputs.scorer_model }}
           AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
           AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
-          # The reviewer sub-run uses these — keep in sync with ai_code_review.yml.
-          AI_ASSISTANT_MODEL_NUM_CTX: '49152'
-          AI_ASSISTANT_MODEL_NUM_PREDICT: '24000'
-          AI_ASSISTANT_MODEL_TEMPERATURE: '0.3'
+
+          # The reviewer sub-run (scripts/ai_code_review.py) inherits this environment.
+          # These use the SAME names and defaults as ai_code_review.yml, so a repo
+          # variable set once applies everywhere and the three harnesses cannot drift --
+          # these were previously hardcoded to 49152/24000 and had fallen two revisions
+          # behind production, meaning patcher results were graded on a different
+          # instrument from the review benchmark.
+          AI_ASSISTANT_MODEL_NUM_CTX: ${{ vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
+          AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+          AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
+          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+          AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
+
+          # Patch GENERATION is deliberately separate: lower temperature, because code
+          # wants determinism where a review wants coverage. The script previously fell
+          # back to its own 49152/24000 defaults because the workflow never set these.
+          AI_PATCH_MODEL_TEMPERATURE: ${{ inputs.patch_temperature || vars.AI_PATCH_MODEL_TEMPERATURE || '0.2' }}
+          AI_PATCH_MODEL_NUM_CTX: ${{ inputs.patch_num_ctx || vars.AI_PATCH_MODEL_NUM_CTX || '65536' }}
+          AI_PATCH_MODEL_NUM_PREDICT: ${{ inputs.patch_num_predict || vars.AI_PATCH_MODEL_NUM_PREDICT || '40000' }}
         run: |
           python3 scripts/ai_code_patch.py
 
