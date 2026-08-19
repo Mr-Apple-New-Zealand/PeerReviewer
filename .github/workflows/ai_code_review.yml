@@ -463,10 +463,19 @@ jobs:
           # warn    = log them but leave the scorecard untouched
           # off     = skip the check entirely (use when reproducing an archived run)
           AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
-          AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
+          # The SCORER's own output budget -- deliberately separate from the review
+          # model's, and named so scorer_benchmark.yml can read the identical value.
+          # A repo variable set once therefore applies to both workflows.
+          AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
           # The scorer is the measuring instrument: keep it pinned low and unchanged
           # even when the review sampler is retuned, or scores stop being comparable.
           AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+          # Reasoning control for the SCORER, mirroring the review model's knobs and
+          # sharing names with scorer_benchmark.yml. Both blank by default. A scorer
+          # whose card defaults to deep reasoning (Qwen3.8-27B defaults to xhigh) will
+          # otherwise spend its whole num_predict thinking and return empty content.
+          AI_ASSISTANT_SCORER_REASONING: ${{ vars.AI_ASSISTANT_SCORER_REASONING }}
+          AI_ASSISTANT_SCORER_THINK: ${{ vars.AI_ASSISTANT_SCORER_THINK }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -492,7 +501,7 @@ jobs:
           scorer_prompt_sha = hashlib.sha256(preamble.encode("utf-8")).hexdigest()[:12]
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
           temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
@@ -504,9 +513,20 @@ jobs:
               review = review[: max(0, max_chars - overhead)]
           scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
+          # Reasoning controls for the scorer. Blank leaves the model's Modelfile in
+          # charge, which is the benchmark default for every scorer tested so far.
+          scorer_messages = []
+          scorer_reasoning = os.environ.get("AI_ASSISTANT_SCORER_REASONING", "").strip()
+          if scorer_reasoning:
+              scorer_messages.append({
+                  "role": "system",
+                  "content": f"Reasoning strength: {scorer_reasoning}\n\nYou are a helpful assistant.",
+              })
+          scorer_messages.append({"role": "user", "content": scoring_prompt})
+
           payload = {
               "model": model,
-              "messages": [{"role": "user", "content": scoring_prompt}],
+              "messages": scorer_messages,
               "stream": False,
               "options": {
                   "temperature": temperature,
@@ -514,6 +534,15 @@ jobs:
                   "num_ctx": num_ctx,
               },
           }
+
+          scorer_think = os.environ.get("AI_ASSISTANT_SCORER_THINK", "").strip()
+          if scorer_think:
+              _st = scorer_think.lower()
+              payload["think"] = (True if _st == "true"
+                                  else False if _st == "false" else scorer_think)
+
+          print(f"Scorer reasoning: system={scorer_reasoning or '(model default)'} "
+                f"think={payload.get('think', '(unset)')}")
 
           _think_re = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 
@@ -720,6 +749,8 @@ jobs:
               ("Review prompt SHA-256", _val(_rev.get("prompt_sha"), "(unknown)")),
               ("Scorer model", _val(model, "(unknown)")),
               ("Scorer temperature", _val(temperature, "(unknown)")),
+              ("Scorer reasoning", _val(scorer_reasoning)),
+              ("Scorer `think`", _val(payload.get("think"), "(unset)")),
               ("Scorer attempts", _val(len(attempts))),
               ("Grounding mode", _val(grounding_mode)),
               ("Grounding downgrades", _val(len(grounding_downgrades))),
