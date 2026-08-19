@@ -146,6 +146,9 @@ _FILE_HEADER_RE = re.compile(r"^\s*#{1,6}\s*File\s*:\s*(.+?)\s*$", re.MULTILINE)
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from ai_code_review import reasoning_controls as _reasoning_controls  # noqa: E402
 
+sys.path.insert(0, str(REPO_ROOT))
+import patch_checks  # noqa: E402
+
 
 def extract_file_blocks(patch_output: str) -> dict[str, str]:
     """Parse `### File: <path>` + fenced-block pairs out of the LLM response.
@@ -259,6 +262,24 @@ def run_reviewer(
     return json.loads(metrics_path.read_text(encoding="utf-8"))
 
 
+def run_patch_checks(scratch_source_root) -> tuple[dict, str]:
+    """Inspect the patched tree directly for each seeded bug's marker.
+
+    The review delta answers "what can the reviewer still name?", which is a proxy for
+    "what did the patcher fix" and fails both ways. This answers the second question
+    without a model in the loop, for the subset of issues with an unambiguous marker.
+    """
+    result = patch_checks.verify(scratch_source_root)
+    checks, reference_total = patch_checks.coverage(REPO_ROOT / "ISSUES.md")
+    section = patch_checks.render(result, checks, reference_total)
+    print(f"\n>>> Mechanical verification: {len(result['fixed'])} fixed / "
+          f"{len(result['still_present'])} still present of {result['checked']} checked "
+          f"({checks} of {reference_total} reference issues have a marker)")
+    if result["still_present"]:
+        print("    still present: " + ", ".join(sorted(result["still_present"])))
+    return result, section
+
+
 def write_comparison_report(
     output_dir: Path,
     patcher_model: str,
@@ -269,6 +290,8 @@ def write_comparison_report(
     post_metrics: dict,
     patched_paths: list[str],
     rejected_paths: list[str],
+    checks: dict | None = None,
+    checks_section: str = "",
 ) -> None:
     def score(m: dict | None) -> dict:
         if not m:
@@ -329,6 +352,16 @@ def write_comparison_report(
         },
         "patched_files": patched_paths,
         "rejected_paths": rejected_paths,
+        # Source inspection, independent of the reviewer. `issues_resolved` above is a
+        # proxy that moves with review recall; this does not.
+        "verified": {
+            "fixed": sorted(checks["fixed"]),
+            "still_present": sorted(checks["still_present"]),
+            "undetermined": sorted(checks["unknown"]),
+            "checked": checks["checked"],
+            "fixed_count": len(checks["fixed"]),
+            "still_present_count": len(checks["still_present"]),
+        } if checks else None,
     }
     (output_dir / "patch_summary.json").write_text(
         json.dumps(combined, indent=2), encoding="utf-8",
@@ -415,6 +448,9 @@ def write_comparison_report(
         lines += ["## Files patched", ""]
         lines += [f"- `{p}`" for p in patched_paths]
         lines.append("")
+
+    if checks_section:
+        lines += ["", checks_section]
 
     if rejected_paths:
         lines += [
@@ -588,6 +624,7 @@ def main() -> int:
     )
 
     patched_paths = sorted(blocks.keys())
+    checks, checks_section = run_patch_checks(scratch_root / "SampleBankingApp")
     write_comparison_report(
         output_dir,
         patcher_model,
@@ -598,6 +635,8 @@ def main() -> int:
         post_metrics,
         patched_paths,
         rejected,
+        checks,
+        checks_section,
     )
 
     print()
