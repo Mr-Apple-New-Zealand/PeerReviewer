@@ -102,7 +102,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Use whichever branch the workflow was dispatched from, matching
+          # ai_code_patch.yml. This previously pinned `main`, which checked out the
+          # source AND the harness from main while GitHub ran the YAML from the
+          # dispatching ref -- so branch-side changes to ISSUES.md, scorer_prompt.md
+          # or scorecard_tools.py silently never took effect, and the commit recorded
+          # in each scorecard did not describe the code actually reviewed.
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       # -----------------------------------------------------------------------
