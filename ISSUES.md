@@ -145,7 +145,7 @@ Issues are tagged by category, file, and approximate line numbers.
 | CF6 | `Program.cs` | ~37 | **Open CORS policy** — `AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()` is too permissive for a banking API. |
 | CF7 | `SampleBankingApp.csproj` | ~7–10 | **`DebugSymbols = true` / `DebugType = full`** always emitted — PDB files shipped with release builds. |
 | CF8 | `SampleBankingApp.csproj` | ~14 | **Pinned outdated package** — `Newtonsoft.Json 12.0.3` has known vulnerabilities; should be updated. |
-| CF9 | *(missing)* | — | **No `appsettings.Production.json`** — no environment-specific overrides; production uses the same unsafe defaults. |
+| CF9 | `(project root)` | — | **No `appsettings.Production.json`** — no environment-specific overrides; production uses the same unsafe defaults. |
 
 ---
 
