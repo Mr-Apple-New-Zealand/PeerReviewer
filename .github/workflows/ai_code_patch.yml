@@ -42,6 +42,22 @@ on:
         description: "Output cap for patch generation. Blank = 40000."
         required: false
         type: string
+      patch_reasoning:
+        description: "Patcher reasoning strength via system prompt (low/medium/high/xhigh). Blank = Modelfile."
+        required: false
+        type: string
+      patch_think:
+        description: "Patcher Ollama think (true/false/low/medium/high). Blank = unset."
+        required: false
+        type: string
+      reviewer_think:
+        description: "Reviewer Ollama think. Blank = unset. Qwen3.8-27B needs medium."
+        required: false
+        type: string
+      scorer_think:
+        description: "Scorer Ollama think. Blank = unset."
+        required: false
+        type: string
       skip_baseline:
         description: >
           Skip the baseline peer review (only score the patched tree).
@@ -121,12 +137,24 @@ jobs:
           AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
           AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
 
+          # Reasoning for the reviewer and scorer sub-runs. Same names as
+          # ai_code_review.yml, blank by default so each model's Modelfile applies.
+          # scripts/ai_code_review.py previously hardcoded `"think": False`, which did
+          # not just omit the control -- it actively disabled reasoning for every model
+          # in this pipeline.
+          AI_ASSISTANT_MODEL_REASONING: ${{ vars.AI_ASSISTANT_MODEL_REASONING }}
+          AI_ASSISTANT_MODEL_THINK: ${{ inputs.reviewer_think || vars.AI_ASSISTANT_MODEL_THINK }}
+          AI_ASSISTANT_SCORER_REASONING: ${{ vars.AI_ASSISTANT_SCORER_REASONING }}
+          AI_ASSISTANT_SCORER_THINK: ${{ inputs.scorer_think || vars.AI_ASSISTANT_SCORER_THINK }}
+
           # Patch GENERATION is deliberately separate: lower temperature, because code
           # wants determinism where a review wants coverage. The script previously fell
           # back to its own 49152/24000 defaults because the workflow never set these.
           AI_PATCH_MODEL_TEMPERATURE: ${{ inputs.patch_temperature || vars.AI_PATCH_MODEL_TEMPERATURE || '0.2' }}
           AI_PATCH_MODEL_NUM_CTX: ${{ inputs.patch_num_ctx || vars.AI_PATCH_MODEL_NUM_CTX || '65536' }}
           AI_PATCH_MODEL_NUM_PREDICT: ${{ inputs.patch_num_predict || vars.AI_PATCH_MODEL_NUM_PREDICT || '40000' }}
+          AI_PATCH_MODEL_REASONING: ${{ inputs.patch_reasoning || vars.AI_PATCH_MODEL_REASONING }}
+          AI_PATCH_MODEL_THINK: ${{ inputs.patch_think || vars.AI_PATCH_MODEL_THINK }}
         run: |
           python3 scripts/ai_code_patch.py
 
