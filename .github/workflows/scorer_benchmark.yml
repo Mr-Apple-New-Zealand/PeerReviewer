@@ -46,9 +46,20 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, re, subprocess, sys
+          import hashlib, json, os, re, subprocess, sys
           from datetime import datetime
           from pathlib import Path
+
+          # Same post-processing the production workflow applies, imported rather than
+          # copied -- the previous copy-paste had drifted 1,236 chars behind.
+          sys.path.insert(0, ".")
+          from scorecard_tools import (
+              count_table_statuses,
+              drop_duplicate_ids,
+              enforce_note_grounding,
+              hedge_check,
+              spot_check,
+          )
 
           # ── Config ─────────────────────────────────────────────────────────
           DEFAULT_MODELS = [
@@ -65,7 +76,9 @@ jobs:
           CLOUD_URL   = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").rstrip("/")
           API_KEY     = os.environ.get("OLLAMA_API_KEY", "").strip()
           RUN_NUMBER  = os.environ.get("RUN_NUMBER", "?")
-          NUM_CTX     = 49152
+          # Must match the production scorer call in ai_code_review.yml, or this
+          # benchmark ranks scorers under a configuration nothing actually uses.
+          NUM_CTX     = 65536
           NUM_PREDICT = 24000
           TEMPERATURE = 0.3
 
@@ -76,103 +89,14 @@ jobs:
 
           print(f"Models to benchmark: {MODELS}")
 
-          # ── Scoring preamble (identical to main workflow) ───────────────────
-          PREAMBLE = (
-              "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
-              "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
-              "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
-              "its own words. Your job is STRICT semantic matching: for each reference issue you "
-              "must locate a specific sentence in the review that names the SAME target — the same "
-              "file, the same method or symbol, or the same concrete behavior described in the "
-              "reference Description. If you cannot locate such a sentence, the issue is Missed. "
-              "Wording differences are fine; target differences are NOT.\n\n"
-              "Scoring rules (apply strictly, with evidence):\n"
-              "- Found: the review identifies THIS specific issue. There must exist a sentence in "
-              "the review that names the same method/file/symbol/behavior as the Description. "
-              "Generic class-level mentions are NOT enough when the Description names a specific "
-              "target. Each Found rating must be backed by its OWN sentence — you cannot reuse one "
-              "sentence to mark multiple unrelated rows Found.\n"
-              "  Concretely:\n"
-              "  * SQL-injection rows C1, C4, C5, C6, C7 each name a different method (Login, "
-              "UpdateUser/DeleteUser, SearchUsers, Transfer/Deposit, RecordTransaction). Found "
-              "requires the review to mention THAT method or its specific parameters. A generic "
-              "'SQL injection exists' sentence credits AT MOST one of these — the others are Partial.\n"
-              "  * Dead-code rows D1-D11 each name a different unused symbol (HashPasswordSha1, "
-              "ValidateToken's unreachable code, TableExists, ExecuteQueryWithParams, "
-              "BuildHtmlTemplate, SendWelcomeEmailHtml, FormatCurrency, IsWithinDailyLimit, "
-              "ObfuscateAccount, ToTitleCase, JoinWithSeparatorFixed). Found requires the review "
-              "to name THAT symbol. 'Dead code exists' or naming ONE unused method does not credit "
-              "the others — those are Missed.\n"
-              "  * Access-control rows C10, C11, L5, E7, N7 each name a different missing check. "
-              "'ValidateToken returns true' is NOT evidence for any of them — it covers ONLY D2 "
-              "(unreachable code). Found requires the review to name the specific endpoint or "
-              "missing check.\n"
-              "  * C2 (backdoor password constant 'AdminBypassPassword') and C8 (production "
-              "secrets in appsettings.json) and CF1 (secrets in source control) are RELATED but "
-              "DISTINCT. The review must name AdminBypassPassword to credit C2; a generic "
-              "'hardcoded credentials' sentence credits C8 or CF1 but not C2.\n"
-              "- Partial: the review touches the right area but materially misses the specific "
-              "point. Examples: mentions MD5 is weak but not the missing salt (C3); mentions SQL "
-              "injection generally but not the specific method named in the row; mentions "
-              "hardcoded values broadly but not the specific constant in the row.\n"
-              "- Missed: the review does not identify this specific issue. After careful reading, "
-              "you cannot quote a sentence that addresses THIS row's specific target. Phrasing "
-              "differences are fine — semantic match is required, but the semantic TARGET "
-              "(method/symbol/file/behavior) must be the same. DO NOT default to Found when in "
-              "doubt — default to Missed if you cannot point to specific evidence.\n\n"
-              "Evidence rule for the Notes column (NON-NEGOTIABLE):\n"
-              "- For every Found or Partial rating, the Note must quote or closely paraphrase the "
-              "supporting sentence and MUST name the same target (method/file/symbol/behavior) as "
-              "THIS row's Description. If your Note text names a different target than the "
-              "Description, the rating is wrong — downgrade to Missed.\n"
-              "- Self-check before finalizing each row: read your Note next to the row's "
-              "Description. Do they refer to the same specific thing? If not, change Status to "
-              "Missed and clear the Note.\n"
-              "- Do not reuse identical Note text across multiple IDs. Each row needs independent "
-              "evidence drawn from a different part of the review.\n\n"
-              "Your task:\n"
-              "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
-              "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
-              "row for the entire '## Missing Unit Tests' prose section (see below).\n"
-              "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
-              "  1. Exactly ONE summary line of the form: "
-              "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
-              "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
-              "tables after every row is written; T must equal N+P+M (the same as the number of "
-              "data rows in those tables). If your draft counts disagree with the tables, fix "
-              "either the tables or the summary before you stop — never leave contradictory numbers.\n"
-              "  2. One table per category matching the categories in the reference document.\n"
-              "     Each table must have columns: | ID | Description | Status | Notes |\n"
-              "     Use EXACTLY those four columns — do not insert an extra file/location column "
-              "between ID and Description (ISSUES.md already embeds file and lines inside the "
-              "Description text). Extra columns break automated counting; Notes may contain `|` "
-              "characters, so keep pipe delimiters only between the four columns.\n"
-              "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting or closely paraphrasing the relevant part of the "
-              "review, or blank if Missed. If Status is Found or Partial, the Note must clearly "
-              "relate to THAT row's Description (same vulnerability, bug, or symbol named there). "
-              "Reusing the same Note text for multiple different IDs is invalid — use Partial or "
-              "Missed instead for rows the review does not actually cover.\n"
-              "     Concretely: for dead-code rows D1-D11, each Found/Partial Note must mention "
-              "that row's specific unused symbol or scenario (e.g. D1 → HashPasswordSha1, D4 → "
-              "ExecuteQueryWithParams). Copy-pasting one JoinWithSeparator sentence for every "
-              "D-row is wrong. Likewise, do not paste one SmtpClient or Transfer paragraph "
-              "under unrelated SQL-injection or pagination IDs.\n"
-              "  3. Row-count rules (strict):\n"
-              "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
-              "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
-              "ONE row for Missing Unit Tests.\n"
-              "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
-              "Description cell, briefly summarize the whole section (no test project / missing "
-              "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
-              "that aggregate topic (missing tests, need for coverage, etc.).\n"
-              "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
-              "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
-              "C1-CF9 and UT.\n"
-              "- Do not add any commentary outside the scorecard document.\n\n"
-              "---\n"
-              "## Reference Issues\n\n"
-          )
+          # ── Scoring preamble ────────────────────────────────────────────────
+          # Read from the same file the production workflow uses. This was a
+          # copy-paste of the literal and had silently fallen behind by the whole
+          # 'HOW TO READ THE REVIEW' block, so the benchmark was ranking scorers
+          # against instructions production no longer sends.
+          PREAMBLE = Path("scorer_prompt.md").read_text(encoding="utf-8")
+          PROMPT_SHA = hashlib.sha256(PREAMBLE.encode("utf-8")).hexdigest()[:12]
+          print(f"Scorer prompt: {len(PREAMBLE)} chars, SHA {PROMPT_SHA}")
 
           # ── Null review ─────────────────────────────────────────────────────
           # Deliberately vague — no specific file names, method names, or
@@ -314,7 +238,13 @@ jobs:
 
               data = json.loads(result.stdout.decode())
               _think = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
-              content = _think.sub("", (data.get("message") or {}).get("content", "")).strip()
+              msg = data.get("message") or {}
+              # Ollama >= 0.9 puts reasoning in message.thinking. Those tokens still count
+              # against num_predict, so a reasoning scorer can spend its whole budget and
+              # return empty content -- which would otherwise be counted as 0F/0P/0M and
+              # reported as a catastrophically bad scorer rather than a harness failure.
+              thinking = msg.get("thinking") or ""
+              content = _think.sub("", msg.get("content", "")).strip()
 
               def ns(k): return round(data.get(k, 0) / 1e9, 1)
               def tps(tok, dur):
@@ -326,7 +256,16 @@ jobs:
                   "output_tokens":    data.get("eval_count", 0),
                   "output_tps":       tps("eval_count", "eval_duration"),
                   "done_reason":      data.get("done_reason", ""),
+                  "thinking_chars":   len(thinking),
+                  "content_chars":    len(content),
               }
+              if not content:
+                  raise RuntimeError(
+                      f"empty content (thinking={len(thinking)} chars, "
+                      f"eval_count={data.get('eval_count')}, "
+                      f"done_reason={data.get('done_reason')}). "
+                      "If thinking is large, this scorer needs a bigger num_predict."
+                  )
               return content, metrics
 
           def fmt_s(secs):
@@ -338,12 +277,12 @@ jobs:
               return round(2 * a * b / (a + b), 1) if (a + b) > 0 else 0.0
 
           # ── Load inputs ─────────────────────────────────────────────────────
-          issues_md     = Path("ISSUES.md").read_text()
+          issues_md     = Path("ISSUES.md").read_text(encoding="utf-8")
           perfect_review = build_perfect_review(issues_md)
 
           # Save the synthetic reviews so they can be inspected in the artifact.
-          (OUT_DIR / "perfect_review.md").write_text(perfect_review)
-          (OUT_DIR / "null_review.md").write_text(NULL_REVIEW)
+          (OUT_DIR / "perfect_review.md").write_text(perfect_review, encoding="utf-8")
+          (OUT_DIR / "null_review.md").write_text(NULL_REVIEW, encoding="utf-8")
 
           print(f"\nPerfect review: {len(perfect_review)} chars, "
                 f"{len(perfect_review.splitlines())} lines")
@@ -370,18 +309,32 @@ jobs:
                       found, partial, missed = count_statuses(content)
                       total = found + partial + missed
 
+                      # Production never ships the scorer's raw output -- it dedupes,
+                      # drops Notes that cannot be matched to the review, and flags
+                      # mis-credits. Report both so the ranking reflects the scorer as
+                      # actually deployed, not just the model in isolation.
+                      proc = drop_duplicate_ids(content)
+                      proc, downgrades = enforce_note_grounding(proc, review_text, "enforce")
+                      p_found, p_partial, p_missed = count_table_statuses(proc)
+                      _rows, miscredits, _under = spot_check(proc, review_text)
+                      hedged = hedge_check(proc)
+                      p_adjusted = p_found - len(miscredits)
+
                       trunc = "⚠ TRUNCATED" if metrics["done_reason"] == "length" else ""
                       print(f"{fmt_s(metrics['total_duration_s'])} | "
                             f"{metrics['output_tps']} t/s | "
-                            f"{found}F / {partial}P / {missed}M of {total} "
-                            f"{trunc}")
+                            f"raw {found}F/{partial}P/{missed}M of {total} | "
+                            f"processed {p_adjusted}F "
+                            f"({len(downgrades)} ungrounded, {len(miscredits)} mis-credit, "
+                            f"{len(hedged)} hedged) {trunc}")
 
                       # Save individual scorecard
                       safe = re.sub(r"[:/\\]", "_", model)
                       (OUT_DIR / review_name / f"{safe}_scorecard.md").write_text(
                           f"# Scorer: {model}\n"
                           f"# Review type: {review_name}\n\n"
-                          + content
+                          + content,
+                          encoding="utf-8",
                       )
 
                       result[review_name] = {
@@ -389,9 +342,16 @@ jobs:
                           "partial":          partial,
                           "missed":           missed,
                           "total":            total,
+                          "processed_found":   p_adjusted,
+                          "processed_partial": p_partial,
+                          "processed_missed":  p_missed + len(miscredits),
+                          "ungrounded":        len(downgrades),
+                          "miscredits":        miscredits,
+                          "hedged":            [h[0] for h in hedged],
                           "total_duration_s": metrics["total_duration_s"],
                           "output_tps":       metrics["output_tps"],
                           "done_reason":      metrics["done_reason"],
+                          "thinking_chars":   metrics["thinking_chars"],
                       }
 
                   except Exception as exc:
@@ -402,7 +362,7 @@ jobs:
 
               # Save incrementally so a crash doesn't lose earlier results.
               (OUT_DIR / "results.json").write_text(
-                  json.dumps(all_results, indent=2)
+                  json.dumps(all_results, indent=2), encoding="utf-8"
               )
 
           # ── Summary report ──────────────────────────────────────────────────
@@ -416,13 +376,26 @@ jobs:
               n = r.get("null", {})
               return n.get("missed", 0) / 70 * 100 if "error" not in n else None
 
+          def tpr_proc(r):
+              p = r.get("perfect", {})
+              return p.get("processed_found", 0) / 70 * 100 if "error" not in p else None
+
+          def tnr_proc(r):
+              n = r.get("null", {})
+              return n.get("processed_missed", 0) / 70 * 100 if "error" not in n else None
+
+          def score_proc(r):
+              t, s = tpr_proc(r), tnr_proc(r)
+              return harmonic(t, s) if t is not None and s is not None else None
+
           def score(r):
               t, s = tpr(r), tnr(r)
               return harmonic(t, s) if t is not None and s is not None else None
 
+          # Rank on the processed score: that is the scorer production actually ships.
           ranked = sorted(
               all_results,
-              key=lambda r: score(r) if score(r) is not None else -1,
+              key=lambda r: score_proc(r) if score_proc(r) is not None else -1,
               reverse=True,
           )
 
@@ -434,6 +407,9 @@ jobs:
               "# Scorer Benchmark Summary",
               "",
               f"> **Run:** #{RUN_NUMBER} &nbsp;·&nbsp; **Generated:** {timestamp}",
+              "",
+              f"> Scorer prompt SHA `{PROMPT_SHA}` &nbsp;·&nbsp; num_ctx {NUM_CTX:,} "
+              f"&nbsp;·&nbsp; num_predict {NUM_PREDICT:,} &nbsp;·&nbsp; temperature {TEMPERATURE}",
               "",
               "## Methodology",
               "",
@@ -450,8 +426,13 @@ jobs:
               "",
               "## Ranked Results",
               "",
-              "| # | Model | TPR | TNR | Score | Perfect time | Null time | Truncated? |",
-              "|---|-------|-----|-----|-------|--------------|-----------|------------|",
+              "`raw` is the scorer's unmodified output. `processed` applies the same",
+              "post-processing production does — duplicate removal, downgrading Notes that",
+              "cannot be matched to the review, and mis-credit detection. Production ships",
+              "`processed`, so that is the column to rank on.",
+              "",
+              "| # | Model | TPR raw | TPR proc | TNR raw | TNR proc | Score proc | Perfect time | Null time | Truncated? |",
+              "|---|-------|--------:|---------:|--------:|---------:|-----------:|--------------|-----------|------------|",
           ]
 
           for rank, r in enumerate(ranked, 1):
@@ -462,9 +443,10 @@ jobs:
               p = r.get("perfect", {}); n = r.get("null", {})
               trunc = (trunc_flag(r, "perfect") if trunc_flag(r, "perfect") != "No"
                        else trunc_flag(r, "null"))
+              tp, np_, scp = tpr_proc(r), tnr_proc(r), score_proc(r)
               lines.append(
                   f"| {rank} | {r['model']} "
-                  f"| {t:.1f}% | {s_val:.1f}% | {sc:.1f}% "
+                  f"| {t:.1f}% | **{tp:.1f}%** | {s_val:.1f}% | **{np_:.1f}%** | **{scp:.1f}%** "
                   f"| {fmt_s(p.get('total_duration_s', 0))} "
                   f"| {fmt_s(n.get('total_duration_s', 0))} "
                   f"| {trunc} |"
@@ -511,7 +493,7 @@ jobs:
                   )
 
           summary_path = OUT_DIR / "summary.md"
-          summary_path.write_text("\n".join(lines) + "\n")
+          summary_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
           print(f"\nSummary written to {summary_path}")
           PYEOF
 
