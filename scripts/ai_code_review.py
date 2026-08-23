@@ -95,7 +95,12 @@ def collect_branch_content(source_root: str) -> tuple[str, int]:
         except (OSError, UnicodeError) as exc:
             print(f"WARN: could not read {rel}: {exc}", file=sys.stderr)
             continue
-        chunks.append(f"### File: {rel}\n```\n{body}\n```\n")
+        # Line-numbered, matching `nl -ba` in ai_code_review.yml -- without this the
+        # model invents the Line column and the scorer cannot verify citations.
+        numbered = "\n".join(
+            f"{i:6d}\t{line}" for i, line in enumerate(body.splitlines(), 1)
+        )
+        chunks.append(f"### File: {rel}\n```\n{numbered}\n```\n")
 
     content = "\n".join(chunks)
     return content, len(files)
@@ -176,276 +181,77 @@ def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
         sys.exit(1)
 
 
-REVIEW_PROMPT_TEMPLATE = (
-    "You are an expert software engineer performing a thorough peer code review.\n"
-    "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
-    "{truncation_note}\n\n"
-    "Work through EVERY category below methodically. For each category, read every file "
-    "carefully and report ALL issues you find, no matter how minor. Do not skip a category "
-    "because you found nothing — if a category is clean, say so.\n\n"
-    "---\n\n"
-    "## Review Categories\n\n"
-    "### 1. Security Vulnerabilities\n"
-    "Check for: SQL injection (including string-interpolated queries, LIKE clauses, UPDATE/DELETE/INSERT statements, "
-    "and helper methods that accept raw SQL fragments); hardcoded credentials, passwords, API keys, or backdoors "
-    "in source files or config; broken or weak cryptography (MD5, SHA1, no salt); JWT misconfiguration "
-    "(ValidateLifetime, weak secrets); broken access control (missing ownership checks on PUT/DELETE endpoints); "
-    "missing authorization attributes; open CORS policy; developer exception pages in production; HTTPS disabled; "
-    "debug symbols in release builds; production secrets committed to source control.\n\n"
-    "### 2. Logic Errors\n"
-    "Check for: off-by-one errors (especially in pagination — e.g. `page * pageSize` vs `(page-1) * pageSize`); "
-    "incorrect boundary conditions (e.g. `< 0` when `<= 0` is needed); balance or fee calculations that exclude "
-    "a component (e.g. checking balance >= amount but then deducting amount + fee); incorrect rates or constants "
-    "(e.g. interest rate applied as 5% instead of 1%); missing self-referential checks (e.g. transferring to yourself); "
-    "any operation that can produce a negative balance or nonsensical result.\n\n"
-    "### 3. Error Handling\n"
-    "Check for: methods that catch broad `Exception` and swallow it silently; catch blocks that return empty "
-    "collections — callers cannot distinguish 'no results' from 'error'; operations that lack a database "
-    "transaction where two or more writes must be atomic; side effects (e.g. email sending) that can throw "
-    "after a DB write has already committed; raw `ex.Message` or stack traces returned to HTTP clients; "
-    "missing rate limiting or account lockout on authentication endpoints.\n\n"
-    "### 4. Resource Leaks\n"
-    "Check for: `SqlConnection`, `SqlDataReader`, `SqlCommand` that are opened but never closed or disposed; "
-    "connections returned from helper methods where the caller never disposes them; `SmtpClient` held as an "
-    "instance field (not thread-safe, socket never released); `MailMessage` or other `IDisposable` objects "
-    "created but never disposed; any exception path that skips a `Close()` or `Dispose()` call.\n\n"
-    "### 5. Null Reference Risks\n"
-    "Check for: configuration values read with `_config[\"key\"]` passed directly to methods that cannot "
-    "accept null (e.g. `Encoding.UTF8.GetBytes`); `DataTable.Rows[0]` accessed without first checking "
-    "`Rows.Count > 0`; `.Value` on a nullable or `?.Value` result passed to `int.Parse` without null guard; "
-    "method parameters used (`.ToUpper()`, `.Length`, etc.) before a null check; model-bound request objects "
-    "used in controller actions without a null check.\n\n"
-    "### 6. Dead Code\n"
-    "Check for: private or public methods that are never called anywhere in the codebase; methods marked "
-    "`[Obsolete]` that are still present; code after an unconditional `return` statement (unreachable); "
-    "duplicate implementations where a fixed version exists alongside a broken one but only the broken one "
-    "is called; `throw new NotImplementedException()` in non-stub code.\n\n"
-    "### 7. Magic Strings and Numbers\n"
-    "Check for: numeric literals used inline without a named constant (e.g. fee rates, page size limits, "
-    "deposit caps, string length limits); string literals for email addresses, role names, or config keys "
-    "repeated in multiple places; values that belong in configuration (e.g. `appsettings.json`) but are "
-    "hardcoded in source.\n\n"
-    "### 8. Anti-patterns and Code Quality\n"
-    "Check for: string concatenation inside a loop (O(n²) — use `StringBuilder` or `string.Join`); "
-    "`new Regex(...)` inside a method called repeatedly (should be `static readonly`); shared mutable "
-    "static state accessed from multiple threads without synchronization; reimplementing standard library "
-    "methods that already exist (e.g. `string.IsNullOrWhiteSpace`); helper methods designed to leak "
-    "resource ownership to callers with no documented contract; duplicated validation logic that should "
-    "be extracted to a shared method.\n\n"
-    "### 9. Configuration Issues\n"
-    "Check for: `UseDeveloperExceptionPage()` called unconditionally; `ValidateLifetime = false` on JWT; "
-    "HTTPS redirection commented out; overly permissive CORS (`AllowAnyOrigin` + `AllowAnyMethod`); "
-    "debug log levels set for production namespaces; outdated or vulnerable NuGet packages (check `.csproj`); "
-    "missing environment-specific config overrides (`appsettings.Production.json`).\n\n"
-    "### 10. Missing Unit Tests\n"
-    "Check whether a test project exists. If not, list the specific methods and scenarios that are most "
-    "critical to test, focusing on boundary conditions, auth flows, financial calculations, and pagination.\n\n"
-    "---\n\n"
-    "## Output Format\n\n"
-    "Produce a Markdown report with one `##` section per category above.\n"
-    "**You MUST include all 10 sections.** If a category has no issues, write 'No issues found.'\n\n"
-    "Within each section use a compact Markdown table with columns:\n"
-    "| File | Line | Issue | Fix |\n"
-    "Keep each cell to one sentence maximum — no code blocks, no nested bullets.\n\n"
-    "Complete all 10 sections before adding any additional commentary.\n\n"
-    "---\n\n"
-    "## Source Files\n\n"
-    "{diff}"
+REPO_ROOT_PATH = Path(__file__).resolve().parent.parent
+
+# The review instructions and the scoring preamble are the SAME files the GitHub
+# workflows use. They used to be duplicated literals in this module and had drifted
+# badly: the review prompt predated the dead-code enumeration procedure, and the
+# scoring preamble was 1,236 chars behind. Reading them means the patcher grades on
+# the same instrument as ai_code_review.yml.
+def _shared_text(name: str) -> str:
+    path = REPO_ROOT_PATH / name
+    if not path.exists():
+        print(f"ERROR: {name} not found at {path}. It is shared with the GitHub "
+              f"workflows and must be present in the checkout.", file=sys.stderr)
+        sys.exit(1)
+    return path.read_text(encoding="utf-8")
+
+
+REVIEW_PROMPT_TEMPLATE = _shared_text("review_prompt.md")
+SCORING_PREAMBLE = _shared_text("scorer_prompt.md")
+
+# Scorecard post-processing, shared with the workflows for the same reason.
+sys.path.insert(0, str(REPO_ROOT_PATH))
+from scorecard_tools import (  # noqa: E402
+    count_table_statuses,
+    drop_duplicate_ids,
+    enforce_note_grounding,
+    hedge_check,
+    reconcile_summary_line,
+    spot_check,
+    warn_repeated_notes,
 )
 
 
-SCORING_PREAMBLE = (
-    "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
-    "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
-    "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
-    "its own words. Your job is STRICT semantic matching: for each reference issue you "
-    "must locate a specific sentence in the review that names the SAME target — the same "
-    "file, the same method or symbol, or the same concrete behavior described in the "
-    "reference Description. If you cannot locate such a sentence, the issue is Missed. "
-    "Wording differences are fine; target differences are NOT.\n\n"
-    "Scoring rules (apply strictly, with evidence):\n"
-    "- Found: the review identifies THIS specific issue. There must exist a sentence in "
-    "the review that names the same method/file/symbol/behavior as the Description. "
-    "Generic class-level mentions are NOT enough when the Description names a specific "
-    "target. Each Found rating must be backed by its OWN sentence — you cannot reuse one "
-    "sentence to mark multiple unrelated rows Found.\n"
-    "  Concretely:\n"
-    "  * SQL-injection rows C1, C4, C5, C6, C7 each name a different method (Login, "
-    "UpdateUser/DeleteUser, SearchUsers, Transfer/Deposit, RecordTransaction). Found "
-    "requires the review to mention THAT method or its specific parameters. A generic "
-    "'SQL injection exists' sentence credits AT MOST one of these — the others are Partial.\n"
-    "  * Dead-code rows D1-D11 each name a different unused symbol (HashPasswordSha1, "
-    "ValidateToken's unreachable code, TableExists, ExecuteQueryWithParams, "
-    "BuildHtmlTemplate, SendWelcomeEmailHtml, FormatCurrency, IsWithinDailyLimit, "
-    "ObfuscateAccount, ToTitleCase, JoinWithSeparatorFixed). Found requires the review "
-    "to name THAT symbol. 'Dead code exists' or naming ONE unused method does not credit "
-    "the others — those are Missed.\n"
-    "  * Access-control rows C10, C11, L5, E7, N7 each name a different missing check. "
-    "'ValidateToken returns true' is NOT evidence for any of them — it covers ONLY D2 "
-    "(unreachable code). Found requires the review to name the specific endpoint or "
-    "missing check.\n"
-    "  * C2 (backdoor password constant 'AdminBypassPassword') and C8 (production "
-    "secrets in appsettings.json) and CF1 (secrets in source control) are RELATED but "
-    "DISTINCT. The review must name AdminBypassPassword to credit C2; a generic "
-    "'hardcoded credentials' sentence credits C8 or CF1 but not C2.\n"
-    "- Partial: the review touches the right area but materially misses the specific "
-    "point. Examples: mentions MD5 is weak but not the missing salt (C3); mentions SQL "
-    "injection generally but not the specific method named in the row; mentions "
-    "hardcoded values broadly but not the specific constant in the row.\n"
-    "- Missed: the review does not identify this specific issue. After careful reading, "
-    "you cannot quote a sentence that addresses THIS row's specific target. Phrasing "
-    "differences are fine — semantic match is required, but the semantic TARGET "
-    "(method/symbol/file/behavior) must be the same. DO NOT default to Found when in "
-    "doubt — default to Missed if you cannot point to specific evidence.\n\n"
-    "Evidence rule for the Notes column (NON-NEGOTIABLE):\n"
-    "- For every Found or Partial rating, the Note must quote or closely paraphrase the "
-    "supporting sentence and MUST name the same target (method/file/symbol/behavior) as "
-    "THIS row's Description. If your Note text names a different target than the "
-    "Description, the rating is wrong — downgrade to Missed.\n"
-    "- Self-check before finalizing each row: read your Note next to the row's "
-    "Description. Do they refer to the same specific thing? If not, change Status to "
-    "Missed and clear the Note.\n"
-    "- Do not reuse identical Note text across multiple IDs. Each row needs independent "
-    "evidence drawn from a different part of the review.\n\n"
-    "Your task:\n"
-    "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
-    "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
-    "row for the entire '## Missing Unit Tests' prose section (see below).\n"
-    "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
-    "  1. Exactly ONE summary line of the form: "
-    "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
-    "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
-    "tables after every row is written; T must equal N+P+M (the same as the number of "
-    "data rows in those tables). If your draft counts disagree with the tables, fix "
-    "either the tables or the summary before you stop — never leave contradictory numbers.\n"
-    "  2. One table per category matching the categories in the reference document.\n"
-    "     Each table must have columns: | ID | Description | Status | Notes |\n"
-    "     Use EXACTLY those four columns — do not insert an extra file/location column "
-    "between ID and Description (ISSUES.md already embeds file and lines inside the "
-    "Description text). Extra columns break automated counting; Notes may contain `|` "
-    "characters, so keep pipe delimiters only between the four columns.\n"
-    "     Status must be exactly one of: Found | Partial | Missed\n"
-    "     Notes: one sentence quoting or closely paraphrasing the relevant part of the "
-    "review, or blank if Missed. If Status is Found or Partial, the Note must clearly "
-    "relate to THAT row's Description (same vulnerability, bug, or symbol named there). "
-    "Reusing the same Note text for multiple different IDs is invalid — use Partial or "
-    "Missed instead for rows the review does not actually cover.\n"
-    "     Concretely: for dead-code rows D1-D11, each Found/Partial Note must mention "
-    "that row's specific unused symbol or scenario (e.g. D1 → HashPasswordSha1, D4 → "
-    "ExecuteQueryWithParams). Copy-pasting one JoinWithSeparator sentence for every "
-    "D-row is wrong. Likewise, do not paste one SmtpClient or Transfer paragraph "
-    "under unrelated SQL-injection or pagination IDs.\n"
-    "  3. Row-count rules (strict):\n"
-    "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
-    "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
-    "ONE row for Missing Unit Tests.\n"
-    "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
-    "Description cell, briefly summarize the whole section (no test project / missing "
-    "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
-    "that aggregate topic (missing tests, need for coverage, etc.).\n"
-    "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
-    "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
-    "C1-CF9 and UT.\n"
-    "- Do not add any commentary outside the scorecard document.\n\n"
-    "---\n"
-    "## Reference Issues\n\n"
-)
-
-
-_STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
-_ROW_ID = re.compile(r"^\|\s*([A-Z]{1,3}\d*|UT)\s*\|", re.IGNORECASE)
+# Used by strip_thinking() for models that emit inline <think> tags rather than
+# Ollama's separate message.thinking field.
 _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+
+
+def reasoning_controls(prefix: str) -> tuple[list[dict], object]:
+    """Build the system message and `think` value for one model role.
+
+    prefix is AI_ASSISTANT_MODEL, AI_ASSISTANT_SCORER or AI_PATCH_MODEL. Both knobs
+    are blank by default so the model's own Modelfile applies -- the benchmark
+    default. Returns ([] or [system message], think value or None).
+
+    These payloads previously hardcoded `"think": False`, which did not merely omit
+    the control: it actively DISABLED reasoning for every model in the pipeline.
+    Qwen3.8-27B scores 71.4% with thinking off against ~96% with it on.
+    """
+    messages: list[dict] = []
+    reasoning = (os.environ.get(f"{prefix}_REASONING") or "").strip()
+    if reasoning:
+        # A system message replaces the Modelfile SYSTEM block wholesale, so the
+        # assistant line must be reproduced alongside the level.
+        messages.append({
+            "role": "system",
+            "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
+        })
+    raw = (os.environ.get(f"{prefix}_THINK") or "").strip()
+    think: object = None
+    if raw:
+        low = raw.lower()
+        think = True if low == "true" else False if low == "false" else raw
+    if reasoning or raw:
+        print(f"  {prefix}: reasoning={reasoning or '(model default)'} "
+              f"think={think if raw else '(unset)'}")
+    return messages, think
 
 
 def strip_thinking(text: str) -> str:
     """Remove Qwen3-style <think>…</think> blocks (including empty ones)."""
     return _THINK_BLOCK.sub("", text).lstrip()
-
-
-def count_table_statuses(md: str) -> tuple[int, int, int]:
-    found = partial = missed = 0
-    for raw in md.splitlines():
-        line = raw.strip()
-        if not line.startswith("|"):
-            continue
-        parts = [p.strip() for p in line.split("|")]
-        if len(parts) < 3:
-            continue
-        id_cell = parts[1] if len(parts) > 1 else ""
-        if id_cell.lower() == "id" or not id_cell:
-            continue
-        if re.match(r"^-{3,}$", id_cell):
-            continue
-        m = _STATUS_CELL.search(line)
-        if not m:
-            continue
-        s = m.group(1).lower()
-        if s == "found":
-            found += 1
-        elif s == "partial":
-            partial += 1
-        elif s == "missed":
-            missed += 1
-    return found, partial, missed
-
-
-def warn_repeated_notes(md: str) -> None:
-    from collections import defaultdict
-
-    note_to_ids: dict[str, list[str]] = defaultdict(list)
-    for raw in md.splitlines():
-        line = raw.strip()
-        if not line.startswith("|"):
-            continue
-        m_id = _ROW_ID.match(line)
-        if not m_id:
-            continue
-        issue_id = m_id.group(1).upper()
-        if issue_id == "ID" or re.match(r"^-{3,}$", issue_id):
-            continue
-        m = _STATUS_CELL.search(line)
-        if not m:
-            continue
-        if m.group(1).lower() not in ("found", "partial"):
-            continue
-        notes = line[m.end():].lstrip("|").strip()
-        if len(notes) < 20:
-            continue
-        norm = re.sub(r"\s+", " ", notes).strip().lower()
-        note_to_ids[norm].append(issue_id)
-
-    for norm, ids in note_to_ids.items():
-        if len(ids) >= 3:
-            uniq = sorted(set(ids), key=lambda x: (len(x), x))
-            preview = norm[:140] + ("…" if len(norm) > 140 else "")
-            print(
-                f"WARN: Scorecard reused the same Notes text for {len(uniq)} issues "
-                f"({', '.join(uniq)}). Scorer model ignored per-issue Notes rules; "
-                f"compare review.md. Example: {preview!r}",
-                file=sys.stderr,
-            )
-
-
-def reconcile_summary_line(md: str) -> str:
-    fnd, prt, mis = count_table_statuses(md)
-    total = fnd + prt + mis
-    if total == 0:
-        print("WARN: Could not parse any table Status cells; leaving model summary unchanged.")
-        return md
-    new_line = f"Total: {fnd} Found / {prt} Partial / {mis} Missed out of {total} issues."
-    pattern = re.compile(
-        r"^Total:\s*\d+\s*Found\s*/\s*\d+\s*Partial\s*/\s*\d+\s*Missed\s*out\s*of\s*\d+\s*issues\.?\s*$",
-        re.MULTILINE | re.IGNORECASE,
-    )
-    md2, n = pattern.subn(new_line, md, count=1)
-    if n:
-        print(f"Scorecard summary reconciled from tables: {new_line}")
-        return md2
-    insert = "\n" + new_line + "\n"
-    first_nl = md.find("\n")
-    if first_nl != -1:
-        return md[:first_nl + 1] + insert + md[first_nl + 1:]
-    return insert + md
 
 
 def ns_to_s(ns: int | None) -> float:
@@ -516,13 +322,19 @@ def main() -> int:
         branch_name=branch, commit_sha=commit_sha, diff=diff, truncation_note=truncation_note,
     )
 
+    _msgs, _think = reasoning_controls("AI_ASSISTANT_MODEL")
     review_payload = {
         "model": review_model,
-        "messages": [{"role": "user", "content": review_prompt}],
+        "messages": _msgs + [{"role": "user", "content": review_prompt}],
         "stream": False,
-        "think": False,
-        "options": {"temperature": temperature, "num_predict": num_predict},
+        # num_ctx was computed and reported but never SENT: Ollama fell back to its
+        # server default (~4k), so the model saw a fraction of the source listing the
+        # budget maths had sized for.
+        "options": {"temperature": temperature, "num_predict": num_predict,
+                    "num_ctx": num_ctx},
     }
+    if _think is not None:
+        review_payload["think"] = _think
     review_data = ollama_chat(review_url, review_payload, output_dir / "payload.json", "review", review_key)
     review = strip_thinking((review_data.get("message") or {}).get("content", "")).strip()
     if not review:
@@ -566,13 +378,21 @@ def main() -> int:
         review_for_scoring = review[: max(0, max_chars - overhead)]
     scoring_prompt = SCORING_PREAMBLE + issues + "\n\n---\n## AI Review Output\n\n" + review_for_scoring + "\n"
 
+    # The scorer gets its own budget and temperature, matching ai_code_review.yml --
+    # it is the measuring instrument and must not move when the reviewer is retuned.
+    scorer_num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
+    scorer_temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
+    _smsgs, _sthink = reasoning_controls("AI_ASSISTANT_SCORER")
     scoring_payload = {
         "model": scoring_model,
-        "messages": [{"role": "user", "content": scoring_prompt}],
+        "messages": _smsgs + [{"role": "user", "content": scoring_prompt}],
         "stream": False,
-        "think": False,
-        "options": {"temperature": temperature, "num_predict": num_predict},
+        "options": {"temperature": scorer_temperature,
+                    "num_predict": scorer_num_predict,
+                    "num_ctx": num_ctx},
     }
+    if _sthink is not None:
+        scoring_payload["think"] = _sthink
     scoring_data = ollama_chat(
         scoring_url, scoring_payload, output_dir / "scoring_payload.json", "scoring", scoring_key,
     )
@@ -585,10 +405,39 @@ def main() -> int:
         r"^#\s*AI\s+Review\s+Scorecard\s*\n+", "", scorecard, count=1, flags=re.IGNORECASE,
     ).lstrip()
 
-    body = reconcile_summary_line(scorecard)
+    # Same chain ai_code_review.yml runs, in the same order: dedupe, drop Notes the
+    # review cannot support, then recount so the summary matches the tables.
+    grounding_mode = (os.environ.get("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce")
+                      .strip().lower())
+    if grounding_mode not in ("enforce", "warn", "off"):
+        print(f"WARN: unknown grounding mode {grounding_mode!r}; using 'enforce'.",
+              file=sys.stderr)
+        grounding_mode = "enforce"
+
+    body = drop_duplicate_ids(scorecard)
+    body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
+    body = reconcile_summary_line(body)
     warn_repeated_notes(body)
     rf, rp, rm = count_table_statuses(body)
     row_total = rf + rp + rm
+
+    spot_rows, miscredits, undercredits = spot_check(body, review)
+    hedged = hedge_check(body)
+    adjusted_found = rf - len(miscredits)
+    found_floor = adjusted_found - len([h for h in hedged if h[0] not in miscredits])
+
+    if miscredits:
+        print(
+            f"WARN: {len(miscredits)} row(s) rated Found whose target string never appears "
+            f"in the review: {', '.join(miscredits)}. Adjusted Found: {adjusted_found}.",
+            file=sys.stderr,
+        )
+    if hedged:
+        print(
+            f"WARN: {len(hedged)} row(s) rated Found concede in their own Note that the "
+            f"review fell short ({', '.join(h[0] for h in hedged)}). Floor: {found_floor}.",
+            file=sys.stderr,
+        )
     if row_total != 70:
         print(
             f"WARN: Scorecard has {row_total} table data rows; expected exactly 70 "
@@ -600,7 +449,22 @@ def main() -> int:
         f"# AI Review Scorecard\n\n"
         f"> **Branch:** `{branch}` &nbsp;·&nbsp; **Commit:** `{head[:7]}`\n\n"
     )
-    (output_dir / "issues_scorecard.md").write_text(header + body, encoding="utf-8")
+    if miscredits:
+        header += (
+            f"> ⚠ **{len(miscredits)} row(s) rated Found name a target that never appears "
+            f"in the review** ({', '.join(miscredits)}). Adjusted Found: "
+            f"**{adjusted_found}** of {row_total}.\n\n"
+        )
+    spot_section = (
+        "\n---\n\n## Evidence Spot-Check\n\n"
+        "| ID | Status | Target string | In review | Verdict |\n|---|---|---|---|---|\n"
+        + "".join(f"| {r[0]} | {r[1]} | `{r[2]}` | {r[3]} | {r[4]} |\n" for r in spot_rows)
+        + (f"\n**Adjusted Found: {adjusted_found} of {row_total}**"
+           f" ({rf} reported, less {len(miscredits)} mis-credited).\n"
+           if miscredits else "\nNo mis-credits detected in the watchlist.\n")
+    )
+    (output_dir / "issues_scorecard.md").write_text(
+        header + body + spot_section, encoding="utf-8")
 
     scoring_metrics = {
         "model": scoring_model,
@@ -614,6 +478,11 @@ def main() -> int:
     }
     score_result = {
         "found": rf, "partial": rp, "missed": rm,
+        "found_adjusted": adjusted_found,
+        "found_floor": found_floor,
+        "spotcheck_miscredits": miscredits,
+        "hedged_rows": [h[0] for h in hedged],
+        "grounding_downgrades": len(grounding_downgrades),
         "total": row_total,
         "score_pct": round(rf / max(row_total, 1) * 100, 1),
     }

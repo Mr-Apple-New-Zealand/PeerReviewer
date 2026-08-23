@@ -1,15 +1,95 @@
 name: AI Code Review
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Ollama model tag, e.g. Qwen3.5-9B-imatrix:Q4_K_S (blank = repo default)"
+        required: false
+        type: string
+      num_ctx:
+        description: "Context window (num_ctx). Blank = 65536 (benchmark default). Lower only if VRAM-bound."
+        required: false
+        type: string
+      num_predict:
+        description: "Output token cap (num_predict). Blank = 40000 (benchmark default). Raise num_ctx with it."
+        required: false
+        type: string
+      reasoning:
+        description: "Reasoning strength via system prompt (low/medium/high/xhigh). Blank = model's Modelfile."
+        required: false
+        type: string
+      think:
+        description: "Ollama think field for Qwen3-family models (true/false/low/medium/high). Blank = unset."
+        required: false
+        type: string
+      temperature:
+        description: "Temperature: (0.3=benchmark default). Small Qwen3.5 variants used 0.6."
+        required: false
+        type: string
+      top_p:
+        description: "top_p: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        required: false
+        type: string
+      top_k:
+        description: "top_k: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 env:
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
-  OLLAMA_MODEL: Qwen3.6-27B:Q4_K_S
-  AI_ASSISTANT_MODEL_NUM_CTX: 49152
+  # ---------------------------------------------------------------------------
+  # Per-run knobs. Precedence: workflow_dispatch input > repo variable > default.
+  # These are job-level and authoritative -- do NOT redeclare any of them in a step's
+  # own env block, because step-level env silently overrides job-level (that bug
+  # defeated the run #134 sampler experiment).
+  # ---------------------------------------------------------------------------
+  OLLAMA_MODEL: ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }}
+  # Token budgets. These two are coupled: the source listing sent to the model is
+  # budgeted as (num_ctx - num_predict - 500) * 2.5 chars, so raising num_predict on its
+  # own SHRINKS the codebase the model sees, silently and without an error. Measured on
+  # run #137: 49152/40000 would have truncated the source AND overflowed the window.
+  #
+  # 65536/40000 is the uniform benchmark setting. It satisfies Qwen3.8-27B, which will
+  # not emit any content at a lower budget (SUMMARY finding 7), so there is no longer a
+  # per-model exception. Headroom at these values: 55,691 chars of source budget against
+  # a 34,694-char payload, and 50,469 tokens needed against a 65,536 window.
+  #
+  # Output has grown 6,743 -> 9,628 -> 15,315 tokens as the prompt got more exhaustive;
+  # 24000 was not yet binding but had little margin left.
+  #
+  # VRAM canary: every run so far held 39.8-40.0 tok/s against the Modelfile's 41.52 TPS
+  # benchmark, i.e. fully GPU-resident. 49152 -> 65536 is +33% KV cache. If output speed
+  # drops materially below ~40 tok/s, layers spilled to CPU -- drop to 57344/40000.
+  AI_ASSISTANT_MODEL_NUM_CTX: ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
+  AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }}
+
+  # Temperature: benchmark default 0.3. Muse-Glimmer's card recommends 1.0; run #134
+  # tested that and scored 53 vs 54 at 0.3 -- inside the +/-4 run-to-run spread later
+  # measured between two identical runs, so treat it as "no evidence either way" and
+  # keep the benchmark default.
+  AI_ASSISTANT_MODEL_TEMPERATURE: ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+
+  # Reasoning effort. Two mechanisms because models differ, and BOTH are blank by
+  # default so every model keeps whatever its own Modelfile declares:
+  #   reasoning -> sends a "Reasoning strength: <level>" system message. This is how
+  #                Muse-Glimmer-30B is controlled; its Modelfile bakes in "high".
+  #   think     -> sets Ollama's top-level `think` field, used by Qwen3-family models
+  #                (SUMMARY finding 7: Qwen3.8-27B needs think=medium to emit content).
+  # Setting `reasoning` REPLACES the model's entire Modelfile SYSTEM block, so the
+  # assistant line is reproduced alongside the level.
+  AI_ASSISTANT_MODEL_REASONING: ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING }}
+  AI_ASSISTANT_MODEL_THINK: ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK }}
+
+  # top_p / top_k: DELIBERATELY BLANK by default. Each model ships its own card-tuned
+  # values in its Modelfile, and Ollama applies those when the request omits them.
+  # Hardcoding one model's sampler here silently forces it onto every other model and
+  # invalidates cross-model comparison -- set these only for a single-model experiment.
+  AI_ASSISTANT_MODEL_TOP_P: ${{ inputs.top_p || vars.AI_ASSISTANT_MODEL_TOP_P }}
+  AI_ASSISTANT_MODEL_TOP_K: ${{ inputs.top_k || vars.AI_ASSISTANT_MODEL_TOP_K }}
 
 jobs:
   code-review:
@@ -22,7 +102,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Use whichever branch the workflow was dispatched from, matching
+          # ai_code_patch.yml. This previously pinned `main`, which checked out the
+          # source AND the harness from main while GitHub ran the YAML from the
+          # dispatching ref -- so branch-side changes to ISSUES.md, scorer_prompt.md
+          # or scorecard_tools.py silently never took effect, and the commit recorded
+          # in each scorecard did not describe the code actually reviewed.
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       # -----------------------------------------------------------------------
@@ -41,7 +127,7 @@ jobs:
           while IFS= read -r file; do
             echo "### File: $file" >> branch_content.txt
             echo '```' >> branch_content.txt
-            cat "$file" >> branch_content.txt
+            nl -ba "$file" >> branch_content.txt
             echo '```' >> branch_content.txt
             echo "" >> branch_content.txt
           done < file_list.txt
@@ -61,10 +147,14 @@ jobs:
         run: |
           CHARS=$(wc -c < branch_content.txt)
           WORDS=$(wc -w < branch_content.txt)
+          # Mirror the review step budget: (num_ctx - num_predict - 500 safety) * 2.5
+          # chars/token, before the ~7.5k chars of instruction overhead it also subtracts.
+          BUDGET=$(( (AI_ASSISTANT_MODEL_NUM_CTX - AI_ASSISTANT_MODEL_NUM_PREDICT - 500) * 5 / 2 ))
           echo "Content: ${CHARS} chars, ${WORDS} words"
-          echo "Char budget (num_ctx * 4): $(( 16384 * 4 ))"
-          echo "Conservative token estimate (chars / 2.5): $(( CHARS / 2 ))"
-          echo "Payload will be truncated: $([ $CHARS -gt $(( 16384 * 4 )) ] && echo YES || echo NO)"
+          echo "num_ctx=${AI_ASSISTANT_MODEL_NUM_CTX} num_predict=${AI_ASSISTANT_MODEL_NUM_PREDICT}"
+          echo "Source char budget, before instruction overhead: ${BUDGET}"
+          echo "Conservative token estimate (chars / 2.5): $(( CHARS * 2 / 5 ))"
+          echo "Payload will be truncated: $([ $CHARS -gt $BUDGET ] && echo YES || echo NO)"
 
             
       - name: Skip if no relevant changes
@@ -77,102 +167,29 @@ jobs:
       - name: Request review from Ollama
         if: steps.diff.outputs.empty == 'false'
         env:
-          AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
           AI_ASSISTANT_MODEL_PROMPT: ${{ vars.AI_ASSISTANT_MODEL_PROMPT }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, subprocess, sys
+          import hashlib, json, os, subprocess, sys
 
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
           model = os.environ.get("OLLAMA_MODEL")
           base_url = os.environ.get("OLLAMA_URL")
 
-          with open("branch_content.txt", "r", errors="replace") as f:
+          with open("branch_content.txt", "r", encoding="utf-8", errors="replace") as f:
               diff = f.read()
 
           num_ctx_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
           num_predict_tokens = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
           truncation_note = ""
-          prompt_template = (
-              "You are an expert software engineer performing a thorough peer code review.\n"
-              "Review the source files from branch '{branch_name}' (commit {commit_sha}).\n\n"
-              "{truncation_note}\n\n"
-              "Work through EVERY category below methodically. For each category, read every file "
-              "carefully and report ALL issues you find, no matter how minor. Do not skip a category "
-              "because you found nothing — if a category is clean, say so.\n\n"
-              "---\n\n"
-              "## Review Categories\n\n"
-              "### 1. Security Vulnerabilities\n"
-              "Check for: SQL injection (including string-interpolated queries, LIKE clauses, UPDATE/DELETE/INSERT statements, "
-              "and helper methods that accept raw SQL fragments); hardcoded credentials, passwords, API keys, or backdoors "
-              "in source files or config; broken or weak cryptography (MD5, SHA1, no salt); JWT misconfiguration "
-              "(ValidateLifetime, weak secrets); broken access control (missing ownership checks on PUT/DELETE endpoints); "
-              "missing authorization attributes; open CORS policy; developer exception pages in production; HTTPS disabled; "
-              "debug symbols in release builds; production secrets committed to source control.\n\n"
-              "### 2. Logic Errors\n"
-              "Check for: off-by-one errors (especially in pagination — e.g. `page * pageSize` vs `(page-1) * pageSize`); "
-              "incorrect boundary conditions (e.g. `< 0` when `<= 0` is needed); balance or fee calculations that exclude "
-              "a component (e.g. checking balance >= amount but then deducting amount + fee); incorrect rates or constants "
-              "(e.g. interest rate applied as 5%% instead of 1%%); missing self-referential checks (e.g. transferring to yourself); "
-              "any operation that can produce a negative balance or nonsensical result.\n\n"
-              "### 3. Error Handling\n"
-              "Check for: methods that catch broad `Exception` and swallow it silently; catch blocks that return empty "
-              "collections — callers cannot distinguish 'no results' from 'error'; operations that lack a database "
-              "transaction where two or more writes must be atomic; side effects (e.g. email sending) that can throw "
-              "after a DB write has already committed; raw `ex.Message` or stack traces returned to HTTP clients; "
-              "missing rate limiting or account lockout on authentication endpoints.\n\n"
-              "### 4. Resource Leaks\n"
-              "Check for: `SqlConnection`, `SqlDataReader`, `SqlCommand` that are opened but never closed or disposed; "
-              "connections returned from helper methods where the caller never disposes them; `SmtpClient` held as an "
-              "instance field (not thread-safe, socket never released); `MailMessage` or other `IDisposable` objects "
-              "created but never disposed; any exception path that skips a `Close()` or `Dispose()` call.\n\n"
-              "### 5. Null Reference Risks\n"
-              "Check for: configuration values read with `_config[\"key\"]` passed directly to methods that cannot "
-              "accept null (e.g. `Encoding.UTF8.GetBytes`); `DataTable.Rows[0]` accessed without first checking "
-              "`Rows.Count > 0`; `.Value` on a nullable or `?.Value` result passed to `int.Parse` without null guard; "
-              "method parameters used (`.ToUpper()`, `.Length`, etc.) before a null check; model-bound request objects "
-              "used in controller actions without a null check.\n\n"
-              "### 6. Dead Code\n"
-              "Check for: private or public methods that are never called anywhere in the codebase; methods marked "
-              "`[Obsolete]` that are still present; code after an unconditional `return` statement (unreachable); "
-              "duplicate implementations where a fixed version exists alongside a broken one but only the broken one "
-              "is called; `throw new NotImplementedException()` in non-stub code.\n\n"
-              "### 7. Magic Strings and Numbers\n"
-              "Check for: numeric literals used inline without a named constant (e.g. fee rates, page size limits, "
-              "deposit caps, string length limits); string literals for email addresses, role names, or config keys "
-              "repeated in multiple places; values that belong in configuration (e.g. `appsettings.json`) but are "
-              "hardcoded in source.\n\n"
-              "### 8. Anti-patterns and Code Quality\n"
-              "Check for: string concatenation inside a loop (O(n²) — use `StringBuilder` or `string.Join`); "
-              "`new Regex(...)` inside a method called repeatedly (should be `static readonly`); shared mutable "
-              "static state accessed from multiple threads without synchronization; reimplementing standard library "
-              "methods that already exist (e.g. `string.IsNullOrWhiteSpace`); helper methods designed to leak "
-              "resource ownership to callers with no documented contract; duplicated validation logic that should "
-              "be extracted to a shared method.\n\n"
-              "### 9. Configuration Issues\n"
-              "Check for: `UseDeveloperExceptionPage()` called unconditionally; `ValidateLifetime = false` on JWT; "
-              "HTTPS redirection commented out; overly permissive CORS (`AllowAnyOrigin` + `AllowAnyMethod`); "
-              "debug log levels set for production namespaces; outdated or vulnerable NuGet packages (check `.csproj`); "
-              "missing environment-specific config overrides (`appsettings.Production.json`).\n\n"
-              "### 10. Missing Unit Tests\n"
-              "Check whether a test project exists. If not, list the specific methods and scenarios that are most "
-              "critical to test, focusing on boundary conditions, auth flows, financial calculations, and pagination.\n\n"
-              "---\n\n"
-              "## Output Format\n\n"
-              "Produce a Markdown report with one `##` section per category above.\n"
-              "**You MUST include all 10 sections.** If a category has no issues, write 'No issues found.'\n\n"
-              "Within each section use a compact Markdown table with columns:\n"
-              "| File | Line | Issue | Fix |\n"
-              "Keep each cell to one sentence maximum — no code blocks, no nested bullets.\n\n"
-              "Complete all 10 sections before adding any additional commentary.\n\n"
-              "---\n\n"
-              "## Source Files\n\n"
-              "{diff}"
-          )
+          # The review instructions live in review_prompt.md so this workflow and
+          # scripts/ai_code_review.py (used by the patcher) share one copy. They had
+          # already forked: the script still carried the pre-enumeration prompt.
+          with open("review_prompt.md", encoding="utf-8") as f:
+              prompt_template = f.read()
           # Measure instruction overhead (template without the diff) to correctly
           # budget the remaining chars for source code. Code averages ~2.5 chars/token.
           # Reserve tokens for: instructions overhead + response (num_predict) + safety buffer.
@@ -198,16 +215,53 @@ jobs:
 
           num_predict = num_predict_tokens
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          options = {
+              "temperature": temperature,
+              "num_predict": num_predict,
+              "num_ctx": num_ctx_tokens,
+          }
+          # Optional per-model sampler overrides. Left unset, whatever the model
+          # Modelfile declares applies -- for Muse-Glimmer-30B that is top_p 0.95 and
+          # top_k 64, which combined with the harness default temperature of 0.3 is
+          # neither the model card config nor a clean deterministic one. Setting both
+          # here makes the effective sampler independent of the server-side Modelfile.
+          _top_p = os.environ.get("AI_ASSISTANT_MODEL_TOP_P", "").strip()
+          _top_k = os.environ.get("AI_ASSISTANT_MODEL_TOP_K", "").strip()
+          if _top_p:
+              options["top_p"] = float(_top_p)
+          if _top_k:
+              options["top_k"] = int(_top_k)
+
+          # Reasoning effort. Blank leaves the model's own Modelfile in charge, which is
+          # the benchmark default -- do not set these for a cross-model comparison run.
+          messages = []
+          reasoning = os.environ.get("AI_ASSISTANT_MODEL_REASONING", "").strip()
+          if reasoning:
+              # A system message REPLACES the Modelfile SYSTEM block wholesale, so the
+              # assistant line has to be reproduced or it is silently dropped.
+              messages.append({
+                  "role": "system",
+                  "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
+              })
+          messages.append({"role": "user", "content": prompt})
+
           payload = {
               "model": model,
-              "messages": [{"role": "user", "content": prompt}],
+              "messages": messages,
               "stream": False,
-              "options": {
-                  "temperature": temperature,
-                  "num_predict": num_predict,
-                  "num_ctx": num_ctx_tokens,
-              },
+              "options": options,
           }
+
+          think = os.environ.get("AI_ASSISTANT_MODEL_THINK", "").strip()
+          if think:
+              _t = think.lower()
+              payload["think"] = True if _t == "true" else False if _t == "false" else think
+
+          print(f"Sampler: temperature={temperature} "
+                f"top_p={options.get('top_p', '(model default)')} "
+                f"top_k={options.get('top_k', '(model default)')}")
+          print(f"Reasoning: system={reasoning or '(model default)'} "
+                f"think={payload.get('think', '(unset)')}")
 
           with open("payload.json", "w") as f:
               json.dump(payload, f)
@@ -243,12 +297,26 @@ jobs:
 
           import re as _re
           _think_re = _re.compile(r"<think>.*?</think>\s*", _re.DOTALL | _re.IGNORECASE)
-          review = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
+          _msg = data.get("message") or {}
+          # Ollama >= 0.9 returns reasoning in message.thinking rather than as inline
+          # <think> tags. Those tokens still count toward eval_count / num_predict, so
+          # a model can exhaust its output budget while returning empty content.
+          thinking = _msg.get("thinking") or ""
+          review = _think_re.sub("", _msg.get("content", "")).strip()
+          print(f"Response: content={len(review)} chars, thinking={len(thinking)} chars, "
+                f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}")
           if not review:
-              print("ERROR: Ollama returned an empty response.", file=sys.stderr)
+              print(
+                  f"ERROR: Ollama returned no content. thinking={len(thinking)} chars, "
+                  f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}. "
+                  "If thinking is large and done_reason is 'length', raise "
+                  "AI_ASSISTANT_MODEL_NUM_PREDICT -- and raise AI_ASSISTANT_MODEL_NUM_CTX "
+                  "with it, or the source budget shrinks silently.",
+                  file=sys.stderr,
+              )
               sys.exit(1)
 
-          with open("review.md", "w") as f:
+          with open("review.md", "w", encoding="utf-8") as f:
               f.write(review)
 
           def _ns_to_s(ns):
@@ -258,11 +326,19 @@ jobs:
 
           review_metrics = {
               "model": model,
+              "temperature": temperature,
+              "top_p": options.get("top_p"),
+              "top_k": options.get("top_k"),
+              "reasoning": reasoning or None,
+              "think": payload.get("think"),
+              "prompt_sha": hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()[:12],
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
               "output_tokens": data.get("eval_count", 0),
               "output_token_limit": num_predict_tokens,
+              "content_chars": len(review),
+              "thinking_chars": len(thinking),
               "prompt_tps": _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
               "output_tps": _tps(data.get("eval_count"), data.get("eval_duration")),
               "context_window": num_ctx_tokens,
@@ -292,125 +368,50 @@ jobs:
         if: steps.diff.outputs.empty == 'false'
         env:
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
-          AI_ASSISTANT_MODEL_NUM_PREDICT: 24000
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+          # enforce = downgrade ungrounded Found/Partial rows to Missed (default)
+          # warn    = log them but leave the scorecard untouched
+          # off     = skip the check entirely (use when reproducing an archived run)
+          AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
+          # The SCORER's own output budget -- deliberately separate from the review
+          # model's, and named so scorer_benchmark.yml can read the identical value.
+          # A repo variable set once therefore applies to both workflows.
+          AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
+          # The scorer is the measuring instrument: keep it pinned low and unchanged
+          # even when the review sampler is retuned, or scores stop being comparable.
+          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+          # Reasoning control for the SCORER, mirroring the review model's knobs and
+          # sharing names with scorer_benchmark.yml. Both blank by default. A scorer
+          # whose card defaults to deep reasoning (Qwen3.8-27B defaults to xhigh) will
+          # otherwise spend its whole num_predict thinking and return empty content.
+          AI_ASSISTANT_SCORER_REASONING: ${{ vars.AI_ASSISTANT_SCORER_REASONING }}
+          AI_ASSISTANT_SCORER_THINK: ${{ vars.AI_ASSISTANT_SCORER_THINK }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, re, subprocess, sys
+          import hashlib, json, os, re, subprocess, sys
 
           model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
           base_url = os.environ.get("OLLAMA_URL")
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
 
-          with open("review.md", "r", errors="replace") as f:
+          with open("review.md", "r", encoding="utf-8", errors="replace") as f:
               review = f.read()
 
-          with open("ISSUES.md", "r", errors="replace") as f:
+          with open("ISSUES.md", "r", encoding="utf-8", errors="replace") as f:
               issues = f.read()
+          issues_sha = hashlib.sha256(issues.encode("utf-8")).hexdigest()[:12]
 
-          preamble = (
-              "You are a QA evaluator assessing how well an AI code review tool performed.\n\n"
-              "CRITICAL: The AI review was produced by a model that has NEVER seen the reference "
-              "issue list. It will NOT use issue IDs like C1 or L2. It will describe problems in "
-              "its own words. Your job is STRICT semantic matching: for each reference issue you "
-              "must locate a specific sentence in the review that names the SAME target — the same "
-              "file, the same method or symbol, or the same concrete behavior described in the "
-              "reference Description. If you cannot locate such a sentence, the issue is Missed. "
-              "Wording differences are fine; target differences are NOT.\n\n"
-              "Scoring rules (apply strictly, with evidence):\n"
-              "- Found: the review identifies THIS specific issue. There must exist a sentence in "
-              "the review that names the same method/file/symbol/behavior as the Description. "
-              "Generic class-level mentions are NOT enough when the Description names a specific "
-              "target. Each Found rating must be backed by its OWN sentence — you cannot reuse one "
-              "sentence to mark multiple unrelated rows Found.\n"
-              "  Concretely:\n"
-              "  * SQL-injection rows C1, C4, C5, C6, C7 each name a different method (Login, "
-              "UpdateUser/DeleteUser, SearchUsers, Transfer/Deposit, RecordTransaction). Found "
-              "requires the review to mention THAT method or its specific parameters. A generic "
-              "'SQL injection exists' sentence credits AT MOST one of these — the others are Partial.\n"
-              "  * Dead-code rows D1-D11 each name a different unused symbol (HashPasswordSha1, "
-              "ValidateToken's unreachable code, TableExists, ExecuteQueryWithParams, "
-              "BuildHtmlTemplate, SendWelcomeEmailHtml, FormatCurrency, IsWithinDailyLimit, "
-              "ObfuscateAccount, ToTitleCase, JoinWithSeparatorFixed). Found requires the review "
-              "to name THAT symbol. 'Dead code exists' or naming ONE unused method does not credit "
-              "the others — those are Missed.\n"
-              "  * Access-control rows C10, C11, L5, E7, N7 each name a different missing check. "
-              "'ValidateToken returns true' is NOT evidence for any of them — it covers ONLY D2 "
-              "(unreachable code). Found requires the review to name the specific endpoint or "
-              "missing check.\n"
-              "  * C2 (backdoor password constant 'AdminBypassPassword') and C8 (production "
-              "secrets in appsettings.json) and CF1 (secrets in source control) are RELATED but "
-              "DISTINCT. The review must name AdminBypassPassword to credit C2; a generic "
-              "'hardcoded credentials' sentence credits C8 or CF1 but not C2.\n"
-              "- Partial: the review touches the right area but materially misses the specific "
-              "point. Examples: mentions MD5 is weak but not the missing salt (C3); mentions SQL "
-              "injection generally but not the specific method named in the row; mentions "
-              "hardcoded values broadly but not the specific constant in the row.\n"
-              "- Missed: the review does not identify this specific issue. After careful reading, "
-              "you cannot quote a sentence that addresses THIS row's specific target. Phrasing "
-              "differences are fine — semantic match is required, but the semantic TARGET "
-              "(method/symbol/file/behavior) must be the same. DO NOT default to Found when in "
-              "doubt — default to Missed if you cannot point to specific evidence.\n\n"
-              "Evidence rule for the Notes column (NON-NEGOTIABLE):\n"
-              "- For every Found or Partial rating, the Note must quote or closely paraphrase the "
-              "supporting sentence and MUST name the same target (method/file/symbol/behavior) as "
-              "THIS row's Description. If your Note text names a different target than the "
-              "Description, the rating is wrong — downgrade to Missed.\n"
-              "- Self-check before finalizing each row: read your Note next to the row's "
-              "Description. Do they refer to the same specific thing? If not, change Status to "
-              "Missed and clear the Note.\n"
-              "- Do not reuse identical Note text across multiple IDs. Each row needs independent "
-              "evidence drawn from a different part of the review.\n\n"
-              "Your task:\n"
-              "- Work through EVERY issue ID in the reference document: C1-C11, L1-L5, R1-R3, "
-              "E1-E7, RL1-RL5, N1-N7, M1-M5, D1-D11, A1-A6, CF1-CF9 (69 rows), plus ONE aggregate "
-              "row for the entire '## Missing Unit Tests' prose section (see below).\n"
-              "- Output a Markdown document titled '# AI Review Scorecard' with:\n"
-              "  1. Exactly ONE summary line of the form: "
-              "Total: <N> Found / <P> Partial / <M> Missed out of <T> issues.\n"
-              "     N, P, and M MUST be computed ONLY by counting Status cells across ALL of your "
-              "tables after every row is written; T must equal N+P+M (the same as the number of "
-              "data rows in those tables). If your draft counts disagree with the tables, fix "
-              "either the tables or the summary before you stop — never leave contradictory numbers.\n"
-              "  2. One table per category matching the categories in the reference document.\n"
-              "     Each table must have columns: | ID | Description | Status | Notes |\n"
-              "     Use EXACTLY those four columns — do not insert an extra file/location column "
-              "between ID and Description (ISSUES.md already embeds file and lines inside the "
-              "Description text). Extra columns break automated counting; Notes may contain `|` "
-              "characters, so keep pipe delimiters only between the four columns.\n"
-              "     Status must be exactly one of: Found | Partial | Missed\n"
-              "     Notes: one sentence quoting or closely paraphrasing the relevant part of the "
-              "review, or blank if Missed. If Status is Found or Partial, the Note must clearly "
-              "relate to THAT row's Description (same vulnerability, bug, or symbol named there). "
-              "Reusing the same Note text for multiple different IDs is invalid — use Partial or "
-              "Missed instead for rows the review does not actually cover.\n"
-              "     Concretely: for dead-code rows D1-D11, each Found/Partial Note must mention "
-              "that row's specific unused symbol or scenario (e.g. D1 → HashPasswordSha1, D4 → "
-              "ExecuteQueryWithParams). Copy-pasting one JoinWithSeparator sentence for every "
-              "D-row is wrong. Likewise, do not paste one SmtpClient or Transfer paragraph "
-              "under unrelated SQL-injection or pagination IDs.\n"
-              "  3. Row-count rules (strict):\n"
-              "     - You must output EXACTLY 70 data rows across all tables: one row per ID "
-              "C1 through CF9 (69 rows), matching the reference tables in ISSUES.md, plus EXACTLY "
-              "ONE row for Missing Unit Tests.\n"
-              "     - For Missing Unit Tests ONLY: use a single row with ID **UT**. In the "
-              "Description cell, briefly summarize the whole section (no test project / missing "
-              "coverage and the key areas listed in ISSUES.md). Score whether the review addresses "
-              "that aggregate topic (missing tests, need for coverage, etc.).\n"
-              "     - Do NOT add multiple rows for Missing Unit Tests (no one-row-per-bullet, no "
-              "rows with ID '-' listing individual test scenarios). Do NOT add extra IDs beyond "
-              "C1-CF9 and UT.\n"
-              "- Do not add any commentary outside the scorecard document.\n\n"
-              "---\n"
-              "## Reference Issues\n\n"
-          )
+          # Scoring instructions live in scorer_prompt.md so this workflow and
+          # scorer_benchmark.yml cannot drift apart -- they already had.
+          with open("scorer_prompt.md", encoding="utf-8") as f:
+              preamble = f.read()
+          scorer_prompt_sha = hashlib.sha256(preamble.encode("utf-8")).hexdigest()[:12]
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
-          num_predict = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_PREDICT", "16384"))
-          temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
+          num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
+          temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
 
           # Truncate the review if the full prompt would exceed the context window.
           # Code tokenizes at ~2-3 chars/token; multiply by 2 to stay safe.
@@ -421,9 +422,20 @@ jobs:
               review = review[: max(0, max_chars - overhead)]
           scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
+          # Reasoning controls for the scorer. Blank leaves the model's Modelfile in
+          # charge, which is the benchmark default for every scorer tested so far.
+          scorer_messages = []
+          scorer_reasoning = os.environ.get("AI_ASSISTANT_SCORER_REASONING", "").strip()
+          if scorer_reasoning:
+              scorer_messages.append({
+                  "role": "system",
+                  "content": f"Reasoning strength: {scorer_reasoning}\n\nYou are a helpful assistant.",
+              })
+          scorer_messages.append({"role": "user", "content": scoring_prompt})
+
           payload = {
               "model": model,
-              "messages": [{"role": "user", "content": scoring_prompt}],
+              "messages": scorer_messages,
               "stream": False,
               "options": {
                   "temperature": temperature,
@@ -432,163 +444,165 @@ jobs:
               },
           }
 
-          with open("scoring_payload.json", "w") as f:
-              json.dump(payload, f)
+          scorer_think = os.environ.get("AI_ASSISTANT_SCORER_THINK", "").strip()
+          if scorer_think:
+              _st = scorer_think.lower()
+              payload["think"] = (True if _st == "true"
+                                  else False if _st == "false" else scorer_think)
 
-          review_model = os.environ.get("OLLAMA_MODEL")
-          print(f"Scoring with {model} (review was by {review_model}) …")
-
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@scoring_payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
-
-          if result.returncode != 0:
-              print(
-                  f"ERROR: curl failed (exit {result.returncode})\n"
-                  f"stderr: {result.stderr}\n"
-                  f"body  : {result.stdout[:2000]}",
-                  file=sys.stderr,
-              )
-              sys.exit(1)
-
-          try:
-              data = json.loads(result.stdout)
-          except json.JSONDecodeError as exc:
-              print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
-              print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
-              sys.exit(1)
+          print(f"Scorer reasoning: system={scorer_reasoning or '(model default)'} "
+                f"think={payload.get('think', '(unset)')}")
 
           _think_re = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
-          scorecard = _think_re.sub("", (data.get("message") or {}).get("content", "")).strip()
-          if not scorecard:
-              print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
-              sys.exit(1)
 
-          # Workflow prepends its own H1 + branch/commit line; drop duplicate title from model.
-          scorecard = re.sub(
-              r"^#\s*AI\s+Review\s+Scorecard\s*\n+",
-              "",
-              scorecard,
-              count=1,
-              flags=re.IGNORECASE,
-          ).lstrip()
+          def call_scorer(attempt):
+              """One scoring round-trip. Returns (response_json, scorecard_markdown)."""
+              with open("scoring_payload.json", "w") as f:
+                  json.dump(payload, f)
 
-          _STATUS_CELL = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
-          _ROW_ID = re.compile(r"^\|\s*([A-Z]{1,3}\d*|UT)\s*\|", re.IGNORECASE)
+              review_model = os.environ.get("OLLAMA_MODEL")
+              suffix = "" if attempt == 1 else f" [attempt {attempt}]"
+              print(f"Scoring with {model} (review was by {review_model}){suffix} …")
 
-          def count_table_statuses(md: str) -> tuple[int, int, int]:
-              """Count Found / Partial / Missed from scorecard tables.
-
-              Rows must be | ID | Description | Status | Notes | but models sometimes insert an
-              extra column (e.g. file path) or put pipes inside Notes. Naive split("|") then mis-
-              classifies Status. We detect the Status column by the first | Found|Partial|Missed |
-              marker, which precedes the Notes cell (even when Notes contains additional pipes).
-              """
-              found = partial = missed = 0
-              for raw in md.splitlines():
-                  line = raw.strip()
-                  if not line.startswith("|"):
-                      continue
-                  parts = [p.strip() for p in line.split("|")]
-                  if len(parts) < 3:
-                      continue
-                  id_cell = parts[1] if len(parts) > 1 else ""
-                  if id_cell.lower() == "id" or not id_cell:
-                      continue
-                  # Markdown separator row (first cell is ---)
-                  if re.match(r"^-{3,}$", id_cell):
-                      continue
-                  m = _STATUS_CELL.search(line)
-                  if not m:
-                      continue
-                  s = m.group(1).lower()
-                  if s == "found":
-                      found += 1
-                  elif s == "partial":
-                      partial += 1
-                  elif s == "missed":
-                      missed += 1
-              return found, partial, missed
-
-          def warn_repeated_notes(md: str) -> None:
-              """Emit WARN when the scorer pasted identical Notes for many distinct issue IDs."""
-              from collections import defaultdict
-
-              note_to_ids = defaultdict(list)
-              for raw in md.splitlines():
-                  line = raw.strip()
-                  if not line.startswith("|"):
-                      continue
-                  m_id = _ROW_ID.match(line)
-                  if not m_id:
-                      continue
-                  issue_id = m_id.group(1).upper()
-                  if issue_id == "ID":
-                      continue
-                  if re.match(r"^-{3,}$", issue_id):
-                      continue
-                  m = _STATUS_CELL.search(line)
-                  if not m:
-                      continue
-                  status = m.group(1).lower()
-                  if status not in ("found", "partial"):
-                      continue
-                  notes = line[m.end() :].lstrip("|").strip()
-                  if len(notes) < 20:
-                      continue
-                  norm = re.sub(r"\s+", " ", notes).strip().lower()
-                  note_to_ids[norm].append(issue_id)
-
-              for norm, ids in note_to_ids.items():
-                  if len(ids) >= 3:
-                      uniq = sorted(set(ids), key=lambda x: (len(x), x))
-                      preview = norm[:140] + ("…" if len(norm) > 140 else "")
-                      print(
-                          "WARN: Scorecard reused the same Notes text for "
-                          f"{len(uniq)} issues ({', '.join(uniq)}). "
-                          "Scorer model ignored per-issue Notes rules; compare review.md. "
-                          f"Example: {preview!r}",
-                          file=sys.stderr,
-                      )
-
-          def reconcile_summary_line(md: str) -> str:
-              fnd, prt, mis = count_table_statuses(md)
-              total = fnd + prt + mis
-              if total == 0:
-                  print("WARN: Could not parse any table Status cells; leaving model summary unchanged.")
-                  return md
-              new_line = f"Total: {fnd} Found / {prt} Partial / {mis} Missed out of {total} issues."
-              pattern = re.compile(
-                  r"^Total:\s*\d+\s*Found\s*/\s*\d+\s*Partial\s*/\s*\d+\s*Missed\s*out\s*of\s*\d+\s*issues\.?\s*$",
-                  re.MULTILINE | re.IGNORECASE,
+              result = subprocess.run(
+                  [
+                      "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                      "-X", "POST", f"{base_url}/api/chat",
+                      "-H", "Content-Type: application/json",
+                      "-d", "@scoring_payload.json",
+                  ],
+                  capture_output=True,
+                  text=True,
               )
-              md2, n = pattern.subn(new_line, md, count=1)
-              if n:
-                  print(f"Scorecard summary reconciled from tables: {new_line}")
-                  return md2
-              # No matching summary line — insert machine-derived counts after the first line.
-              insert = "\n" + new_line + "\n"
-              first_nl = md.find("\n")
-              if first_nl != -1:
-                  return md[: first_nl + 1] + insert + md[first_nl + 1 :]
-              return insert + md
 
-          header = (
-              f"# AI Review Scorecard\n\n"
-              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
+              if result.returncode != 0:
+                  print(
+                      f"ERROR: curl failed (exit {result.returncode})\n"
+                      f"stderr: {result.stderr}\n"
+                      f"body  : {result.stdout[:2000]}",
+                      file=sys.stderr,
+                  )
+                  sys.exit(1)
+
+              try:
+                  response = json.loads(result.stdout)
+              except json.JSONDecodeError as exc:
+                  print(f"ERROR: Could not parse Ollama response: {exc}", file=sys.stderr)
+                  print(f"Raw output (first 500 chars): {result.stdout[:500]}", file=sys.stderr)
+                  sys.exit(1)
+
+              text = _think_re.sub("", (response.get("message") or {}).get("content", "")).strip()
+              if not text:
+                  print("ERROR: Ollama returned an empty scorecard response.", file=sys.stderr)
+                  sys.exit(1)
+
+              # Workflow prepends its own H1 + branch/commit line; drop the model's copy.
+              text = re.sub(
+                  r"^#\s*AI\s+Review\s+Scorecard\s*\n+",
+                  "",
+                  text,
+                  count=1,
+                  flags=re.IGNORECASE,
+              ).lstrip()
+              return response, text
+
+          # Scorecard post-processing lives in scorecard_tools.py so this workflow
+          # and scorer_benchmark.yml share one implementation.
+          sys.path.insert(0, ".")
+          from scorecard_tools import (
+              WATCHLIST,
+              count_table_statuses,
+              drop_duplicate_ids,
+              enforce_note_grounding,
+              hedge_check,
+              reconcile_summary_line,
+              spot_check,
+              warn_repeated_notes,
           )
 
-          body = reconcile_summary_line(scorecard)
-          warn_repeated_notes(body)
-          rf, rp, rm = count_table_statuses(body)
+          grounding_mode = os.environ.get("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce").strip().lower()
+          if grounding_mode not in ("enforce", "warn", "off"):
+              print(f"WARN: unknown grounding mode {grounding_mode!r}; using 'enforce'.",
+                    file=sys.stderr)
+              grounding_mode = "enforce"
+
+          # A zero-Partial scorecard CORRELATES with the scorer's credit-everything mode,
+          # but it is not proof of it: as the review improves, a genuinely clean sheet
+          # becomes plausible, and re-rolling one would be selecting for the answer we
+          # expect. So this is a warning, not a gate -- the decisive evidence comes from
+          # the spot-check below, which tests whether a row's target appears in the review
+          # at all. Set AI_ASSISTANT_SCORER_MAX_ATTEMPTS > 1 to opt back into re-scoring.
+          MAX_ATTEMPTS = max(1, int(os.environ.get("AI_ASSISTANT_SCORER_MAX_ATTEMPTS", "1")))
+
+          attempts = []
+          for attempt in range(1, MAX_ATTEMPTS + 1):
+              data, scorecard = call_scorer(attempt)
+              body = drop_duplicate_ids(scorecard)
+              body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
+              # Recount only after dedupe and downgrades, so the summary matches the tables.
+              body = reconcile_summary_line(body)
+              rf, rp, rm = count_table_statuses(body)
+              attempts.append(
+                  {"body": body, "data": data, "downgrades": grounding_downgrades,
+                   "found": rf, "partial": rp, "missed": rm, "n": attempt}
+              )
+              if rp > 0 or (rf + rp + rm) < 40:
+                  break
+              print(
+                  f"WARN: scoring attempt {attempt} returned {rf} Found and ZERO Partial "
+                  f"across {rf + rp + rm} rows -- the scorer's credit-everything mode. "
+                  + ("Re-scoring." if attempt < MAX_ATTEMPTS else "No attempts left."),
+                  file=sys.stderr,
+              )
+
+          chosen = next((a for a in attempts if a["partial"] > 0), attempts[0])
+          body = chosen["body"]
+          data = chosen["data"]
+          grounding_downgrades = chosen["downgrades"]
+          rf, rp, rm = chosen["found"], chosen["partial"], chosen["missed"]
           row_total = rf + rp + rm
+          scorer_mode_suspect = rp == 0 and row_total >= 40
+          if len(attempts) > 1:
+              print("Scoring attempts: "
+                    + "; ".join(f"#{a['n']} {a['found']}F/{a['partial']}P/{a['missed']}M"
+                                for a in attempts)
+                    + f" -> using #{chosen['n']}")
+          if scorer_mode_suspect:
+              print(
+                  f"NOTE: scorecard has {rf} Found and zero Partial. That is either a very "
+                  "good review or the scorer's credit-everything mode -- see the spot-check "
+                  "below, which distinguishes them.",
+                  file=sys.stderr,
+              )
+
+          spot_rows, miscredits, undercredits = spot_check(body, review)
+          hedged = hedge_check(body)
+          adjusted_found = rf - len(miscredits)
+          # Lower bound: every self-hedged row treated as an over-credit too.
+          found_floor = adjusted_found - len([h for h in hedged if h[0] not in miscredits])
+
+          if hedged:
+              print(
+                  "WARN: %d row(s) rated Found whose Note concedes the review fell short "
+                  "(%s). Each is likely an over-credit; plausible floor %d of %d."
+                  % (len(hedged), ", ".join(h[0] for h in hedged), found_floor, row_total),
+                  file=sys.stderr,
+              )
+
+          print("Evidence spot-check: %d/%d watchlist rows present in review; "
+                "%d mis-credited (%s); %d possibly under-credited (%s)"
+                % (sum(1 for r in spot_rows if r[3] == "yes"), len(spot_rows),
+                   len(miscredits), ", ".join(miscredits) or "none",
+                   len(undercredits), ", ".join(undercredits) or "none"))
+          if miscredits:
+              print(
+                  f"WARN: {len(miscredits)} row(s) rated Found whose target string never "
+                  f"appears in review.md: {', '.join(miscredits)}. Reported score {rf} "
+                  f"overstates by at least that much; adjusted = {adjusted_found}.",
+                  file=sys.stderr,
+              )
+
+          warn_repeated_notes(body)
           if row_total != 70:
               print(
                   f"WARN: Scorecard has {row_total} table data rows; expected exactly 70 "
@@ -596,8 +610,102 @@ jobs:
                   file=sys.stderr,
               )
 
-          with open("issues_scorecard.md", "w") as f:
-              f.write(header + body)
+          header = (
+              f"# AI Review Scorecard\n\n"
+              f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
+          )
+          if miscredits:
+              header += (
+                  f"> ⚠ **{len(miscredits)} row(s) rated Found name a target that never appears "
+                  f"in the review** ({', '.join(miscredits)}). Adjusted Found: "
+                  f"**{adjusted_found}** of {row_total}. See the spot-check below.\n\n"
+              )
+          elif hedged:
+              header += (
+                  f"> ⚠ **{len(hedged)} row(s) rated Found concede in their own Note that the "
+                  f"review fell short** ({', '.join(h[0] for h in hedged)}). Plausible floor: "
+                  f"**{found_floor}** of {row_total}. See the spot-check below.\n\n"
+              )
+          elif scorer_mode_suspect:
+              header += (
+                  f"> **{rf} Found, zero Partial.** The spot-check below found no mis-credited "
+                  "watchlist rows, but a zero-Partial sheet is worth a second look.\n\n"
+              )
+
+          # Everything needed to reproduce this run, recorded from what was actually sent
+          # rather than from the config file, which may have moved on since.
+          try:
+              with open("metrics.json") as _mf:
+                  _rev = json.load(_mf).get("review", {})
+          except (FileNotFoundError, json.JSONDecodeError):
+              _rev = {}
+
+          def _val(v, blank="(model default)"):
+              if v is None or v == "":
+                  return blank
+              return f"`{v}`"
+
+          config_rows = [
+              ("Review model", _val(_rev.get("model"), "(unknown)")),
+              ("Reasoning strength (system prompt)", _val(_rev.get("reasoning"))),
+              ("Ollama `think`", _val(_rev.get("think"), "(unset)")),
+              ("Temperature", _val(_rev.get("temperature"), "(unknown)")),
+              ("top_p", _val(_rev.get("top_p"))),
+              ("top_k", _val(_rev.get("top_k"))),
+              ("num_ctx", _val(_rev.get("context_window"), "(unknown)")),
+              ("num_predict", _val(_rev.get("output_token_limit"), "(unknown)")),
+              ("Source truncated", _val("yes" if _rev.get("content_truncated") else "no")),
+              ("Review prompt SHA-256", _val(_rev.get("prompt_sha"), "(unknown)")),
+              ("Scorer model", _val(model, "(unknown)")),
+              ("Scorer temperature", _val(temperature, "(unknown)")),
+              ("Scorer reasoning", _val(scorer_reasoning)),
+              ("Scorer `think`", _val(payload.get("think"), "(unset)")),
+              ("Scorer attempts", _val(len(attempts))),
+              ("Grounding mode", _val(grounding_mode)),
+              ("Grounding downgrades", _val(len(grounding_downgrades))),
+              ("Scorer prompt SHA-256", _val(scorer_prompt_sha, "(unknown)")),
+              ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
+              ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
+          ]
+          spot_section = (
+              "\n---\n\n## Evidence Spot-Check\n\n"
+              "Fixed list of rows whose target is an unambiguous string. If the string appears "
+              "nowhere in the review, the review cannot have found that issue, so a `Found` "
+              "rating is a mis-credit. The converse does not hold: a present target is not "
+              "proof the rating is right.\n\n"
+              "| ID | Status | Target string | In review | Verdict |\n|---|---|---|---|---|\n"
+              + "".join(f"| {r[0]} | {r[1]} | `{r[2]}` | {r[3]} | {r[4]} |\n" for r in spot_rows)
+              + (f"\n**Adjusted Found: {adjusted_found} of {row_total}** "
+                 f"({rf} reported, less {len(miscredits)} mis-credited).\n"
+                 if miscredits else "\nNo mis-credits detected in the watchlist.\n")
+          )
+
+          if hedged:
+              spot_section += (
+                  "\n### Self-hedged ratings\n\n"
+                  "Rows rated `Found` whose own Note concedes the review did not cover the "
+                  "target. That phrasing describes a Partial; each is likely an over-credit, "
+                  "though a conceded detail can be incidental to the reference issue.\n\n"
+                  "| ID | Hedge | Note |\n|---|---|---|\n"
+                  + "".join(
+                      f"| {rid} | `{phrase}` | {note[:180].replace('|', '\\|')} |\n"
+                      for rid, phrase, note in hedged
+                  )
+                  + f"\n**Plausible floor: {found_floor} of {row_total}** "
+                    f"(adjusted {adjusted_found}, less {len([h for h in hedged if h[0] not in miscredits])} "
+                    "self-hedged).\n"
+              )
+
+          appendix = (
+              "\n---\n\n## Run Configuration\n\n"
+              "Values as actually sent to Ollama for this run. Blank sampler entries mean the "
+              "request omitted them, so the model's own Modelfile applied.\n\n"
+              "| Setting | Value |\n|---|---|\n"
+              + "".join(f"| {k} | {v} |\n" for k, v in config_rows)
+          )
+
+          with open("issues_scorecard.md", "w", encoding="utf-8") as f:
+              f.write(header + body + spot_section + appendix)
 
           def _ns_to_s(ns):
               return round(ns / 1e9, 1) if ns else 0.0
@@ -618,6 +726,17 @@ jobs:
               "found": rf, "partial": rp, "missed": rm,
               "total": row_total,
               "score_pct": round(rf / max(row_total, 1) * 100, 1),
+              "grounding_mode": grounding_mode,
+              "scoring_attempts": len(attempts),
+              "scorer_mode_suspect": scorer_mode_suspect,
+              "spotcheck_miscredits": miscredits,
+              "spotcheck_undercredits": undercredits,
+              "found_adjusted": adjusted_found,
+              "found_floor": found_floor,
+              "hedged_rows": [h[0] for h in hedged],
+              "score_pct_adjusted": round(adjusted_found / max(row_total, 1) * 100, 1),
+              "grounding_downgrades": len(grounding_downgrades),
+              "grounding_downgraded_ids": [r for r, _s, _b in grounding_downgrades],
           }
           try:
               with open("metrics.json") as mf:
@@ -680,6 +799,16 @@ jobs:
           done_scoring = s.get("done_reason", "")
           truncated    = r.get("content_truncated", False)
 
+          def _samp(key, label):
+              v = r.get(key)
+              return f"{label} {v}" if v is not None else f"{label} (model default)"
+
+          sampler = ", ".join([
+              f"temp {r.get('temperature', '?')}",
+              _samp("top_p", "top_p"),
+              _samp("top_k", "top_k"),
+          ])
+
           lines = [
               "# AI Model Performance Metrics\n",
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; "
@@ -690,6 +819,22 @@ jobs:
               f"{sc.get('missed','?')} Missed out of {sc.get('total','?')} issues "
               f"({sc.get('score_pct','?')}% Found)",
               "",
+              (f"> **⚠ Spot-check: {len(sc.get('spotcheck_miscredits', []))} row(s) rated Found "
+               f"({', '.join(sc.get('spotcheck_miscredits', []))}) name a target absent from the "
+               f"review. Adjusted: {sc.get('found_adjusted','?')} Found "
+               f"({sc.get('score_pct_adjusted','?')}%).**\n"
+               if sc.get("spotcheck_miscredits") else
+               f"> **⚠ {len(sc.get('hedged_rows', []))} row(s) rated Found concede in their own "
+               f"Note that the review fell short ({', '.join(sc.get('hedged_rows', []))}). "
+               f"Plausible floor: {sc.get('found_floor','?')} Found.**\n"
+               if sc.get("hedged_rows") else
+               "> Zero Partial ratings — spot-check found no mis-credits, but worth a second look.\n"
+               if sc.get("scorer_mode_suspect") else ""),
+              f"Scorer grounding: {sc.get('grounding_mode','?')} mode, "
+              f"{sc.get('grounding_downgrades', 0)} row(s) downgraded for unsupported evidence"
+              + (f" ({', '.join(sc.get('grounding_downgraded_ids', []))})"
+                 if sc.get('grounding_downgraded_ids') else ""),
+              "",
               "## Review Performance",
               f"**Model:** `{r.get('model','?')}`\n",
               "| Metric | Value |",
@@ -697,8 +842,12 @@ jobs:
               f"| Total time | {fmt_s(r.get('total_duration_s', 0))} |",
               f"| Model load time | {fmt_s(r.get('load_duration_s', 0))} |",
               f"| Inference time | {fmt_s(r.get('total_duration_s', 0) - r.get('load_duration_s', 0))} |",
+              f"| Sampler | {sampler} |",
+              f"| Reasoning | {_samp('reasoning', 'system')}, {_samp('think', 'think')} |",
               f"| Prompt tokens | {r.get('prompt_tokens', 0):,} |",
               f"| Output tokens | {out_tokens:,} of {out_limit:,} limit |",
+              f"| Answer / reasoning split | {r.get('content_chars', 0):,} chars answer, "
+              f"{r.get('thinking_chars', 0):,} chars reasoning |",
               f"| Output speed | {r.get('output_tps', 0)} tok/s |",
               f"| Prompt speed | {r.get('prompt_tps', 0)} tok/s |",
               f"| Context window | {r.get('context_window', 0):,} tokens |",
@@ -724,7 +873,7 @@ jobs:
               f"| Review + scoring time | {fmt_s(combined)} |",
           ]
 
-          with open("metrics.md", "w") as f:
+          with open("metrics.md", "w", encoding="utf-8") as f:
               f.write("\n".join(lines) + "\n")
 
           print("Metrics report saved to metrics.md")
