@@ -1,5 +1,9 @@
 name: AI Code Patch
 
+# Visible in the Actions run list so a past run's three models and the patcher's
+# sampler can be read off without opening it.
+run-name: "Patch ${{ inputs.patcher_model }} | reviewer ${{ inputs.reviewer_model }} | scorer ${{ inputs.scorer_model || inputs.reviewer_model }} | patch temp ${{ inputs.patch_temperature || vars.AI_PATCH_MODEL_TEMPERATURE || '0.2' }} ctx ${{ inputs.patch_num_ctx || vars.AI_PATCH_MODEL_NUM_CTX || '65536' }}/${{ inputs.patch_num_predict || vars.AI_PATCH_MODEL_NUM_PREDICT || '40000' }} | think p=${{ inputs.patch_think || vars.AI_PATCH_MODEL_THINK || 'unset' }} r=${{ inputs.reviewer_think || vars.AI_ASSISTANT_MODEL_THINK || 'unset' }} s=${{ inputs.scorer_think || vars.AI_ASSISTANT_SCORER_THINK || 'unset' }}"
+
 # Runs a specified coding-agent model against ISSUES.md as the fix spec,
 # applies the patched files to a scratch mirror of SampleBankingApp/, then
 # invokes the peer reviewer on the pristine tree (baseline) and the patched

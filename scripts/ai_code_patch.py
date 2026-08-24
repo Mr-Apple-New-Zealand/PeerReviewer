@@ -52,6 +52,7 @@ import json
 import os
 import re
 import shutil
+import hashlib
 import subprocess
 import sys
 from pathlib import Path
@@ -262,6 +263,84 @@ def run_reviewer(
     return json.loads(metrics_path.read_text(encoding="utf-8"))
 
 
+def build_run_config(
+    patcher_model: str,
+    reviewer_model: str,
+    scorer_model: str,
+    patcher_metrics: dict,
+    baseline_metrics: dict | None,
+    post_metrics: dict,
+) -> str:
+    """Everything needed to re-dispatch this exact run.
+
+    Recorded from the environment and the responses as they actually were, not from
+    the workflow file, which may have moved on. Three separate model roles each with
+    their own sampler is more configuration than anyone reconstructs from memory.
+    """
+    def val(v, blank="(model default)"):
+        return f"`{v}`" if v not in (None, "") else blank
+
+    def env(name, blank="(model default)"):
+        return val((os.environ.get(name) or "").strip() or None, blank)
+
+    rev = (post_metrics or {}).get("review", {})
+    sco = (post_metrics or {}).get("scoring", {})
+
+    rows = [
+        ("**Patcher**", ""),
+        ("Model", val(patcher_model)),
+        ("Temperature", val(patcher_metrics.get("temperature") or os.environ.get("AI_PATCH_MODEL_TEMPERATURE"))),
+        ("num_ctx / num_predict",
+         f"{val(patcher_metrics.get('context_window'))} / {val(patcher_metrics.get('output_token_limit'))}"),
+        ("Reasoning / `think`", f"{env('AI_PATCH_MODEL_REASONING')} / {env('AI_PATCH_MODEL_THINK', '(unset)')}"),
+        ("Source truncated", val("yes" if patcher_metrics.get("content_truncated") else "no")),
+        ("**Reviewer**", ""),
+        ("Model", val(reviewer_model)),
+        ("Temperature", val(rev.get("temperature") or os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE"))),
+        ("num_ctx / num_predict",
+         f"{val(rev.get('context_window'))} / {val(rev.get('output_token_limit'))}"),
+        ("Reasoning / `think`",
+         f"{val(rev.get('reasoning'))} / {val(rev.get('think'), '(unset)')}"),
+        ("Source truncated", val("yes" if rev.get("content_truncated") else "no")),
+        ("Review prompt SHA-256", val(rev.get("prompt_sha"), "(unknown)")),
+        ("**Scorer**", ""),
+        ("Model", val(scorer_model)),
+        ("Temperature", env("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3")),
+        ("num_predict", env("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000")),
+        ("Reasoning / `think`",
+         f"{env('AI_ASSISTANT_SCORER_REASONING')} / {env('AI_ASSISTANT_SCORER_THINK', '(unset)')}"),
+        ("Grounding mode", env("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce")),
+        ("**Reference**", ""),
+        ("ISSUES.md SHA-256", val(_sha_of(REPO_ROOT / "ISSUES.md"), "(unknown)")),
+        ("Scorer prompt SHA-256", val(_sha_of(REPO_ROOT / "scorer_prompt.md"), "(unknown)")),
+        ("Review prompt SHA-256", val(_sha_of(REPO_ROOT / "review_prompt.md"), "(unknown)")),
+    ]
+    lines = [
+        "## Run Configuration",
+        "",
+        "Values as actually used, so this run can be re-dispatched exactly. Blank sampler "
+        "entries mean the request omitted them and the model's own Modelfile applied.",
+        "",
+        "| Setting | Value |",
+        "|---|---|",
+    ]
+    lines += [f"| {k} | {v} |" for k, v in rows]
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _sha_of(path) -> str | None:
+    try:
+        # Normalise line endings: a Windows checkout is CRLF and the runner is LF,
+        # so raw bytes made identical content hash differently by platform.
+        text = Path(path).read_text(encoding='utf-8', errors='replace')
+        return hashlib.sha256(
+            text.replace("\r\n", "\n").encode("utf-8")
+        ).hexdigest()[:12]
+    except OSError:
+        return None
+
+
 def run_patch_checks(scratch_source_root) -> tuple[dict, str]:
     """Inspect the patched tree directly for each seeded bug's marker.
 
@@ -292,6 +371,7 @@ def write_comparison_report(
     rejected_paths: list[str],
     checks: dict | None = None,
     checks_section: str = "",
+    config_section: str = "",
 ) -> None:
     def score(m: dict | None) -> dict:
         if not m:
@@ -448,6 +528,9 @@ def write_comparison_report(
         lines += ["## Files patched", ""]
         lines += [f"- `{p}`" for p in patched_paths]
         lines.append("")
+
+    if config_section:
+        lines += ["", config_section]
 
     if checks_section:
         lines += ["", checks_section]
@@ -625,6 +708,10 @@ def main() -> int:
 
     patched_paths = sorted(blocks.keys())
     checks, checks_section = run_patch_checks(scratch_root / "SampleBankingApp")
+    config_section = build_run_config(
+        patcher_model, reviewer_model, scorer_model,
+        patcher_metrics, baseline_metrics, post_metrics,
+    )
     write_comparison_report(
         output_dir,
         patcher_model,
@@ -637,6 +724,7 @@ def main() -> int:
         rejected,
         checks,
         checks_section,
+        config_section,
     )
 
     print()

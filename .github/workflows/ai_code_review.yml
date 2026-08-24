@@ -1,5 +1,10 @@
 name: AI Code Review
 
+# Shown in the Actions run list instead of the workflow name, so the exact
+# configuration of a past run is visible without opening it or downloading the
+# artifact. Mirrors the env defaults below -- keep the two in step.
+run-name: "Review ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}/${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK || 'unset' }} | top_p ${{ inputs.top_p || vars.AI_ASSISTANT_MODEL_TOP_P || 'modelfile' }} | top_k ${{ inputs.top_k || vars.AI_ASSISTANT_MODEL_TOP_K || 'modelfile' }}"
+
 on:
   workflow_dispatch:
     inputs:
@@ -115,6 +120,15 @@ jobs:
       # Collect every tracked source file on the branch into a single document
       # so the model reviews the full codebase, not just what changed.
       # -----------------------------------------------------------------------
+      - name: Resolve run identity
+        id: cfg
+        run: |
+          # GitHub artifact names disallow: " : < > | * ? \ /  — squash them so a tag
+          # like 'Qwen3.6-27B:Q4_K_S' survives into the filename.
+          SAFE_MODEL=$(printf '%s' "$OLLAMA_MODEL" | tr ':"<>|*?\\/' '-')
+          echo "safe_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
+          echo "Model under test: $OLLAMA_MODEL  (artifact slug: ${SAFE_MODEL})"
+
       - name: Collect branch source files
         id: diff
         run: |
@@ -212,6 +226,16 @@ jobs:
               diff=diff,
               truncation_note=truncation_note,
           )
+
+          def _text_sha(text: str) -> str:
+              """SHA-256 of the content with line endings normalised.
+
+              Windows checkouts are CRLF and the Linux runner is LF, so hashing the
+              raw bytes made the same file hash differently by platform.
+              """
+              return hashlib.sha256(
+                  text.replace("\r\n", "\n").encode("utf-8")
+              ).hexdigest()[:12]
 
           num_predict = num_predict_tokens
           temperature = float(os.environ.get("AI_ASSISTANT_MODEL_TEMPERATURE", "0.3"))
@@ -331,7 +355,7 @@ jobs:
               "top_k": options.get("top_k"),
               "reasoning": reasoning or None,
               "think": payload.get("think"),
-              "prompt_sha": hashlib.sha256(prompt_template.encode("utf-8")).hexdigest()[:12],
+              "prompt_sha": _text_sha(prompt_template),
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
@@ -401,13 +425,19 @@ jobs:
 
           with open("ISSUES.md", "r", encoding="utf-8", errors="replace") as f:
               issues = f.read()
-          issues_sha = hashlib.sha256(issues.encode("utf-8")).hexdigest()[:12]
+          def _text_sha(text: str) -> str:
+              """SHA-256 with line endings normalised -- see the review step."""
+              return hashlib.sha256(
+                  text.replace("\r\n", "\n").encode("utf-8")
+              ).hexdigest()[:12]
+
+          issues_sha = _text_sha(issues)
 
           # Scoring instructions live in scorer_prompt.md so this workflow and
           # scorer_benchmark.yml cannot drift apart -- they already had.
           with open("scorer_prompt.md", encoding="utf-8") as f:
               preamble = f.read()
-          scorer_prompt_sha = hashlib.sha256(preamble.encode("utf-8")).hexdigest()[:12]
+          scorer_prompt_sha = _text_sha(preamble)
 
           num_ctx = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "32768"))
           num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
@@ -908,7 +938,8 @@ jobs:
         if: steps.diff.outputs.empty == 'false'
         uses: actions/upload-artifact@v7
         with:
-          name: ai-review-${{ github.ref_name }}-${{ github.run_number }}
+          # Model, not branch: a branch is a label, the model is what was measured.
+          name: ai-review-${{ steps.cfg.outputs.safe_model }}-${{ github.run_number }}
           path: |
             review.md
             issues_scorecard.md
