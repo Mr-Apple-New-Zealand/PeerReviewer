@@ -1,25 +1,32 @@
 # AI Model Performance Metrics
 
-> **Branch:** `MiniMax-M2.7` &nbsp;·&nbsp; **Commit:** `53f7cf1` &nbsp;·&nbsp; **Run:** #113
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `7edff07` &nbsp;·&nbsp; **Run:** #163
 
 
 ## Score
-Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
+Total: 65 Found / 0 Partial / 5 Missed out of 70 issues (92.9% Found)
+
+> **⚠ Spot-check: 3 row(s) rated Found (D4, D5, D6) name a target absent from the review. Adjusted: 62 Found (88.6%).**
+
+Scorer grounding: enforce mode, 0 row(s) downgraded for unsupported evidence
 
 ## Review Performance
 **Model:** `MiniMax-M2.7:Q3_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 3m 19s |
-| Model load time | 15.2s |
-| Inference time | 3m 4s |
-| Prompt tokens | 7,290 |
-| Output tokens | 1,357 of 24,000 limit |
-| Output speed | 8.9 tok/s |
-| Prompt speed | 249.3 tok/s |
-| Context window | 49,152 tokens |
-| Context utilization | 17.6% |
+| Total time | 6m 8s |
+| Model load time | 0.2s |
+| Inference time | 6m 8s |
+| Sampler | temp 0.3, top_p (model default), top_k (model default) |
+| Reasoning | system (model default), think (model default) |
+| Prompt tokens | 10,533 |
+| Output tokens | 5,512 of 40,000 limit |
+| Answer / reasoning split | 16,875 chars answer, 6,228 chars reasoning |
+| Output speed | 16.1 tok/s |
+| Prompt speed | 415.8 tok/s |
+| Context window | 65,536 tokens |
+| Context utilization | 24.5% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +35,15 @@ Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 46.3s |
-| Model load time | 7.5s |
-| Prompt tokens | 6,364 |
-| Output tokens | 4,986 |
-| Output speed | 136.8 tok/s |
-| Prompt speed | 5795.3 tok/s |
+| Total time | 38.6s |
+| Model load time | 8.4s |
+| Prompt tokens | 9,480 |
+| Output tokens | 4,480 |
+| Output speed | 156.5 tok/s |
+| Prompt speed | 6077.3 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 4m 5s |
+| Review + scoring time | 6m 47s |
