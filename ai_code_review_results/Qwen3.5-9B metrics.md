@@ -1,25 +1,31 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Qwen3.5-9B` &nbsp;·&nbsp; **Commit:** `71872c4` &nbsp;·&nbsp; **Run:** #109
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `9e0947e` &nbsp;·&nbsp; **Run:** #169
 
 
 ## Score
-Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
+Total: 21 Found / 27 Partial / 22 Missed out of 70 issues (30.0% Found)
+
+
+Scorer grounding: enforce mode, 19 row(s) downgraded for unsupported evidence (C4, C6, C7, C10, C11, L1, L5, E6, RL2, RL5, N7, M2, M4, D7, D9, A5, CF4, CF8, CF9)
 
 ## Review Performance
 **Model:** `Qwen3.5-9B-imatrix:Q4_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 1m 45s |
-| Model load time | 2.0s |
-| Inference time | 1m 43s |
-| Prompt tokens | 7,880 |
-| Output tokens | 9,217 of 24,000 limit |
-| Output speed | 93.3 tok/s |
-| Prompt speed | 5882.0 tok/s |
-| Context window | 49,152 tokens |
-| Context utilization | 34.8% |
+| Total time | 1m 46s |
+| Model load time | 24.1s |
+| Inference time | 1m 22s |
+| Sampler | temp 0.3, top_p (model default), top_k (model default) |
+| Reasoning | system (model default), think medium |
+| Prompt tokens | 11,867 |
+| Output tokens | 8,736 of 40,000 limit |
+| Answer / reasoning split | 8,582 chars answer, 26,827 chars reasoning |
+| Output speed | 108.8 tok/s |
+| Prompt speed | 8127.3 tok/s |
+| Context window | 65,536 tokens |
+| Context utilization | 31.4% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +34,15 @@ Total: 63 Found / 7 Partial / 0 Missed out of 70 issues (90.0% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 41.4s |
-| Model load time | 3.2s |
-| Prompt tokens | 13,990 |
-| Output tokens | 4,094 |
-| Output speed | 119.6 tok/s |
-| Prompt speed | 5162.5 tok/s |
+| Total time | 30.8s |
+| Model load time | 3.8s |
+| Prompt tokens | 7,445 |
+| Output tokens | 4,209 |
+| Output speed | 163.5 tok/s |
+| Prompt speed | 6317.7 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 2m 27s |
+| Review + scoring time | 2m 17s |
