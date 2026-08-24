@@ -1,25 +1,31 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Gemma-4` &nbsp;·&nbsp; **Commit:** `9de0321` &nbsp;·&nbsp; **Run:** #105
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `3d4ff91` &nbsp;·&nbsp; **Run:** #158
 
 
 ## Score
-Total: 44 Found / 26 Partial / 0 Missed out of 70 issues (62.9% Found)
+Total: 45 Found / 25 Partial / 0 Missed out of 70 issues (64.3% Found)
+
+
+Scorer grounding: enforce mode, 0 row(s) downgraded for unsupported evidence
 
 ## Review Performance
 **Model:** `Gemma-4-31B-it-imatrix:Q4_K_M`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 2m 15s |
-| Model load time | 2.9s |
-| Inference time | 2m 12s |
-| Prompt tokens | 8,239 |
-| Output tokens | 3,769 of 24,000 limit |
-| Output speed | 29.6 tok/s |
-| Prompt speed | 2449.3 tok/s |
-| Context window | 49,152 tokens |
-| Context utilization | 24.4% |
+| Total time | 4m 42s |
+| Model load time | 1m 9s |
+| Inference time | 3m 33s |
+| Sampler | temp 0.3, top_p (model default), top_k (model default) |
+| Reasoning | system (model default), think (model default) |
+| Prompt tokens | 12,206 |
+| Output tokens | 6,249 of 40,000 limit |
+| Answer / reasoning split | 11,144 chars answer, 11,468 chars reasoning |
+| Output speed | 30.1 tok/s |
+| Prompt speed | 2305.8 tok/s |
+| Context window | 65,536 tokens |
+| Context utilization | 28.2% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -28,15 +34,15 @@ Total: 44 Found / 26 Partial / 0 Missed out of 70 issues (62.9% Found)
 
 | Metric | Value |
 |--------|-------|
-| Total time | 32.5s |
-| Model load time | 2.5s |
-| Prompt tokens | 6,688 |
-| Output tokens | 3,806 |
-| Output speed | 137.5 tok/s |
-| Prompt speed | 5532.1 tok/s |
+| Total time | 33.5s |
+| Model load time | 3.7s |
+| Prompt tokens | 8,130 |
+| Output tokens | 4,291 |
+| Output speed | 151.0 tok/s |
+| Prompt speed | 5923.7 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 2m 48s |
+| Review + scoring time | 5m 15s |
