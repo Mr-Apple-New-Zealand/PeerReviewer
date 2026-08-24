@@ -1,42 +1,48 @@
 # AI Model Performance Metrics
 
-> **Branch:** `Qwen3.5-0.8B` &nbsp;·&nbsp; **Commit:** `90f61e1` &nbsp;·&nbsp; **Run:** #111
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `46d4dd3` &nbsp;·&nbsp; **Run:** #165
 
 
 ## Score
-Total: 38 Found / 32 Partial / 0 Missed out of 70 issues (54.3% Found)
+Total: 6 Found / 31 Partial / 33 Missed out of 70 issues (8.6% Found)
+
+
+Scorer grounding: enforce mode, 3 row(s) downgraded for unsupported evidence (D2, D6, UT)
 
 ## Review Performance
 **Model:** `Qwen3.5-0.8B-imatrix:Q4_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 1m 33s |
-| Model load time | 1.5s |
-| Inference time | 1m 32s |
-| Prompt tokens | 7,886 |
-| Output tokens | 24,000 of 24,000 limit |
-| Output speed | 306.9 tok/s |
-| Prompt speed | 14409.6 tok/s |
-| Context window | 49,152 tokens |
-| Context utilization | 64.9% |
+| Total time | 12.1s |
+| Model load time | 0.3s |
+| Inference time | 11.8s |
+| Sampler | temp 0.3, top_p (model default), top_k (model default) |
+| Reasoning | system (model default), think medium |
+| Prompt tokens | 11,862 |
+| Output tokens | 3,901 of 40,000 limit |
+| Answer / reasoning split | 6,872 chars answer, 8,724 chars reasoning |
+| Output speed | 341.2 tok/s |
+| Prompt speed | 38706.9 tok/s |
+| Context window | 65,536 tokens |
+| Context utilization | 24.1% |
 | Content truncated | No |
-| Completed naturally | No ⚠ (hit token limit) |
+| Completed naturally | Yes |
 
 ## Scoring Performance
 **Model:** `Qwen3-Coder-30B-imatrix:Q3_K_M`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 41.6s |
-| Model load time | 3.2s |
-| Prompt tokens | 20,947 |
-| Output tokens | 3,555 |
-| Output speed | 107.6 tok/s |
-| Prompt speed | 4888.8 tok/s |
+| Total time | 28.8s |
+| Model load time | 4.1s |
+| Prompt tokens | 7,038 |
+| Output tokens | 3,895 |
+| Output speed | 165.5 tok/s |
+| Prompt speed | 6278.2 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 2m 15s |
+| Review + scoring time | 40.9s |
