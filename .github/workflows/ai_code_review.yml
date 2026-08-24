@@ -45,7 +45,13 @@ permissions:
   contents: read
 
 env:
+  # On-prem Ollama used for any model tag NOT ending in ':cloud'.
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  # Hosted Ollama cloud — used automatically for ':cloud' model tags. Kept
+  # identical to ai_code_patch.yml and scorer_benchmark.yml.
+  OLLAMA_CLOUD_URL: https://ollama.com
+  # Bearer token; sent ONLY to the cloud endpoint by resolve_endpoint().
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
   # ---------------------------------------------------------------------------
   # Per-run knobs. Precedence: workflow_dispatch input > repo variable > default.
   # These are job-level and authoritative -- do NOT redeclare any of them in a step's
@@ -129,6 +135,18 @@ jobs:
           echo "safe_model=${SAFE_MODEL}" >> "$GITHUB_OUTPUT"
           echo "Model under test: $OLLAMA_MODEL  (artifact slug: ${SAFE_MODEL})"
 
+          # Cloud models need an API key. resolve_endpoint() would also catch this,
+          # but the SCORER is not resolved until after a multi-minute review has
+          # already run -- so check both models up front. Mirrors ai_code_patch.yml.
+          NEEDS_KEY='false'
+          for m in "$OLLAMA_MODEL" '${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}'; do
+            case "$m" in *:cloud) NEEDS_KEY='true' ;; esac
+          done
+          if [ "$NEEDS_KEY" = 'true' ] && [ -z "$OLLAMA_API_KEY" ]; then
+            echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
+            exit 1
+          fi
+
       - name: Collect branch source files
         id: diff
         run: |
@@ -190,8 +208,37 @@ jobs:
 
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
-          model = os.environ.get("OLLAMA_MODEL")
-          base_url = os.environ.get("OLLAMA_URL")
+          model = (os.environ.get("OLLAMA_MODEL") or "").strip()
+
+          def resolve_endpoint(m):
+              """Pick the Ollama base URL + API key for a model tag.
+
+              The tag is the only signal: a ':cloud' suffix routes to
+              OLLAMA_CLOUD_URL with OLLAMA_API_KEY as a Bearer token; anything
+              else goes to on-prem OLLAMA_URL with NO auth header, because local
+              Ollama rejects Authorization with 400. Fails loudly rather than
+              silently sending a local request to the cloud or vice versa.
+
+              Mirrors resolve_endpoint() in scripts/ai_code_review.py -- keep the
+              two in step.
+              """
+              cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+              onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
+              api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+              if m.endswith(":cloud"):
+                  if not cloud_url:
+                      print(f"ERROR: Model '{m}' is a cloud model but OLLAMA_CLOUD_URL is empty.", file=sys.stderr)
+                      sys.exit(1)
+                  if not api_key:
+                      print(f"ERROR: Model '{m}' requires OLLAMA_API_KEY to be set.", file=sys.stderr)
+                      sys.exit(1)
+                  return cloud_url, api_key
+              if not onprem_url:
+                  print(f"ERROR: Model '{m}' is a local model but OLLAMA_URL is not set.", file=sys.stderr)
+                  sys.exit(1)
+              return onprem_url, None
+
+          base_url, api_key = resolve_endpoint(model)
 
           with open("branch_content.txt", "r", encoding="utf-8", errors="replace") as f:
               diff = f.read()
@@ -292,16 +339,16 @@ jobs:
 
           print(f"Calling {base_url}/api/chat with model {model} …")
 
-          result = subprocess.run(
-              [
-                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                  "-X", "POST", f"{base_url}/api/chat",
-                  "-H", "Content-Type: application/json",
-                  "-d", "@payload.json",
-              ],
-              capture_output=True,
-              text=True,
-          )
+          curl_cmd = [
+              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+              "-X", "POST", f"{base_url}/api/chat",
+              "-H", "Content-Type: application/json",
+          ]
+          if api_key:
+              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+          curl_cmd += ["-d", "@payload.json"]
+
+          result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
           if result.returncode != 0:
               print(
@@ -415,8 +462,39 @@ jobs:
           python3 - <<'PYEOF'
           import hashlib, json, os, re, subprocess, sys
 
-          model = os.environ.get("SCORECARD_MODEL", os.environ.get("OLLAMA_MODEL"))
-          base_url = os.environ.get("OLLAMA_URL")
+          # `or` not a get() default: an unset repo variable arrives as "", which
+          # a default would not replace, leaving the scorer model blank.
+          model = (os.environ.get("SCORECARD_MODEL") or os.environ.get("OLLAMA_MODEL") or "").strip()
+
+          def resolve_endpoint(m):
+              """Pick the Ollama base URL + API key for a model tag.
+
+              The tag is the only signal: a ':cloud' suffix routes to
+              OLLAMA_CLOUD_URL with OLLAMA_API_KEY as a Bearer token; anything
+              else goes to on-prem OLLAMA_URL with NO auth header, because local
+              Ollama rejects Authorization with 400. Fails loudly rather than
+              silently sending a local request to the cloud or vice versa.
+
+              Mirrors resolve_endpoint() in scripts/ai_code_review.py -- keep the
+              two in step.
+              """
+              cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
+              onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
+              api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+              if m.endswith(":cloud"):
+                  if not cloud_url:
+                      print(f"ERROR: Model '{m}' is a cloud model but OLLAMA_CLOUD_URL is empty.", file=sys.stderr)
+                      sys.exit(1)
+                  if not api_key:
+                      print(f"ERROR: Model '{m}' requires OLLAMA_API_KEY to be set.", file=sys.stderr)
+                      sys.exit(1)
+                  return cloud_url, api_key
+              if not onprem_url:
+                  print(f"ERROR: Model '{m}' is a local model but OLLAMA_URL is not set.", file=sys.stderr)
+                  sys.exit(1)
+              return onprem_url, None
+
+          base_url, api_key = resolve_endpoint(model)
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
 
@@ -494,16 +572,16 @@ jobs:
               suffix = "" if attempt == 1 else f" [attempt {attempt}]"
               print(f"Scoring with {model} (review was by {review_model}){suffix} …")
 
-              result = subprocess.run(
-                  [
-                      "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-                      "-X", "POST", f"{base_url}/api/chat",
-                      "-H", "Content-Type: application/json",
-                      "-d", "@scoring_payload.json",
-                  ],
-                  capture_output=True,
-                  text=True,
-              )
+              curl_cmd = [
+                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/api/chat",
+                  "-H", "Content-Type: application/json",
+              ]
+              if api_key:
+                  curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+              curl_cmd += ["-d", "@scoring_payload.json"]
+
+              result = subprocess.run(curl_cmd, capture_output=True, text=True)
 
               if result.returncode != 0:
                   print(
