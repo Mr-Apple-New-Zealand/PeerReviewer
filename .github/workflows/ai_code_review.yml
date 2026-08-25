@@ -989,6 +989,17 @@ jobs:
               + (f"\n**Adjusted Found: {adjusted_found} of {row_total}** "
                  f"({rf} reported, less {len(miscredits)} mis-credited).\n"
                  if miscredits else "\nNo mis-credits detected in the watchlist.\n")
+              # The under-credit direction. Never deducted and never added: a
+              # present target is not proof the review covered the issue, the
+              # same asymmetry that stops a present target from confirming a
+              # Found. Reported so a false Missed is at least visible -- it
+              # costs the model a point and nothing else in the harness looks
+              # for it.
+              + (f"\n> **{len(undercredits)} row(s) rated `Partial`/`Missed` whose target "
+                 f"string IS present in the review** ({', '.join(undercredits)}). "
+                 f"The score is left as the scorer rated it; read these rows before "
+                 f"trusting the Missed count.\n"
+                 if undercredits else "")
           )
 
           if hedged:

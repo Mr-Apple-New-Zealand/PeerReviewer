@@ -1,0 +1,100 @@
+# MiniMax-M2.7 Q3_K_S for the PeerReviewer benchmark.
+#
+# THE BUG THIS FIXES
+# ------------------
+# The upstream quant ships two stop strings that do not belong to this
+# architecture:  stop "<|im_end|>"  and  stop "</think>".
+#
+# MiniMax-M2 is not a ChatML model. Its role markers are ]~!b[ ]~b]system
+# ]~b]user ]~b]ai ]~b]tool with [e~[ as the message end, and eos_token_id
+# 200020 -- so "<|im_end|>" is never emitted and that stop is simply inert.
+# It is the second one that breaks the model: M2.7 emits <think>...</think>
+# and THEN the answer, so stopping on "</think>" ends generation at the exact
+# moment reasoning finishes. Ollama routes reasoning into message.thinking,
+# so the caller receives thinking=N chars, content=0 chars, done_reason=stop.
+# Verified twice in ai_code_review.yml (runs with thinking=7033 and
+# thinking=8837 chars, both content=0, both done_reason=stop at ~2k of the
+# 40000 num_predict budget -- not a length problem).
+#
+# Redeclaring PARAMETER stop in a child Modelfile REPLACES the inherited list
+# rather than appending to it (verified against a scratch model), so the single
+# line below is enough to drop both bad stops. [e~[ is the model's real
+# end-of-message marker; EOS 200020 terminates normally regardless.
+#
+# Do NOT add a custom TEMPLATE here. Overriding it with something like
+# {{ .Prompt }} discards the ]~b]ai role framing the model was trained on, and
+# because such a template never references {{ .System }} it silently drops any
+# SYSTEM block too. The inherited template is correct -- leave it alone.
+# TEMPLATE: leave it alone, and note it is not what you think.
+# An earlier build clobbered this tag with TEMPLATE """{{ .Prompt }}""", which
+# `ollama show --modelfile` still reports. That line is INERT for this model:
+# Ollama uses a built-in renderer for the minimax-m2 architecture, and
+# /api/show returns the real 6512-char Jinja template (]~b]ai, ]~b]user, [e~[,
+# <minimax:tool_call>) regardless of the Modelfile TEMPLATE.
+#
+# Verified functionally against 192.168.10.100: an API system message saying
+# "reply with exactly PINEAPPLE" was quoted back in the model's reasoning and
+# obeyed. A {{ .Prompt }} template has no {{ .System }} reference and would
+# have dropped it silently, so the built-in renderer is demonstrably in charge.
+# The `thinking` and `tools` capabilities confirm it -- {{ .Prompt }} carries no
+# think markers, so those can only come from the renderer.
+#
+# Consequence: do NOT re-import from the GGUF to "repair" the template. There is
+# nothing to repair. Also note `"think": false` in a request is IGNORED by this
+# model -- it reasons regardless.
+FROM MiniMax-M2.7:Q3_K_S
+
+PARAMETER stop "[e~["
+
+# 65536 is well inside the native limit (config.json max_position_embeddings
+# 204800; Ollama reports 196608), so no rope scaling is involved.
+# KV cache at 62 layers / 8 KV heads / head_dim 128 is ~0.24 MiB per token:
+# ~15.5 GiB here against ~9.7 GiB at the stock 40960. Use
+# OLLAMA_KV_CACHE_TYPE=q8_0 to halve it if this spills out of VRAM.
+PARAMETER num_ctx 65536
+
+# Vendor-recommended samplers, from the model card and generation_config.json.
+# Ollama's own defaults (temp 0.8, top_p 0.9) are NOT these.
+#
+# Note that temperature here is inert for benchmark runs: ai_code_review.yml
+# always sends AI_ASSISTANT_MODEL_TEMPERATURE (default 0.3), and a request
+# option overrides the Modelfile. top_p/top_k ARE left blank by the workflow,
+# so those two do take effect.
+PARAMETER temperature 1.0
+PARAMETER top_p 0.95
+PARAMETER top_k 40
+
+# The base tag carries a leftover SYSTEM block from the misdiagnosis phase:
+#   "You must output your thoughts inside clear <think> and </think> tags ..."
+# That instruction is at best redundant -- the model has a native thinking
+# capability and Ollama parses reasoning into message.thinking -- and at worst
+# it presses the model to emit the very "</think>" string that the old bad stop
+# was truncating on. It also displaces MiniMax's own default system prompt.
+#
+# It cannot be blanked: SYSTEM """""" is IGNORED by ollama create and the
+# inherited value survives (verified against a scratch model). Only a non-empty
+# SYSTEM replaces it. So restore the model card's documented default here.
+# Clearing it outright would require rebuilding from the GGUF.
+#
+# Note this only matters if the TEMPLATE references {{ .System }} -- see the
+# pre-flight check above. A {{ .Prompt }} template drops SYSTEM silently.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+#
+# This replaces two earlier attempts on this model: the vendor default
+# ("Your name is MiniMax-M2.7..."), and a "Be exhaustive rather than brief"
+# variant that drove a 45-minute run straight through the num_predict cap.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

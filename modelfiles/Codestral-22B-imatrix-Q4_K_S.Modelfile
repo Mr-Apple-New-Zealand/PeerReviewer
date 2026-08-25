@@ -1,0 +1,98 @@
+# Codestral-22B-v0.1, cleaned up for benchmark use.
+# https://huggingface.co/mistralai/Codestral-22B-v0.1
+#
+# INSTRUCT-ONLY, and narrower than the rest of the fleet: `ollama show` reports
+# capabilities ['completion'] -- no thinking AND no tools. Both are correct for
+# Codestral v0.1. Leave AI_ASSISTANT_MODEL_THINK unset or Ollama rejects the
+# request, as with Devstral and Qwen3-Coder-Next.
+#
+# Built FROM the blob to clear the inherited SYSTEM block (an empty
+# SYSTEM """""" is ignored by ollama create -- verified).
+FROM /san/models/blobs/sha256-60f3f171ce03488943bb63f56e149d48c984b27c6aceb7141c3f65dae9c0b6a8
+
+# --- TEMPLATE: declared deliberately -------------------------------------
+# Correct Mistral v3 format -- <s>, [SYSTEM_PROMPT], [INST]/[/INST], </s>.
+# Nothing to fix, so it is reproduced verbatim rather than re-derived from the
+# GGUF. (Contrast the Qwen files, which drop TEMPLATE because those builds were
+# carrying a pasted Qwen3-Coder template.)
+#
+# Note it has no [SUFFIX]/[PREFIX] handling, so Ollama exposes no "insert"
+# capability and fill-in-the-middle is unavailable -- the card does document
+# FIM via encode_fim. Irrelevant for code review; relevant if this tag is ever
+# pointed at a completion tool.
+TEMPLATE """<s>{{ if .System }}[SYSTEM_PROMPT]{{ .System }}[/SYSTEM_PROMPT]
+{{ end }}{{ range .Messages }}{{ if eq .Role "user" }}[INST] {{ .Content }} [/INST]{{ else if eq .Role "assistant" }}{{ .Content }}</s>
+{{ end }}{{ end }}"""
+
+# --- Stops -----------------------------------------------------------------
+# Already correct on this build: </s> is the genuine Mistral EOS and the only
+# stop declared. Nothing to strip here -- unlike the Devstral build, which had
+# seven Cline/Roo agentic tags bolted on.
+PARAMETER stop "</s>"
+
+# --- Samplers --------------------------------------------------------------
+# The card prescribes NOTHING -- no temperature, top_p, top_k, min_p or
+# repetition_penalty. So there is no card value to align to.
+#
+# What the build carried was temperature 0.6 / top_k 20 / top_p 0.8: the same
+# triple found on Qwen3-32B, Qwen3-Coder-Next and Devstral-2-123B. That is
+# contamination from a Qwen Modelfile, not a choice made for Codestral.
+# Replaced with neutral values so temperature -- which the harness controls --
+# is the only thing shaping the distribution.
+PARAMETER top_p 1.0
+PARAMETER top_k 0
+PARAMETER min_p 0
+
+# Left at 1.05. This one probably IS copied from the Qwen builds too, but it is
+# very mild, the card offers no alternative, and dropping repetition damping
+# entirely on a 22B writing a long repetitive markdown table has its own risk.
+# Changed only if a run shows looping.
+PARAMETER repeat_penalty 1.05
+
+# --- Context: the harness exceeds this model's limit -----------------------
+# 32768 is the hard ceiling -- llama.context_length in the GGUF, and Codestral
+# v0.1 is a 32k model. The build already had this right.
+#
+# The benchmark sends num_ctx 65536, i.e. TWICE what this model supports, which
+# overrides the line below. In practice it has not bitten: run #112 used 9,146
+# prompt + 2,251 output = 11,397 tokens, roughly a third of the real window.
+# But nothing warns you if a future run generates more, and positions past
+# 32768 were never trained.
+#
+# Same class of issue as Qwen3-32B (ceiling 40960), and unlike Devstral, where
+# 65536 is a deliberate reduction from a 262144-capable model. Flagged rather
+# than silently special-cased: a per-model num_ctx breaks cohort uniformity and
+# the source budget is (num_ctx - num_predict - 500) * 2.5 chars, so lowering
+# num_ctx without lowering num_predict truncates the codebase listing instead.
+PARAMETER num_ctx 32768
+
+# Carried over from the existing build and inert for benchmark runs -- the
+# workflow always sends temperature. The card recommends no value, so there is
+# nothing better to put here.
+PARAMETER temperature 0.6
+
+# --- No SYSTEM block ------------------------------------------------------
+# Previously: "You are a helpful assistant". The card does not mention system
+# prompts as supported or recommended for this model at all. Task framing
+# belongs in review_prompt.md and the patcher prompt, which are SHA-tracked in
+# every scorecard; a Modelfile SYSTEM appears nowhere in the artefact.
+#
+# Two card notes worth recording: Codestral-22B-v0.1 "does not have any
+# moderation mechanisms", and it ships under the MNPL-0.1 licence, which is
+# non-production. Fine for benchmarking; check before any other use.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

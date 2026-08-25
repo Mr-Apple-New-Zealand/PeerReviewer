@@ -1,0 +1,102 @@
+# Qwen3-32B, realigned to the model card.
+# https://huggingface.co/Qwen/Qwen3-32B
+#
+# ############################################################################
+# TWO SERIOUS DEFECTS IN THE EXISTING BUILD
+#
+# 1. THINKING IS DISABLED. `ollama show` reports capabilities
+#    ['completion','tools','insert'] and a 1917-char Go template carrying
+#    <|fim_prefix|> FIM tokens and Coder's <tool_call><function=...> format.
+#    That is the Qwen3-Coder-Next template, pasted onto a model whose card
+#    says thinking is DEFAULT-ENABLED. Identical defect to the
+#    Qwen3.5-122B build. Declaring no TEMPLATE below makes Ollama re-derive
+#    the real one from the GGUF; the same fix was verified on the 122B, where
+#    a bare import restored "thinking" to the capability list.
+#
+# 2. num_ctx WAS 262144, AGAINST A MODEL THAT TOPS OUT AT 40960.
+#    The GGUF reports qwen3.context_length = 40960; the card says "32,768
+#    natively", extensible to 131,072 only by explicitly enabling YaRN, which
+#    it warns against for shorter texts. 262144 is over 6x the real limit.
+#    See the num_ctx note below -- this one also affects the harness.
+# ############################################################################
+#
+# Built FROM the blob, not the tag: a tag build re-inherits both TEMPLATE and
+# SYSTEM, and an empty SYSTEM """""" is ignored by ollama create -- verified.
+FROM /san/models/blobs/sha256-a87518bd28be5fcd99c3b0f698990b65f00882c10bbbda1db247e258896af92c
+
+# --- Samplers: card "thinking mode" row ------------------------------------
+# Thinking: temperature 0.6, top_p 0.95, top_k 20, min_p 0.
+# Non-thinking: temperature 0.7, top_p 0.80, top_k 20, min_p 0.
+#
+# Live in a benchmark run: the workflow leaves top_p/top_k blank and never
+# sends min_p or the penalties, so the Modelfile governs them.
+
+# Was 0.8 -- the NON-thinking value. Thinking mode wants 0.95.
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+PARAMETER min_p 0
+
+# Left at the existing 1.05. This card specifies no repetition_penalty for
+# thinking mode; it offers presence_penalty 0-2 for NON-thinking mode only,
+# which does not apply here. Nothing to align to, so nothing changed.
+PARAMETER repeat_penalty 1.05
+
+# The two stops the existing build declares, preserved. The card documents no
+# others and inventing stop tokens is how the MiniMax build ended up
+# truncating every response on "</think>".
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+
+# Deployment tuning carried over from the existing build.
+PARAMETER num_batch 512
+
+# --- Context: READ THIS, IT AFFECTS THE HARNESS ----------------------------
+# Set to the GGUF's actual limit, down from 262144.
+#
+# The benchmark sends num_ctx 65536 for every model, which OVERRIDES this and
+# EXCEEDS this model's 40960. In practice runs have used only ~16-20k tokens
+# (context utilisation ~25-30%), so generation has stayed inside the trained
+# window and results are probably sound -- but there is no headroom warning if
+# that ever changes, and the model was never trained past 40960.
+#
+# Running it properly at 40960 is not a one-line change: the source budget is
+# (num_ctx - num_predict - 500) * 2.5 chars, so 40960/40000 leaves 460 tokens
+# for the entire codebase listing. 40960/24000 gives ~41,150 chars against a
+# ~33,800-char payload, which fits -- but a per-model num_predict breaks
+# uniformity with the rest of the cohort. Flagged, not silently special-cased.
+PARAMETER num_ctx 40960
+
+# Card value for thinking mode. Inert for benchmark runs -- the workflow always
+# sends temperature. Note the card's explicit warning: "DO NOT use greedy
+# decoding, as it can lead to performance degradation and endless repetitions."
+# The harness default of 0.3 is not greedy, but do not set it to 0 for this
+# model the way the Qwen3-Coder-30B build does.
+PARAMETER temperature 0.6
+
+# --- No SYSTEM block ------------------------------------------------------
+# Previously: "You are an expert computer programmer, who loves to help by
+# providing detailed answers." -- the same block as Qwen3.5-122B and
+# Qwen3-Coder-Next. Task framing that appears nowhere in any scorecard, on a
+# tag also consumed by the patcher.
+#
+# Worth knowing for this model specifically: Qwen3 (unlike Qwen3.5) DOES
+# support the /think and /no_think soft switches -- "users can add /think and
+# /no_think tags to prompts for dynamic turn-by-turn control". So a stray
+# /no_think in a system prompt would be live here, not inert as it was on the
+# Qwen3.5 builds. This one has none, but do not reintroduce it.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

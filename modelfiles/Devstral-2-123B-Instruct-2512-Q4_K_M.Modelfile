@@ -1,0 +1,105 @@
+# Devstral-2-123B-Instruct-2512, cleaned up for benchmark use.
+# https://huggingface.co/mistralai/Devstral-2-123B-Instruct-2512
+#
+# INSTRUCT-ONLY. No thinking mode -- `ollama show` reports capabilities
+# ['completion','tools'] and that is CORRECT here, unlike the Qwen3-32B and
+# Qwen3.5-122B builds where a missing "thinking" was a defect. Leave
+# AI_ASSISTANT_MODEL_THINK unset for this model or Ollama rejects the request.
+#
+# Built FROM the blob to clear the inherited SYSTEM block (an empty
+# SYSTEM """""" is ignored by ollama create -- verified).
+FROM /san/models/blobs/sha256-79068f89c59012e4a174dbfe3f4025a283c961abc201e3499c754b60e3f320ef
+
+# --- TEMPLATE: declared deliberately, unlike the Qwen files ----------------
+# This one is CORRECT and must be preserved. It is proper Mistral v7 format --
+# [SYSTEM_PROMPT], [INST], [TOOL_CALLS], [TOOL_RESULTS], </s> -- so there is
+# nothing to fix, and building FROM the blob would discard it in favour of
+# whatever the GGUF does or does not carry. Reproduced verbatim from the
+# existing build rather than gambling on re-derivation.
+TEMPLATE """{{- range $index, $_ := .Messages }}
+{{- if eq .Role "system" }}[SYSTEM_PROMPT]{{ .Content }}[/SYSTEM_PROMPT]
+{{- else if eq .Role "user" }}
+{{- if and (le (len (slice $.Messages $index)) 2) $.Tools }}[AVAILABLE_TOOLS]{{ $.Tools }}[/AVAILABLE_TOOLS]
+{{- end }}[INST]{{ .Content }}[/INST]
+{{- else if eq .Role "assistant" }}
+{{- if .Content }}{{ .Content }}
+{{- if not (eq (len (slice $.Messages $index)) 1) }}</s>
+{{- end }}
+{{- else if .ToolCalls }}[TOOL_CALLS][
+{{- range .ToolCalls }}{"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}
+{{- end }}]</s>
+{{- end }}
+{{- else if eq .Role "tool" }}[TOOL_RESULTS]{"content": {{ .Content }}}[/TOOL_RESULTS]
+{{- end }}
+{{- end }}"""
+
+# --- Stops: seven removed --------------------------------------------------
+# The existing build carried these, none of which are Mistral tokens:
+#   </thinking>  </tool_call>  </tool_response>  </ask_followup_question>
+#   </attempt_completion>  </write_to_file>  </execute_command>
+# They are Cline / Roo-Code agentic tool tags -- this tag was set up to drive a
+# coding agent, not to write prose reviews. "</thinking>" is the same shape of
+# trap that made MiniMax-M2.7 return empty content: a stop string the model
+# emits mid-answer ends generation on the spot. Devstral is instruct-only so
+# it likely never fired, but nothing here should be able to truncate a review.
+#
+# Kept: </s> is the genuine Mistral EOS and appears in the template above.
+# [/TOOL_RESULTS] is a Mistral control token the assistant should never emit;
+# harmless as a defensive stop.
+PARAMETER stop "</s>"
+PARAMETER stop "[/TOOL_RESULTS]"
+
+# --- Samplers --------------------------------------------------------------
+# The card prescribes no sampler row at all -- its examples only ever set
+# temperature 0.15. So there is no "card value" to align to.
+#
+# What the build DID carry was temperature 0.6 / top_k 20 / top_p 0.8. That is
+# the exact triple found on Qwen3-32B and Qwen3-Coder-Next, i.e. contamination
+# from a Qwen Modelfile rather than anything chosen for a Mistral model.
+# Replacing it with neutral values so that temperature -- which the harness
+# controls -- is the only thing shaping the distribution.
+PARAMETER top_p 1.0
+PARAMETER top_k 0
+PARAMETER min_p 0
+
+# Left at the existing 1.1. The card specifies no repetition_penalty, and
+# unlike top_p/top_k this value is not obviously copied from the Qwen builds
+# (they use 1.05), so there is no evidence to justify moving it.
+PARAMETER repeat_penalty 1.1
+
+# --- Inert for benchmark runs, kept for `ollama run` and other callers -----
+# The workflow always sends temperature / num_ctx / num_predict in options.
+# 0.15 is the value used throughout the card's examples.
+#
+# num_ctx set to the benchmark's 65536, down from 131072. The GGUF reports
+# mistral3.context_length 262144 and the card says 256k native, so this is a
+# deliberate reduction for KV-cache reasons on a 123B, not a limit -- the
+# opposite of Qwen3-32B, where 40960 is a hard ceiling being exceeded.
+PARAMETER temperature 0.15
+PARAMETER num_ctx 65536
+
+# --- No SYSTEM block ------------------------------------------------------
+# Previously: "You are a helpful assistant".
+#
+# The card does recommend a system prompt, but the one it ships is for a
+# different job: "You are operating as and within Mistral Vibe, a CLI
+# coding-agent...". That is agentic-CLI framing, not code review, and this tag
+# is also consumed by the patcher. Task framing belongs in review_prompt.md and
+# the patcher prompt, which are SHA-tracked in every scorecard; a Modelfile
+# SYSTEM appears nowhere in the artefact.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

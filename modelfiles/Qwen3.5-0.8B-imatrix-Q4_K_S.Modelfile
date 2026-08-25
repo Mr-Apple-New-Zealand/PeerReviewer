@@ -1,0 +1,68 @@
+# Qwen3.5-0.8B, samplers realigned to the model card.
+#
+# Built FROM the GGUF blob rather than the existing tag, deliberately: that is
+# the only way to clear the inherited SYSTEM block (an empty SYSTEM """""" is
+# ignored by ollama create -- only a non-empty value replaces one). Omitting
+# TEMPLATE also lets Ollama regenerate the chat template from the GGUF's
+# embedded tokenizer.chat_template, which is what it did originally.
+FROM /san/models/blobs/sha256-ba12d4bdbebcb241c7cd39dae4fd806799fd4e614c63aa394d3de8539c867a54
+
+# --- Samplers -------------------------------------------------------------
+# Card values (https://huggingface.co/Qwen/Qwen3.5-0.8B), "thinking mode, text"
+# row. Only these reach a benchmark run: ai_code_review.yml leaves top_p/top_k
+# blank and never sends min_p / penalties, so the Modelfile governs them.
+#
+# repeat_penalty was 1.3. The card specifies repetition_penalty 1.0 in ALL FOUR
+# documented modes. 1.3 over a 512-token window actively penalises the repeated
+# markdown-table syntax ("| Found |", "|---|") that review_prompt.md requires,
+# and it compounds with the harness pinning temperature to 0.3.
+PARAMETER repeat_penalty 1.0
+PARAMETER repeat_last_n 512
+
+# min_p was 0.05. Card says 0.0 in all four modes.
+PARAMETER min_p 0.0
+
+# Card: 0.95 for thinking mode (was 1, the non-thinking value).
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+
+# The card's actual anti-loop control, and this model needs one: "Qwen3.5-0.8B
+# is more prone to entering thinking loops ... which may prevent it from
+# terminating generation properly." 1.5 is the thinking-mode text value.
+# This replaces the job repeat_penalty 1.3 was wrongly doing.
+PARAMETER presence_penalty 1.5
+
+# --- Inert for benchmark runs, kept for `ollama run` and other callers ------
+# ai_code_review.yml always sends temperature / num_ctx / num_predict in
+# options, and a request option beats a Modelfile parameter. The old num_ctx
+# 24000 was far below both the benchmark's 65536 and the card's native 262144.
+PARAMETER temperature 0.6
+PARAMETER num_ctx 65536
+
+# --- No SYSTEM block ------------------------------------------------------
+# The previous one was: "You are an expert code reviewer. /no_think Be concise
+# and skip chain-of-thought; produce only the final review."
+#
+# Three problems. (1) "/no_think" does nothing -- the card states Qwen3.5 "does
+# not officially support the soft switch"; thinking is controlled by
+# enable_thinking, i.e. Ollama's `think` field. (2) "Be concise ... produce only
+# the final review" is a task instruction, and those belong in review_prompt.md
+# where they apply to every model and are SHA-tracked in each scorecard; a
+# Modelfile SYSTEM is recorded nowhere in the artefact. (3) The same tag is also
+# consumed by the patcher, which wants corrected source files, not a review.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

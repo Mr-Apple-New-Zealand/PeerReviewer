@@ -253,6 +253,12 @@ WATCHLIST = {
     "D10": ["ToTitleCase"],
     "D11": ["JoinWithSeparatorFixed"],
     "CF9": ["appsettings.Production", "Production.json"],
+    # UT is the only reference issue whose evidence is prose rather than a
+    # table row, and it sits in the last section of the review -- the two
+    # things that make a scorer most likely to lose it. Both targets name a
+    # file that does not exist, so a mention can only be the review noting
+    # its absence.
+    "UT":  ["Tests.csproj", "test project"],
 }
 
 def spot_check(md, review_text):
