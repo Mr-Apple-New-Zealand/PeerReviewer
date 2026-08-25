@@ -3,7 +3,7 @@ name: AI Code Review
 # Shown in the Actions run list instead of the workflow name, so the exact
 # configuration of a past run is visible without opening it or downloading the
 # artifact. Mirrors the env defaults below -- keep the two in step.
-run-name: "Review ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}/${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK || 'unset' }} | top_p ${{ inputs.top_p || vars.AI_ASSISTANT_MODEL_TOP_P || 'modelfile' }} | top_k ${{ inputs.top_k || vars.AI_ASSISTANT_MODEL_TOP_K || 'modelfile' }}"
+run-name: "Review ${{ inputs.model || vars.AI_ASSISTANT_OLLAMA_MODEL || 'Muse-Glimmer-30B-imatrix:Q4_K_S' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}/${{ inputs.num_predict || vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK || 'unset' }} | effort ${{ inputs.effort || vars.AI_ASSISTANT_MODEL_EFFORT || 'high' }} | top_p ${{ inputs.top_p || vars.AI_ASSISTANT_MODEL_TOP_P || 'modelfile' }} | top_k ${{ inputs.top_k || vars.AI_ASSISTANT_MODEL_TOP_K || 'modelfile' }}"
 
 on:
   workflow_dispatch:
@@ -32,6 +32,10 @@ on:
         description: "Temperature: (0.3=benchmark default). Small Qwen3.5 variants used 0.6."
         required: false
         type: string
+      effort:
+        description: "Anthropic only (claude-* models): output_config.effort — low/medium/high/xhigh/max. Blank = high."
+        required: false
+        type: string
       top_p:
         description: "top_p: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
         required: false
@@ -52,6 +56,14 @@ env:
   OLLAMA_CLOUD_URL: https://ollama.com
   # Bearer token; sent ONLY to the cloud endpoint by resolve_endpoint().
   OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+  # Anthropic Messages API — used for any model tag starting 'claude-'. The
+  # REVIEW step only; the scorer always stays on Ollama so scores remain
+  # comparable across the cohort.
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  # output_config.effort for claude-* models. Ignored by Ollama models, which
+  # use AI_ASSISTANT_MODEL_THINK / _REASONING instead. 'high' is the API
+  # default; 'xhigh' is Anthropic's recommendation for coding/agentic work.
+  AI_ASSISTANT_MODEL_EFFORT: ${{ inputs.effort || vars.AI_ASSISTANT_MODEL_EFFORT || 'high' }}
   # ---------------------------------------------------------------------------
   # Per-run knobs. Precedence: workflow_dispatch input > repo variable > default.
   # These are job-level and authoritative -- do NOT redeclare any of them in a step's
@@ -147,6 +159,18 @@ jobs:
             exit 1
           fi
 
+          # Anthropic models need their own key. Same fail-fast reasoning: better
+          # here than after the source listing has been collected.
+          case "$OLLAMA_MODEL" in
+            claude-*)
+              if [ -z "$ANTHROPIC_API_KEY" ]; then
+                echo "::error::Model '$OLLAMA_MODEL' is an Anthropic model but the ANTHROPIC_API_KEY secret is not set."
+                exit 1
+              fi
+              echo "Anthropic model detected — the review runs against api.anthropic.com; the scorer stays on Ollama."
+              ;;
+          esac
+
       - name: Collect branch source files
         id: diff
         run: |
@@ -204,7 +228,7 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PYEOF'
-          import hashlib, json, os, subprocess, sys
+          import hashlib, json, os, subprocess, sys, time
 
           branch_name = os.environ.get("BRANCH_NAME", "(unknown branch)")
           commit_sha = os.environ.get("COMMIT_SHA", "(unknown commit)")
@@ -238,7 +262,20 @@ jobs:
                   sys.exit(1)
               return onprem_url, None
 
-          base_url, api_key = resolve_endpoint(model)
+          # Anthropic models are routed by tag prefix, exactly as ':cloud' is
+          # routed by suffix. This branch applies to the REVIEW ONLY -- the scoring
+          # step below always resolves through Ollama, so the measuring instrument
+          # is identical whichever model wrote the review.
+          IS_ANTHROPIC = model.startswith("claude-")
+          if IS_ANTHROPIC:
+              base_url = "https://api.anthropic.com"
+              api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+              if not api_key:
+                  print(f"ERROR: Model '{model}' is an Anthropic model but ANTHROPIC_API_KEY is not set.",
+                        file=sys.stderr)
+                  sys.exit(1)
+          else:
+              base_url, api_key = resolve_endpoint(model)
 
           with open("branch_content.txt", "r", encoding="utf-8", errors="replace") as f:
               diff = f.read()
@@ -328,9 +365,42 @@ jobs:
               _t = think.lower()
               payload["think"] = True if _t == "true" else False if _t == "false" else think
 
-          print(f"Sampler: temperature={temperature} "
-                f"top_p={options.get('top_p', '(model default)')} "
-                f"top_k={options.get('top_k', '(model default)')}")
+          # Anthropic uses a different request shape. Build it from scratch rather
+          # than translating `options`: temperature, top_p and top_k are REMOVED on
+          # Claude Opus 4.7 and later and return a 400, so a translated payload
+          # fails on the first call. num_ctx has no equivalent -- the context window
+          # is fixed -- but the source budget above still applies, so the prompt sent
+          # is byte-identical to the one the Ollama models receive.
+          effort = (os.environ.get("AI_ASSISTANT_MODEL_EFFORT") or "high").strip()
+          if IS_ANTHROPIC:
+              payload = {
+                  "model": model,
+                  "max_tokens": num_predict,
+                  "messages": [{"role": "user", "content": prompt}],
+                  # Adaptive thinking is the only supported mode on Opus 4.7+;
+                  # 'summarized' opts back into readable reasoning, which the
+                  # metrics report as the answer/reasoning split. Display costs
+                  # nothing extra -- thinking is billed the same either way.
+                  "thinking": {"type": "adaptive", "display": "summarized"},
+                  "output_config": {"effort": effort},
+              }
+              if reasoning:
+                  # Anthropic takes the system prompt top-level, not as a message.
+                  payload["system"] = (
+                      f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant."
+                  )
+              # Nothing was sent, so record nothing -- otherwise the scorecard would
+              # claim a temperature that the API would have rejected.
+              temperature = None
+              options = {}
+
+          if IS_ANTHROPIC:
+              print(f"Sampler: Anthropic — effort={effort}, thinking=adaptive "
+                    f"(temperature/top_p/top_k are not accepted by this model)")
+          else:
+              print(f"Sampler: temperature={temperature} "
+                    f"top_p={options.get('top_p', '(model default)')} "
+                    f"top_k={options.get('top_k', '(model default)')}")
           print(f"Reasoning: system={reasoning or '(model default)'} "
                 f"think={payload.get('think', '(unset)')}")
 
@@ -339,16 +409,30 @@ jobs:
 
           print(f"Calling {base_url}/api/chat with model {model} …")
 
-          curl_cmd = [
-              "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
-              "-X", "POST", f"{base_url}/api/chat",
-              "-H", "Content-Type: application/json",
-          ]
-          if api_key:
-              curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
-          curl_cmd += ["-d", "@payload.json"]
+          if IS_ANTHROPIC:
+              curl_cmd = [
+                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/v1/messages",
+                  "-H", "content-type: application/json",
+                  "-H", "anthropic-version: 2023-06-01",
+                  "-H", f"x-api-key: {api_key}",
+                  "-d", "@payload.json",
+              ]
+          else:
+              curl_cmd = [
+                  "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                  "-X", "POST", f"{base_url}/api/chat",
+                  "-H", "Content-Type: application/json",
+              ]
+              if api_key:
+                  curl_cmd += ["-H", f"Authorization: Bearer {api_key}"]
+              curl_cmd += ["-d", "@payload.json"]
 
+          # Anthropic returns no server-side timings, so wall clock is the only
+          # duration available for that path.
+          _t0 = time.monotonic()
           result = subprocess.run(curl_cmd, capture_output=True, text=True)
+          _elapsed_s = round(time.monotonic() - _t0, 1)
 
           if result.returncode != 0:
               print(
@@ -368,21 +452,55 @@ jobs:
 
           import re as _re
           _think_re = _re.compile(r"<think>.*?</think>\s*", _re.DOTALL | _re.IGNORECASE)
-          _msg = data.get("message") or {}
-          # Ollama >= 0.9 returns reasoning in message.thinking rather than as inline
-          # <think> tags. Those tokens still count toward eval_count / num_predict, so
-          # a model can exhaust its output budget while returning empty content.
-          thinking = _msg.get("thinking") or ""
-          review = _think_re.sub("", _msg.get("content", "")).strip()
+          if IS_ANTHROPIC:
+              # content is a LIST of blocks, not a string. Concatenate the text
+              # blocks; thinking arrives as separate blocks rather than a field.
+              _blocks = data.get("content") or []
+              review = "".join(b.get("text", "") for b in _blocks if b.get("type") == "text").strip()
+              thinking = "".join(b.get("thinking", "") for b in _blocks if b.get("type") == "thinking")
+              _usage = data.get("usage") or {}
+              _prompt_tokens = _usage.get("input_tokens", 0)
+              _output_tokens = _usage.get("output_tokens", 0)
+              _done_reason = data.get("stop_reason", "")
+
+              # A refusal is HTTP 200 with empty content, so it has to be caught before
+              # the empty-review check or it reads as a generic failure. Reviewing a
+              # deliberately vulnerable banking app is security-adjacent and Opus-tier
+              # models run cybersecurity classifiers -- defensive review should pass,
+              # but the failure must be legible if it does not.
+              if _done_reason == "refusal":
+                  _sd = data.get("stop_details") or {}
+                  print(
+                      f"ERROR: {model} declined the request "
+                      f"(category={_sd.get('category')!r}). {_sd.get('explanation') or ''}",
+                      file=sys.stderr,
+                  )
+                  sys.exit(1)
+          else:
+              _msg = data.get("message") or {}
+              # Ollama >= 0.9 returns reasoning in message.thinking rather than as inline
+              # <think> tags. Those tokens still count toward eval_count / num_predict, so
+              # a model can exhaust its output budget while returning empty content.
+              thinking = _msg.get("thinking") or ""
+              review = _think_re.sub("", _msg.get("content", "")).strip()
+              _prompt_tokens = data.get("prompt_eval_count", 0)
+              _output_tokens = data.get("eval_count", 0)
+              _done_reason = data.get("done_reason", "")
+
           print(f"Response: content={len(review)} chars, thinking={len(thinking)} chars, "
-                f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}")
+                f"output_tokens={_output_tokens}, done_reason={_done_reason}")
           if not review:
-              print(
-                  f"ERROR: Ollama returned no content. thinking={len(thinking)} chars, "
-                  f"eval_count={data.get('eval_count')}, done_reason={data.get('done_reason')}. "
+              _hint = (
+                  "stop_reason 'max_tokens' means the answer was cut off -- raise "
+                  "AI_ASSISTANT_MODEL_NUM_PREDICT (it caps thinking AND answer together)."
+                  if IS_ANTHROPIC else
                   "If thinking is large and done_reason is 'length', raise "
                   "AI_ASSISTANT_MODEL_NUM_PREDICT -- and raise AI_ASSISTANT_MODEL_NUM_CTX "
-                  "with it, or the source budget shrinks silently.",
+                  "with it, or the source budget shrinks silently."
+              )
+              print(
+                  f"ERROR: {model} returned no content. thinking={len(thinking)} chars, "
+                  f"output_tokens={_output_tokens}, done_reason={_done_reason}. {_hint}",
                   file=sys.stderr,
               )
               sys.exit(1)
@@ -395,29 +513,46 @@ jobs:
           def _tps(tokens, duration_ns):
               return round(tokens / max(duration_ns / 1e9, 0.001), 1) if tokens and duration_ns else 0.0
 
+          if IS_ANTHROPIC:
+              # No server-side timings are returned, so wall clock is all there is.
+              # prompt_tps stays 0.0 rather than dividing prompt tokens by total
+              # elapsed, which would be a number with no meaning. context_window is
+              # the model's real 1M window -- num_ctx is not a parameter this API takes.
+              _total_s, _load_s = _elapsed_s, 0.0
+              _prompt_tps = 0.0
+              _output_tps = round(_output_tokens / max(_elapsed_s, 0.001), 1) if _output_tokens else 0.0
+              _ctx_window = 1000000
+          else:
+              _total_s = _ns_to_s(data.get("total_duration"))
+              _load_s = _ns_to_s(data.get("load_duration"))
+              _prompt_tps = _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration"))
+              _output_tps = _tps(data.get("eval_count"), data.get("eval_duration"))
+              _ctx_window = num_ctx_tokens
+
           review_metrics = {
               "model": model,
               "temperature": temperature,
               "top_p": options.get("top_p"),
               "top_k": options.get("top_k"),
+              "effort": effort if IS_ANTHROPIC else None,
               "reasoning": reasoning or None,
               "think": payload.get("think"),
               "prompt_sha": _text_sha(prompt_template),
-              "total_duration_s": _ns_to_s(data.get("total_duration")),
-              "load_duration_s": _ns_to_s(data.get("load_duration")),
-              "prompt_tokens": data.get("prompt_eval_count", 0),
-              "output_tokens": data.get("eval_count", 0),
+              "total_duration_s": _total_s,
+              "load_duration_s": _load_s,
+              "prompt_tokens": _prompt_tokens,
+              "output_tokens": _output_tokens,
               "output_token_limit": num_predict_tokens,
               "content_chars": len(review),
               "thinking_chars": len(thinking),
-              "prompt_tps": _tps(data.get("prompt_eval_count"), data.get("prompt_eval_duration")),
-              "output_tps": _tps(data.get("eval_count"), data.get("eval_duration")),
-              "context_window": num_ctx_tokens,
+              "prompt_tps": _prompt_tps,
+              "output_tps": _output_tps,
+              "context_window": _ctx_window,
               "context_utilization_pct": round(
-                  (data.get("prompt_eval_count", 0) + data.get("eval_count", 0)) / num_ctx_tokens * 100, 1
+                  (_prompt_tokens + _output_tokens) / max(_ctx_window, 1) * 100, 1
               ),
               "content_truncated": truncated,
-              "done_reason": data.get("done_reason", ""),
+              "done_reason": _done_reason,
           }
           with open("metrics.json", "w") as mf:
               json.dump({"review": review_metrics}, mf, indent=2)
@@ -760,6 +895,7 @@ jobs:
               ("Temperature", _val(_rev.get("temperature"), "(unknown)")),
               ("top_p", _val(_rev.get("top_p"))),
               ("top_k", _val(_rev.get("top_k"))),
+              ("Effort (Anthropic only)", _val(_rev.get("effort"), "(n/a)")),
               ("num_ctx", _val(_rev.get("context_window"), "(unknown)")),
               ("num_predict", _val(_rev.get("output_token_limit"), "(unknown)")),
               ("Source truncated", _val("yes" if _rev.get("content_truncated") else "no")),
