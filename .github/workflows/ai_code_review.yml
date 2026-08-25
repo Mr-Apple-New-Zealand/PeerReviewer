@@ -629,6 +629,23 @@ jobs:
           # otherwise spend its whole num_predict thinking and return empty content.
           AI_ASSISTANT_SCORER_REASONING: ${{ vars.AI_ASSISTANT_SCORER_REASONING }}
           AI_ASSISTANT_SCORER_THINK: ${{ vars.AI_ASSISTANT_SCORER_THINK }}
+          # The SCORER's system prompt, pinned here for the same reason as the
+          # reviewer's: a request system message replaces the Modelfile SYSTEM, so
+          # this is the value that actually applies no matter what the scorer model
+          # was built with -- and unlike a Modelfile SYSTEM it is version-controlled
+          # and printed in every scorecard.
+          #
+          # This matters because the scorer IS the measurement. Rebuilding it with a
+          # different persona silently moves every score: on one fixed review, an
+          # engineer persona scored 43 Found / 17 Partial and the standard persona
+          # scored 46 / 14 -- identical input, identical temperature 0, ~3 points of
+          # difference from the system prompt alone. Pinning it here means that can
+          # no longer happen without showing up in the diff and in the artefact.
+          #
+          # Set to the literal string 'none' to send no system message and fall back
+          # to the scorer model's own Modelfile.
+          AI_ASSISTANT_SCORER_SYSTEM_PROMPT: >-
+            ${{ vars.AI_ASSISTANT_SCORER_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
           BRANCH_NAME: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
@@ -703,15 +720,23 @@ jobs:
               review = review[: max(0, max_chars - overhead)]
           scoring_prompt = preamble + issues + "\n\n---\n## AI Review Output\n\n" + review + "\n"
 
-          # Reasoning controls for the scorer. Blank leaves the model's Modelfile in
-          # charge, which is the benchmark default for every scorer tested so far.
-          scorer_messages = []
+          # System prompt for the scorer, sent on every request so the grading persona
+          # is pinned by the workflow rather than by whatever the scorer model happens
+          # to have been built with. 'none' opts out and restores the Modelfile.
+          scorer_system = (os.environ.get("AI_ASSISTANT_SCORER_SYSTEM_PROMPT") or "").strip()
+          if scorer_system.lower() == "none":
+              scorer_system = ""
+
+          # Reasoning is prepended to the same message rather than sent as a second
+          # one -- this path used to hardcode "You are a helpful assistant." as the
+          # persona, which differed from the scorer's own Modelfile without saying so.
           scorer_reasoning = os.environ.get("AI_ASSISTANT_SCORER_REASONING", "").strip()
           if scorer_reasoning:
-              scorer_messages.append({
-                  "role": "system",
-                  "content": f"Reasoning strength: {scorer_reasoning}\n\nYou are a helpful assistant.",
-              })
+              scorer_system = f"Reasoning strength: {scorer_reasoning}\n\n{scorer_system}".strip()
+
+          scorer_messages = []
+          if scorer_system:
+              scorer_messages.append({"role": "system", "content": scorer_system})
           scorer_messages.append({"role": "user", "content": scoring_prompt})
 
           payload = {
@@ -733,6 +758,8 @@ jobs:
 
           print(f"Scorer reasoning: system={scorer_reasoning or '(model default)'} "
                 f"think={payload.get('think', '(unset)')}")
+          print(f"Scorer system prompt ({len(scorer_system)} chars): "
+                f"{scorer_system or '(none sent -- scorer Modelfile applies)'}")
 
           _think_re = re.compile(r"<think>.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 
@@ -942,6 +969,7 @@ jobs:
               ("Scorer model", _val(model, "(unknown)")),
               ("Scorer temperature", _val(temperature, "(unknown)")),
               ("Scorer reasoning", _val(scorer_reasoning)),
+              ("Scorer system prompt", _val(scorer_system, "(none sent)")),
               ("Scorer `think`", _val(payload.get("think"), "(unset)")),
               ("Scorer attempts", _val(len(attempts))),
               ("Grounding mode", _val(grounding_mode)),
@@ -997,6 +1025,9 @@ jobs:
 
           scoring_metrics = {
               "model": model,
+              "system_prompt": scorer_system or None,
+              "reasoning": scorer_reasoning or None,
+              "temperature": temperature,
               "total_duration_s": _ns_to_s(data.get("total_duration")),
               "load_duration_s": _ns_to_s(data.get("load_duration")),
               "prompt_tokens": data.get("prompt_eval_count", 0),
