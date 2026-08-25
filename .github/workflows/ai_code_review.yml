@@ -36,6 +36,10 @@ on:
         description: "Anthropic only (claude-* models): output_config.effort — low/medium/high/xhigh/max. Blank = high."
         required: false
         type: string
+      system_prompt:
+        description: "System prompt sent to the review model. Blank = the benchmark default. 'none' = send none (model's own Modelfile applies)."
+        required: false
+        type: string
       top_p:
         description: "top_p: Blank = use the model's own Modelfile value. Leave blank for benchmark runs."
         required: false
@@ -106,6 +110,24 @@ env:
   # assistant line is reproduced alongside the level.
   AI_ASSISTANT_MODEL_REASONING: ${{ inputs.reasoning || vars.AI_ASSISTANT_MODEL_REASONING }}
   AI_ASSISTANT_MODEL_THINK: ${{ inputs.think || vars.AI_ASSISTANT_MODEL_THINK }}
+
+  # System prompt, sent with EVERY review request. This is the fleet-wide control
+  # for the persona -- it exists here rather than in each model's Modelfile
+  # because:
+  #   * a request system message REPLACES the Modelfile SYSTEM on Ollama, so this
+  #     wins regardless of what any individual model was built with;
+  #   * ':cloud' models have no Modelfile at all, and Anthropic models are not
+  #     Ollama models -- neither could be standardised any other way;
+  #   * it is version-controlled and diffable, and gets recorded in the scorecard,
+  #     whereas a Modelfile SYSTEM appears nowhere in the artefact.
+  # Before this existed the fleet ran a mix of personas ("/no_think Be concise"
+  # on the Qwen3.x builds, an engineer persona on Qwen3-Coder-30B, nothing on
+  # Gemma-4-31B), invisibly confounding every cross-model comparison.
+  #
+  # Set to the literal string 'none' to send no system message at all and fall
+  # back to each model's own Modelfile -- the pre-standardisation behaviour.
+  AI_ASSISTANT_MODEL_SYSTEM_PROMPT: >-
+    ${{ inputs.system_prompt || vars.AI_ASSISTANT_MODEL_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
 
   # top_p / top_k: DELIBERATELY BLANK by default. Each model ships its own card-tuned
   # values in its Modelfile, and Ollama applies those when the request omits them.
@@ -340,17 +362,25 @@ jobs:
           if _top_k:
               options["top_k"] = int(_top_k)
 
-          # Reasoning effort. Blank leaves the model's own Modelfile in charge, which is
-          # the benchmark default -- do not set these for a cross-model comparison run.
-          messages = []
+          # System prompt. Sent on every request so the persona is identical across
+          # on-prem Ollama, ':cloud' models and Anthropic -- a request system message
+          # REPLACES the Modelfile SYSTEM block wholesale, so whatever each model was
+          # built with is overridden here. 'none' opts out and restores the old
+          # per-Modelfile behaviour.
+          system_text = (os.environ.get("AI_ASSISTANT_MODEL_SYSTEM_PROMPT") or "").strip()
+          if system_text.lower() == "none":
+              system_text = ""
+
+          # Reasoning effort is prepended to the same message rather than sent as a
+          # second one -- previously this path hardcoded "You are a helpful assistant."
+          # as the persona, which silently differed from every Modelfile.
           reasoning = os.environ.get("AI_ASSISTANT_MODEL_REASONING", "").strip()
           if reasoning:
-              # A system message REPLACES the Modelfile SYSTEM block wholesale, so the
-              # assistant line has to be reproduced or it is silently dropped.
-              messages.append({
-                  "role": "system",
-                  "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
-              })
+              system_text = f"Reasoning strength: {reasoning}\n\n{system_text}".strip()
+
+          messages = []
+          if system_text:
+              messages.append({"role": "system", "content": system_text})
           messages.append({"role": "user", "content": prompt})
 
           payload = {
@@ -384,11 +414,10 @@ jobs:
                   "thinking": {"type": "adaptive", "display": "summarized"},
                   "output_config": {"effort": effort},
               }
-              if reasoning:
-                  # Anthropic takes the system prompt top-level, not as a message.
-                  payload["system"] = (
-                      f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant."
-                  )
+              if system_text:
+                  # Anthropic takes the system prompt top-level, not as a message --
+                  # same string as the Ollama path, so the persona is identical.
+                  payload["system"] = system_text
               # Nothing was sent, so record nothing -- otherwise the scorecard would
               # claim a temperature that the API would have rejected.
               temperature = None
@@ -403,6 +432,8 @@ jobs:
                     f"top_k={options.get('top_k', '(model default)')}")
           print(f"Reasoning: system={reasoning or '(model default)'} "
                 f"think={payload.get('think', '(unset)')}")
+          print(f"System prompt ({len(system_text)} chars): "
+                f"{system_text or '(none sent -- model Modelfile applies)'}")
 
           with open("payload.json", "w") as f:
               json.dump(payload, f)
@@ -516,12 +547,18 @@ jobs:
           if IS_ANTHROPIC:
               # No server-side timings are returned, so wall clock is all there is.
               # prompt_tps stays 0.0 rather than dividing prompt tokens by total
-              # elapsed, which would be a number with no meaning. context_window is
-              # the model's real 1M window -- num_ctx is not a parameter this API takes.
+              # elapsed, which would be a number with no meaning.
+              #
+              # context_window records num_ctx_tokens, NOT the model's 1M window.
+              # The API does not accept num_ctx -- but num_ctx still governs the
+              # source budget above ((num_ctx - num_predict - 500) * 2.5 chars), so
+              # it is the number needed to reproduce the run. Reporting 1000000 here
+              # made run #182 look like it used 3.2% of context while the source had
+              # actually been truncated to fit a 32768 budget.
               _total_s, _load_s = _elapsed_s, 0.0
               _prompt_tps = 0.0
               _output_tps = round(_output_tokens / max(_elapsed_s, 0.001), 1) if _output_tokens else 0.0
-              _ctx_window = 1000000
+              _ctx_window = num_ctx_tokens
           else:
               _total_s = _ns_to_s(data.get("total_duration"))
               _load_s = _ns_to_s(data.get("load_duration"))
@@ -536,6 +573,7 @@ jobs:
               "top_k": options.get("top_k"),
               "effort": effort if IS_ANTHROPIC else None,
               "reasoning": reasoning or None,
+              "system_prompt": system_text or None,
               "think": payload.get("think"),
               "prompt_sha": _text_sha(prompt_template),
               "total_duration_s": _total_s,
@@ -891,6 +929,7 @@ jobs:
           config_rows = [
               ("Review model", _val(_rev.get("model"), "(unknown)")),
               ("Reasoning strength (system prompt)", _val(_rev.get("reasoning"))),
+              ("System prompt", _val(_rev.get("system_prompt"), "(none sent)")),
               ("Ollama `think`", _val(_rev.get("think"), "(unset)")),
               ("Temperature", _val(_rev.get("temperature"), "(unknown)")),
               ("top_p", _val(_rev.get("top_p"))),
