@@ -236,6 +236,7 @@ def reconcile_summary_line(md: str) -> str:
 # precision, and restricting to source-defined method names caught nothing.
 # ------------------------------------------------------------------------
 WATCHLIST = {
+    # --- original entries -------------------------------------------------
     "C5":  ["SearchUsers"],
     "C7":  ["RecordTransaction"],
     "R3":  ["GenerateJwtToken"],
@@ -259,6 +260,55 @@ WATCHLIST = {
     # file that does not exist, so a mention can only be the review noting
     # its absence.
     "UT":  ["Tests.csproj", "test project"],
+
+    # --- added after the Muse-Glimmer-30B run -----------------------------
+    # That sheet reported 70/70 with four mis-credits caught. Four more were
+    # invisible because the rows had no entry here: R3, N4, N7 and M1 each
+    # carried a Note quoting a real finding about a DIFFERENT issue. R3 was
+    # already listed and still slipped, because its target genuinely appears
+    # in the review -- attached to the token-lifetime finding. That is the
+    # limit of a string test and the reason these are additions rather than
+    # a redesign.
+    #
+    # Every target below is an exact source identifier or literal constant,
+    # held to the same bar as the originals: a review that engages with the
+    # issue at all essentially must name it. Loose paraphrase targets were
+    # considered and rejected -- N7 ("request == null") has no such string,
+    # since reviews phrase it a dozen ways, and a target a correct review
+    # might not use manufactures false mis-credits. N7 is therefore still
+    # absent by choice, not oversight.
+    # Widened: most reviews name the CONSTANT or call it a backdoor and never
+    # quote the literal password, so "SuperAdmin2024" alone flagged 7 of 19
+    # archived runs that had all found it.
+    "C2":  ["SuperAdmin2024", "AdminBypassPassword", "bypass password",
+            "backdoor"],
+    "C3":  ["MD5"],
+    "C9":  ["ValidateLifetime"],
+    "L3":  ["GetUsersPage"],
+    "L4":  ["0.05", "5%"],
+    "E1":  ["SearchUsers"],
+    "E5":  ["ex.Message", "exception message"],
+    "RL4": ["SmtpClient"],
+    "RL5": ["MailMessage"],
+    "N2":  ["Rows[0]", "Rows.Count"],
+    "N4":  ["ToUpper"],
+    # Widened: reviews commonly cite the value 0.015 rather than the identifier.
+    "M1":  ["TransactionFeeRate", "MaxTransactionsPerDay", "0.015", "fee rate"],
+    "M2":  ["1000000", "1_000_000"],
+    "D2":  ["ValidateToken"],
+    "A1":  ["_auditLog"],
+    "A2":  ["Regex"],
+    "A5":  ["IsBlank"],
+    "CF3": ["ValidateLifetime"],
+    # Widened: "HTTPS redirection is commented out" is the usual phrasing and
+    # contains a space, so it never matched the method name.
+    "CF4": ["UseHttpsRedirection", "HttpsRedirection", "https redirect"],
+    "CF5": ["UseDeveloperExceptionPage", "DeveloperExceptionPage",
+            "developer exception"],
+    # Widened: "CORS policy allows any origin" is the usual phrasing.
+    "CF6": ["AllowAnyOrigin", "any origin"],
+    "CF7": ["DebugType", "DebugSymbols"],
+    "CF8": ["Newtonsoft"],
 }
 
 def spot_check(md, review_text):
