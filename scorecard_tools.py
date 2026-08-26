@@ -319,7 +319,7 @@ def spot_check(md, review_text):
         if m_id and m:
             status_by_id.setdefault(m_id.group(1).upper(), m.group(1).capitalize())
     low = review_text.lower()
-    rows, miscredits, undercredits = [], [], []
+    rows, miscredits, undercredits, unsupported = [], [], [], []
     for rid, targets in WATCHLIST.items():
         status = status_by_id.get(rid)
         if status is None:
@@ -329,11 +329,22 @@ def spot_check(md, review_text):
         if status == "Found" and not present:
             verdict = "**MIS-CREDIT**"
             miscredits.append(rid)
+        elif status == "Partial" and not present:
+            # A Partial on an issue the review never mentions is not partial
+            # coverage -- it is a Missed with a consolation prize. Tracked
+            # separately from mis-credits because Partial does not feed
+            # Adjusted Found, so there is nothing to deduct; the harm is to any
+            # Found + 0.5*Partial ranking, and to the Missed count, which reads
+            # as zero when the real figure is not.
+            verdict = "**UNSUPPORTED**"
+            unsupported.append(rid)
         elif status in ("Partial", "Missed") and present:
             verdict = "under-credited?"
             undercredits.append(rid)
+        # Missed-and-absent is the one combination that needs no flag: the
+        # scorer and the evidence agree.
         rows.append((rid, status, targets[0], "yes" if present else "**no**", verdict))
-    return rows, miscredits, undercredits
+    return rows, miscredits, undercredits, unsupported
 
 # ------------------------------------------------------------------------
 # Self-hedged ratings.
@@ -352,7 +363,11 @@ _HEDGE = re.compile(
     r"implicitly"
     r"|does not (?:specifically|explicitly)?\s*(?:name|mention|cover|address)"
     r"|but does not|though it does not|without naming|only partially"
-    r"|not specifically name",
+    r"|not specifically name"
+    # N4 was rated Found with the Note "there's no specific mention of
+    # username.ToUpper()". The clauses above only caught the verb form
+    # ("does not specifically mention"), not the noun form.
+    r"|no (?:specific|explicit) ?mention|no mention of",
     re.IGNORECASE,
 )
 

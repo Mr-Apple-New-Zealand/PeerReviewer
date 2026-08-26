@@ -421,7 +421,7 @@ def main() -> int:
     rf, rp, rm = count_table_statuses(body)
     row_total = rf + rp + rm
 
-    spot_rows, miscredits, undercredits = spot_check(body, review)
+    spot_rows, miscredits, undercredits, unsupported = spot_check(body, review)
     hedged = hedge_check(body)
     adjusted_found = rf - len(miscredits)
     found_floor = adjusted_found - len([h for h in hedged if h[0] not in miscredits])
@@ -430,6 +430,13 @@ def main() -> int:
         print(
             f"WARN: {len(miscredits)} row(s) rated Found whose target string never appears "
             f"in the review: {', '.join(miscredits)}. Adjusted Found: {adjusted_found}.",
+            file=sys.stderr,
+        )
+    if unsupported:
+        print(
+            f"WARN: {len(unsupported)} row(s) rated Partial whose target string never "
+            f"appears in the review: {', '.join(unsupported)}. A Partial on an "
+            f"unmentioned issue is a Missed, so Missed={rm} is understated.",
             file=sys.stderr,
         )
     if hedged:
@@ -462,6 +469,11 @@ def main() -> int:
         + (f"\n**Adjusted Found: {adjusted_found} of {row_total}**"
            f" ({rf} reported, less {len(miscredits)} mis-credited).\n"
            if miscredits else "\nNo mis-credits detected in the watchlist.\n")
+        + (f"\n> **{len(unsupported)} row(s) rated `Partial` whose target string appears "
+           f"NOWHERE in the review** ({', '.join(unsupported)}). A Partial on an "
+           f"unmentioned issue is a Missed; the reported Missed count is "
+           f"correspondingly understated.\n"
+           if unsupported else "")
     )
     (output_dir / "issues_scorecard.md").write_text(
         header + body + spot_section, encoding="utf-8")
@@ -481,6 +493,7 @@ def main() -> int:
         "found_adjusted": adjusted_found,
         "found_floor": found_floor,
         "spotcheck_miscredits": miscredits,
+        "spotcheck_unsupported_partials": unsupported,
         "hedged_rows": [h[0] for h in hedged],
         "grounding_downgrades": len(grounding_downgrades),
         "total": row_total,

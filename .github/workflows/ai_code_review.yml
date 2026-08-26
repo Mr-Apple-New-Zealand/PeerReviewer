@@ -883,7 +883,7 @@ jobs:
                   file=sys.stderr,
               )
 
-          spot_rows, miscredits, undercredits = spot_check(body, review)
+          spot_rows, miscredits, undercredits, unsupported = spot_check(body, review)
           hedged = hedge_check(body)
           adjusted_found = rf - len(miscredits)
           # Lower bound: every self-hedged row treated as an over-credit too.
@@ -898,9 +898,11 @@ jobs:
               )
 
           print("Evidence spot-check: %d/%d watchlist rows present in review; "
-                "%d mis-credited (%s); %d possibly under-credited (%s)"
+                "%d mis-credited (%s); %d unsupported Partial (%s); "
+                "%d possibly under-credited (%s)"
                 % (sum(1 for r in spot_rows if r[3] == "yes"), len(spot_rows),
                    len(miscredits), ", ".join(miscredits) or "none",
+                   len(unsupported), ", ".join(unsupported) or "none",
                    len(undercredits), ", ".join(undercredits) or "none"))
           if miscredits:
               print(
@@ -995,6 +997,13 @@ jobs:
               # Found. Reported so a false Missed is at least visible -- it
               # costs the model a point and nothing else in the harness looks
               # for it.
+              # Reported directly above the under-credit line so the two
+              # directions read together.
+              + (f"\n> **{len(unsupported)} row(s) rated `Partial` whose target string "
+                 f"appears NOWHERE in the review** ({', '.join(unsupported)}). A Partial "
+                 f"on an unmentioned issue is a Missed; the reported Missed count is "
+                 f"correspondingly understated.\n"
+                 if unsupported else "")
               + (f"\n> **{len(undercredits)} row(s) rated `Partial`/`Missed` whose target "
                  f"string IS present in the review** ({', '.join(undercredits)}). "
                  f"The score is left as the scorer rated it; read these rows before "
@@ -1056,6 +1065,7 @@ jobs:
               "scorer_mode_suspect": scorer_mode_suspect,
               "spotcheck_miscredits": miscredits,
               "spotcheck_undercredits": undercredits,
+              "spotcheck_unsupported_partials": unsupported,
               "found_adjusted": adjusted_found,
               "found_floor": found_floor,
               "hedged_rows": [h[0] for h in hedged],
