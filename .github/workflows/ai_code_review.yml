@@ -821,6 +821,7 @@ jobs:
               WATCHLIST,
               count_table_statuses,
               drop_duplicate_ids,
+              drop_unknown_ids,
               enforce_note_grounding,
               hedge_check,
               reconcile_summary_line,
@@ -846,12 +847,14 @@ jobs:
           for attempt in range(1, MAX_ATTEMPTS + 1):
               data, scorecard = call_scorer(attempt)
               body = drop_duplicate_ids(scorecard)
+              body, unknown_ids = drop_unknown_ids(body, issues)
               body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
               # Recount only after dedupe and downgrades, so the summary matches the tables.
               body = reconcile_summary_line(body)
               rf, rp, rm = count_table_statuses(body)
               attempts.append(
                   {"body": body, "data": data, "downgrades": grounding_downgrades,
+                   "unknown_ids": unknown_ids,
                    "found": rf, "partial": rp, "missed": rm, "n": attempt}
               )
               if rp > 0 or (rf + rp + rm) < 40:

@@ -68,6 +68,47 @@ def drop_duplicate_ids(md: str) -> str:
         )
     return "\n".join(out)
 
+def reference_ids(issues_text: str) -> set:
+    """The IDs ISSUES.md actually defines, plus the synthetic UT row.
+
+    UT has no table row of its own -- Missing Unit Tests is a prose section with
+    a bullet list -- so it is added explicitly rather than parsed.
+    """
+    ids = set()
+    for line in issues_text.splitlines():
+        m = _ROW_ID.match(line.strip())
+        if m:
+            ids.add(m.group(1).upper())
+    ids.add("UT")
+    return ids
+
+
+def drop_unknown_ids(md: str, issues_text: str):
+    """Drop rows whose ID is not defined in ISSUES.md.
+
+    Distinct from drop_duplicate_ids, which keys on a REPEATED id. A scorer that
+    invents a new id gets past that check, and every such row is scored twice
+    over: once under its real id and once under the invention. It also corrupts
+    the denominator, which is counted from the emitted rows.
+    """
+    known = reference_ids(issues_text)
+    out, dropped = [], []
+    for line in md.splitlines():
+        m_id = _ROW_ID.match(line.strip())
+        if m_id and _STATUS_CELL.search(line):
+            rid = m_id.group(1).upper()
+            if rid not in known:
+                dropped.append(rid)
+                continue
+        out.append(line)
+    for rid in dropped:
+        print(
+            f"WARN: dropped scorecard row '{rid}' -- no such issue in ISSUES.md.",
+            file=sys.stderr,
+        )
+    return "\n".join(out), dropped
+
+
 def enforce_note_grounding(md: str, review_text: str, mode: str):
     """Downgrade Found/Partial rows whose Notes are not supported by the review.
 

@@ -205,6 +205,7 @@ sys.path.insert(0, str(REPO_ROOT_PATH))
 from scorecard_tools import (  # noqa: E402
     count_table_statuses,
     drop_duplicate_ids,
+    drop_unknown_ids,
     enforce_note_grounding,
     hedge_check,
     reconcile_summary_line,
@@ -415,6 +416,7 @@ def main() -> int:
         grounding_mode = "enforce"
 
     body = drop_duplicate_ids(scorecard)
+    body, unknown_ids = drop_unknown_ids(body, issues)
     body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
     body = reconcile_summary_line(body)
     warn_repeated_notes(body)
