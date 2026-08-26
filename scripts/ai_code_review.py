@@ -205,6 +205,7 @@ sys.path.insert(0, str(REPO_ROOT_PATH))
 from scorecard_tools import (  # noqa: E402
     count_table_statuses,
     drop_duplicate_ids,
+    check_row_alignment,
     downgrade_self_declared_absent,
     drop_unknown_ids,
     enforce_note_grounding,
@@ -420,6 +421,7 @@ def main() -> int:
     body, unknown_ids = drop_unknown_ids(body, issues)
     body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
     body, self_declared = downgrade_self_declared_absent(body)
+    misaligned, missing_ids = check_row_alignment(body, issues)
     body = reconcile_summary_line(body)
     warn_repeated_notes(body)
     rf, rp, rm = count_table_statuses(body)

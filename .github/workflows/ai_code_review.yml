@@ -821,6 +821,7 @@ jobs:
               WATCHLIST,
               count_table_statuses,
               drop_duplicate_ids,
+              check_row_alignment,
               downgrade_self_declared_absent,
               drop_unknown_ids,
               enforce_note_grounding,
@@ -851,12 +852,14 @@ jobs:
               body, unknown_ids = drop_unknown_ids(body, issues)
               body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
               body, self_declared = downgrade_self_declared_absent(body)
+              misaligned, missing_ids = check_row_alignment(body, issues)
               # Recount only after dedupe and downgrades, so the summary matches the tables.
               body = reconcile_summary_line(body)
               rf, rp, rm = count_table_statuses(body)
               attempts.append(
                   {"body": body, "data": data, "downgrades": grounding_downgrades,
                    "unknown_ids": unknown_ids, "self_declared": self_declared,
+                   "misaligned": misaligned, "missing_ids": missing_ids,
                    "found": rf, "partial": rp, "missed": rm, "n": attempt}
               )
               if rp > 0 or (rf + rp + rm) < 40:
@@ -929,6 +932,16 @@ jobs:
               f"# AI Review Scorecard\n\n"
               f"> **Branch:** `{branch_name}` &nbsp;·&nbsp; **Commit:** `{commit_sha[:7]}`\n\n"
           )
+          if misaligned or missing_ids:
+              _bad = ", ".join(r for r, _ in misaligned) + (
+                  ("; absent: " + ", ".join(missing_ids)) if missing_ids else "")
+              header += (
+                  f"> ⚠ **{len(misaligned) + len(missing_ids)} row(s) do not line up "
+                  f"with ISSUES.md** ({_bad}). The scorer dropped or renumbered rows, so "
+                  f"these IDs were scored against a different issue -- their ratings, Notes "
+                  f"and spot-check verdicts are void and the totals below are unreliable."
+                  "\n\n"
+              )
           if miscredits:
               header += (
                   f"> ⚠ **{len(miscredits)} row(s) rated Found name a target that never appears "
@@ -982,6 +995,7 @@ jobs:
               ("Grounding mode", _val(grounding_mode)),
               ("Grounding downgrades", _val(len(grounding_downgrades))),
               ("Self-declared-absent downgrades", _val(len(self_declared))),
+              ("Rows misaligned with ISSUES.md", _val(len(misaligned) + len(missing_ids))),
               ("Scorer prompt SHA-256", _val(scorer_prompt_sha, "(unknown)")),
               ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
               ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),

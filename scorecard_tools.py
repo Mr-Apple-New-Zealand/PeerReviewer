@@ -188,6 +188,91 @@ _SELF_DECLARED_ABSENT = re.compile(
 )
 
 
+_CODE_SPAN = re.compile(r"`([^`]+)`")
+_ALIGN_MIN = 0.5
+
+
+def _row_cells(line: str):
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def _descriptions(text: str, idx: int):
+    """Map ID -> Description cell. idx is -1 for ISSUES.md (4 columns: id, file,
+    line, description) and 1 for a scorecard (id, description, status, notes)."""
+    out = {}
+    for line in text.splitlines():
+        c = _row_cells(line)
+        if len(c) > abs(idx) and re.fullmatch(r"\*{0,2}([A-Z]{1,3}\d*|UT)\*{0,2}", c[0]):
+            out.setdefault(c[0].strip("*").upper(), c[idx])
+    return out
+
+
+# File extensions and type names carry no information about WHICH issue a row is
+# about. Without this, reference CF8 (`Newtonsoft.Json`) and a misaligned row
+# holding CF9 (`appsettings.Production.json`) share the token "json" and the
+# misalignment is missed.
+_IDENT_STOP = frozenset({
+    "json", "xml", "config", "csproj", "cshtml", "http", "https", "true",
+    "false", "null", "string", "value", "class", "method", "public", "private",
+    "static", "void", "async", "task", "list", "type", "name", "file", "line",
+})
+
+
+def _identifiers(text: str) -> set:
+    """Identifiers named inside code spans -- the subject of the issue.
+
+    Only these distinguish a reworded row from a misaligned one, so generic
+    tokens are dropped: they are shared by issues that have nothing to do with
+    each other.
+    """
+    out = set()
+    for span in _CODE_SPAN.findall(text):
+        for tok in re.findall(r"[A-Za-z_][A-Za-z0-9_]{3,}", span):
+            low = tok.lower()
+            if low not in _IDENT_STOP:
+                out.add(low)
+    return out
+
+
+def check_row_alignment(md: str, issues_text: str):
+    """Find rows whose Description does not match the reference issue for that ID.
+
+    A scorer that omits one row and renumbers the rest produces a sheet where
+    every ID after the gap is scored against the wrong issue. That is corruption
+    rather than a bad judgement: the ratings, the Notes and the spot-check
+    verdicts for those IDs all describe something else.
+
+    Two conditions, because scorers legitimately reword: the Description must
+    both share little vocabulary with the reference AND name none of the same
+    code identifiers.
+    """
+    ref = _descriptions(issues_text, -1)
+    got = _descriptions(md.split("## Evidence Spot-Check")[0], 1)
+    misaligned, missing = [], []
+    for rid, ref_desc in ref.items():
+        if rid not in got:
+            missing.append(rid)
+            continue
+        a, b = _content_words(ref_desc), _content_words(got[rid])
+        sim = len(a & b) / max(len(a | b), 1)
+        if sim >= _ALIGN_MIN:
+            continue
+        if _identifiers(ref_desc) & _identifiers(got[rid]):
+            continue  # reworded, same subject
+        misaligned.append((rid, round(sim, 2)))
+
+    if misaligned or missing:
+        print(
+            "ERROR: scorecard rows do not line up with ISSUES.md. "
+            + (f"Misaligned (scored against another issue): "
+               f"{', '.join(f'{r}({s})' for r, s in misaligned)}. " if misaligned else "")
+            + (f"Absent from the scorecard: {', '.join(missing)}. " if missing else "")
+            + "Ratings for these IDs describe a different issue and cannot be trusted.",
+            file=sys.stderr,
+        )
+    return misaligned, missing
+
+
 def downgrade_self_declared_absent(md: str):
     """Rate as Missed any Found/Partial row whose Note declares no evidence."""
     out, downgraded = [], []
