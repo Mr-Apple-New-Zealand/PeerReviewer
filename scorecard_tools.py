@@ -300,7 +300,13 @@ WATCHLIST = {
     # things that make a scorer most likely to lose it. Both targets name a
     # file that does not exist, so a mention can only be the review noting
     # its absence.
-    "UT":  ["Tests.csproj", "test project"],
+    # Widened after a temperature-0 Muse-Glimmer run was flagged: its review
+    # carries a full "Missing Unit Tests" section covering Login,
+    # GenerateJwtToken, Transfer, Deposit and GetUsersPage -- the very areas
+    # the reference issue lists -- while never using the words "Tests.csproj"
+    # or "test project". Absence of those strings was not proof of anything.
+    "UT":  ["Tests.csproj", "test project", "unit test", "lacks tests",
+            "no test"],
 
     # --- added after the Muse-Glimmer-30B run -----------------------------
     # That sheet reported 70/70 with four mis-credits caught. Four more were
