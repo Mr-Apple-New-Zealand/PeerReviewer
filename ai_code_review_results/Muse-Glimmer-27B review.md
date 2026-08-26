@@ -1,149 +1,151 @@
 ## 1. Security Vulnerabilities
 | File | Line | Issue | Fix |
-| DatabaseHelper.cs | 16 | Hardcoded fallback connection string contains password Admin1234! | Remove hardcoded credentials and require config |
-| DatabaseHelper.cs | 29 | ExecuteQuery builds SQL with string interpolation for tableName and whereClause | Use parameterized queries |
-| DatabaseHelper.cs | 53 | ExecuteNonQuery executes raw sql string without parameters | Use parameterized commands |
-| AuthService.cs | 17 | AdminBypassPassword constant contains hardcoded backdoor password | Remove backdoor or secure via config |
-| AuthService.cs | 30 | HashPasswordMd5 uses MD5 for password hashing | Use salted strong hash like PBKDF2 |
-| AuthService.cs | 32 | Login builds SQL with interpolated username and hashed password | Use parameterized query |
-| Program.cs | 24 | TokenValidationParameters ValidateLifetime set to false | Enable lifetime validation |
-| Program.cs | 34 | UseDeveloperExceptionPage called unconditionally | Restrict to development environment |
-| Program.cs | 36 | HTTPS redirection is commented out | Enable HTTPS redirection |
-| Program.cs | 38 | CORS policy allows any origin method and header | Restrict CORS to trusted origins |
-| appsettings.json | 3 | Connection string contains plaintext password Admin1234! | Move secret to secure store |
-| appsettings.json | 6 | Jwt SecretKey is weak value mysecretkey | Use strong random secret |
-| appsettings.json | 14 | Email password EmailPass99 committed to source | Remove secret from source |
-| TransactionService.cs | 47 | UPDATE Users statement uses string interpolation for balance and id | Use parameterized query |
-| TransactionService.cs | 48 | UPDATE Users statement uses string interpolation for balance and id | Use parameterized query |
-| TransactionService.cs | 71 | UPDATE Users statement uses string interpolation for amount and id | Use parameterized query |
-| TransactionService.cs | 90 | INSERT INTO Transactions uses string interpolation for values | Use parameterized query |
-| UserService.cs | 47 | UPDATE Users statement uses string interpolation for email username and id | Use parameterized query |
-| UserService.cs | 61 | DELETE FROM Users statement uses string interpolation for id | Use parameterized query |
-| UserService.cs | 99 | SearchUsers calls ExecuteQuery with LIKE interpolation | Use parameterized query |
-| UserController.cs | 39 | UpdateUser allows any authenticated user to update any user id | Check ownership or admin role |
-| UserController.cs | 57 | DeleteUser allows any authenticated user to delete any user id | Check ownership or admin role |
-| UserController.cs | 22 | GetUser returns any user by id without ownership check | Restrict access to owner or admin |
-| Program.cs | 28 | IssuerSigningKey built from jwtSecret! without null check | Validate config presence |
-| AuthService.cs | 70 | GenerateJwtToken reads Jwt:SecretKey with null-forgiving operator | Validate config and fail fast |
+| SampleBankingApp/Data/DatabaseHelper.cs | 16 | Hardcoded fallback connection string with password Admin1234! | Remove hardcoded credentials and require configuration |
+| SampleBankingApp/Data/DatabaseHelper.cs | 29 | ExecuteQuery interpolates tableName and whereClause enabling SQL injection | Use parameterized queries and whitelist identifiers |
+| SampleBankingApp/Data/DatabaseHelper.cs | 19 | GetOpenConnection returns open SqlConnection without disposal contract | Document ownership or use using |
+| SampleBankingApp/Services/AuthService.cs | 17 | Hardcoded admin bypass password SuperAdmin2024 creates backdoor | Remove backdoor and enforce proper authentication |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 uses MD5 which is cryptographically broken | Use salted strong password hashing |
+| SampleBankingApp/Services/AuthService.cs | 32 | Login builds SQL with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/AuthService.cs | 34 | SqlConnection opened but never closed or disposed | Use using for connection and reader |
+| SampleBankingApp/Services/AuthService.cs | 53 | Admin bypass allows login with hardcoded credentials without DB check | Remove bypass logic |
+| SampleBankingApp/Program.cs | 24 | JWT ValidateLifetime set to false allowing expired tokens | Set ValidateLifetime to true |
+| SampleBankingApp/Program.cs | 28 | IssuerSigningKey created from jwtSecret without null check | Validate config value and fail fast |
+| SampleBankingApp/Program.cs | 34 | UseDeveloperExceptionPage called unconditionally exposing stack traces | Enable only in Development environment |
+| SampleBankingApp/Program.cs | 36 | HTTPS redirection commented out allowing HTTP traffic | Enable HTTPS redirection |
+| SampleBankingApp/Program.cs | 38 | CORS policy allows any origin method and header | Restrict origins to trusted domains |
+| SampleBankingApp/appsettings.json | 3 | Connection string contains plaintext password committed to source | Store secrets in environment variables or secret manager |
+| SampleBankingApp/appsettings.json | 14 | Email password EmailPass99 committed to source | Remove secret from source control |
+| SampleBankingApp/appsettings.json | 6 | JWT secret mysecretkey is weak and committed to source | Use strong random secret from secure store |
+| SampleBankingApp/Services/TransactionService.cs | 47 | UPDATE statement built with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/TransactionService.cs | 48 | UPDATE statement built with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/TransactionService.cs | 71 | UPDATE statement built with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/TransactionService.cs | 89 | RecordTransaction builds INSERT with interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/UserService.cs | 47 | UPDATE statement built with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/UserService.cs | 61 | DELETE statement built with string interpolation enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers uses ExecuteQuery with interpolated LIKE enabling SQL injection | Use parameterized query |
+| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser returns any user by id without ownership check | Verify current user can access requested id |
+| SampleBankingApp/Controllers/UserController.cs | 43 | UpdateUser allows updating any user without ownership check | Restrict to own user or require admin role |
+| SampleBankingApp/Controllers/UserController.cs | 57 | DeleteUser allows deleting any user without ownership check | Restrict to authorized users only |
+| SampleBankingApp/Services/EmailService.cs | 22 | SmtpClient stored as instance field is not thread safe and never disposed | Create and dispose per use or manage lifecycle properly |
+| SampleBankingApp/Controllers/UserController.cs | 52 | Returns raw exception message to client leaking information | Return generic error message and log details |
 
 ## 2. Logic Errors
 | File | Line | Issue | Fix |
-| UserService.cs | 72 | Skip calculated as page * pageSize causing off-by-one pagination | Use (page-1) * pageSize |
-| TransactionService.cs | 42 | Balance check uses amount only but total debit includes fee | Check balance >= amount + fee |
-| TransactionService.cs | 23 | Transfer does not prevent transfer to same user id | Add self-transfer guard |
-| TransactionService.cs | 68 | Interest bonus uses magic multiplier 1 and rate 0.05m | Define named constants for rate |
-| TransactionService.cs | 42 | New from balance can become negative if fee exceeds available amount | Ensure total debit check prevents negative |
-| UserService.cs | 20 | GetUserById throws for id <=0 but boundary may be off | Clarify valid id range |
-| AuthService.cs | 103 | ValidateToken returns true unconditionally making later code unreachable | Remove early return and implement validation |
-| TransactionService.cs | 36 | Rows[0] accessed without checking Rows.Count | Check count before access |
+| SampleBankingApp/Services/UserService.cs | 72 | Pagination skip calculated as page * pageSize causing off-by-one | Use (page-1) * pageSize with page >=1 validation |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Balance check compares fromBalance >= amount but deducts amount + fee | Check fromBalance >= totalDebit |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Accesses fromUserTable.Rows[0] without verifying Rows.Count | Check count before access |
+| SampleBankingApp/Services/TransactionService.cs | 37 | Accesses toUserTable.Rows[0] without verifying Rows.Count | Check count before access |
+| SampleBankingApp/Services/TransactionService.cs | 25 | Transfer allows amount zero | Reject amount <=0 |
+| SampleBankingApp/Services/TransactionService.cs | 23 | Missing self-transfer check | Reject when fromUserId == toUserId |
+| SampleBankingApp/Controllers/TransactionController.cs | 27 | int.Parse(userIdClaim!) throws if claim missing | Validate claim presence and return Unauthorized |
+| SampleBankingApp/Controllers/TransactionController.cs | 41 | int.Parse(userIdClaim!) throws if claim missing | Validate claim presence and return Unauthorized |
+| SampleBankingApp/Helpers/StringHelper.cs | 13 | IsValidEmail accesses email.Length without null check | Guard against null |
+| SampleBankingApp/Helpers/StringHelper.cs | 22 | IsValidUsername accesses username.Length without null check | Guard against null |
+| SampleBankingApp/Helpers/StringHelper.cs | 45 | MaskAccountNumber accesses accountNumber.Length without null check | Guard against null |
 
 ## 3. Error Handling
 | File | Line | Issue | Fix |
-| UserService.cs | 105 | SearchUsers catches generic Exception and returns empty list | Log error and propagate or return error |
-| EmailService.cs | 75 | SendWelcomeEmail catches Exception and only writes to console | Log properly and handle failure |
-| UserController.cs | 50 | UpdateUser catches Exception and returns ex.Message to client | Return generic error and log details |
-| UserController.cs | 52 | UpdateUser returns raw exception message in 500 response | Avoid leaking internal details |
-| TransactionService.cs | 47 | Transfer performs two updates without transaction | Wrap updates in database transaction |
-| TransactionService.cs | 52 | Email sent after DB updates without rollback on failure | Send email after commit or use outbox pattern |
-| AuthService.cs | 34 | SqlConnection opened without using or try finally | Ensure disposal on exception |
-| DatabaseHelper.cs | 29 | ExecuteQuery opens connection without try finally | Ensure connection closed on error |
-| DatabaseHelper.cs | 53 | ExecuteNonQuery closes connection but not disposed on exception | Use using for connection and command |
+| SampleBankingApp/Services/UserService.cs | 105 | Catch Exception returns empty list silently hiding errors | Log error and propagate or return error status |
+| SampleBankingApp/Services/EmailService.cs | 75 | Catch Exception swallows welcome email failure silently | Log error and consider retry |
+| SampleBankingApp/Controllers/UserController.cs | 52 | Returns raw ex.Message to client | Return generic message and log details |
+| SampleBankingApp/Controllers/UserController.cs | 48 | Returns raw ArgumentException message | Return generic validation error |
+| SampleBankingApp/Services/TransactionService.cs | 23 | Transfer performs two UPDATEs without transaction risking partial update | Wrap in database transaction |
+| SampleBankingApp/Services/TransactionService.cs | 52 | Email sent after DB updates committed risking inconsistency | Send email within transaction or use outbox pattern |
+| SampleBankingApp/Services/AuthService.cs | 103 | ValidateToken returns true early swallowing validation | Remove early return and implement validation |
+| SampleBankingApp/Controllers/TransactionController.cs | 56 | Catches NotImplementedException and returns 500 with message | Return proper 501 Not Implemented |
 
 ## 4. Resource Leaks
 | File | Line | Issue | Fix |
-| DatabaseHelper.cs | 19 | GetOpenConnection returns SqlConnection without disposing contract | Return using or require caller to dispose |
-| DatabaseHelper.cs | 29 | ExecuteQuery uses GetOpenConnection and never closes connection | Close and dispose connection |
-| DatabaseHelper.cs | 53 | ExecuteNonQuery uses GetOpenConnection and closes but does not dispose | Use using for connection and command |
-| AuthService.cs | 34 | SqlConnection created and opened without using | Wrap in using |
-| AuthService.cs | 37 | SqlCommand and SqlDataReader created without disposal | Wrap in using |
-| EmailService.cs | 22 | SmtpClient stored as instance field and never disposed | Dispose client or use per operation |
-| EmailService.cs | 39 | MailMessage created without disposal | Wrap MailMessage in using |
-| EmailService.cs | 69 | MailMessage created without disposal | Wrap MailMessage in using |
-| EmailService.cs | 89 | MailMessage created without disposal | Wrap MailMessage in using |
+| SampleBankingApp/Data/DatabaseHelper.cs | 19 | GetOpenConnection returns SqlConnection without disposal | Return using or require caller dispose |
+| SampleBankingApp/Data/DatabaseHelper.cs | 29 | ExecuteQuery uses GetOpenConnection without closing | Use using for connection and command |
+| SampleBankingApp/Data/DatabaseHelper.cs | 52 | ExecuteNonQuery uses GetOpenConnection and closes but not dispose | Use using |
+| SampleBankingApp/Services/AuthService.cs | 34 | SqlConnection opened and never closed | Use using for connection and reader |
+| SampleBankingApp/Services/AuthService.cs | 38 | SqlCommand and SqlDataReader not disposed | Use using |
+| SampleBankingApp/Services/EmailService.cs | 22 | SmtpClient held as instance field never disposed | Dispose in Dispose pattern |
+| SampleBankingApp/Services/EmailService.cs | 39 | MailMessage created without using | Use using for MailMessage |
+| SampleBankingApp/Services/EmailService.cs | 69 | MailMessage created without using | Use using for MailMessage |
 
 ## 5. Null Reference Risks
 | File | Line | Issue | Fix |
-| Program.cs | 28 | Encoding.UTF8.GetBytes(jwtSecret!) may receive null | Validate jwtSecret before use |
-| AuthService.cs | 70 | _config["Jwt:SecretKey"]! passed to Encoding.UTF8.GetBytes without null check | Validate config value |
-| TransactionController.cs | 27 | int.Parse(userIdClaim!) assumes claim present | Check claim existence before parsing |
-| TransactionController.cs | 41 | int.Parse(userIdClaim!) assumes claim present | Check claim existence before parsing |
-| StringHelper.cs | 13 | IsValidEmail accesses email.Length without null check | Check for null before length |
-| StringHelper.cs | 22 | IsValidUsername accesses username.Length without null check | Check for null before length |
-| StringHelper.cs | 45 | MaskAccountNumber accesses accountNumber.Length without null check | Check for null before length |
-| EmailService.cs | 22 | _config["Email:SmtpHost"] may be null | Validate config values |
-| EmailService.cs | 24 | int.Parse on _config["Email:SmtpPort"] may be null | Validate and parse safely |
-| TransactionService.cs | 36 | fromUserTable.Rows[0] accessed without checking Rows.Count | Check count before access |
-| TransactionService.cs | 37 | toUserTable.Rows[0] accessed without checking Rows.Count | Check count before access |
-| UserService.cs | 99 | SearchUsers query parameter may be null causing LIKE interpolation | Validate query before use |
+| SampleBankingApp/Program.cs | 16 | jwtSecret read from config may be null | Validate config and fail fast |
+| SampleBankingApp/Program.cs | 26 | ValidIssuer may be null | Validate config |
+| SampleBankingApp/Program.cs | 27 | ValidAudience may be null | Validate config |
+| SampleBankingApp/Services/EmailService.cs | 22 | _config["Email:SmtpHost"] may be null | Validate config |
+| SampleBankingApp/Services/EmailService.cs | 26 | _config["Email:Username"] may be null | Validate config |
+| SampleBankingApp/Services/EmailService.cs | 27 | _config["Email:Password"] may be null | Validate config |
+| SampleBankingApp/Services/AuthService.cs | 70 | _config["Jwt:SecretKey"]! may be null | Validate config |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Rows[0] access without count check | Check Rows.Count |
+| SampleBankingApp/Services/TransactionService.cs | 37 | Rows[0] access without count check | Check Rows.Count |
+| SampleBankingApp/Services/TransactionService.cs | 53 | Rows[0] access without count check | Check Rows.Count |
+| SampleBankingApp/Services/TransactionService.cs | 55 | Rows[0] access without count check | Check Rows.Count |
+| SampleBankingApp/Services/UserService.cs | 83 | Rows[0] access in IsWithinDailyLimit without count check | Check Rows.Count |
+| SampleBankingApp/Helpers/StringHelper.cs | 13 | email.Length without null check | Guard null |
+| SampleBankingApp/Helpers/StringHelper.cs | 22 | username.Length without null check | Guard null |
+| SampleBankingApp/Helpers/StringHelper.cs | 45 | accountNumber.Length without null check | Guard null |
+| SampleBankingApp/Helpers/StringHelper.cs | 56 | account[^4..] assumes length >=4 | Guard length |
+| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim! may be null | Check null before parse |
+| SampleBankingApp/Controllers/TransactionController.cs | 41 | userIdClaim! may be null | Check null before parse |
 
 ## 6. Dead Code
 | File | Line | Issue | Fix |
-| AuthService.cs | 91 | HashPasswordSha1 method defined but never called | Remove unused method |
-| AuthService.cs | 98 | ValidateToken returns true early making lines 105-108 unreachable | Remove unreachable code |
-| DatabaseHelper.cs | 67 | ExecuteQueryWithParams marked Obsolete and unused | Remove obsolete method |
-| DatabaseHelper.cs | 59 | TableExists method defined but never called | Remove or use |
-| StringHelper.cs | 29 | JoinWithSeparator uses manual concatenation and appears unused | Remove or replace with JoinWithSeparatorFixed |
-| StringHelper.cs | 38 | JoinWithSeparatorFixed uses string.Join and appears unused | Remove if unused |
-| StringHelper.cs | 54 | ObfuscateAccount method appears unused | Remove if unused |
-| StringHelper.cs | 43 | MaskAccountNumber method appears unused | Remove if unused |
-| StringHelper.cs | 59 | ToTitleCase method appears unused | Remove if unused |
-| StringHelper.cs | 65 | IsBlank method appears unused | Remove if unused |
-| TransactionService.cs | 77 | IsWithinDailyLimit method defined but never called | Remove or integrate |
-| TransactionService.cs | 94 | FormatCurrency method defined but never called | Remove if unused |
-| EmailService.cs | 86 | SendWelcomeEmailHtml method appears unused | Remove if unused |
+| SampleBankingApp/Data/DatabaseHelper.cs | 68 | ExecuteQueryWithParams marked Obsolete and unused | Remove or use |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 defined but never called | Remove |
+| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken defined but never called with unreachable code | Remove or implement |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit defined but never called | Remove or use |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency defined but never called | Remove |
+| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml defined but never called | Remove |
+| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator defined but never called | Remove |
+| SampleBankingApp/Helpers/StringHelper.cs | 38 | JoinWithSeparatorFixed defined but never called | Remove |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount defined but never called | Remove |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase defined but never called | Remove |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank defined but never called | Remove |
+| SampleBankingApp/Data/DatabaseHelper.cs | 59 | TableExists defined but never called | Remove |
+| SampleBankingApp/Services/AuthService.cs | 105 | Code after unconditional return is unreachable | Remove unreachable code |
 
 ## 7. Magic Strings and Numbers
 | File | Line | Issue | Fix |
-| TransactionService.cs | 68 | Interest bonus uses literal 0.05m and multiplier 1 | Define named constants |
-| TransactionService.cs | 65 | Deposit amount cap 1000000 is literal | Define constant |
-| UserService.cs | 70 | Page size cap 50 is literal | Define constant |
-| UserService.cs | 20 | Id lower bound 0 is literal | Define constant |
-| UserService.cs | 22 | Id upper bound 1000000 is literal | Define constant |
-| StringHelper.cs | 13 | Email max length 254 is literal | Define constant |
-| StringHelper.cs | 22 | Username min length 3 and max 20 are literals | Define constants |
-| EmailService.cs | 10 | TransferSubject string literal repeated | Centralize constant |
-| EmailService.cs | 11 | WelcomeSubject string literal repeated | Centralize constant |
-| EmailService.cs | 13 | MaxRetries literal 3 | Define constant |
-| EmailService.cs | 14 | SmtpTimeoutMs literal 5000 | Define constant |
-| appsettings.json | 11 | SmtpHost value smtp.company.com hardcoded in config | Move to environment specific config |
+| SampleBankingApp/appsettings.json | 3 | Connection string password Admin1234! hardcoded | Move to secret store |
+| SampleBankingApp/appsettings.json | 14 | Email password EmailPass99 hardcoded | Move to secret store |
+| SampleBankingApp/appsettings.json | 6 | JWT secret mysecretkey hardcoded | Use strong secret from secure store |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Interest bonus uses literal 0.05m | Define constant |
+| SampleBankingApp/Services/UserService.cs | 70 | Page size cap literal 50 | Define constant |
+| SampleBankingApp/Services/UserService.cs | 22 | User ID upper bound literal 1000000 | Define constant |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit cap literal 1000000 | Define constant |
+| SampleBankingApp/Services/EmailService.cs | 10 | TransferSubject literal | Use config |
+| SampleBankingApp/Services/EmailService.cs | 11 | WelcomeSubject literal | Use config |
+| SampleBankingApp/Data/DatabaseHelper.cs | 16 | Fallback connection string contains password | Remove hardcoded credentials |
 
 ## 8. Anti-patterns and Code Quality
 | File | Line | Issue | Fix |
-| StringHelper.cs | 31 | JoinWithSeparator uses string concatenation in loop causing O(n²) | Use StringBuilder or string.Join |
-| StringHelper.cs | 16 | IsValidEmail creates new Regex each call | Use static readonly Regex |
-| StringHelper.cs | 25 | IsValidUsername creates new Regex each call | Use static readonly Regex |
-| UserService.cs | 10 | _auditLog static List shared without synchronization | Use thread-safe collection or scoped service |
-| UserService.cs | 11 | _requestCount static int shared without synchronization | Use thread-safe counter |
-| DatabaseHelper.cs | 19 | GetOpenConnection leaks resource ownership to caller | Document ownership or return using |
-| UserService.cs | 20 | GetUserById repeats id validation logic | Extract shared validation method |
-| UserService.cs | 40 | UpdateUser repeats id validation logic | Extract shared validation method |
-| UserService.cs | 54 | DeleteUser repeats id validation logic | Extract shared validation method |
-| TransactionService.cs | 23 | Transfer method mixes validation DB access balance calc updates and email | Split into smaller helpers |
-| AuthService.cs | 28 | Login method mixes hashing query mapping and backdoor | Split responsibilities |
+| SampleBankingApp/Helpers/StringHelper.cs | 32 | result += item + separator in loop O(n²) | Use StringBuilder or string.Join |
+| SampleBankingApp/Services/UserService.cs | 88 | report += entry + "\n" in loop O(n²) | Use StringBuilder |
+| SampleBankingApp/Helpers/StringHelper.cs | 16 | new Regex created each call | Make static readonly |
+| SampleBankingApp/Helpers/StringHelper.cs | 25 | new Regex created each call | Make static readonly |
+| SampleBankingApp/Services/UserService.cs | 10 | static List _auditLog shared mutable without synchronization | Use thread-safe collection |
+| SampleBankingApp/Services/UserService.cs | 11 | static int _requestCount shared mutable | Use thread-safe counter |
+| SampleBankingApp/Data/DatabaseHelper.cs | 19 | GetOpenConnection leaks resource ownership | Return connection via using |
+| SampleBankingApp/Services/UserService.cs | 20 | Validation duplicated across methods | Extract shared validation method |
+| SampleBankingApp/Services/TransactionService.cs | 23 | Transfer does validation DB reads writes email multiple responsibilities | Split into smaller methods |
+| SampleBankingApp/Services/AuthService.cs | 28 | Login does hashing query mapping bypass multiple responsibilities | Split into smaller methods |
 
 ## 9. Configuration Issues
 | File | Line | Issue | Fix |
-| Program.cs | 34 | UseDeveloperExceptionPage enabled unconditionally | Enable only in Development |
-| Program.cs | 24 | ValidateLifetime false disables token expiry check | Set ValidateLifetime true |
-| Program.cs | 36 | HTTPS redirection commented out | Enable HTTPS redirection |
-| Program.cs | 38 | CORS allows any origin method and header | Restrict to specific origins |
-| appsettings.json | 3 | Connection string with password committed | Remove secret from source control |
-| appsettings.json | 6 | Jwt SecretKey weak and committed | Use strong secret from environment |
-| appsettings.json | 14 | Email password committed | Remove secret from source control |
-| SampleBankingApp.csproj | 8 | DebugSymbols true in release build | Disable for production |
-| SampleBankingApp.csproj | 9 | DebugType full in release build | Use portable symbols for production |
-| SampleBankingApp.csproj | 15 | Newtonsoft.Json version 12.0.3 is outdated | Update to supported version |
-| Program.cs | 16 | Jwt secret read without validation | Validate presence at startup |
+| SampleBankingApp/Program.cs | 34 | UseDeveloperExceptionPage enabled unconditionally | Enable only in Development |
+| SampleBankingApp/Program.cs | 36 | HTTPS redirection commented out | Enable HTTPS redirection |
+| SampleBankingApp/Program.cs | 38 | CORS allows any origin method header | Restrict CORS to trusted origins |
+| SampleBankingApp/Program.cs | 24 | ValidateLifetime false | Set ValidateLifetime to true |
+| SampleBankingApp/SampleBankingApp.csproj | 8 | DebugSymbols true in release build | Disable for release |
+| SampleBankingApp/SampleBankingApp.csproj | 13 | Newtonsoft.Json 12.0.3 outdated | Update to supported version |
+| SampleBankingApp/appsettings.json | 18 | LogLevel Default Debug for production | Set to Warning or Error |
+| SampleBankingApp/appsettings.json | 23 | AllowedHosts "*" overly permissive | Restrict hosts |
 
 ## 10. Missing Unit Tests
 | File | Line | Issue | Fix |
-| AuthService.cs | 28 | Login method lacks unit tests for success failure and backdoor | Add unit tests covering auth flows |
-| AuthService.cs | 68 | GenerateJwtToken lacks tests for claims and expiry | Add unit tests for token generation |
-| TransactionService.cs | 23 | Transfer method lacks tests for fee calculation and insufficient funds | Add tests for boundary conditions |
-| TransactionService.cs | 63 | Deposit method lacks tests for cap and interest calculation | Add tests for valid and invalid amounts |
-| UserService.cs | 68 | GetUsersPage pagination off-by-one needs tests | Add tests for page boundaries |
-| UserService.cs | 38 | UpdateUser validation and SQL injection risk needs tests | Add tests for input validation |
-| UserService.cs | 95 | SearchUsers swallows exceptions needs tests | Add tests for error handling |
-| TransactionController.cs | 24 | Transfer endpoint parses claim without null check needs tests | Add tests for missing claim |
-| EmailService.cs | 34 | SendTransferNotification retries logic needs tests | Add tests for retry behavior |
-| Program.cs | 17 | JWT configuration validation missing tests | Add integration tests for startup config |
+| SampleBankingApp/Services/AuthService.cs | 28 | No unit tests for Login authentication and admin bypass | Add tests for valid/invalid credentials and bypass removal |
+| SampleBankingApp/Services/TransactionService.cs | 23 | No unit tests for Transfer balance and fee calculation | Add tests for insufficient funds fee deduction self-transfer |
+| SampleBankingApp/Services/UserService.cs | 68 | No unit tests for pagination off-by-one | Add tests for page 1 2 boundary |
+| SampleBankingApp/Services/UserService.cs | 38 | No unit tests for UpdateUser SQL injection | Add tests with malicious input |
+| SampleBankingApp/Controllers/UserController.cs | 24 | No unit tests for authorization enforcement | Add tests for unauthorized access |
+| SampleBankingApp/Services/EmailService.cs | 34 | No unit tests for SendTransferNotification retry logic | Add tests for SMTP failures |
+| SampleBankingApp/Helpers/StringHelper.cs | 11 | No unit tests for IsValidEmail null handling | Add tests for null and edge cases |
+| SampleBankingApp/Program.cs | 24 | No unit tests for JWT validation configuration | Add integration tests for token expiry |
