@@ -922,6 +922,11 @@ jobs:
               )
 
           cite_total, cite_bad, cite_files = check_line_citations(review)
+          # Precision: of the Found rows the watchlist can actually check, how many
+          # survive. Adjusted Found subtracts the mis-credits found; this reports the
+          # RATE, which is what generalises to the rows that cannot be checked.
+          found_checked = len([r for r in spot_rows if r[1] == "Found"])
+          precision = (1.0 - len(miscredits) / found_checked) if found_checked else None
           warn_repeated_notes(body)
           if row_total != 70:
               print(
@@ -1000,6 +1005,9 @@ jobs:
               ("Rows misaligned with ISSUES.md", _val(len(misaligned) + len(missing_ids))),
               ("Review citations past end of file",
                _val(f"{cite_bad} of {cite_total}" if cite_total else "(none parsed)")),
+              ("Precision (checkable Found rows)",
+               _val(f"{precision:.0%} ({found_checked - len(miscredits)} of {found_checked})"
+                    if precision is not None else "(no checkable rows)")),
               ("Scorer prompt SHA-256", _val(scorer_prompt_sha, "(unknown)")),
               ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
               ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
@@ -1090,6 +1098,8 @@ jobs:
               "spotcheck_miscredits": miscredits,
               "spotcheck_undercredits": undercredits,
               "spotcheck_unsupported_partials": unsupported,
+              "spotcheck_found_checked": found_checked,
+              "precision": round(precision, 4) if precision is not None else None,
               "citations_total": cite_total,
               "citations_beyond_eof": cite_bad,
               "found_adjusted": adjusted_found,

@@ -431,6 +431,8 @@ def main() -> int:
 
     spot_rows, miscredits, undercredits, unsupported = spot_check(body, review)
     hedged = hedge_check(body)
+    found_checked = len([r for r in spot_rows if r[1] == "Found"])
+    precision = (1.0 - len(miscredits) / found_checked) if found_checked else None
     adjusted_found = rf - len(miscredits)
     found_floor = adjusted_found - len([h for h in hedged if h[0] not in miscredits])
 
@@ -501,6 +503,8 @@ def main() -> int:
         "found_adjusted": adjusted_found,
         "found_floor": found_floor,
         "spotcheck_miscredits": miscredits,
+        "spotcheck_found_checked": found_checked,
+        "precision": round(precision, 4) if precision is not None else None,
         "citations_total": cite_total,
         "citations_beyond_eof": cite_bad,
         "spotcheck_unsupported_partials": unsupported,
