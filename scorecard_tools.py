@@ -164,6 +164,63 @@ def enforce_note_grounding(md: str, review_text: str, mode: str):
         )
     return "\n".join(out), downgraded
 
+# ------------------------------------------------------------------------
+# Self-declared absence.
+#
+# A Note that says the review never mentions the issue, on a row that still
+# awards credit. Distinct from the ordinary Partial hedge ("addresses X but not
+# Y"), which is what Partial legitimately means -- these assert that NOTHING was
+# found. Across the archive the pattern hits 46 Missed rows (correct usage), 6
+# Partial rows and zero Found rows, so it discriminates rather than firing
+# everywhere.
+#
+# Downgraded rather than merely flagged: unlike a missing watchlist target, this
+# is the scorer's own statement that there is no evidence, which is the same
+# standing as an ungrounded Note.
+# ------------------------------------------------------------------------
+_SELF_DECLARED_ABSENT = re.compile(
+    r"no (?:specific|explicit)? ?mention"
+    r"|no matching sentence"
+    r"|not mentioned (?:at all )?in the review"
+    r"|(?:the )?review does not (?:mention|address|discuss|cover)"
+    r"|does not appear in the review",
+    re.IGNORECASE,
+)
+
+
+def downgrade_self_declared_absent(md: str):
+    """Rate as Missed any Found/Partial row whose Note declares no evidence."""
+    out, downgraded = [], []
+    for line in md.splitlines():
+        m_id = _ROW_ID.match(line.strip())
+        m = _STATUS_CELL.search(line)
+        if not m_id or not m:
+            out.append(line)
+            continue
+        status = m.group(1).capitalize()
+        note = line[m.end():].lstrip("|").strip().rstrip("|").strip()
+        # "ungrounded" rows are already Missed from the grounding pass, and their
+        # standard wording contains "no matching sentence" -- skip, do not double-count.
+        if status == "Missed" or "ungrounded" in note.lower():
+            out.append(line)
+            continue
+        if not _SELF_DECLARED_ABSENT.search(note):
+            out.append(line)
+            continue
+        downgraded.append((m_id.group(1).upper(), status))
+        out.append(line[: m.start()] + "| Missed | " + note
+                   + " _(downgraded: Note states the review does not cover this)_ |")
+
+    if downgraded:
+        print(
+            f"WARN: downgraded {len(downgraded)} row(s) whose own Note says the review "
+            "never mentions the issue: "
+            + ", ".join(f"{r}({s})" for r, s in downgraded),
+            file=sys.stderr,
+        )
+    return "\n".join(out), downgraded
+
+
 def count_table_statuses(md: str) -> tuple[int, int, int]:
     """Count Found / Partial / Missed from scorecard tables.
 

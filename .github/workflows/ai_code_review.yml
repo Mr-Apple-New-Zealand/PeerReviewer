@@ -821,6 +821,7 @@ jobs:
               WATCHLIST,
               count_table_statuses,
               drop_duplicate_ids,
+              downgrade_self_declared_absent,
               drop_unknown_ids,
               enforce_note_grounding,
               hedge_check,
@@ -849,12 +850,13 @@ jobs:
               body = drop_duplicate_ids(scorecard)
               body, unknown_ids = drop_unknown_ids(body, issues)
               body, grounding_downgrades = enforce_note_grounding(body, review, grounding_mode)
+              body, self_declared = downgrade_self_declared_absent(body)
               # Recount only after dedupe and downgrades, so the summary matches the tables.
               body = reconcile_summary_line(body)
               rf, rp, rm = count_table_statuses(body)
               attempts.append(
                   {"body": body, "data": data, "downgrades": grounding_downgrades,
-                   "unknown_ids": unknown_ids,
+                   "unknown_ids": unknown_ids, "self_declared": self_declared,
                    "found": rf, "partial": rp, "missed": rm, "n": attempt}
               )
               if rp > 0 or (rf + rp + rm) < 40:
@@ -979,6 +981,7 @@ jobs:
               ("Scorer attempts", _val(len(attempts))),
               ("Grounding mode", _val(grounding_mode)),
               ("Grounding downgrades", _val(len(grounding_downgrades))),
+              ("Self-declared-absent downgrades", _val(len(self_declared))),
               ("Scorer prompt SHA-256", _val(scorer_prompt_sha, "(unknown)")),
               ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
               ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
