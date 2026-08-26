@@ -821,6 +821,7 @@ jobs:
               WATCHLIST,
               count_table_statuses,
               drop_duplicate_ids,
+              check_line_citations,
               check_row_alignment,
               downgrade_self_declared_absent,
               drop_unknown_ids,
@@ -920,6 +921,7 @@ jobs:
                   file=sys.stderr,
               )
 
+          cite_total, cite_bad, cite_files = check_line_citations(review)
           warn_repeated_notes(body)
           if row_total != 70:
               print(
@@ -996,6 +998,8 @@ jobs:
               ("Grounding downgrades", _val(len(grounding_downgrades))),
               ("Self-declared-absent downgrades", _val(len(self_declared))),
               ("Rows misaligned with ISSUES.md", _val(len(misaligned) + len(missing_ids))),
+              ("Review citations past end of file",
+               _val(f"{cite_bad} of {cite_total}" if cite_total else "(none parsed)")),
               ("Scorer prompt SHA-256", _val(scorer_prompt_sha, "(unknown)")),
               ("ISSUES.md SHA-256", _val(issues_sha, "(unknown)")),
               ("Branch / commit", _val(f"{branch_name} @ {commit_sha[:7]}")),
@@ -1086,6 +1090,8 @@ jobs:
               "spotcheck_miscredits": miscredits,
               "spotcheck_undercredits": undercredits,
               "spotcheck_unsupported_partials": unsupported,
+              "citations_total": cite_total,
+              "citations_beyond_eof": cite_bad,
               "found_adjusted": adjusted_found,
               "found_floor": found_floor,
               "hedged_rows": [h[0] for h in hedged],

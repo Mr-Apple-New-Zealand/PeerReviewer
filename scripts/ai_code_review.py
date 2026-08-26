@@ -205,6 +205,7 @@ sys.path.insert(0, str(REPO_ROOT_PATH))
 from scorecard_tools import (  # noqa: E402
     count_table_statuses,
     drop_duplicate_ids,
+    check_line_citations,
     check_row_alignment,
     downgrade_self_declared_absent,
     drop_unknown_ids,
@@ -423,6 +424,7 @@ def main() -> int:
     body, self_declared = downgrade_self_declared_absent(body)
     misaligned, missing_ids = check_row_alignment(body, issues)
     body = reconcile_summary_line(body)
+    cite_total, cite_bad, _cite_files = check_line_citations(review)
     warn_repeated_notes(body)
     rf, rp, rm = count_table_statuses(body)
     row_total = rf + rp + rm
@@ -499,6 +501,8 @@ def main() -> int:
         "found_adjusted": adjusted_found,
         "found_floor": found_floor,
         "spotcheck_miscredits": miscredits,
+        "citations_total": cite_total,
+        "citations_beyond_eof": cite_bad,
         "spotcheck_unsupported_partials": unsupported,
         "hedged_rows": [h[0] for h in hedged],
         "grounding_downgrades": len(grounding_downgrades),

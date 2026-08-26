@@ -7,6 +7,7 @@ point -- these checks have to be trustworthy when the scorer is not.
 Kept in one file because the same logic was previously copy-pasted into the benchmark
 workflow and silently drifted 1,236 characters behind production.
 """
+import pathlib
 import re
 import sys
 
@@ -232,6 +233,74 @@ def _identifiers(text: str) -> set:
             if low not in _IDENT_STOP:
                 out.add(low)
     return out
+
+
+# Citation forms seen across the fleet:
+#   | SampleBankingApp/Services/UserService.cs | 32 | ...     (table, path-prefixed)
+#   | Services/AuthService.cs | ~72 | ...                     (table, repo-relative)
+#   AuthService.cs:81-92 -- "..."                             (inline, colon)
+#   | StringHelper.cs | 13, 22, 45 | ...                      (comma list)
+#   | SampleBankingApp.csproj | 7-10 | ...                    (range, hyphen or en dash)
+_CITE_TABLE = re.compile(
+    r"\|\s*`?([\w./\\-]+\.(?:cs|csproj|json))`?\s*\|\s*~?([\d][\d,\s~\u2013\u2014-]*)\|")
+_CITE_COLON = re.compile(r"`?([\w./\\-]+\.(?:cs|csproj|json))`?:(\d+)")
+_CITE_NUMS = re.compile(r"\d+")
+
+
+def _source_line_counts(root: str) -> dict:
+    """Map basename -> line count for every source file under root."""
+    counts = {}
+    for path in pathlib.Path(root).rglob("*"):
+        if path.is_file() and path.suffix.lower() in (".cs", ".csproj", ".json"):
+            try:
+                with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                    counts[path.name.lower()] = sum(1 for _ in fh)
+            except OSError:
+                continue
+    return counts
+
+
+def check_line_citations(review_text: str, source_root: str = "SampleBankingApp"):
+    """Count review citations pointing past the end of the file they name.
+
+    Returns (total, beyond_eof, per_file) where per_file maps a basename to
+    (cited, beyond_eof, file_length), worst first. Files the review names that do
+    not exist in the tree are ignored rather than counted as errors -- a model
+    may reasonably discuss a file it thinks SHOULD exist, and the missing
+    appsettings.Production.json issue depends on exactly that.
+    """
+    counts = _source_line_counts(source_root)
+    if not counts:
+        return 0, 0, []
+
+    seen = {}
+    def record(name, nums):
+        base = name.replace("\\", "/").rsplit("/", 1)[-1].lower()
+        if base not in counts:
+            return
+        cited, bad = seen.get(base, (0, 0))
+        for n in nums:
+            cited += 1
+            if n > counts[base]:
+                bad += 1
+        seen[base] = (cited, bad)
+
+    for m in _CITE_TABLE.finditer(review_text):
+        record(m.group(1), [int(x) for x in _CITE_NUMS.findall(m.group(2))])
+    for m in _CITE_COLON.finditer(review_text):
+        record(m.group(1), [int(m.group(2))])
+
+    per_file = sorted(
+        ((b, c, bad, counts[b]) for b, (c, bad) in seen.items()),
+        key=lambda r: -r[2])
+    total = sum(r[1] for r in per_file)
+    beyond = sum(r[2] for r in per_file)
+    if beyond:
+        worst = ", ".join(f"{b} cites {bad} line(s) past EOF (file is {ln})"
+                          for b, _c, bad, ln in per_file if bad)
+        print(f"WARN: review cites {beyond} of {total} source locations that do not "
+              f"exist: {worst}", file=sys.stderr)
+    return total, beyond, per_file
 
 
 def check_row_alignment(md: str, issues_text: str):
