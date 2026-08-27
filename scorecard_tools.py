@@ -569,7 +569,88 @@ WATCHLIST = {
     "CF8": ["Newtonsoft"],
 }
 
-def spot_check(md, review_text):
+# C# member definitions: modifiers, optional generics, return type, then name(.
+_CS_DEF = re.compile(
+    r"^\s*(?:public|private|protected|internal|static|virtual|override|async|sealed|"
+    r"partial|\s)*[\w<>,\[\]\?]+\s+([A-Za-z_]\w*)\s*\(")
+
+
+def _symbol_bodies(source_root: str) -> dict:
+    """Map lowercase symbol name -> list of (basename, first_line, last_line).
+
+    The body extent is approximated as running to the line before the next
+    definition in the same file. That is crude for nested types but sufficient
+    here: it lets a citation of an interior line (the unreachable statement
+    inside ValidateToken) resolve to the symbol that encloses it.
+    """
+    out = {}
+    for path in pathlib.Path(source_root).rglob("*.cs"):
+        try:
+            lines = open(path, "r", encoding="utf-8", errors="replace").read().splitlines()
+        except OSError:
+            continue
+        defs = []
+        for i, line in enumerate(lines, 1):
+            m = _CS_DEF.match(line)
+            if m and m.group(1).lower() not in ("if", "for", "foreach", "while",
+                                                "switch", "catch", "using", "lock",
+                                                "return", "new"):
+                defs.append((m.group(1), i))
+        for idx, (name, start) in enumerate(defs):
+            end = defs[idx + 1][1] - 1 if idx + 1 < len(defs) else len(lines)
+            out.setdefault(name.lower(), []).append((path.name.lower(), start, end))
+    return out
+
+
+def _review_citations(review_text: str) -> set:
+    """(basename, line) pairs the review points at."""
+    cites = set()
+    for m in _CITE_TABLE.finditer(review_text):
+        base = m.group(1).replace("\\", "/").rsplit("/", 1)[-1].lower()
+        for n in _CITE_NUMS.findall(m.group(2)):
+            cites.add((base, int(n)))
+    for m in _CITE_COLON.finditer(review_text):
+        base = m.group(1).replace("\\", "/").rsplit("/", 1)[-1].lower()
+        cites.add((base, int(m.group(2))))
+    return cites
+
+
+def _literal_lines(target: str, source_root: str) -> set:
+    """(basename, line) pairs where this exact text occurs in the source."""
+    hits, needle = set(), target.strip("`").lower()
+    if len(needle) < 4:
+        return hits
+    for path in pathlib.Path(source_root).rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in (".cs", ".csproj", ".json"):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                for i, line in enumerate(fh, 1):
+                    if needle in line.lower():
+                        hits.add((path.name.lower(), i))
+        except OSError:
+            continue
+    return hits
+
+
+def _located(target: str, cites: set, symbols: dict, source_root: str) -> bool:
+    """True if the review points at where this target lives in the source.
+
+    Two ways to resolve. A symbol resolves to its whole body, so a citation of an
+    interior line counts -- that is what lets the unreachable statement at
+    AuthService.cs:105 evidence ValidateToken, defined at 98. A literal resolves
+    to the exact lines it appears on, with no span, since widening it would
+    credit citations that merely land near the right place.
+    """
+    key = target.strip("`").lower()
+    for base, start, end in symbols.get(key, ()):
+        for cbase, cline in cites:
+            if cbase == base and start <= cline <= end:
+                return True
+    return bool(_literal_lines(target, source_root) & cites)
+
+
+def spot_check(md, review_text, source_root="SampleBankingApp"):
     status_by_id = {}
     for line in md.splitlines():
         m_id = _ROW_ID.match(line.strip())
@@ -577,12 +658,22 @@ def spot_check(md, review_text):
         if m_id and m:
             status_by_id.setdefault(m_id.group(1).upper(), m.group(1).capitalize())
     low = review_text.lower()
+    # A review may name the symbol OR point at the line it lives on. Both are
+    # evidence; testing only the first penalises location-anchored reviews.
+    try:
+        symbols = _symbol_bodies(source_root)
+        cites = _review_citations(review_text) if symbols else set()
+    except OSError:
+        symbols, cites = {}, set()
+
     rows, miscredits, undercredits, unsupported = [], [], [], []
     for rid, targets in WATCHLIST.items():
         status = status_by_id.get(rid)
         if status is None:
             continue
         present = any(t.lower() in low for t in targets)
+        if not present and cites:
+            present = any(_located(t, cites, symbols, source_root) for t in targets)
         verdict = "-"
         if status == "Found" and not present:
             verdict = "**MIS-CREDIT**"
