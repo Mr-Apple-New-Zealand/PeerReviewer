@@ -191,6 +191,9 @@ _SELF_DECLARED_ABSENT = re.compile(
 
 _CODE_SPAN = re.compile(r"`([^`]+)`")
 _ALIGN_MIN = 0.5
+# Share of the SHORTER description's words that must appear in the longer one
+# for the pair to count as an abridgement rather than a different issue.
+_ALIGN_CONTAIN = 0.8
 
 
 def _row_cells(line: str):
@@ -219,19 +222,33 @@ _IDENT_STOP = frozenset({
 })
 
 
-def _identifiers(text: str) -> set:
-    """Identifiers named inside code spans -- the subject of the issue.
+# CamelCase / PascalCase, or a dotted name. Recognisable as an identifier
+# wherever it appears, so a scorer that writes GetOpenConnection() without
+# backticks is not treated as having named nothing.
+_BARE_IDENT = re.compile(r"\b(?:[A-Za-z]+(?:[A-Z][a-z0-9]+)+|[a-z]+\.[a-z]{2,6})\b")
 
-    Only these distinguish a reworded row from a misaligned one, so generic
-    tokens are dropped: they are shared by issues that have nothing to do with
-    each other.
+
+def _identifiers(text: str) -> set:
+    """Identifiers naming the subject of the issue.
+
+    Read from code spans AND from plain prose. Restricting to backticks made the
+    guard a test of markdown style rather than of content: Qwen3.8-27B summarises
+    descriptions and writes symbols bare, which flagged 20 correct rows as
+    misaligned against a reference that backticks the same symbols.
+
+    Generic tokens are still dropped -- they are shared by issues that have
+    nothing to do with each other.
     """
     out = set()
-    for span in _CODE_SPAN.findall(text):
-        for tok in re.findall(r"[A-Za-z_][A-Za-z0-9_]{3,}", span):
-            low = tok.lower()
-            if low not in _IDENT_STOP:
-                out.add(low)
+    spans = " ".join(_CODE_SPAN.findall(text))
+    for tok in re.findall(r"[A-Za-z_][A-Za-z0-9_]{3,}", spans):
+        low = tok.lower()
+        if low not in _IDENT_STOP:
+            out.add(low)
+    for tok in _BARE_IDENT.findall(text):
+        low = tok.lower()
+        if low not in _IDENT_STOP and len(low) >= 5:
+            out.add(low)
     return out
 
 
@@ -328,6 +345,13 @@ def check_row_alignment(md: str, issues_text: str):
             continue
         if _identifiers(ref_desc) & _identifiers(got[rid]):
             continue  # reworded, same subject
+        # Abridgement: the shorter description's words are nearly all present in
+        # the longer one. Jaccard punishes the length difference and would call
+        # "Broken password hashing - MD5 with no salt" a different issue from the
+        # fuller reference sentence it was cut from. A row that is genuinely about
+        # something else fails this too, in both directions.
+        if a and b and len(a & b) / min(len(a), len(b)) >= _ALIGN_CONTAIN:
+            continue
         misaligned.append((rid, round(sim, 2)))
 
     if misaligned or missing:
