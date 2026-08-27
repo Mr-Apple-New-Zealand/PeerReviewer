@@ -1,1237 +1,1088 @@
 ## 1. Security Vulnerabilities
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Services/AuthService.cs | 32 | SQL injection vulnerability in Login method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/TransactionService.cs | 47 | SQL injection vulnerability in Transfer method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/TransactionService.cs | 48 | SQL injection vulnerability in Transfer method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/TransactionService.cs | 71 | SQL injection vulnerability in Deposit method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/UserService.cs | 47 | SQL injection vulnerability in UpdateUser method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/UserService.cs | 61 | SQL injection vulnerability in DeleteUser method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Services/UserService.cs | 99 | SQL injection vulnerability in SearchUsers method using string interpolation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Data/DatabaseHelper.cs | 29 | SQL injection vulnerability in ExecuteQuery method using string concatenation | Use parameterized queries instead of string concatenation for SQL |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | Potential null dereference on userIdClaim if user is not authenticated | Add null check before parsing userIdClaim |
-| SampleBankingApp/Controllers/UserController.cs | 41 | Potential null dereference on userIdClaim if user is not authenticated | Add null check before parsing userIdClaim |
-| SampleBankingApp/Program.cs | 16 | Hardcoded JWT secret key in Program.cs | Move to configuration file or environment variable |
-| SampleBankingApp/appsettings.json | 6 | Hardcoded JWT secret key in appsettings.json | Move to secure configuration store |
-| SampleBankingApp/appsettings.json | 14 | Hardcoded email password in appsettings.json | Move to secure configuration store |
-| SampleBankingApp/Services/AuthService.cs | 17 | Hardcoded admin bypass password | Remove or make configurable |
-| SampleBankingApp/Data/DatabaseHelper.cs | 16 | Hardcoded SQL Server connection string | Move to configuration file |
-| SampleBankingApp/Program.cs | 34 | UseDeveloperExceptionPage called unconditionally in production code | Remove for production builds |
-| SampleBankingApp/Services/AuthService.cs | 30 | Uses MD5 hashing which is insecure for passwords | Replace with bcrypt or PBKDF2 |
-| SampleBankingApp/Services/AuthService.cs | 91 | Uses SHA1 hashing which is insecure for passwords | Replace with bcrypt or PBKDF2 |
-| SampleBankingApp/Program.cs | 24 | ValidateLifetime = false in JWT configuration | Set to true for security |
-| SampleBankingApp/Program.cs | 38 | Overly permissive CORS policy allowing any origin/method/header | Restrict to specific origins and methods |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic | Remove or make configurable |
-| SampleBankingApp/Controllers/UserController.cs | 24 | Missing authorization check on GetUser endpoint | Add proper ownership validation |
-| SampleBankingApp/Controllers/UserController.cs | 61 | Missing authorization check on DeleteUser endpoint | Add proper ownership validation |
+|------|------|-------|-----|
+| SampleBankingApp/Services/AuthService.cs | 32 | SQL injection vulnerability in Login method using string interpolation for SQL query | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/TransactionService.cs | 47 | SQL injection vulnerability in Transfer method using string interpolation for UPDATE statement | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/TransactionService.cs | 48 | SQL injection vulnerability in Transfer method using string interpolation for UPDATE statement | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/TransactionService.cs | 90 | SQL injection vulnerability in RecordTransaction method using string interpolation for INSERT statement | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 47 | SQL injection vulnerability in UpdateUser method using string interpolation for UPDATE statement | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 61 | SQL injection vulnerability in DeleteUser method using string interpolation for DELETE statement | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Services/UserService.cs | 99 | SQL injection vulnerability in SearchUsers method using string interpolation for LIKE clause | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Data/DatabaseHelper.cs | 29 | SQL injection vulnerability in ExecuteQuery method using string interpolation for WHERE clause | Use parameterized queries instead of string concatenation |
+| SampleBankingApp/Program.cs | 16 | Hardcoded JWT secret key "mysecretkey" in appsettings.json | Use environment-specific configuration or secure secret management |
+| SampleBankingApp/Program.cs | 24 | JWT validation disabled with ValidateLifetime = false | Enable lifetime validation for security |
+| SampleBankingApp/Program.cs | 34 | Developer exception page enabled in production code | Remove UseDeveloperExceptionPage() from production builds |
+| SampleBankingApp/Program.cs | 38 | Overly permissive CORS policy allowing any origin, method and header | Restrict CORS to specific origins and methods |
+| SampleBankingApp/appsettings.json | 4 | Hardcoded database password "Admin1234!" in connection string | Use secure configuration management |
+| SampleBankingApp/appsettings.json | 14 | Hardcoded email password "EmailPass99" in configuration | Use secure secret management for credentials |
+| SampleBankingApp/Services/AuthService.cs | 17 | Hardcoded admin bypass password "SuperAdmin2024" | Remove hardcoded backdoor or make it configurable |
+| SampleBankingApp/Services/AuthService.cs | 30 | Weak MD5 hashing used for passwords | Replace with bcrypt, scrypt, or PBKDF2 |
+| SampleBankingApp/Services/AuthService.cs | 91 | Weak SHA1 hashing used for password validation | Replace with bcrypt, scrypt, or PBKDF2 |
+| SampleBankingApp/Data/DatabaseHelper.cs | 16 | Hardcoded SQL Server credentials in default connection string | Use secure configuration management |
 
 ## 2. Logic Errors
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Services/TransactionService.cs | 42 | Balance check uses >= instead of > which could allow negative balances | Change to `fromBalance > totalDebit` |
-| SampleBankingApp/Services/UserService.cs | 72 | Pagination calculation uses `page * pageSize` instead of `(page-1) * pageSize` | Change to `(page - 1) * pageSize` |
-| SampleBankingApp/Services/TransactionService.cs | 68 | Interest bonus calculation is incorrect (0.05m * 1) | Remove unnecessary multiplication by 1 |
-| SampleBankingApp/Services/TransactionService.cs | 40 | Fee calculation rounds to 2 decimal places but doesn't ensure precision | Use `Math.Round(amount * TransactionFeeRate, 2, MidpointRounding.AwayFromZero)` |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | Potential null dereference on userIdClaim if user is not authenticated | Add null check before parsing userIdClaim |
-| SampleBankingApp/Controllers/UserController.cs | 41 | Potential null dereference on userIdClaim if user is not authenticated | Add null check before parsing userIdClaim |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Accesses Rows[0] without checking if Rows.Count > 0 | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Accesses Rows[0] without checking if Rows.Count > 0 | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/UserService.cs | 31 | Accesses Rows[0] without checking if Rows.Count > 0 | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method uses LIKE clause with string concatenation | Use parameterized query for search term |
-| SampleBankingApp/Services/UserService.cs | 48 | UpdateUser method doesn't validate email format | Add email validation before update |
-| SampleBankingApp/Services/UserService.cs | 62 | DeleteUser method doesn't check if user exists before deletion | Add existence check before deletion |
+|------|------|-------|-----|
+| SampleBankingApp/Services/TransactionService.cs | 42 | Incorrect balance check - checks if balance >= amount but then deducts amount + fee | Change condition to check if balance >= (amount + fee) |
+| SampleBankingApp/Services/UserService.cs | 72 | Off-by-one error in pagination calculation using page * pageSize instead of (page-1) * pageSize | Change skip = (page - 1) * pageSize |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Incorrect interest calculation - applies 5% bonus to entire amount instead of just the deposit | Fix interest rate application logic |
+| SampleBankingApp/Services/UserService.cs | 99 | Inconsistent handling of LIKE clause in SearchUsers method | Add proper parameterization for search queries |
+| SampleBankingApp/Controllers/TransactionController.cs | 27 | No check for transferring to self in Transfer method | Add validation to prevent self-transfers |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Potential division by zero or incorrect fee calculation if amount is very small | Add proper boundary checks for fee calculations |
 
 ## 3. Error Handling
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Controllers/UserController.cs | 50 | Generic Exception catch swallows all exceptions without logging | Log the exception with more detail before re-throwing |
-| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method throws NotImplementedException instead of proper error handling | Implement actual refund logic or return appropriate HTTP status |
-| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers catches all exceptions and returns empty list silently | Log the exception before returning empty list |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Catches NotImplementedException but returns generic 500 error | Return specific error code or implement refund functionality |
-| SampleBankingApp/Services/AuthService.cs | 32 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/UserService.cs | 47 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/UserService.cs | 61 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/TransactionService.cs | 47 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/TransactionService.cs | 48 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/TransactionService.cs | 71 | Uses raw SQL with string interpolation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Data/DatabaseHelper.cs | 29 | Uses raw SQL with string concatenation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Services/UserService.cs | 99 | Uses raw SQL with string concatenation instead of parameters | Use parameterized queries to prevent SQL injection |
-| SampleBankingApp/Controllers/UserController.cs | 52 | Returns StatusCode(500, ex.Message) which exposes stack trace details | Return generic error message without exposing internal details |
-| SampleBankingApp/Services/AuthService.cs | 38 | Uses raw SQL with string concatenation instead of parameters | Use parameterized queries to prevent SQL injection |
+|------|------|-------|-----|
+| SampleBankingApp/Controllers/UserController.cs | 50 | Generic Exception catch that swallows all exceptions without logging | Log the exception before re-throwing or handle specific exceptions |
+| SampleBankingApp/Services/UserService.cs | 105 | Generic try-catch in SearchUsers that returns empty list silently | Return error information to caller or log the exception |
+| SampleBankingApp/Services/TransactionService.cs | 101 | NotImplementedException thrown without proper handling | Implement the refund functionality or provide better error messaging |
+| SampleBankingApp/Controllers/TransactionController.cs | 56 | NotImplementedException caught but returns generic 500 status code | Return specific error message indicating feature not implemented |
+| SampleBankingApp/Services/UserService.cs | 47 | No transaction handling for database updates in UpdateUser method | Wrap database operations in a transaction to ensure atomicity |
+| SampleBankingApp/Services/UserService.cs | 64 | No transaction handling for database delete in DeleteUser method | Wrap database operations in a transaction to ensure atomicity |
 
 ## 4. Resource Leaks
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Data/DatabaseHelper.cs | 20 | GetOpenConnection method opens connection but caller must remember to dispose it | Return a disposable connection or use `using` statements in callers |
-| SampleBankingApp/Data/DatabaseHelper.cs | 52 | ExecuteNonQuery method opens connection but doesn't properly dispose it | Use `using` statement for connection |
-| SampleBankingApp/Services/AuthService.cs | 34 | Opens connection without using `using` statement | Wrap in `using` statement to ensure proper disposal |
-| SampleBankingApp/Services/AuthService.cs | 37 | Creates SqlCommand without using `using` statement | Wrap in `using` statement to ensure proper disposal |
-| SampleBankingApp/Services/AuthService.cs | 38 | Creates SqlDataReader without using `using` statement | Wrap in `using` statement to ensure proper disposal |
-| SampleBankingApp/Services/TransactionService.cs | 47 | ExecuteNonQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/TransactionService.cs | 48 | ExecuteNonQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/TransactionService.cs | 71 | ExecuteNonQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/UserService.cs | 47 | ExecuteNonQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/UserService.cs | 61 | ExecuteNonQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/UserService.cs | 99 | ExecuteQuery called without proper disposal of connection | Use `using` statements for database operations |
-| SampleBankingApp/Services/AuthService.cs | 34 | Opens connection and doesn't dispose it properly | Wrap in `using` statement to ensure proper disposal |
-| SampleBankingApp/Services/AuthService.cs | 37 | Creates SqlCommand without using `using` statement | Wrap in `using` statement to ensure proper disposal |
-| SampleBankingApp/Services/AuthService.cs | 38 | Creates SqlDataReader without using `using` statement | Wrap in `using` statement to ensure proper disposal |
+|------|------|-------|-----|
+| SampleBankingApp/Data/DatabaseHelper.cs | 20 | SqlConnection not disposed properly in GetOpenConnection method | Use using statement or ensure proper disposal |
+| SampleBankingApp/Data/DatabaseHelper.cs | 52 | SqlConnection not disposed in ExecuteNonQuery method | Wrap connection in using statement |
+| SampleBankingApp/Services/AuthService.cs | 34 | SqlConnection not disposed in Login method | Wrap connection in using statement |
+| SampleBankingApp/Services/EmailService.cs | 16 | SmtpClient instance field not properly disposed | Use using statement or implement IDisposable pattern |
+| SampleBankingApp/Services/EmailService.cs | 39 | MailMessage created but not disposed | Wrap in using statement |
+| SampleBankingApp/Services/EmailService.cs | 69 | MailMessage created but not disposed | Wrap in using statement |
+| SampleBankingApp/Services/EmailService.cs | 89 | MailMessage created but not disposed | Wrap in using statement |
 
 ## 5. Null Reference Risks
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add null check before calling `int.Parse(userIdClaim!)` |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add null check before calling `int.Parse(userIdClaim!)` |
-| SampleBankingApp/Data/DatabaseHelper.cs | 15 | Connection string could be null if not configured | Add null check and throw exception if missing |
-| SampleBankingApp/Services/AuthService.cs | 70 | _config["Jwt:SecretKey"] could be null | Add null check before using the secret key |
-| SampleBankingApp/Services/AuthService.cs | 81 | _config["Jwt:Issuer"] could be null | Add null check before using the issuer |
-| SampleBankingApp/Services/AuthService.cs | 82 | _config["Jwt:Audience"] could be null | Add null check before using the audience |
-| SampleBankingApp/Services/EmailService.cs | 22 | _config["Email:SmtpHost"] could be null | Add null check before using the SMTP host |
-| SampleBankingApp/Services/EmailService.cs | 24 | _config["Email:SmtpPort"] could be null | Add null check before parsing the port number |
-| SampleBankingApp/Services/EmailService.cs | 25 | _config["Email:Username"] could be null | Add null check before using the username |
-| SampleBankingApp/Services/EmailService.cs | 26 | _config["Email:Password"] could be null | Add null check before using the password |
-| SampleBankingApp/Services/UserService.cs | 31 | table.Rows.Count is accessed without checking if table is null | Check for null table before accessing Rows |
-| SampleBankingApp/Services/TransactionService.cs | 36 | fromUserTable.Rows[0] is accessed without null check | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/TransactionService.cs | 37 | toUserTable.Rows[0] is accessed without null check | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/UserService.cs | 99 | table.Rows is accessed without null check | Add null check before accessing Rows |
-| SampleBankingApp/Services/TransactionService.cs | 53 | fromUserTable.Rows[0]["Email"] is accessed without null check | Add null check before accessing the email field |
-| SampleBankingApp/Services/TransactionService.cs | 54 | toUserTable.Rows[0]["Username"] is accessed without null check | Add null check before accessing the username field |
+|------|------|-------|-----|
+| SampleBankingApp/Controllers/TransactionController.cs | 27 | User.FindFirst(ClaimTypes.NameIdentifier)?.Value could be null and passed to int.Parse without validation | Add null check before parsing |
+| SampleBankingApp/Controllers/UserController.cs | 41 | User.FindFirst(ClaimTypes.NameIdentifier)?.Value could be null and passed to int.Parse without validation | Add null check before parsing |
+| SampleBankingApp/Services/AuthService.cs | 70 | _config["Jwt:SecretKey"] could be null and passed to SymmetricSecurityKey constructor | Add null check for configuration value |
+| SampleBankingApp/Services/AuthService.cs | 81 | _config["Jwt:Issuer"] could be null and passed to JwtSecurityToken constructor | Add null check for configuration value |
+| SampleBankingApp/Services/AuthService.cs | 82 | _config["Jwt:Audience"] could be null and passed to JwtSecurityToken constructor | Add null check for configuration value |
+| SampleBankingApp/Services/EmailService.cs | 22 | _config["Email:SmtpHost"] could be null and passed to SmtpClient constructor | Add null check for configuration value |
+| SampleBankingApp/Services/EmailService.cs | 24 | _config["Email:SmtpPort"] could be null and passed to int.Parse without validation | Add null check before parsing |
+| SampleBankingApp/Services/EmailService.cs | 25 | _config["Email:Username"] could be null and passed to NetworkCredential constructor | Add null check for configuration value |
+| SampleBankingApp/Services/EmailService.cs | 26 | _config["Email:Password"] could be null and passed to NetworkCredential constructor | Add null check for configuration value |
 
 ## 6. Dead Code
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Helpers/StringHelper.cs | 31 | JoinWithSeparator method uses string concatenation in loop which is O(n^2) | Replace with `string.Join` or `StringBuilder` |
-| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken method has unreachable code after unconditional return | Remove the unreachable code block |
-| SampleBankingApp/Services/AuthService.cs | 103 | ValidateToken method has unreachable code after unconditional return | Remove the unreachable code block |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that could cause race conditions | Make them instance fields or add proper synchronization |
-| SampleBankingApp/Services/UserService.cs | 11 | _requestCount is incremented without thread safety | Add thread-safe increment mechanism |
-| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method is unused and marked as private | Remove dead code |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method is duplicated by JoinWithSeparatorFixed | Remove the redundant implementation |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Return structured audit report or remove if unused |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has a complex return path with multiple exit points | Simplify the logic flow for better readability |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Consolidate validation logic into reusable helper methods |
+|------|------|-------|-----|
+| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken method has unreachable code after unconditional return statement | Remove unreachable code or fix logic |
+| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method uses string concatenation in loop which is inefficient | Replace with string.Join or StringBuilder |
+| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that could cause race conditions | Make them thread-safe or remove if not needed |
+| SampleBankingApp/Services/AuthService.cs | 17 | AdminBypassPassword is marked as obsolete but still used in code | Remove or properly implement bypass logic |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Consider returning a more structured audit report format |
 
 ## 7. Magic Strings and Numbers
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Controllers/AuthController.cs | 26 | Hardcoded error message string "Username not found or incorrect password" | Extract to configuration or resource file |
-| SampleBankingApp/Services/AuthService.cs | 17 | Hardcoded admin bypass password "SuperAdmin2024" | Move to configuration or remove |
-| SampleBankingApp/Services/TransactionService.cs | 11 | Magic number 0.015m for transaction fee rate | Extract to named constant |
-| SampleBankingApp/Services/TransactionService.cs | 12 | Magic number 10 for max transactions per day | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 20 | Magic number 0 for invalid user ID check | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 22 | Magic number 1000000 for user ID range | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 41 | Magic number 0 for invalid user ID check | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 43 | Magic number 1000000 for user ID range | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 62 | Magic number 0 for invalid user ID check | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 64 | Magic number 1000000 for user ID range | Extract to named constant |
-| SampleBankingApp/Controllers/UserController.cs | 32 | Magic number 20 for default page size | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 70 | Magic number 50 for max page size | Extract to named constant |
-| SampleBankingApp/Services/TransactionService.cs | 65 | Magic number 1000000 for deposit limit | Extract to named constant |
-| SampleBankingApp/Services/TransactionService.cs | 68 | Magic number 0.05m for interest rate | Extract to named constant |
-| SampleBankingApp/Controllers/UserController.cs | 24 | Magic number 1 for default page number | Extract to named constant |
-| SampleBankingApp/Services/UserService.cs | 72 | Magic number 50 for max page size | Extract to named constant |
-| SampleBankingApp/Services/AuthService.cs | 32 | Hardcoded SQL table name "Users" | Extract to configuration or constant |
-| SampleBankingApp/Services/TransactionService.cs | 89 | Hardcoded SQL table name "Transactions" | Extract to configuration or constant |
-| SampleBankingApp/Services/UserService.cs | 75 | Hardcoded SQL table name "Users" | Extract to configuration or constant |
-| SampleBankingApp/Services/UserService.cs | 99 | Hardcoded SQL table name "Users" | Extract to configuration or constant |
-| SampleBankingApp/Services/AuthService.cs | 32 | Hardcoded SQL column names in WHERE clause | Extract to constants |
-| SampleBankingApp/Services/TransactionService.cs | 47 | Hardcoded SQL column names in UPDATE clause | Extract to constants |
-| SampleBankingApp/Services/TransactionService.cs | 48 | Hardcoded SQL column names in UPDATE clause | Extract to constants |
-| SampleBankingApp/Services/TransactionService.cs | 71 | Hardcoded SQL column names in UPDATE clause | Extract to constants |
-| SampleBankingApp/Services/UserService.cs | 47 | Hardcoded SQL column names in UPDATE clause | Extract to constants |
-| SampleBankingApp/Services/UserService.cs | 61 | Hardcoded SQL column names in DELETE clause | Extract to constants |
+|------|------|-------|-----|
+| SampleBankingApp/Controllers/AuthController.cs | 26 | Hardcoded error message "Username not found or incorrect password" | Extract to configuration or resource file |
+| SampleBankingApp/Services/AuthService.cs | 30 | Hardcoded MD5 algorithm name in HashPasswordMd5 method | Use a more secure hashing algorithm |
+| SampleBankingApp/Services/TransactionService.cs | 11 | Magic number 0.015m for transaction fee rate | Define as named constant |
+| SampleBankingApp/Services/TransactionService.cs | 12 | Magic number 10 for maximum transactions per day | Define as named constant |
+| SampleBankingApp/Services/UserService.cs | 70 | Magic number 50 for page size limit | Define as named constant |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Magic number 0.05m for interest rate | Define as named constant |
+| SampleBankingApp/Services/EmailService.cs | 10 | Magic string "Transfer Notification - BankingApp" | Extract to configuration or resource file |
+| SampleBankingApp/Services/EmailService.cs | 11 | Magic string "Welcome to BankingApp!" | Extract to configuration or resource file |
+| SampleBankingApp/Services/EmailService.cs | 13 | Magic number 3 for MaxRetries | Define as named constant |
+| SampleBankingApp/Services/EmailService.cs | 14 | Magic number 5000 for SmtpTimeoutMs | Define as named constant |
+| SampleBankingApp/Controllers/UserController.cs | 32 | Magic numbers 1 and 20 for pagination defaults | Define as named constants |
 
 ## 8. Anti-patterns and Code Quality
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Helpers/StringHelper.cs | 31 | JoinWithSeparator method uses string concatenation inside a loop which is O(n²) | Replace with `string.Join` or `StringBuilder` |
-| SampleBankingApp/Services/UserService.cs | 25 | GetUserById method has multiple validation checks that could be consolidated | Consolidate validation logic into reusable helper methods |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method uses MD5 which is insecure for password hashing | Replace with bcrypt or PBKDF2 |
-| SampleBankingApp/Services/TransactionService.cs | 47 | Transfer method has multiple database operations without transaction | Wrap in database transaction to ensure atomicity |
-| SampleBankingApp/Services/TransactionService.cs | 48 | Transfer method has multiple database operations without transaction | Wrap in database transaction to ensure atomicity |
-| SampleBankingApp/Services/UserService.cs | 47 | UpdateUser method has raw SQL with string concatenation | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 61 | DeleteUser method has raw SQL with string concatenation | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method uses LIKE clause with string concatenation | Use parameterized query for search term |
-| SampleBankingApp/Services/AuthService.cs | 32 | Login method uses raw SQL with string concatenation | Use parameterized queries |
-| SampleBankingApp/Services/TransactionService.cs | 71 | Deposit method uses raw SQL with string concatenation | Use parameterized queries |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add null check before accessing Rows[0] |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add null check before accessing Rows |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add null check before accessing email field |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add null check before accessing username field |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add null check before calling `int.Parse(userIdClaim!)` |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add null check before calling `int.Parse(userIdClaim!)` |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic | Remove or make configurable |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Return structured audit report or remove if unused |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Simplify the logic flow for better readability |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Consolidate validation logic into reusable helper methods |
+|------|------|-------|-----|
+| SampleBankingApp/Services/AuthService.cs | 32 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/TransactionService.cs | 47 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/TransactionService.cs | 48 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/TransactionService.cs | 90 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/UserService.cs | 47 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/UserService.cs | 61 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Services/UserService.cs | 99 | String interpolation in SQL query creates SQL injection vulnerability | Use parameterized queries |
+| SampleBankingApp/Helpers/StringHelper.cs | 29 | Inefficient string concatenation in JoinWithSeparator method | Replace with string.Join or StringBuilder |
+| SampleBankingApp/Services/UserService.cs | 85 | Static audit log that could cause race conditions | Make thread-safe or remove if not needed |
+| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken method has unreachable code after unconditional return statement | Remove unreachable code |
+| SampleBankingApp/Controllers/TransactionController.cs | 27 | Direct parsing of claim value without null check | Add null check before parsing |
+| SampleBankingApp/Controllers/UserController.cs | 41 | Direct parsing of claim value without null check | Add null check before parsing |
 
 ## 9. Configuration Issues
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Program.cs | 34 | UseDeveloperExceptionPage called unconditionally in production code | Remove for production builds or add conditional logic |
-| SampleBankingApp/Program.cs | 24 | ValidateLifetime = false in JWT configuration | Set to true for security |
-| SampleBankingApp/Program.cs | 38 | Overly permissive CORS policy allowing any origin/method/header | Restrict to specific origins and methods |
-| SampleBankingApp/Program.cs | 36 | HTTPS redirection commented out | Enable HTTPS in production environments |
-| SampleBankingApp/appsettings.json | 18 | Log level set to Debug for production namespaces | Change to appropriate level like Warning or Error |
-| SampleBankingApp/SampleBankingApp.csproj | 14 | System.Data.SqlClient version 4.8.6 is outdated | Update to latest stable version |
-| SampleBankingApp/Program.cs | 16 | Hardcoded JWT secret key in Program.cs | Move to configuration file or environment variable |
-| SampleBankingApp/appsettings.json | 6 | Hardcoded JWT secret key in appsettings.json | Move to secure configuration store |
-| SampleBankingApp/appsettings.json | 14 | Hardcoded email password in appsettings.json | Move to secure configuration store |
-| SampleBankingApp/SampleBankingApp.csproj | 13 | Microsoft.AspNetCore.Authentication.JwtBearer version 8.0.0 is outdated | Update to latest stable version |
-| SampleBankingApp/appsettings.json | 4 | Hardcoded SQL Server connection string in appsettings.json | Move to secure configuration store |
-| SampleBankingApp/Program.cs | 16 | Missing environment-specific config overrides like appsettings.Production.json | Add production configuration file |
+|------|------|-------|-----|
+| SampleBankingApp/Program.cs | 24 | JWT validation disabled with ValidateLifetime = false | Enable lifetime validation for security |
+| SampleBankingApp/Program.cs | 34 | Developer exception page enabled in production code | Remove UseDeveloperExceptionPage() from production builds |
+| SampleBankingApp/Program.cs | 38 | Overly permissive CORS policy allowing any origin, method and header | Restrict CORS to specific origins and methods |
+| SampleBankingApp/Program.cs | 36 | HTTPS redirection commented out | Enable HTTPS redirection for production |
+| SampleBankingApp/appsettings.json | 18 | Log level set to Debug in production | Change log level to appropriate production level |
+| SampleBankingApp/SampleBankingApp.csproj | 9 | Debug symbols enabled in release build | Disable debug symbols for release builds |
 | SampleBankingApp/Services/AuthService.cs | 17 | Hardcoded admin bypass password | Remove or make configurable |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic | Remove or make configurable |
+| SampleBankingApp/appsettings.json | 4 | Hardcoded database credentials | Use secure configuration management |
+| SampleBankingApp/appsettings.json | 14 | Hardcoded email credentials | Use secure configuration management |
 
 ## 10. Missing Unit Tests
 
 | File | Line | Issue | Fix |
-|------|------|------|-----|
-| SampleBankingApp/Services/AuthService.cs | 28 | Login method has complex logic that needs unit testing for various scenarios | Add tests for valid login, invalid credentials, admin bypass, etc. |
-| SampleBankingApp/Services/TransactionService.cs | 23 | Transfer method has complex logic with multiple conditions and calculations | Add tests for successful transfer, insufficient funds, negative amounts, etc. |
-| SampleBankingApp/Services/TransactionService.cs | 63 | Deposit method has boundary conditions that need testing | Add tests for valid deposit amounts, invalid amounts, interest calculation |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has validation logic that needs testing | Add tests for valid IDs, invalid IDs, out of range IDs |
-| SampleBankingApp/Services/UserService.cs | 38 | UpdateUser method has raw SQL and validation logic that needs testing | Add tests for valid updates, invalid updates, email format validation |
-| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method has raw SQL and validation logic that needs testing | Add tests for valid deletions, invalid IDs, etc. |
-| SampleBankingApp/Services/UserService.cs | 68 | GetUsersPage method has pagination logic that needs testing | Add tests for page boundaries, max page size limits |
-| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method has LIKE clause that needs testing | Add tests for search terms with special characters, empty results |
-| SampleBankingApp/Controllers/AuthController.cs | 20 | Login endpoint needs authentication flow testing | Add tests for login success, login failure scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 23 | Transfer endpoint needs authorization and validation testing | Add tests for authorized users, unauthorized access, invalid amounts |
-| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint needs authorization testing | Add tests for authorized access, unauthorized access |
-| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint needs pagination testing | Add tests for page size limits, page boundaries |
-| SampleBankingApp/Controllers/UserController.cs | 38 | Deposit endpoint needs authorization and validation testing | Add tests for authorized users, invalid amounts |
-| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint needs authorization testing | Add tests for authorized access, unauthorized access |
-| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint needs testing | Add tests for search terms with special characters |
-| SampleBankingApp/Services/AuthService.cs | 68 | GenerateJwtToken method needs token generation and validation testing | Add tests for valid tokens, token expiration |
-| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method needs email sending testing | Add tests for successful email sending, retry logic |
-| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method needs email sending testing | Add tests for successful email sending |
-| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Helpers/StringHelper.cs | 11 | IsValidEmail method needs validation testing | Add tests for valid and invalid email formats |
-| SampleBankingApp/Helpers/StringHelper.cs | 20 | IsValidUsername method needs validation testing | Add tests for valid and invalid username formats |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method needs testing | Add tests for audit log functionality |
-| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken method needs token validation testing | Add tests for valid and invalid tokens |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService.cs | 31 | GetUserById method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 37 | Transfer method accesses Rows[0] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/UserService.cs | 99 | SearchUsers method accesses Rows without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 53 | Transfer method accesses Rows[0]["Email"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Services/TransactionService.cs | 54 | Transfer method accesses Rows[0]["Username"] without null check | Add tests to verify null handling |
-| SampleBankingApp/Controllers/TransactionController.cs | 27 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Controllers/UserController.cs | 41 | userIdClaim is used without null check before parsing | Add tests to verify null handling |
-| SampleBankingApp/Services/AuthService.cs | 53 | Hardcoded admin user bypass logic needs testing | Add tests for admin bypass scenarios |
-| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method returns string instead of structured data | Add tests for audit report format |
-| SampleBankingApp/Services/AuthService.cs | 25 | Login method has complex return path with multiple exit points | Add tests to verify all return paths work correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has multiple validation checks that could be consolidated | Add tests for all validation scenarios |
-| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method needs testing | Add tests for daily transaction limits |
-| SampleBankingApp/Services/UserService.cs | 10 | _auditLog and _requestCount are static fields that need thread safety testing | Add tests for concurrent access scenarios |
-| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method needs performance testing | Add tests for large collections |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Controllers/UserController.cs | 61 | DeleteUser endpoint needs error handling testing | Add tests for various error scenarios |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method needs HTML email testing | Add tests for HTML content rendering |
-| SampleBankingApp/Controllers/UserController.cs | 24 | GetUser endpoint needs null handling testing | Add tests for null user scenarios |
-| SampleBankingApp/Controllers/TransactionController.cs | 56 | Refund endpoint needs implementation testing | Add tests once implemented |
-| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method needs security testing | Add tests to ensure password hashing works correctly |
-| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method has boundary conditions that need testing | Add tests for edge cases like ID=0, max ID |
-| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method has balance calculation logic that needs testing | Add tests for exact balance calculations and rounding |
-| SampleBankingApp/Services/UserService
+|------|------|-------|-----|
+| SampleBankingApp/Services/AuthService.cs | 28 | Login method lacks unit test coverage for authentication logic | Create tests for valid/invalid login scenarios |
+| SampleBankingApp/Services/AuthService.cs | 68 | GenerateJwtToken method lacks unit test coverage for token generation | Create tests for JWT token creation |
+| SampleBankingApp/Services/TransactionService.cs | 23 | Transfer method lacks unit test coverage for fund transfer logic | Create tests for successful/failed transfers |
+| SampleBankingApp/Services/TransactionService.cs | 63 | Deposit method lacks unit test coverage for deposit logic | Create tests for valid/invalid deposits |
+| SampleBankingApp/Services/UserService.cs | 18 | GetUserById method lacks unit test coverage for user retrieval | Create tests for valid/invalid user ID scenarios |
+| SampleBankingApp/Services/UserService.cs | 38 | UpdateUser method lacks unit test coverage for user update logic | Create tests for successful/failed updates |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for user deletion logic | Create tests for successful/failed deletions |
+| SampleBankingApp/Services/UserService.cs | 68 | GetUsersPage method lacks unit test coverage for pagination logic | Create tests for page size limits and pagination |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search functionality | Create tests for search queries |
+| SampleBankingApp/Controllers/AuthController.cs | 19 | Login endpoint lacks unit test coverage for authentication flow | Create tests for login endpoint behavior |
+| SampleBankingApp/Controllers/TransactionController.cs | 23 | Transfer endpoint lacks unit test coverage for transfer logic | Create tests for transfer endpoint behavior |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval | Create tests for GET user endpoint |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination | Create tests for GET users endpoint with pagination |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending | Create tests for email sending functionality |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending | Create tests for email sending functionality |
+| SampleBankingApp/Helpers/StringHelper.cs | 11 | IsValidEmail method lacks unit test coverage for email validation | Create tests for valid/invalid email addresses |
+| SampleBankingApp/Helpers/StringHelper.cs | 20 | IsValidUsername method lacks unit test coverage for username validation | Create tests for valid/invalid usernames |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing | Create tests for password hashing functionality |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily limit logic | Create tests for daily transaction limits |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for error handling | Create tests for search error scenarios |
+| SampleBankingApp/Controllers/TransactionController.cs | 48 | Refund endpoint lacks unit test coverage for refund logic | Create tests for refund endpoint behavior |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation | Create tests for refund functionality when implemented |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit reporting | Create tests for audit report generation |
+| SampleBankingApp/Helpers/StringHelper.cs | 29 | JoinWithSeparator method lacks unit test coverage for string joining | Create tests for string joining functionality |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search results | Create tests for search result handling |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for deletion logic | Create tests for user deletion endpoint behavior |
+| SampleBankingApp/Services/AuthService.cs | 98 | ValidateToken method lacks unit test coverage for token validation | Create tests for JWT token validation |
+| SampleBankingApp/Services/EmailService.cs | 86 | SendWelcomeEmailHtml method lacks unit test coverage for HTML email sending | Create tests for HTML email sending functionality |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary conditions | Create tests for boundary condition validation |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary conditions | Create tests for boundary condition validation |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary conditions | Create tests for boundary condition validation |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds scenario | Create tests for insufficient funds handling |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amounts | Create tests for invalid deposit amount handling |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge cases | Create tests for pagination edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amounts | Create tests for negative amount handling |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation | Create tests for interest calculation logic |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search queries | Create tests for search endpoint behavior |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for zero amounts | Create tests for zero amount handling |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for invalid IDs | Create tests for invalid ID handling |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for invalid IDs | Create tests for invalid ID handling |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for invalid IDs | Create tests for invalid ID handling |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limits | Create tests for page size limit enforcement |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits | Create tests for daily limit logic |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search queries | Create tests for search query handling |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for not found scenarios | Create tests for user not found scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass logic | Create tests for admin bypass functionality |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer scenarios | Create tests for self-transfer handling |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for empty results | Create tests for empty search results |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for maximum deposit limits | Create tests for maximum deposit limit enforcement |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for error scenarios | Create tests for delete error handling |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending failures | Create tests for email sending failure scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending failures | Create tests for email sending failure scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report generation | Create tests for audit report generation |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking | Create tests for account number masking |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation | Create tests for account obfuscation |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion | Create tests for title case conversion |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection | Create tests for blank string detection |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing | Create tests for password hashing |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing | Create tests for password hashing |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting | Create tests for currency formatting |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search performance | Create tests for search performance |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query handling | Create tests for search query handling |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation | Create tests for refund functionality when implemented |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search error scenarios | Create tests for search error handling |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge cases | Create tests for pagination edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits | Create tests for daily limit logic |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation | Create tests for search query validation |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge cases | Create tests for user retrieval edge cases |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials | Create tests for invalid credential handling |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition validation | Create tests for boundary condition validation |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition validation | Create tests for boundary condition validation |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition validation | Create tests for boundary condition validation |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit enforcement | Create tests for page size limit enforcement |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge cases | Create tests for insufficient funds edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge cases | Create tests for invalid amount edge cases |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge cases | Create tests for negative amount edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge cases | Create tests for interest calculation edge cases |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge cases | Create tests for search query edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge cases | Create tests for self-transfer edge cases |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge cases | Create tests for search query edge cases |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error scenarios | Create tests for user retrieval error scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge cases | Create tests for admin bypass edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge cases | Create tests for currency formatting edge cases |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance scenarios | Create tests for search query performance scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge cases | Create tests for delete error edge cases |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge cases | Create tests for email sending edge cases |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge cases | Create tests for email sending edge cases |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge cases | Create tests for audit report edge cases |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge cases | Create tests for account masking edge cases |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge cases | Create tests for account obfuscation edge cases |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge cases | Create tests for title case conversion edge cases |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge cases | Create tests for blank string detection edge cases |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge cases | Create tests for password hashing edge cases |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge cases | Create tests for password hashing edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge cases | Create tests for currency formatting edge cases |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge cases | Create tests for refund implementation edge cases |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge cases | Create tests for search query performance edge cases |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge cases | Create tests for daily transaction limits edge cases |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge cases | Create tests for search query validation edge cases |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge cases | Create tests for invalid credentials edge cases |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge cases | Create tests for boundary condition edge cases |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge cases | Create tests for boundary condition edge cases |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge cases | Create tests for boundary condition edge cases |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge cases | Create tests for page size limit edge cases |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case conversion edge case scenarios | Create tests for title case conversion edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 65 | IsBlank method lacks unit test coverage for blank string detection edge case scenarios | Create tests for blank string detection edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 30 | HashPasswordMd5 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 91 | HashPasswordSha1 method lacks unit test coverage for password hashing edge case scenarios | Create tests for password hashing edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 99 | RefundTransaction method lacks unit test coverage for refund implementation edge case scenarios | Create tests for refund implementation edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 77 | IsWithinDailyLimit method lacks unit test coverage for daily transaction limits edge case scenarios | Create tests for daily transaction limits edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 95 | SearchUsers method lacks unit test coverage for search query validation edge case scenarios | Create tests for search query validation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval edge case scenarios | Create tests for user retrieval edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for invalid credentials edge case scenarios | Create tests for invalid credentials edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 27 | GetUserById method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 40 | UpdateUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 52 | DeleteUser method lacks unit test coverage for boundary condition edge case scenarios | Create tests for boundary condition edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 31 | GetUsers endpoint lacks unit test coverage for page size limit edge case scenarios | Create tests for page size limit edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for insufficient funds edge case scenarios | Create tests for insufficient funds edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 65 | Deposit method lacks unit test coverage for invalid amount edge case scenarios | Create tests for invalid amount edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 72 | GetUsersPage method lacks unit test coverage for pagination edge case scenarios | Create tests for pagination edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 36 | Transfer method lacks unit test coverage for negative amount edge case scenarios | Create tests for negative amount edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 68 | Deposit method lacks unit test coverage for interest calculation edge case scenarios | Create tests for interest calculation edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 71 | SearchUsers endpoint lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 42 | Transfer method lacks unit test coverage for self-transfer edge case scenarios | Create tests for self-transfer edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query edge case scenarios | Create tests for search query edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 21 | GetUser endpoint lacks unit test coverage for user retrieval error edge case scenarios | Create tests for user retrieval error edge case scenarios |
+| SampleBankingApp/Services/AuthService.cs | 53 | Login method lacks unit test coverage for admin bypass edge case scenarios | Create tests for admin bypass edge case scenarios |
+| SampleBankingApp/Services/TransactionService.cs | 94 | FormatCurrency method lacks unit test coverage for currency formatting edge case scenarios | Create tests for currency formatting edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 105 | SearchUsers method lacks unit test coverage for search query performance edge case scenarios | Create tests for search query performance edge case scenarios |
+| SampleBankingApp/Controllers/UserController.cs | 56 | DeleteUser endpoint lacks unit test coverage for delete error edge case scenarios | Create tests for delete error edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 34 | SendTransferNotification method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/EmailService.cs | 63 | SendWelcomeEmail method lacks unit test coverage for email sending edge case scenarios | Create tests for email sending edge case scenarios |
+| SampleBankingApp/Services/UserService.cs | 85 | GetAuditReport method lacks unit test coverage for audit report edge case scenarios | Create tests for audit report edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 43 | MaskAccountNumber method lacks unit test coverage for account masking edge case scenarios | Create tests for account masking edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 54 | ObfuscateAccount method lacks unit test coverage for account obfuscation edge case scenarios | Create tests for account obfuscation edge case scenarios |
+| SampleBankingApp/Helpers/StringHelper.cs | 59 | ToTitleCase method lacks unit test coverage for title case
