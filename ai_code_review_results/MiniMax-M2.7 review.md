@@ -1,167 +1,173 @@
+# Code Review Report - Branch 'main' (Commit 67ece22980b87505c9e6a0bc95962632ab91b998)
+
 ## 1. Security Vulnerabilities
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 32 | SQL injection via string interpolation in Login: `string sql = $"SELECT * FROM Users WHERE Username = '{username}' AND Password = '{hashedPassword}' AND IsActive = 1"` | Use parameterized queries with ExecuteQuerySafe |
-| AuthService.cs | 17 | Hardcoded admin bypass password constant: `private const string AdminBypassPassword = "SuperAdmin2024"` | Remove backdoor; enforce standard authentication |
-| AuthService.cs | 53-56 | Backdoor allowing login with username "admin" and hardcoded password bypassing normal auth | Remove admin bypass logic entirely |
-| AuthService.cs | 61-66 | MD5 used for password hashing (HashPasswordMd5) — weak cryptography | Use bcrypt, PBKDF2, or Argon2 with proper work factor |
-| AuthService.cs | 91-96 | SHA1 used for password hashing (HashPasswordSha1) — weak cryptography | Remove or replace with secure algorithm |
-| Program.cs | 24 | JWT ValidateLifetime set to false — tokens never expire | Set ValidateLifetime = true |
-| Program.cs | 34 | UseDeveloperExceptionPage called unconditionally in production | Conditionally enable only in Development environment |
-| Program.cs | 36 | HTTPS redirection commented out | Uncomment or ensure HTTPS enforcement |
-| Program.cs | 38 | CORS policy AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader() — overly permissive | Restrict to known origins |
-| appsettings.json | 3 | Hardcoded production database credentials: `Password=Admin1234!` | Move to environment variables or secrets manager |
-| appsettings.json | 6 | Weak JWT secret key: `"mysecretkey"` | Use cryptographically random key (≥32 bytes) |
-| appsettings.json | 14 | Hardcoded email password: `"EmailPass99"` | Move to secrets manager |
-| EmailService.cs | 29 | SmtpClient.EnableSsl set to false — SMTP transmission unencrypted | Set EnableSsl = true |
-| TransactionService.cs | 47-48 | SQL injection in Transfer: `($"UPDATE Users SET Balance = {newFromBalance} WHERE Id = {fromUserId}")` | Use ExecuteQuerySafe with parameters |
-| TransactionService.cs | 89-91 | SQL injection in RecordTransaction: string interpolation in INSERT statement | Use parameterized queries |
-| TransactionService.cs | 70-71 | SQL injection in Deposit: `($"UPDATE Users SET Balance = Balance + {amount + interestBonus} WHERE Id = {userId}")` | Use ExecuteQuerySafe with parameters |
-| UserService.cs | 47 | SQL injection in UpdateUser: `($"UPDATE Users SET Email = '{email}', Username = '{username}' WHERE Id = {id}")` | Use ExecuteQuerySafe with parameters |
-| UserService.cs | 61 | SQL injection in DeleteUser: `($"DELETE FROM Users WHERE Id = {id}")` | Use ExecuteQuerySafe with parameters |
-| UserService.cs | 99 | SQL injection in SearchUsers: `($"Username LIKE '%{query}%'")` | Use ExecuteQuerySafe with parameters |
-| DatabaseHelper.cs | 29 | SQL injection in ExecuteQuery: `($"SELECT * FROM {tableName} WHERE {whereClause}")` | Deprecate and remove; force use of ExecuteQuerySafe |
-| SampleBankingApp.csproj | 14 | System.Data.SqlClient version 4.8.6 — known vulnerable package | Upgrade to latest version |
-| SampleBankingApp.csproj | 15 | Newtonsoft.Json version 12.0.3 — known vulnerable package | Upgrade to Newtonsoft.Json 13.x |
-| SampleBankingApp.csproj | 8-9 | DebugSymbols and DebugType set to full in project file — debug info in release builds | Remove or set to false for Release builds |
+| AuthService.cs | 32 | SQL injection via string interpolation in Login: `sql = $"SELECT * FROM Users WHERE Username = '{username}' AND Password = '{hashedPassword}' AND IsActive = 1"` | Use parameterized queries via ExecuteQuerySafe |
+| AuthService.cs | 17 | Hardcoded admin bypass password constant: `AdminBypassPassword = "SuperAdmin2024"` | Remove backdoor; enforce proper authentication |
+| AuthService.cs | 61-66 | MD5 hashing used for password storage (broken cryptography) | Use bcrypt, PBKDF2, or Argon2 |
+| AuthService.cs | 91-96 | SHA1 hashing method exists but is weak | Remove or upgrade to secure algorithm |
+| Program.cs | 24 | JWT ValidateLifetime set to false | Set to true to enforce token expiration |
+| Program.cs | 38 | CORS policy allows any origin, method, and header | Restrict to specific origins in production |
+| Program.cs | 34 | UseDeveloperExceptionPage called unconditionally | Conditionally enable based on environment |
+| appsettings.json | 3 | Hardcoded production database password | Use environment variables or secrets manager |
+| appsettings.json | 6 | Weak JWT secret key: "mysecretkey" | Use cryptographically random key (32+ bytes) |
+| appsettings.json | 14 | Hardcoded email password | Use environment variables or secrets manager |
+| SampleBankingApp.csproj | 8-9 | Debug symbols enabled in project file | Disable for release builds |
+| UserController.cs | 38-54 | UpdateUser endpoint missing authorization attribute | Add [Authorize] attribute |
+| UserController.cs | 56-69 | DeleteUser endpoint missing authorization attribute | Add [Authorize] attribute |
+| UserController.cs | 71-76 | SearchUsers endpoint missing authorization attribute | Add [Authorize] attribute |
+| UserController.cs | 78-82 | GetAuditLog endpoint missing authorization attribute | Add [Authorize] attribute |
+| UserController.cs | 38-54 | UpdateUser has no ownership verification | Check that requesting user owns the profile |
+| UserController.cs | 56-69 | DeleteUser has no ownership verification | Check that requesting user owns the profile |
+| TransactionController.cs | 48-60 | Refund endpoint accessible to any authenticated user | Add admin role check |
+| DatabaseHelper.cs | 29 | ExecuteQuery concatenates tableName and whereClause directly into SQL | Use only safe query methods with parameters |
+| TransactionService.cs | 47-48 | SQL injection via string interpolation in balance updates | Use parameterized queries |
+| TransactionService.cs | 89-91 | SQL injection via string interpolation in RecordTransaction | Use parameterized queries |
+| UserService.cs | 47 | SQL injection via string interpolation in UpdateUser | Use parameterized queries |
+| UserService.cs | 61 | SQL injection via string interpolation in DeleteUser | Use parameterized queries |
+| UserService.cs | 99 | Uses vulnerable ExecuteQuery with LIKE clause | Use ExecuteQuerySafe with parameters |
 
 ## 2. Logic Errors
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| UserService.cs | 72 | Pagination off-by-one error: `int skip = page * pageSize;` returns wrong page | Change to `int skip = (page - 1) * pageSize;` |
-| TransactionService.cs | 42 | Insufficient funds check uses `fromBalance >= amount` but actual debit is `amount + fee` — may produce negative balance | Check `fromBalance >= totalDebit` |
-| TransactionService.cs | 44 | After successful transfer, newFromBalance calculated as `fromBalance - totalDebit` which is correct, but check at line 42 is wrong (see above) | Fix check at line 42 to match calculation |
-| AuthService.cs | 98-108 | ValidateToken has unreachable code after `return true;` on line 101 | Remove unreachable code or fix logic flow |
-| TransactionService.cs | 68 | Interest bonus calculation `amount * 0.05m * 1` multiplies by 1 unnecessarily | Simplify to `amount * 0.05m` or clarify intent |
-| UserService.cs | 70 | PageSize cap `if (pageSize > 50) pageSize = 50;` silently caps without notifying caller | Return or signal the capped value to caller |
+| UserService.cs | 72 | Off-by-one error in pagination: `skip = page * pageSize` should be `(page - 1) * pageSize` | Change to `(page - 1) * pageSize` |
+| TransactionService.cs | 42 | Balance check uses `fromBalance >= amount` but deduction is `amount + fee` | Check `fromBalance >= totalDebit` |
+| TransactionService.cs | 23-61 | No validation that fromUserId != toUserId | Add self-transfer prevention check |
+| TransactionService.cs | 25 | Only checks `amount < 0` but should also reject zero | Add `amount <= 0` check |
+| UserService.cs | 70 | No validation for pageSize <= 0 | Add check for pageSize > 0 minimum |
+| TransactionService.cs | 42-44 | Transfer can result in negative balance when fromBalance is between amount and totalDebit | Use proper balance check |
+| UserService.cs | 85-93 | Audit report uses string concatenation in loop | Use StringBuilder for efficiency |
 
 ## 3. Error Handling
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| UserService.cs | 105-108 | SearchUsers catches all exceptions and returns empty list — caller cannot distinguish error from no results | Throw or return a result type indicating failure |
-| TransactionService.cs | 52-55 | Email notification sent after DB write commits; if email throws, transfer already succeeded | Send email before commit or use outbox pattern |
-| AuthService.cs | 34-37 | SqlConnection opened but not disposed on any code path | Wrap in using statement or dispose in finally block |
-| AuthService.cs | 40-51 | SqlDataReader and SqlCommand not disposed | Use using statements for all IDisposable objects |
-| Program.cs | 27 | `jwtSecret!` uses null-forgiving operator masking potential null | Check jwtSecret is not null before use; fail fast if missing |
-| TransactionService.cs | 36-37 | DataTable.Rows[0] accessed without checking Rows.Count > 0 — will throw IndexOutOfRangeException | Add `if (table.Rows.Count == 0) return ...` check |
-| UserController.cs | 50-53 | UpdateUser catches Exception and returns ex.Message to client — exposes internal details | Return generic error message; log exception |
-| UserController.cs | 64-68 | DeleteUser catches Exception and returns generic message but logs full exception | Consistent error handling; ensure all exceptions logged |
-| TransactionController.cs | 27 | `int.Parse(userIdClaim!)` throws FormatException if claim is null or malformed | Add try-catch or validate claim format |
+| UserController.cs | 50-53 | Catches broad Exception and returns ex.Message to HTTP client | Return generic error message; log details |
+| UserController.cs | 52 | Raw exception message exposed to client | Return "An error occurred" and log exception |
+| UserService.cs | 105-108 | Catches all exceptions and returns empty list | Distinguish error from no results; log exception |
+| TransactionService.cs | 47-48 | Two separate ExecuteNonQuery calls without transaction wrapping | Wrap in database transaction |
+| TransactionService.cs | 52-55 | Email sending occurs after DB write with no rollback on failure | Send email before commit or use outbox pattern |
+| AuthService.cs | 34-38 | SqlConnection opened but never closed or disposed | Wrap in using statement or dispose |
+| AuthService.cs | 34-58 | Connection and reader not disposed on all code paths | Use try-finally or using blocks |
+| AuthController.cs | 19-31 | No rate limiting on login endpoint | Add rate limiting middleware |
+| AuthController.cs | 19-31 | No account lockout after failed attempts | Implement lockout after N failures |
 
 ## 4. Resource Leaks
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| AuthService.cs | 34-37 | SqlConnection created and opened but never disposed — connection leak | Wrap in using statement |
-| AuthService.cs | 37-38 | SqlCommand and SqlDataReader not disposed | Use using statements |
-| DatabaseHelper.cs | 19-24 | GetOpenConnection returns open SqlConnection; caller may forget to dispose | Return connection in using block or provide factory method |
-| DatabaseHelper.cs | 50-57 | ExecuteNonQuery opens connection via GetOpenConnection but only calls Close() — not safe in all exception paths | Use using block or try-finally |
-| EmailService.cs | 16 | SmtpClient stored as instance field — not thread-safe, socket never released | Create SmtpClient per send or use proper disposal pattern |
-| EmailService.cs | 39-43 | MailMessage created but not disposed | Wrap in using statement |
-| EmailService.cs | 69 | MailMessage created but not disposed | Wrap in using statement |
-| EmailService.cs | 89 | MailMessage created but not disposed | Wrap in using statement |
-| TransactionService.cs | 28-30 | ExecuteQuerySafe returns DataTable (caller must dispose nothing) but underlying connection handling in DatabaseHelper is inconsistent | Ensure all paths through DatabaseHelper dispose connections |
+| AuthService.cs | 34 | SqlConnection created but never disposed | Wrap in using statement |
+| AuthService.cs | 38 | SqlDataReader not closed/disposed | Use using statement or explicit close |
+| DatabaseHelper.cs | 19-24 | GetOpenConnection returns connection caller must dispose with no contract | Document ownership transfer or return IDisposable |
+| DatabaseHelper.cs | 26-34 | ExecuteQuery creates connection via GetOpenConnection but never disposes it | Use using or refactor to return DataTable with proper disposal |
+| DatabaseHelper.cs | 50-57 | ExecuteNonQuery creates connection via GetOpenConnection but never disposes it | Use using or refactor to return DataTable with proper disposal |
+| EmailService.cs | 16 | SmtpClient held as instance field (not thread-safe, socket not released) | Create SmtpClient per send or use proper disposal |
+| EmailService.cs | 39-43 | MailMessage created but never disposed | Wrap in using statement |
+| EmailService.cs | 69 | MailMessage created but never disposed | Wrap in using statement |
+| EmailService.cs | 89 | MailMessage created but never disposed | Wrap in using statement |
 
 ## 5. Null Reference Risks
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| Program.cs | 16 | `jwtSecret` accessed directly; if null, jwtSecret! bypasses check but causes NullReferenceException later at line 28 | Validate jwtSecret exists at startup; throw if missing |
-| AuthService.cs | 28 | Login parameters not null-checked before use | Add null guards for username and password |
-| TransactionService.cs | 36-37 | Rows[0] accessed without Rows.Count check — throws IndexOutOfRangeException if user not found | Add Rows.Count > 0 check |
-| UserService.cs | 31-35 | Rows[0] accessed without Rows.Count check | Add Rows.Count > 0 check |
-| UserService.cs | 95-109 | SearchUsers catches Exception and returns empty list; query parameter not null-checked | Validate query is not null before use |
-| TransactionController.cs | 27 | `int.Parse(userIdClaim!)` — if claim is null, FormatException thrown | Validate claim exists and is parseable |
-| TransactionController.cs | 41 | Same issue as line 27 | Same fix |
-| UserController.cs | 22 | GetUserById called with id from route; no null check needed on int but service may throw | Ensure service returns null for missing user handled |
-| EmailService.cs | 24 | `int.Parse(_config["Email:SmtpPort"] ?? "25")` — config value may be non-numeric | Add try-parse with fallback or validate at startup |
+| TransactionService.cs | 36-37 | fromUserTable.Rows[0] and toUserTable.Rows[0] accessed without checking Rows.Count > 0 | Add count check before access |
+| UserService.cs | 83 | table.Rows[0]["TxCount"] accessed without count check | Add count check before access |
+| Program.cs | 16 | jwtSecret used with ! but no runtime null guard | Add null check with proper exception |
+| AuthService.cs | 70 | _config["Jwt:SecretKey"]! used without null check | Add explicit null check |
+| EmailService.cs | 22-31 | SmtpClient constructed with potentially null config values | Add null checks for all config values |
+| UserService.cs | 31-32 | Returns null but caller may not check | Document nullability or throw instead |
+| TransactionService.cs | 28-37 | No check if fromUserTable.Rows.Count == 0 before accessing Rows[0] | Add validation before row access |
 
 ## 6. Dead Code
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| StringHelper.cs | 29-36 | JoinWithSeparator method never called anywhere | Remove or add unit tests if intended use |
-| StringHelper.cs | 38-41 | JoinWithSeparatorFixed method never called — only the broken JoinWithSeparator is used | Remove or wire up callers to fixed version |
-| StringHelper.cs | 54-57 | ObfuscateAccount method never called | Remove unless planned for future use |
-| StringHelper.cs | 59-63 | ToTitleCase method never called | Remove |
-| StringHelper.cs | 65-71 | IsBlank method never called — duplicates string.IsNullOrWhiteSpace | Remove or replace calls with standard library |
-| AuthService.cs | 91-96 | HashPasswordSha1 method never called | Remove |
-| DatabaseHelper.cs | 26-34 | ExecuteQuery method never called — only ExecuteQuerySafe is used | Remove or mark Obsolete with removal plan |
-| DatabaseHelper.cs | 59-65 | TableExists method never called | Remove |
-| AuthService.cs | 98-108 | ValidateToken has unreachable code after line 101 return; code at lines 105-108 never executes | Remove dead code |
-| TransactionService.cs | 94-97 | FormatCurrency method never called | Remove or wire up callers |
-| TransactionService.cs | 99-103 | RefundTransaction throws NotImplementedException — not stub code, blocks functionality | Implement or remove endpoint |
+| StringHelper.cs | 29-36 | JoinWithSeparator method never called | Remove or add unit tests to verify usage |
+| StringHelper.cs | 54-57 | ObfuscateAccount method never called | Remove or add unit tests to verify usage |
+| StringHelper.cs | 59-63 | ToTitleCase method never called | Remove or add unit tests to verify usage |
+| StringHelper.cs | 65-71 | IsBlank method never called | Remove or add unit tests to verify usage |
+| AuthService.cs | 91-96 | HashPasswordSha1 method never called | Remove or add unit tests to verify usage |
+| AuthService.cs | 98-108 | ValidateToken method never called | Remove or add unit tests to verify usage |
+| AuthService.cs | 103 | Unconditional return true before actual validation code | Remove dead code after return |
+| TransactionService.cs | 94-97 | FormatCurrency method never called | Remove or add unit tests to verify usage |
+| EmailService.cs | 81-84 | BuildHtmlTemplate method never called | Remove or add unit tests to verify usage |
+| EmailService.cs | 86-92 | SendWelcomeEmailHtml method never called | Remove or add unit tests to verify usage |
+| DatabaseHelper.cs | 67-78 | ExecuteQueryWithParams marked [Obsolete] but still exists | Remove obsolete method |
+| UserService.cs | 10-11 | Static _auditLog and _requestCount not read externally except in GetAuditReport | Verify if audit tracking is actually used |
 
 ## 7. Magic Strings and Numbers
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| TransactionService.cs | 11 | Transaction fee rate `0.015m` hardcoded inline (1.5%) | Extract to configuration or named constant |
-| TransactionService.cs | 12 | Max daily transactions `10` hardcoded | Extract to configuration |
-| TransactionService.cs | 68 | Interest bonus rate `0.05m` hardcoded | Extract to configuration |
-| TransactionService.cs | 65 | Deposit cap `1000000` hardcoded | Extract to configuration |
-| UserService.cs | 22, 56 | User ID range limit `1000000` hardcoded in two places | Extract to single constant or configuration |
-| UserService.cs | 70 | Page size cap `50` hardcoded | Extract to configuration |
-| AuthService.cs | 17 | Admin bypass password hardcoded | Remove entirely |
-| AuthService.cs | 84 | Token expiration `30` days hardcoded | Extract to configuration |
-| Program.cs | 24 | ValidateLifetime `false` hardcoded | Extract to configuration |
-| appsettings.json | 6 | JWT secret key hardcoded | Use environment variable or secrets manager |
-| appsettings.json | 12 | SMTP port `25` hardcoded | Extract to configuration |
-| appsettings.json | 17-21 | Debug log levels for all namespaces in production | Use environment-specific config |
-| EmailService.cs | 10-11 | Email subjects hardcoded as constants | Move to configuration if subject lines may change |
-| EmailService.cs | 13-14 | MaxRetries and SmtpTimeoutMs hardcoded | Extract to configuration |
+| TransactionService.cs | 11 | Transaction fee rate 0.015m hardcoded | Extract to configuration |
+| TransactionService.cs | 12 | MaxTransactionsPerDay = 10 hardcoded | Extract to configuration |
+| TransactionService.cs | 65 | Deposit cap 1000000 hardcoded | Extract to configuration |
+| TransactionService.cs | 68 | Interest bonus rate 0.05m hardcoded | Extract to named constant |
+| UserService.cs | 70 | Max page size 50 hardcoded | Extract to configuration |
+| UserService.cs | 22 | User ID range 1000000 hardcoded | Extract to named constant |
+| AuthService.cs | 84 | Token expiry 30 days hardcoded | Extract to configuration |
+| EmailService.cs | 13 | MaxRetries = 3 hardcoded | Extract to configuration |
+| EmailService.cs | 14 | SmtpTimeoutMs = 5000 hardcoded | Extract to configuration |
+| AuthService.cs | 17 | Admin bypass password string repeated | Remove backdoor entirely |
+| EmailService.cs | 40 | "notifications@company.com" hardcoded in multiple places | Extract to configuration |
+| TransactionService.cs | 89 | Transaction type strings "Transfer", "Deposit" hardcoded | Use constants or enums |
+| TransactionService.cs | 90 | Status "Completed" hardcoded | Use constant or enum |
+| UserService.cs | 45 | Audit log format string hardcoded | Use constant or structured logging |
 
 ## 8. Anti-patterns and Code Quality
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| StringHelper.cs | 29-36 | String concatenation in loop: `result += item + separator;` — O(n²) complexity | Use StringBuilder or string.Join |
-| StringHelper.cs | 16, 25 | `new Regex(...)` created inside method called repeatedly — regex compiled each call | Make regexes `static readonly` fields |
-| TransactionService.cs | 89-91 | String interpolation for SQL in RecordTransaction | Use parameterized queries |
-| UserService.cs | 85-93 | Audit report builds string with `+=` in loop — O(n²) | Use StringBuilder or string.Join |
-| AuthService.cs | 98-108 | ValidateToken has dead code after unconditional return | Remove unreachable code |
-| Program.cs | 8-9 | DebugSymbols and DebugType set to full in project file | Remove for Release builds |
-| DatabaseHelper.cs | 19-24 | GetOpenConnection returns unmanaged connection — caller responsibility to dispose | Provide factory or document ownership contract |
-| UserService.cs | 45 | Audit log entry added but no transaction safety — concurrent writes to static list not thread-safe | Add thread synchronization or use concurrent collection |
-| UserService.cs | 25, 59 | Static counter `_requestCount` incremented without synchronization — race condition | Use Interlocked.Increment or remove static |
-| TransactionService.cs | 77-85 | IsWithinDailyLimit checks daily transaction count but Transfer does not call it before proceeding | Call IsWithinDailyLimit in Transfer before processing |
-| AuthService.cs | 53-56 | Admin bypass creates user with Id=0 which may conflict with real users | Use nullable ID or remove bypass |
-| EmailService.cs | 46-60 | Retry loop catches SmtpException but continues loop on non-SmtpException failures | Catch specific exceptions or break loop appropriately |
-| UserService.cs | 111-123 | MapRowToUser casts all fields without null checks — will throw on DB null values | Add null checks or use null-coalescing |
+| StringHelper.cs | 29-36 | String concatenation in loop (O(n²)) | Use string.Join or StringBuilder |
+| UserService.cs | 87-91 | String concatenation in loop for audit report | Use StringBuilder |
+| StringHelper.cs | 16 | new Regex created inside IsValidEmail method | Make regex static readonly field |
+| StringHelper.cs | 25 | new Regex created inside IsValidUsername method | Make regex static readonly field |
+| UserService.cs | 10-11 | Static mutable fields _auditLog and _requestCount without synchronization | Use thread-safe collection or remove |
+| StringHelper.cs | 65-71 | IsBlank duplicates string.IsNullOrWhiteSpace | Remove duplicate method |
+| StringHelper.cs | 29-36 | JoinWithSeparator duplicates string.Join | Remove duplicate method |
+| DatabaseHelper.cs | 19-24 | GetOpenConnection returns SqlConnection with no documented ownership contract | Document that caller must dispose or return IDisposable |
+| UserService.cs | 18-23 | GetUserById and UpdateUser share identical ID validation block | Extract to shared private method |
+| UserService.cs | 18-23 | GetUserById and DeleteUser share identical ID validation block | Extract to shared private method |
+| TransactionService.cs | 23-61 | Transfer method handles multiple responsibilities (validation, balance check, debit, credit, recording, emailing) | Split into focused methods |
+| EmailService.cs | 34-61 | SendTransferNotification handles business logic and retry loop | Separate retry logic into helper |
 
 ## 9. Configuration Issues
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| Program.cs | 34 | UseDeveloperExceptionPage called unconditionally — exposes stack traces in production | Wrap in `if (app.Environment.IsDevelopment())` |
-| Program.cs | 24 | ValidateLifetime = false on JWT — tokens never expire | Set to true or read from config |
-| Program.cs | 36 | HTTPS redirection commented out | Uncomment or add environment check |
-| Program.cs | 38 | CORS policy AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader() — overly permissive | Restrict to known origins in configuration |
-| appsettings.json | 17-21 | Debug log level set for production namespace | Use LogLevel.Warning or Error for production |
-| SampleBankingApp.csproj | 14 | System.Data.SqlClient 4.8.6 — known vulnerabilities (CVE-2024-xxxx) | Upgrade to System.Data.SqlClient 4.8.7 or Microsoft.Data.SqlClient |
-| SampleBankingApp.csproj | 15 | Newtonsoft.Json 12.0.3 — known vulnerabilities (CVE-2024-xxxx) | Upgrade to 13.0.3 or later |
-| appsettings.json | 3 | Connection string contains production credentials | Use environment variables or Azure Key Vault |
-| appsettings.json | 6 | JWT secret key is weak and hardcoded | Use environment variable with cryptographically random value |
-| appsettings.json | 14 | Email password hardcoded | Use environment variable or secrets manager |
-| appsettings.json | 1-24 | No environment-specific override files (appsettings.Production.json missing) | Add production config with production-specific values |
+| Program.cs | 34 | UseDeveloperExceptionPage called unconditionally | Wrap in if (app.Environment.IsDevelopment()) |
+| Program.cs | 24 | ValidateLifetime = false on JWT | Set to true for production |
+| Program.cs | 36 | HTTPS redirection commented out | Uncomment or ensure SSL termination at load balancer |
+| Program.cs | 38 | CORS allows any origin, method, header | Restrict to known origins in production |
+| appsettings.json | 17-21 | Debug log level set for production | Set to Warning or Error for production |
+| SampleBankingApp.csproj | 15 | Newtonsoft.Json 12.0.3 is outdated with known vulnerabilities | Upgrade to latest stable version |
+| SampleBankingApp.csproj | 14 | System.Data.SqlClient 4.8.6 - newer Microsoft.Data.SqlClient recommended | Migrate to Microsoft.Data.SqlClient |
+| appsettings.json | N/A | No appsettings.Production.json override | Add environment-specific configuration |
 
 ## 10. Missing Unit Tests
 
 | File | Line | Issue | Fix |
 |------|------|-------|-----|
-| (No test project) | N/A | No test project exists in repository | Create test project with xUnit or NUnit |
-| UserService.cs | 72 | Pagination logic (skip calculation) — critical boundary condition | Write tests for page=1, page=2, edge cases |
-| TransactionService.cs | 39-44 | Fee calculation and totalDebit logic — financial calculation | Test fee = amount * 0.015, totalDebit = amount + fee |
-| TransactionService.cs | 42 | Insufficient funds check — verify balance check matches actual debit | Test when balance = amount, balance > amount, balance < amount |
-| UserService.cs | 38-49 | UpdateUser SQL injection prevention | Test with special characters in email/username |
-| AuthService.cs | 28-59 | Login method including admin bypass — security critical | Test valid/invalid credentials, admin bypass blocked |
-| AuthService.cs | 68-89 | GenerateJwtToken — verify claims, expiration | Test token contents and expiration |
-| TransactionService.cs | 63-75 | Deposit with interest bonus — financial calculation | Test interest = amount * 0.05, total credit |
-| UserService.cs | 95-109 | SearchUsers SQL injection — verify safe query handling | Test with LIKE wildcards, SQL injection attempts |
-| TransactionService.cs | 77-85 | IsWithinDailyLimit — boundary condition | Test at count = 9, count = 10, count = 11 |
-| UserService.cs | 70 | PageSize cap at 50 — boundary condition | Test pageSize=49, 50, 51 |
-| AuthService.cs | 61-66 | MD5 password hashing — verify output format | Test with known inputs |
-| EmailService.cs | 34-61 | SendTransferNotification retry logic | Test success, SmtpException retries, non-retryable exceptions |
+| N/A | N/A | No test project exists in provided files | Create test project with comprehensive coverage |
+
+### Critical Methods/Scenarios Requiring Tests:
+
+| File | Line | Scenario | Priority |
+|------|------|----------|----------|
+| UserService.cs | 72 | Pagination off-by-one: verify page 1 returns first records, page 2 skips first pageSize | High |
+| TransactionService.cs | 42 | Transfer with balance >= amount but < amount+fee (should fail) | High |
+| TransactionService.cs | 23-61 | Transfer to self should be rejected | High |
+| TransactionService.cs | 68 | Deposit interest calculation: verify 5% bonus applied correctly | High |
+| AuthService.cs | 28-59 | Login with admin bypass password | High |
+| AuthService.cs | 61-66 | Password hashing verification | High |
+| AuthService.cs | 98-108 | Token validation with expired token | High |
+| UserService.cs | 99 | SQL injection via SearchUsers query parameter | High |
+| UserService.cs | 38-54 | UpdateUser authorization: verify users can only update own profile | High |
+| UserService.cs | 56-69 | DeleteUser authorization: verify users can only delete own profile | High |
+| TransactionService.cs | 47-48 | Transfer atomicity: verify no partial transfers on failure | High |
+| EmailService.cs | 34-61 | Email retry logic: verify retries up to MaxRetries | Medium |
+| UserService.cs | 70 | PageSize boundary: verify behavior at 0, 1, 50, 51 | Medium |
+| TransactionService.cs | 65 | Deposit boundary: verify rejection of 0 and > 1000000 | Medium |
