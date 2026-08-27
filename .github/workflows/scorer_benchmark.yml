@@ -791,15 +791,39 @@ jobs:
               return (n.get("processed_missed", 0) / TOTAL_ISSUES * 100
                       if "error" not in n else None)
 
-          def dsr(r):
-              """Decoy specificity: of the issues the decoy is silent about, the share
-              the scorer correctly declined to credit. This is the direct measure of
-              the credit-everything failure -- a scorer that spreads one real finding
-              across neighbouring issues scores low here and nowhere else."""
+          def decoy_specificity(r):
+              """Of the issues the decoy is silent about, the share correctly declined.
+
+              The direct measure of the credit-everything failure -- a scorer that
+              spreads one real finding across neighbouring issues scores low here and
+              nowhere else."""
               d = r.get("decoy", {})
               if "error" in d or "decoy_false_credit" not in d:
                   return None
               return (DECOY_SILENT - d["decoy_false_credit"]) / DECOY_SILENT * 100
+
+
+          def decoy_recall(r):
+              """Of the issues the decoy DOES name, the share the scorer found."""
+              d = r.get("decoy", {})
+              if "error" in d or "decoy_hit" not in d:
+                  return None
+              return d["decoy_hit"] / max(len(DECOY_IDS), 1) * 100
+
+
+          def dsr(r):
+              """The decoy term: recall and specificity together.
+
+              Specificity alone rewarded silence. Qwen3-32B returned output that
+              parsed to zero rows -- no Found, no Partial, no Missed -- so it had no
+              false credits, scored 100% specificity and 100% overall while finding
+              none of the 16 issues the decoy names."""
+              rec, spec = decoy_recall(r), decoy_specificity(r)
+              if rec is None or spec is None:
+                  return None
+              if rec <= 0 or spec <= 0:
+                  return 0.0
+              return round(2 * rec * spec / (rec + spec), 1)
 
           def ungrounded_total(r):
               """Notes across all three reviews that the review could not support.
@@ -864,8 +888,9 @@ jobs:
               "",
               f"- **TPR** (sensitivity): Found / {TOTAL_ISSUES} on the perfect review",
               f"- **TNR** (specificity): Missed / {TOTAL_ISSUES} on the null review",
-              f"- **Decoy specificity**: of the {DECOY_SILENT} issues the decoy review says nothing about, "
-              "the share the scorer correctly declined to credit",
+              f"- **Decoy (recall/spec)**: recall is the share of the {len(DECOY_IDS)} named issues the scorer "
+              f"found; specificity is the share of the {DECOY_SILENT} silent ones it correctly declined. The "
+              "Score combines them, because specificity alone rewards a scorer that credits nothing at all",
               "- **Score**: harmonic mean of all three — a scorer that aces one test but fails another is penalised, "
               "and any outright zero scores zero",
               "- **Ungrounded**: Notes across all three reviews that the review could not support. These are "
@@ -898,8 +923,8 @@ jobs:
               "Times for `claude-*` scorers are wall clock and include the network round trip;",
               "Ollama figures are the server's own generation time and exclude it.",
               "",
-              "| # | Model | TPR | TNR | Decoy spec. | Score | Ungrounded | False credits | Perfect time | Truncated? |",
-              "|---|-------|----:|----:|------------:|------:|-----------:|--------------:|--------------|------------|",
+              "| # | Model | TPR | TNR | Decoy (recall/spec) | Score | Ungrounded | False credits | Perfect time | Truncated? |",
+              "|---|-------|----:|----:|-------------------:|------:|-----------:|--------------:|--------------|------------|",
           ]
 
           for rank, r in enumerate(ranked, 1):
@@ -917,13 +942,25 @@ jobs:
               lines.append(
                   f"| {rank} | {r['model']} "
                   f"| {tp:.1f}% | {np_:.1f}% "
-                  f"| {('%.1f%%' % ds) if ds is not None else '—'} "
+                  f"| {('%.0f%% / %.0f%%' % (decoy_recall(r), decoy_specificity(r))) if ds is not None else '—'} "
                   f"| {('**%.1f%%**' % sp) if sp is not None else '_incomplete_'} "
                   f"| {('**%d**' % ug) if ug > 5 else str(ug)} "
                   f"| {('%d / %d' % (fc, DECOY_SILENT)) if fc is not None else '—'} "
                   f"| {fmt_s(p.get('total_duration_s', 0))} "
                   f"| {trunc} |"
               )
+
+          _empty = [(r["model"], k) for r in ranked for k in REVIEW_TYPES
+                    if "error" not in r.get(k, {}) and r.get(k, {}).get("total", -1) == 0]
+          if _empty:
+              lines += [
+                  "",
+                  "> **A review produced no parseable rows.** "
+                  + "; ".join(f"`{m}` on the {k} review" for m, k in _empty)
+                  + ". The scorer returned output that contains no Found/Partial/Missed "
+                  "table, so nothing could be counted. Treat its figures as void rather "
+                  "than as a result -- this is a format failure, not a judgement.",
+              ]
 
           _heavy = [(r["model"], ungrounded_total(r)) for r in ranked
                     if ungrounded_total(r) > 5]
