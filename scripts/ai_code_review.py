@@ -126,8 +126,22 @@ def resolve_endpoint(model: str) -> tuple[str, str | None]:
     cloud_url = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").strip().rstrip("/")
     onprem_url = os.environ.get("OLLAMA_URL", "").strip().rstrip("/")
     api_key = os.environ.get("OLLAMA_API_KEY", "").strip() or None
+    low = model.strip().lower()
 
-    if model.endswith(":cloud"):
+    # Anthropic. Matched case-insensitively because the obvious thing to paste is
+    # the display name ("Claude-Opus-5") rather than the API id; the scorer
+    # benchmark lost a whole run to that before the same fix was applied there.
+    if low.startswith("claude-"):
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "").strip() or None
+        if not anthropic_key:
+            raise RuntimeError(
+                f"Model '{model}' is an Anthropic model but ANTHROPIC_API_KEY is "
+                "not set. It must be a repository SECRET, never a variable."
+            )
+        return ANTHROPIC_URL, anthropic_key
+
+    # Case-insensitive for the same reason.
+    if low.endswith(":cloud"):
         if not cloud_url:
             raise RuntimeError(
                 f"Model '{model}' is a cloud model but OLLAMA_CLOUD_URL is empty."
@@ -149,9 +163,89 @@ def resolve_endpoint(model: str) -> tuple[str, str | None]:
     return onprem_url, None
 
 
+ANTHROPIC_URL = "https://api.anthropic.com"
+ANTHROPIC_VERSION = "2023-06-01"
+
+
+def _anthropic_chat(payload: dict, payload_path: Path, label: str,
+                    api_key: str) -> dict:
+    """Call the Anthropic Messages API and return an OLLAMA-shaped response.
+
+    Normalising here rather than at the call sites means the rest of the module
+    is unchanged: it still reads message.content, eval_count and done_reason.
+
+    temperature is deliberately not forwarded -- it is rejected on Opus 4.7 and
+    later. Reasoning is controlled by output_config.effort instead, which is why
+    an Anthropic reviewer cannot be pinned to temperature 0 the way a local one
+    can. Duration is wall clock, since the API reports none.
+    """
+    import time
+
+    opts = payload.get("options") or {}
+    messages = [m for m in payload.get("messages", []) if m.get("role") != "system"]
+    system_text = " ".join(m.get("content", "") for m in payload.get("messages", [])
+                           if m.get("role") == "system").strip()
+    body = {
+        "model": payload["model"].strip().lower(),   # Anthropic ids are lowercase
+        "max_tokens": int(opts.get("num_predict") or 40000),
+        "messages": messages,
+        "thinking": {"type": "adaptive", "display": "summarized"},
+        "output_config": {
+            "effort": (os.environ.get("AI_ASSISTANT_EFFORT") or "high").strip() or "high"
+        },
+    }
+    if system_text:
+        body["system"] = system_text
+    payload_path.write_text(json.dumps(body), encoding="utf-8")
+    print(f"Calling Anthropic Messages API — {label} (model: {body['model']}) …")
+
+    t0 = time.monotonic()
+    res = run([
+        "curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+        "-X", "POST", f"{ANTHROPIC_URL}/v1/messages",
+        "-H", "Content-Type: application/json",
+        "-H", f"x-api-key: {api_key}",
+        "-H", f"anthropic-version: {ANTHROPIC_VERSION}",
+        "-d", f"@{payload_path}",
+    ])
+    if res.returncode != 0:
+        print(f"ERROR: curl failed (exit {res.returncode})\n"
+              f"stderr: {res.stderr}\nbody  : {res.stdout[:2000]}", file=sys.stderr)
+        sys.exit(1)
+    elapsed = time.monotonic() - t0
+    try:
+        data = json.loads(res.stdout)
+    except json.JSONDecodeError as exc:
+        print(f"ERROR: Could not parse Anthropic response: {exc}", file=sys.stderr)
+        print(f"Raw output (first 500 chars): {res.stdout[:500]}", file=sys.stderr)
+        sys.exit(1)
+
+    blocks = data.get("content") or []
+    text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+    thinking = "".join(b.get("thinking", "") for b in blocks if b.get("type") == "thinking")
+    usage = data.get("usage") or {}
+    out_tok = usage.get("output_tokens", 0)
+    return {
+        "message": {"content": text, "thinking": thinking},
+        "prompt_eval_count": usage.get("input_tokens", 0),
+        "eval_count": out_tok,
+        "total_duration": int(elapsed * 1e9),
+        "eval_duration": int(elapsed * 1e9),
+        "prompt_eval_duration": 0,
+        "done_reason": data.get("stop_reason", ""),
+    }
+
+
 def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
                 api_key: str | None = None) -> dict:
-    """POST a chat request to Ollama via curl and return the parsed response."""
+    """POST a chat request to Ollama via curl and return the parsed response.
+
+    Anthropic models are dispatched to the Messages API and their reply mapped
+    back into this shape, so callers need no branch of their own.
+    """
+    if payload.get("model", "").strip().lower().startswith("claude-"):
+        return _anthropic_chat(payload, payload_path, label, api_key or "")
+
     payload_path.write_text(json.dumps(payload), encoding="utf-8")
     print(f"Calling {base_url}/api/chat — {label} (model: {payload['model']}) …")
 
@@ -180,6 +274,13 @@ def ollama_chat(base_url: str, payload: dict, payload_path: Path, label: str,
         print(f"Raw output (first 500 chars): {res.stdout[:500]}", file=sys.stderr)
         sys.exit(1)
 
+
+# Same text ai_code_review.yml defaults to, so a local run and a workflow run
+# send the same persona without the caller having to set anything.
+DEFAULT_SYSTEM_PROMPT = (
+    "You are an expert computer programmer with an eye for detail, "
+    "who loves to provide high quality answers."
+)
 
 REPO_ROOT_PATH = Path(__file__).resolve().parent.parent
 
@@ -234,14 +335,25 @@ def reasoning_controls(prefix: str) -> tuple[list[dict], object]:
     Qwen3.8-27B scores 71.4% with thinking off against ~96% with it on.
     """
     messages: list[dict] = []
+
+    # The standardised persona, sent on EVERY request exactly as ai_code_review.yml
+    # sends it. This module previously hardcoded "You are a helpful assistant."
+    # when reasoning was set and sent nothing otherwise, so each model fell back to
+    # its own Modelfile -- the confound standardisation removed, still present here
+    # and therefore in the patch pipeline that imports this. Set the variable to
+    # 'none' to send no system message and restore per-Modelfile behaviour.
+    system_text = (os.environ.get(f"{prefix}_SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT).strip()
+    if system_text.lower() == "none":
+        system_text = ""
+
     reasoning = (os.environ.get(f"{prefix}_REASONING") or "").strip()
     if reasoning:
-        # A system message replaces the Modelfile SYSTEM block wholesale, so the
-        # assistant line must be reproduced alongside the level.
-        messages.append({
-            "role": "system",
-            "content": f"Reasoning strength: {reasoning}\n\nYou are a helpful assistant.",
-        })
+        # Prepended to the same message rather than sent as a second one, so the
+        # persona is not replaced by the reasoning instruction.
+        system_text = f"Reasoning strength: {reasoning}\n\n{system_text}".strip()
+    if system_text:
+        messages.append({"role": "system", "content": system_text})
+
     raw = (os.environ.get(f"{prefix}_THINK") or "").strip()
     think: object = None
     if raw:
@@ -250,7 +362,57 @@ def reasoning_controls(prefix: str) -> tuple[list[dict], object]:
     if reasoning or raw:
         print(f"  {prefix}: reasoning={reasoning or '(model default)'} "
               f"think={think if raw else '(unset)'}")
+    print(f"  {prefix}: system prompt ({len(system_text)} chars): "
+          f"{system_text[:60] or '(none sent — model Modelfile applies)'}"
+          + ("…" if len(system_text) > 60 else ""))
     return messages, think
+
+
+_CAPS_CACHE: dict[str, bool] = {}
+
+
+def supports_thinking(model: str, base_url: str, api_key: str | None = None) -> bool:
+    """Whether this Ollama model advertises the 'thinking' capability.
+
+    Sending think= to a model without it is a 400 that kills the whole run, so it
+    is worth one metadata call to find out. Cached per model. Any failure answers
+    True, which preserves what the operator asked for rather than silently
+    altering the run because a probe did not come back.
+    """
+    if model in _CAPS_CACHE:
+        return _CAPS_CACHE[model]
+    ok = True
+    try:
+        cmd = ["curl", "-s", "--max-time", "30", "-X", "POST",
+               f"{base_url}/api/show", "-H", "Content-Type: application/json"]
+        if api_key:
+            cmd += ["-H", f"Authorization: Bearer {api_key}"]
+        cmd += ["-d", json.dumps({"model": model})]
+        res = run(cmd)
+        if res.returncode == 0:
+            caps = (json.loads(res.stdout) or {}).get("capabilities") or []
+            ok = "thinking" in caps
+    except Exception:
+        pass
+    _CAPS_CACHE[model] = ok
+    return ok
+
+
+def resolve_think(model: str, think: object, base_url: str,
+                  api_key: str | None = None) -> object:
+    """Drop an enabling think value the model cannot honour.
+
+    'false' is always safe -- models without the capability accept it -- so only
+    the enabling values are checked. Anthropic and ':cloud' models are left alone:
+    their capabilities are not queryable this way.
+    """
+    low = model.strip().lower()
+    if think in (None, False) or low.startswith("claude-") or low.endswith(":cloud"):
+        return think
+    if not supports_thinking(model, base_url, api_key):
+        print(f"  (think={think} dropped: {model} has no thinking capability)")
+        return None
+    return think
 
 
 def strip_thinking(text: str) -> str:
@@ -327,6 +489,9 @@ def main() -> int:
     )
 
     _msgs, _think = reasoning_controls("AI_ASSISTANT_MODEL")
+    # Drop an enabling think the model cannot honour, rather than let the
+    # request 400 and lose the run.
+    _think = resolve_think(review_model, _think, review_url, review_key)
     review_payload = {
         "model": review_model,
         "messages": _msgs + [{"role": "user", "content": review_prompt}],
@@ -387,6 +552,7 @@ def main() -> int:
     scorer_num_predict = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
     scorer_temperature = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
     _smsgs, _sthink = reasoning_controls("AI_ASSISTANT_SCORER")
+    _sthink = resolve_think(scoring_model, _sthink, scoring_url, scoring_key)
     scoring_payload = {
         "model": scoring_model,
         "messages": _smsgs + [{"role": "user", "content": scoring_prompt}],

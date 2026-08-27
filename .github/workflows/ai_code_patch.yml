@@ -62,6 +62,14 @@ on:
         description: "Scorer Ollama think. Blank = unset."
         required: false
         type: string
+      patch_system_prompt:
+        description: "System prompt for the PATCHER. Blank = the benchmark default. 'none' = send none."
+        required: false
+        type: string
+      effort:
+        description: "Anthropic only (claude-* roles): output_config.effort — low/medium/high/xhigh/max. Blank = high."
+        required: false
+        type: string
       skip_baseline:
         description: >
           Skip the baseline peer review (only score the patched tree).
@@ -83,6 +91,8 @@ env:
   OLLAMA_CLOUD_URL: https://ollama.com
   # Bearer token; sent ONLY to the cloud endpoint by resolve_endpoint().
   OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+  # Anthropic, for any 'claude-*' role. Secret, never a variable.
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
   patch-and-review:
@@ -102,12 +112,23 @@ jobs:
         id: sanity
         run: |
           # Cloud models require an API key up-front.
-          NEEDS_KEY='false'
+          # Lower-cased before matching: the obvious thing to paste is the archive
+          # display name ('Kimi-k3:Cloud', 'Claude-Opus-5'), and a case-sensitive
+          # test sends those to the wrong provider with an opaque 404.
+          NEEDS_KEY='false'; NEEDS_ANTHROPIC='false'
           for m in '${{ inputs.patcher_model }}' '${{ inputs.reviewer_model }}' '${{ inputs.scorer_model }}'; do
-            case "$m" in *:cloud) NEEDS_KEY='true' ;; esac
+            lm=$(printf '%s' "$m" | tr '[:upper:]' '[:lower:]')
+            case "$lm" in
+              *:cloud)  NEEDS_KEY='true' ;;
+              claude-*) NEEDS_ANTHROPIC='true' ;;
+            esac
           done
           if [ "$NEEDS_KEY" = 'true' ] && [ -z "$OLLAMA_API_KEY" ]; then
             echo "::error::A ':cloud' model was requested but the OLLAMA_API_KEY repository variable is not set."
+            exit 1
+          fi
+          if [ "$NEEDS_ANTHROPIC" = 'true' ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::A 'claude-*' model was requested but the ANTHROPIC_API_KEY repository SECRET is not set."
             exit 1
           fi
           if [ '${{ inputs.patcher_model }}' = '${{ inputs.reviewer_model }}' ]; then
@@ -136,9 +157,9 @@ jobs:
           # instrument from the review benchmark.
           AI_ASSISTANT_MODEL_NUM_CTX: ${{ vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0.3' }}
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0' }}
           AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
-          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }}
           AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
 
           # Reasoning for the reviewer and scorer sub-runs. Same names as
@@ -146,6 +167,18 @@ jobs:
           # scripts/ai_code_review.py previously hardcoded `"think": False`, which did
           # not just omit the control -- it actively disabled reasoning for every model
           # in this pipeline.
+          # The standardised persona, sent on every request by all three roles --
+          # the same value ai_code_review.yml uses. Without it the reviewer and
+          # scorer fell back to each model's Modelfile, so a patched tree was
+          # graded on a different instrument from the review benchmark and the
+          # two could not be compared. 'none' opts out.
+          AI_ASSISTANT_MODEL_SYSTEM_PROMPT: >-
+            ${{ vars.AI_ASSISTANT_MODEL_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
+          AI_ASSISTANT_SCORER_SYSTEM_PROMPT: >-
+            ${{ vars.AI_ASSISTANT_SCORER_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
+          AI_PATCH_MODEL_SYSTEM_PROMPT: >-
+            ${{ inputs.patch_system_prompt || vars.AI_PATCH_MODEL_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
+          AI_ASSISTANT_EFFORT: ${{ inputs.effort || vars.AI_ASSISTANT_EFFORT || 'high' }}
           AI_ASSISTANT_MODEL_REASONING: ${{ vars.AI_ASSISTANT_MODEL_REASONING }}
           AI_ASSISTANT_MODEL_THINK: ${{ inputs.reviewer_think || vars.AI_ASSISTANT_MODEL_THINK }}
           AI_ASSISTANT_SCORER_REASONING: ${{ vars.AI_ASSISTANT_SCORER_REASONING }}

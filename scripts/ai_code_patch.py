@@ -146,6 +146,7 @@ _FILE_HEADER_RE = re.compile(r"^\s*#{1,6}\s*File\s*:\s*(.+?)\s*$", re.MULTILINE)
 # Reuse the reviewer's implementation rather than a fourth copy.
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from ai_code_review import reasoning_controls as _reasoning_controls  # noqa: E402
+from ai_code_review import resolve_think as _resolve_think  # noqa: E402
 
 sys.path.insert(0, str(REPO_ROOT))
 import patch_checks  # noqa: E402
@@ -621,6 +622,7 @@ def main() -> int:
 
     prompt = PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=diff)
     _pmsgs, _pthink = _reasoning_controls("AI_PATCH_MODEL")
+    _pthink = _resolve_think(patcher_model, _pthink, patcher_url, patcher_key)
     payload = {
         "model": patcher_model,
         "messages": _pmsgs + [{"role": "user", "content": prompt}],
