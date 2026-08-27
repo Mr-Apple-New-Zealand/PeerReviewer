@@ -402,6 +402,13 @@ jobs:
                   },
               }
               think = THINK_FOR.get(model, DEFAULT_THINK)
+              # A think value the model cannot honour is a hard 400 that costs the whole
+              # run, so drop it rather than let the request fail. 'false' is always safe
+              # -- non-thinking models accept it -- so only the enabling values are checked.
+              if think and think.lower() not in ("false",) and not is_cloud:
+                  if not supports_thinking(model):
+                      print(f"      (think={think} dropped: {model} has no thinking capability)")
+                      think = ""
               if think:
                   _t = think.lower()
                   body["think"] = True if _t == "true" else False if _t == "false" else think
@@ -456,6 +463,36 @@ jobs:
                       "If thinking is large, this scorer needs a bigger num_predict."
                   )
               return content, metrics
+
+          _CAPS_CACHE = {}
+
+
+          def supports_thinking(model: str) -> bool:
+              """Ask Ollama whether this model advertises the 'thinking' capability.
+
+              Sending think= to a model without it is a 400, not a no-op, so the whole
+              run dies. Queried once per model and cached. On any failure the answer is
+              True, which preserves whatever the operator asked for rather than
+              silently changing the run because a metadata call did not come back.
+              """
+              if model in _CAPS_CACHE:
+                  return _CAPS_CACHE[model]
+              ok = True
+              try:
+                  r = subprocess.run(
+                      ["curl", "-s", "--max-time", "30", "-X", "POST",
+                       f"{OLLAMA_URL}/api/show",
+                       "-H", "Content-Type: application/json",
+                       "--data-binary", "@-"],
+                      input=json.dumps({"model": model}).encode(), capture_output=True)
+                  if r.returncode == 0:
+                      caps = (json.loads(r.stdout.decode()) or {}).get("capabilities") or []
+                      ok = "thinking" in caps
+              except Exception:
+                  pass
+              _CAPS_CACHE[model] = ok
+              return ok
+
 
           def fmt_s(secs):
               if secs >= 60:
@@ -556,8 +593,19 @@ jobs:
                     f"  [think={_th or '(unset)'}, "
                     f"reasoning={REASONING or '(model default)'}]\n{sep}")
 
+              # Resolved rather than requested, so the run configuration block reports
+              # what was actually sent. Run #18 recorded think=medium for a model that
+              # cannot accept it.
+              _req_think = THINK_FOR.get(model, DEFAULT_THINK)
+              _eff_think = _req_think
+              if (_req_think and _req_think.lower() != "false"
+                      and not model.strip().endswith(":cloud")
+                      and not model.startswith("claude-")
+                      and not supports_thinking(model)):
+                  _eff_think = ""
               result: dict = {"model": model,
-                              "think": THINK_FOR.get(model, DEFAULT_THINK) or None,
+                              "think": _eff_think or None,
+                              "think_requested": _req_think or None,
                               "reasoning": REASONING or None}
 
               for review_name, review_text in [
@@ -879,7 +927,10 @@ jobs:
                   "| Setting | Value |",
                   "|---|---|",
                   f"| Scorer model | {_v(model, '(unknown)')} |",
-                  f"| Ollama `think` | {_v(r.get('think'), '(unset)')} |",
+                  f"| Ollama `think` | {_v(r.get('think'), '(unset)')}"
+                  + (f" _(requested `{r['think_requested']}`, dropped: model has no thinking capability)_"
+                     if r.get("think_requested") and not r.get("think") else "")
+                  + " |",
                   f"| Reasoning strength (system prompt) | {_v(r.get('reasoning'))} |",
                   f"| System prompt | {_v(SYSTEM_PROMPT, '(none sent)')} |",
                   f"| Temperature | {'(not sent — rejected on Opus 4.7+)' if is_anthropic else _v(TEMPERATURE)} |",
