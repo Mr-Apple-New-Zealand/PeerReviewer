@@ -785,6 +785,22 @@ jobs:
                   return None
               return (DECOY_SILENT - d["decoy_false_credit"]) / DECOY_SILENT * 100
 
+          def ungrounded_total(r):
+              """Notes across all three reviews that the review could not support.
+
+              The discriminating number. A scorer that credits issues the review
+              never mentions is caught here and nowhere else: grounding removes the
+              rows before they reach the score, so the sheet looks clean while the
+              scorer is not. Codestral-22B needed 49 corrections on the decoy and
+              still scored 98.9%.
+              """
+              n = 0
+              for k in REVIEW_TYPES:
+                  d = r.get(k, {})
+                  if "error" not in d:
+                      n += d.get("ungrounded", 0)
+              return n
+
           def score_proc(r):
               """None when any test did not report -- distinct from a genuine zero.
 
@@ -836,6 +852,10 @@ jobs:
               "the share the scorer correctly declined to credit",
               "- **Score**: harmonic mean of all three — a scorer that aces one test but fails another is penalised, "
               "and any outright zero scores zero",
+              "- **Ungrounded**: Notes across all three reviews that the review could not support. These are "
+              "removed before scoring, so a high count does not lower the Score — but it is the number that "
+              "separates a scorer which grades correctly from one that credits everything and relies on the "
+              "harness to clean up after it",
               "",
               "The decoy test is the one that matters most in practice. `perfect` and `null` bracket the",
               "extremes, and a scorer passes both by being uniformly generous or uniformly strict. The decoy",
@@ -843,8 +863,9 @@ jobs:
               f"it awards beyond those {len(DECOY_IDS)} is produced by association with a nearby finding — the failure",
               "that inflated ten of the twenty review scorecards in the model benchmark.",
               "",
-              "Note the limit of these tests: two scorers known to differ on real reviews both scored",
-              "100/100/100 here. They screen out a broken scorer; they do not rank good ones.",
+              "These tests do discriminate, but not always through the Score. Four scorers spanning 5GB to",
+              "65GB all returned 99.5-100%, while Codestral-22B returned 98.9% having rated 65 of 70 issues",
+              "Found on a decoy that names 16 — a difference visible only in the Ungrounded column. Read both.",
               "",
               "The production scorer is `Qwen3-Coder-30B-imatrix:Q3_K_M`. Qwen3.8-27B-imatrix:Q4_K_S",
               "was benchmarked as a replacement and matched it exactly (100/100/100), but is ~6x slower",
@@ -858,8 +879,8 @@ jobs:
               "cannot be matched to the review, and mis-credit detection. Production ships",
               "`processed`, so that is the column to rank on.",
               "",
-              "| # | Model | TPR | TNR | Decoy spec. | Score | False credits | Perfect time | Truncated? |",
-              "|---|-------|----:|----:|------------:|------:|--------------:|--------------|------------|",
+              "| # | Model | TPR | TNR | Decoy spec. | Score | Ungrounded | False credits | Perfect time | Truncated? |",
+              "|---|-------|----:|----:|------------:|------:|-----------:|--------------:|--------------|------------|",
           ]
 
           for rank, r in enumerate(ranked, 1):
@@ -873,15 +894,30 @@ jobs:
                             if trunc_flag(r, k) != "No"), "No")
               fc = d.get("decoy_false_credit")
               sp = score_proc(r)
+              ug = ungrounded_total(r)
               lines.append(
                   f"| {rank} | {r['model']} "
                   f"| {tp:.1f}% | {np_:.1f}% "
                   f"| {('%.1f%%' % ds) if ds is not None else '—'} "
                   f"| {('**%.1f%%**' % sp) if sp is not None else '_incomplete_'} "
+                  f"| {('**%d**' % ug) if ug > 5 else str(ug)} "
                   f"| {('%d / %d' % (fc, DECOY_SILENT)) if fc is not None else '—'} "
                   f"| {fmt_s(p.get('total_duration_s', 0))} "
                   f"| {trunc} |"
               )
+
+          _heavy = [(r["model"], ungrounded_total(r)) for r in ranked
+                    if ungrounded_total(r) > 5]
+          if _heavy:
+              lines += [
+                  "",
+                  "> **Read the Ungrounded column before the Score.** "
+                  + "; ".join(f"`{m}` needed {n} corrections" for m, n in _heavy)
+                  + ". Those are rows the scorer rated Found or Partial with nothing in the review to "
+                  "support them. Grounding removed them before they reached the score, so the score "
+                  "looks healthy — but such a scorer is wholly dependent on that check holding, unlike "
+                  "one that never credits an unsupported row in the first place.",
+              ]
 
           lines += [
               "",
