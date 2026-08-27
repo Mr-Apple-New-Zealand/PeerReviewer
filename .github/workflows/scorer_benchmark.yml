@@ -393,13 +393,21 @@ jobs:
 
 
           def call_ollama(model: str, prompt: str) -> tuple[str, dict]:
-              if model.startswith("claude-"):
+              # Case-insensitive, because the obvious thing to paste is the name used
+              # by the archive files ("Claude-Opus-5") rather than the API id. Run #30
+              # lost all three reviews to that: the branch was skipped, the request
+              # went to Ollama, and Ollama 404'd on a model it has never heard of.
+              if model.strip().lower().startswith("claude-"):
                   _sys = SYSTEM_PROMPT
                   if REASONING:
                       _sys = f"Reasoning strength: {REASONING}\n\n{_sys}".strip()
-                  return call_anthropic(model, prompt, _sys)
+                  # Anthropic ids are lowercase; sending "Claude-Opus-5" 404s there too.
+                  _id = model.strip().lower()
+                  if _id != model.strip():
+                      print(f"      (model id normalised to {_id})")
+                  return call_anthropic(_id, prompt, _sys)
 
-              is_cloud = model.strip().endswith(":cloud")
+              is_cloud = model.strip().lower().endswith(":cloud")
               base_url = CLOUD_URL if is_cloud else OLLAMA_URL
               if is_cloud and not API_KEY:
                   raise RuntimeError(
@@ -641,9 +649,10 @@ jobs:
               # cannot accept it.
               _req_think = THINK_FOR.get(model, DEFAULT_THINK)
               _eff_think = _req_think
+              _mlow = model.strip().lower()
               if (_req_think and _req_think.lower() != "false"
-                      and not model.strip().endswith(":cloud")
-                      and not model.startswith("claude-")
+                      and not _mlow.endswith(":cloud")
+                      and not _mlow.startswith("claude-")
                       and not supports_thinking(model)):
                   _eff_think = ""
               result: dict = {"model": model,
@@ -1003,7 +1012,7 @@ jobs:
 
           for r in all_results:
               model = r["model"]
-              is_anthropic = model.startswith("claude-")
+              is_anthropic = model.strip().lower().startswith("claude-")
               lines += [
                   "",
                   f"## Run Configuration — {model}",
