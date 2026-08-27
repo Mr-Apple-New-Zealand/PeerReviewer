@@ -469,6 +469,13 @@ jobs:
 
           # ── Load inputs ─────────────────────────────────────────────────────
           issues_md     = Path("ISSUES.md").read_text(encoding="utf-8")
+          # Same normalisation as the review workflow, so a Windows checkout and the
+          # Linux runner produce the same digest for identical content.
+          ISSUES_SHA = hashlib.sha256(
+              issues_md.replace("\r\n", "\n").encode("utf-8")
+          ).hexdigest()[:12]
+          BRANCH = os.environ.get("GITHUB_REF_NAME", "?")
+          COMMIT = os.environ.get("GITHUB_SHA", "")[:7] or "?"
           perfect_review = build_perfect_review(issues_md)
           # Derived, not hardcoded: TPR against a fixed 70 under-reports every scorer
           # whenever a reference row fails to parse (CF9 did exactly that).
@@ -592,6 +599,7 @@ jobs:
                           "self_declared":     [d[0] for d in self_declared],
                           "misaligned":        [m[0] for m in misaligned] + missing_ids,
                           "unsupported":       unsupported,
+                          "output_tokens":    metrics["output_tokens"],
                           "total_duration_s": metrics["total_duration_s"],
                           "output_tps":       metrics["output_tps"],
                           "done_reason":      metrics["done_reason"],
@@ -810,6 +818,56 @@ jobs:
                       f"| {r['model']} | {d.get('decoy_hit', 0)} / {len(DECOY_IDS)} "
                       f"| **{d.get('decoy_false_credit', 0)} / {DECOY_SILENT}** "
                       f"| {shown or '—'} |")
+
+          # ── Run configuration, one block per scorer ─────────────────────────
+          # Mirrors the Run Configuration table at the foot of issues_scorecard.md.
+          # Everything a reader needs to reproduce or challenge the numbers above.
+          def _v(val, blank="(model default)"):
+              s = "" if val is None else str(val).strip()
+              return f"`{s}`" if s else blank
+
+          for r in all_results:
+              model = r["model"]
+              is_anthropic = model.startswith("claude-")
+              lines += [
+                  "",
+                  f"## Run Configuration — {model}",
+                  "",
+                  "Values as actually sent for this run. Blank sampler entries mean the",
+                  "request omitted them, so the model's own Modelfile applied.",
+                  "",
+                  "| Setting | Value |",
+                  "|---|---|",
+                  f"| Scorer model | {_v(model, '(unknown)')} |",
+                  f"| Ollama `think` | {_v(r.get('think'), '(unset)')} |",
+                  f"| Reasoning strength (system prompt) | {_v(r.get('reasoning'))} |",
+                  f"| System prompt | {_v(SYSTEM_PROMPT, '(none sent)')} |",
+                  f"| Temperature | {'(not sent — rejected on Opus 4.7+)' if is_anthropic else _v(TEMPERATURE)} |",
+                  "| top_p | (model default) |",
+                  "| top_k | (model default) |",
+                  f"| Effort (Anthropic only) | {_v(EFFORT) if is_anthropic else '(n/a)'} |",
+                  f"| num_ctx | {_v(NUM_CTX)} |",
+                  f"| num_predict | {_v(NUM_PREDICT)} |",
+                  f"| Scorer prompt SHA-256 | {_v(PROMPT_SHA)} |",
+                  f"| ISSUES.md SHA-256 | {_v(ISSUES_SHA)} |",
+                  f"| Reference issues | {_v(TOTAL_ISSUES)} ({build_perfect_review.seen} rows + UT) |",
+                  f"| Decoy coverage | {_v(len(DECOY_IDS))} issues named, {_v(DECOY_SILENT)} silent |",
+                  f"| Branch / commit | {_v(f'{BRANCH} @ {COMMIT}')} |",
+                  "",
+                  "| Review | Output tokens | Duration | Stop reason | Thinking chars |",
+                  "|---|---|---|---|---|",
+              ]
+              for rt in REVIEW_TYPES:
+                  d = r.get(rt, {})
+                  if "error" in d:
+                      lines.append(f"| {rt} | — | — | **ERROR** | — |")
+                  else:
+                      lines.append(
+                          f"| {rt} | {d.get('output_tokens', '—')} "
+                          f"| {fmt_s(d.get('total_duration_s', 0))} "
+                          f"| {d.get('done_reason') or '—'} "
+                          f"| {d.get('thinking_chars', 0):,} |"
+                      )
 
           summary_path = OUT_DIR / "summary.md"
           summary_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
