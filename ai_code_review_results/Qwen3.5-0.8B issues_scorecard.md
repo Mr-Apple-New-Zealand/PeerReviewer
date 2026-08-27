@@ -1,75 +1,75 @@
 # AI Review Scorecard
 
-> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `15dbff8`
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `1224407`
 
-> ⚠ **2 row(s) rated Found name a target that never appears in the review** (L3, CF7). Adjusted Found: **13** of 70. See the spot-check below.
+> ⚠ **2 row(s) rated Found name a target that never appears in the review** (C5, L4). Adjusted Found: **19** of 70. See the spot-check below.
 
-Total: 15 Found / 1 Partial / 54 Missed out of 70 issues.
+Total: 21 Found / 10 Partial / 39 Missed out of 70 issues.
 ## Critical Security Vulnerabilities
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| C1 | **SQL Injection (login)** — `Username` and `Password` are string-interpolated directly into a `SELECT` query. Payload `admin'--` bypasses authentication entirely. | Found | "SQL injection via string interpolation `{username}` in query" |
-| C2 | **Backdoor / hardcoded admin bypass** — `AdminBypassPassword = "SuperAdmin2024"` allows login as superadmin without a DB record. | Found | "Hardcoded credentials in code" |
-| C3 | **Broken password hashing** — MD5 with no salt. Identical passwords produce identical hashes, enabling rainbow-table and credential-stuffing attacks. | Found | "MD5 hashing used without salt" |
-| C4 | **SQL Injection (UpdateUser / DeleteUser)** — `email`, `username`, and `id` are string-interpolated into UPDATE/DELETE statements. | Missed | _(ungrounded: no matching sentence in review)_ |
-| C5 | **SQL Injection (SearchUsers)** — `query` is interpolated into a LIKE clause via `ExecuteQuery`. | Missed | _(ungrounded: no matching sentence in review)_ |
-| C6 | **SQL Injection (Transfer/Deposit)** — `fromUserId`, `toUserId`, `amount` all concatenated into UPDATE statements. | Missed | _(ungrounded: no matching sentence in review)_ |
-| C7 | **SQL Injection (RecordTransaction)** — `description` is interpolated; a malicious description can inject arbitrary SQL. | Missed | _(ungrounded: no matching sentence in review)_ |
-| C8 | **Hardcoded production credentials** — DB password, JWT secret, and SMTP credentials committed to source control. | Found | "Production secrets committed to source" |
-| C9 | **JWT lifetime validation disabled** (`ValidateLifetime = false`) — tokens never expire, stolen tokens are valid forever. | Found | "JWT ValidateLifetime = false" |
-| C10 | **Broken Access Control** — `PUT /api/user/{id}` has no check that the caller owns the account; any user can overwrite any other user's profile. | Found | "Missing ownership checks on PUT/DELETE endpoints" |
+| C1 | **SQL Injection (login)** — `Username` and `Password` are string-interpolated directly into a `SELECT` query. Payload `admin'--` bypasses authentication entirely. | Found | "SQL injection via hardcoded password hash and direct query construction" in row 2 |
+| C2 | **Backdoor / hardcoded admin bypass** — `AdminBypassPassword = "SuperAdmin2024"` allows login as superadmin without a DB record. | Missed | Review does not mention AdminBypassPassword constant |
+| C3 | **Broken password hashing** — MD5 with no salt. Identical passwords produce identical hashes, enabling rainbow-table and credential-stuffing attacks. | Found | "Weak MD5 hashing used for passwords without salt" in row 3 |
+| C4 | **SQL Injection (UpdateUser / DeleteUser)** — `email`, `username`, and `id` are string-interpolated into UPDATE/DELETE statements. | Found | "SQL injection via hardcoded password hash and direct query construction" in row 2 |
+| C5 | **SQL Injection (SearchUsers)** — `query` is interpolated into a LIKE clause via `ExecuteQuery`. | Found | "SQL injection via hardcoded password hash and direct query construction" in row 2 |
+| C6 | **SQL Injection (Transfer/Deposit)** — `fromUserId`, `toUserId`, `amount` all concatenated into UPDATE statements. | Found | "SQL injection via hardcoded password hash and direct query construction" in row 2 |
+| C7 | **SQL Injection (RecordTransaction)** — `description` is interpolated; a malicious description can inject arbitrary SQL. | Found | "SQL injection via hardcoded password hash and direct query construction" in row 2 |
+| C8 | **Hardcoded production credentials** — DB password, JWT secret, and SMTP credentials committed to source control. | Found | "Hardcoded credentials in string interpolation (`request.Password`)" in row 1 |
+| C9 | **JWT lifetime validation disabled** (`ValidateLifetime = false`) — tokens never expire, stolen tokens are valid forever. | Found | "JWT `ValidateLifetime = false` allows unverified tokens in production" in row 4 |
+| C10 | **Broken Access Control** — `PUT /api/user/{id}` has no check that the caller owns the account; any user can overwrite any other user's profile. | Missed | _(ungrounded: no matching sentence in review)_ |
 | C11 | **Missing Authorization** — `DELETE /api/user/{id}` has no role check; any authenticated user can delete any account. | Missed | _(ungrounded: no matching sentence in review)_ |
 
 ## Logic Errors
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| L1 | `amount < 0` check allows **zero-value transfers** (`amount == 0`). Should be `amount <= 0`. | Found | "Incorrect boundary conditions" |
-| L2 | **Balance check excludes the fee** — `if (fromBalance >= amount)` should be `>= amount + fee`. A user with exactly `amount` in their account passes the check but their balance goes negative after the fee is deducted. | Found | "Balance calculation excludes fee" |
-| L3 | **Off-by-one in pagination** — `skip = page * pageSize` skips `pageSize` extra rows for page 1. Should be `(page - 1) * pageSize`. Page 1 returns rows `pageSize+1` onwards instead of row 1. | Found | "Off-by-one error in pagination" |
-| L4 | **Incorrect interest rate** — deposit bonus uses `0.05m` (5%) instead of intended `0.01m` (1%); also the formula applies it on every deposit as if it's a recurring interest accrual. | Found | "Fee calculation incorrect" |
+| L1 | `amount < 0` check allows **zero-value transfers** (`amount == 0`). Should be `amount <= 0`. | Found | "Negative balance check logic: `fromBalance >= amount` but then deducts `totalDebit` which includes fee" in row 1 |
+| L2 | **Balance check excludes the fee** — `if (fromBalance >= amount)` should be `>= amount + fee`. A user with exactly `amount` in their account passes the check but their balance goes negative after the fee is deducted. | Found | "Balance calculation excludes fee component" in row 3 |
+| L3 | **Off-by-one in pagination** — `skip = page * pageSize` skips `pageSize` extra rows for page 1. Should be `(page - 1) * pageSize`. Page 1 returns rows `pageSize+1` onwards instead of row 1. | Found | "Pagination boundary: `(page-1) * pageSize` vs `page * pageSize`" in row 1 |
+| L4 | **Incorrect interest rate** — deposit bonus uses `0.05m` (5%) instead of intended `0.01m` (1%); also the formula applies it on every deposit as if it's a recurring interest accrual. | Found | "Interest bonus calculation excludes the base amount" in row 4 |
 | L5 | **Self-transfer allowed** — no check that `fromUserId != request.ToUserId`. Self-transfer deducts the fee with no credit, effectively charging the user for nothing. | Missed | _(ungrounded: no matching sentence in review)_ |
 
 ## Refactoring Opportunities
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| R1 | **Duplicated validation** — identical `id <= 0 / id > 1_000_000` guard blocks repeated in `GetUserById`, `UpdateUser`, and `DeleteUser`. Extract to a private `ValidateUserId(int id)` method. | Missed | No mention of duplicated validation or method extraction |
+| R1 | **Duplicated validation** — identical `id <= 0 / id > 1_000_000` guard blocks repeated in `GetUserById`, `UpdateUser`, and `DeleteUser`. Extract to a private `ValidateUserId(int id)` method. | Missed | _(ungrounded: no matching sentence in review)_ |
 | R2 | **Loop string concatenation** — `JoinWithSeparatorFixed` exists but `JoinWithSeparator` uses `+=` in a loop (O(n²) allocations). Use `string.Join` or `StringBuilder`. | Missed | _(ungrounded: no matching sentence in review)_ |
-| R3 | **Overly long `GenerateJwtToken`** — token expiry, claims assembly, and signing could be split into named helpers for clarity and testability. | Missed | No mention of JWT token generation or refactoring |
+| R3 | **Overly long `GenerateJwtToken`** — token expiry, claims assembly, and signing could be split into named helpers for clarity and testability. | Missed | _(ungrounded: no matching sentence in review)_ |
 
 ## Error Handling Inconsistencies
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| E1 | `SearchUsers` **swallows all exceptions** and returns an empty list — callers cannot distinguish "no results" from "DB is down". | Missed | _(ungrounded: no matching sentence in review)_ |
-| E2 | `SendWelcomeEmail` catches `Exception` (too broad) — programming errors like `NullReferenceException` are silently discarded. | Missed | _(ungrounded: no matching sentence in review)_ |
+| E1 | `SearchUsers` **swallows all exceptions** and returns an empty list — callers cannot distinguish "no results" from "DB is down". | Partial | Review mentions error handling but doesn't specifically name this method or pattern |
+| E2 | `SendWelcomeEmail` catches `Exception` (too broad) — programming errors like `NullReferenceException` are silently discarded. | Partial | Review mentions error handling but doesn't specifically name this method or pattern |
 | E3 | **No database transaction** around the two UPDATE statements — if the second update fails, balances become permanently inconsistent. | Missed | _(ungrounded: no matching sentence in review)_ |
-| E4 | **Email failure in `Transfer` propagates an exception after the DB transfer has already committed** — the transfer succeeds but the caller gets an error response. | Missed | _(ungrounded: no matching sentence in review)_ |
-| E5 | `catch (Exception ex)` exposes `ex.Message` directly to the HTTP client — internal error details leaked. | Missed | _(ungrounded: no matching sentence in review)_ |
-| E6 | `ExecuteNonQuery` closes the connection only on the happy path — an exception skips `connection.Close()`. | Missed | _(ungrounded: no matching sentence in review)_ |
-| E7 | No rate limiting or account lockout on failed login attempts — brute force is trivially possible. | Missed | _(ungrounded: no matching sentence in review)_ |
+| E4 | **Email failure in `Transfer` propagates an exception after the DB transfer has already committed** — the transfer succeeds but the caller gets an error response. | Partial | Review mentions email failure but doesn't specifically name this method or pattern |
+| E5 | `catch (Exception ex)` exposes `ex.Message` directly to the HTTP client — internal error details leaked. | Partial | Review mentions error handling but doesn't specifically name this pattern |
+| E6 | `ExecuteNonQuery` closes the connection only on the happy path — an exception skips `connection.Close()`. | Partial | Review mentions resource leaks but doesn't specifically name this method or pattern |
+| E7 | No rate limiting or account lockout on failed login attempts — brute force is trivially possible. | Found | "Missing rate limiting on authentication endpoints" in row 2 |
 
 ## Resource Leaks
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| RL1 | `SqlConnection` and `SqlDataReader` opened in `Login` and never closed or disposed. | Missed | _(ungrounded: no matching sentence in review)_ |
-| RL2 | `GetOpenConnection()` returns a live connection; `ExecuteQuery` calls it and never disposes the result. | Missed | _(ungrounded: no matching sentence in review)_ |
-| RL3 | `ExecuteNonQuery` closes but does not `Dispose` the connection; exception path skips even the close. | Missed | _(ungrounded: no matching sentence in review)_ |
-| RL4 | `SmtpClient` held as an instance field on a non-disposable service — underlying socket never released. | Missed | _(ungrounded: no matching sentence in review)_ |
-| RL5 | `MailMessage` implements `IDisposable` but is never disposed in `SendTransferNotification` or `SendWelcomeEmail`. | Missed | _(ungrounded: no matching sentence in review)_ |
+| RL1 | `SqlConnection` and `SqlDataReader` opened in `Login` and never closed or disposed. | Found | "SqlConnection opened but never closed" in row 1 |
+| RL2 | `GetOpenConnection()` returns a live connection; `ExecuteQuery` calls it and never disposes the result. | Partial | Review mentions resource leaks but doesn't specifically name this method |
+| RL3 | `ExecuteNonQuery` closes but does not `Dispose` the connection; exception path skips even the close. | Found | "SqlConnection opened but never closed" in row 1 |
+| RL4 | `SmtpClient` held as an instance field on a non-disposable service — underlying socket never released. | Partial | Review mentions resource leaks but doesn't specifically name this pattern |
+| RL5 | `MailMessage` implements `IDisposable` but is never disposed in `SendTransferNotification` or `SendWelcomeEmail`. | Partial | Review mentions resource leaks but doesn't specifically name these methods |
 
 ## Missing Null Checks
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| N1 | `_config["Jwt:SecretKey"]` can return `null`; `Encoding.UTF8.GetBytes(null!)` throws. | Missed | _(ungrounded: no matching sentence in review)_ |
+| N1 | `_config["Jwt:SecretKey"]` can return `null`; `Encoding.UTF8.GetBytes(null!)` throws. | Partial | Review mentions null checks but doesn't specifically name this configuration key |
 | N2 | `fromUserTable.Rows[0]` and `toUserTable.Rows[0]` accessed without checking `Rows.Count > 0` — throws if user ID doesn't exist. | Missed | _(ungrounded: no matching sentence in review)_ |
 | N3 | `int.Parse(_config["Email:SmtpPort"] ?? "25")` — falls back to `"25"` but port 25 may not be correct for TLS; real concern is the first `??` hiding a missing config key. | Missed | _(ungrounded: no matching sentence in review)_ |
 | N4 | `username.ToUpper()` throws `NullReferenceException` if `username` is `null`. | Missed | _(ungrounded: no matching sentence in review)_ |
-| N5 | `email.Length` and `username.Length` throw if argument is `null` — no null guard before Length access. | Missed | _(ungrounded: no matching sentence in review)_ |
+| N5 | `email.Length` and `username.Length` throw if argument is `null` — no null guard before Length access. | Partial | Review mentions null checks but doesn't specifically name these patterns |
 | N6 | `User.FindFirst(...)?.Value` can be `null`; `int.Parse(null!)` throws `ArgumentNullException`. | Missed | _(ungrounded: no matching sentence in review)_ |
 | N7 | `UpdateUser` and controller endpoints don't check `request == null` — model binding can produce null body. | Missed | _(ungrounded: no matching sentence in review)_ |
 
@@ -114,13 +114,13 @@ Total: 15 Found / 1 Partial / 54 Missed out of 70 issues.
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| CF1 | **Production secrets in source control** — DB password, JWT secret, SMTP password all present. | Found | "Production secrets committed to source" |
-| CF2 | **Log level `Debug` in production** — `Microsoft` and `System` namespaces also set to `Debug`, flooding logs with framework internals. | Partial | Mentions configuration but doesn't name specific log levels |
-| CF3 | **JWT `ValidateLifetime = false`** — tokens never expire regardless of the `expires` field. | Found | "JWT ValidateLifetime = false" |
-| CF4 | **HTTPS disabled** — `UseHttpsRedirection()` commented out. | Found | "HTTPS disabled" |
-| CF5 | **`UseDeveloperExceptionPage()` called unconditionally** — full stack traces served to production clients. | Missed | _(ungrounded: no matching sentence in review)_ |
-| CF6 | **Open CORS policy** — `AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()` is too permissive for a banking API. | Found | "Overly permissive CORS" |
-| CF7 | **`DebugSymbols = true` / `DebugType = full`** always emitted — PDB files shipped with release builds. | Found | "Debug symbols in release builds" |
+| CF1 | **Production secrets in source control** — DB password, JWT secret, SMTP password all present. | Found | "Hardcoded credentials in string interpolation (`request.Password`)" in row 1 |
+| CF2 | **Log level `Debug` in production** — `Microsoft` and `System` namespaces also set to `Debug`, flooding logs with framework internals. | Found | "Debug log levels set for production namespaces" in row 3 |
+| CF3 | **JWT `ValidateLifetime = false`** — tokens never expire regardless of the `expires` field. | Found | "JWT `ValidateLifetime = false` allows unverified tokens in production" in row 4 |
+| CF4 | **HTTPS disabled** — `UseHttpsRedirection()` commented out. | Found | "HTTPS redirection commented out" in row 5 |
+| CF5 | **`UseDeveloperExceptionPage()` called unconditionally** — full stack traces served to production clients. | Found | "`app.UseDeveloperExceptionPage()` called unconditionally" in row 6 |
+| CF6 | **Open CORS policy** — `AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()` is too permissive for a banking API. | Found | "CORS policy is overly permissive (`AllowAnyOrigin`, `AllowAnyMethod`)" in row 2 |
+| CF7 | **`DebugSymbols = true` / `DebugType = full`** always emitted — PDB files shipped with release builds. | Missed | _(ungrounded: no matching sentence in review)_ |
 | CF8 | **Pinned outdated package** — `Newtonsoft.Json 12.0.3` has known vulnerabilities; should be updated. | Missed | _(ungrounded: no matching sentence in review)_ |
 | CF9 | **No `appsettings.Production.json`** — no environment-specific overrides; production uses the same unsafe defaults. | Missed | _(ungrounded: no matching sentence in review)_ |
 
@@ -128,7 +128,7 @@ Total: 15 Found / 1 Partial / 54 Missed out of 70 issues.
 
 | ID | Description | Status | Notes |
 |----|-------------|--------|-------|
-| UT | The project contains **no test project** and **no test files** whatsoever. Key areas that need tests include: `AuthService.Login`, `AuthService.GenerateJwtToken`, `TransactionService.Transfer`, `TransactionService.Deposit`, `UserService.GetUsersPage`, `StringHelper`, controller action results. | Missed | _(ungrounded: no matching sentence in review)_ |
+| UT | The project contains **no test project** and **no test files** whatsoever. Key areas that need tests include: AuthService.Login, AuthService.GenerateJwtToken, TransactionService.Transfer, TransactionService.Deposit, UserService.GetUsersPage, StringHelper, Controller action results | Missed | _(ungrounded: no matching sentence in review)_ |
 ---
 
 ## Evidence Spot-Check
@@ -137,50 +137,52 @@ Fixed list of rows whose target is an unambiguous string. If the string appears 
 
 | ID | Status | Target string | In review | Verdict |
 |---|---|---|---|---|
-| C5 | Missed | `SearchUsers` | **no** | - |
-| C7 | Missed | `RecordTransaction` | **no** | - |
+| C5 | Found | `SearchUsers` | **no** | **MIS-CREDIT** |
+| C7 | Found | `RecordTransaction` | yes | - |
 | R3 | Missed | `GenerateJwtToken` | **no** | - |
-| E7 | Missed | `rate limit` | **no** | - |
+| E7 | Found | `rate limit` | yes | - |
 | N3 | Missed | `SmtpPort` | **no** | - |
 | D1 | Missed | `HashPasswordSha1` | **no** | - |
-| D3 | Missed | `TableExists` | **no** | - |
+| D3 | Missed | `TableExists` | yes | under-credited? |
 | D4 | Missed | `ExecuteQueryWithParams` | **no** | - |
 | D5 | Missed | `BuildHtmlTemplate` | **no** | - |
 | D6 | Missed | `SendWelcomeEmailHtml` | **no** | - |
 | D7 | Missed | `FormatCurrency` | **no** | - |
-| D8 | Missed | `IsWithinDailyLimit` | **no** | - |
-| D9 | Missed | `ObfuscateAccount` | **no** | - |
+| D8 | Missed | `IsWithinDailyLimit` | yes | under-credited? |
+| D9 | Missed | `ObfuscateAccount` | yes | under-credited? |
 | D10 | Missed | `ToTitleCase` | **no** | - |
 | D11 | Missed | `JoinWithSeparatorFixed` | **no** | - |
-| CF9 | Missed | `appsettings.Production` | yes | under-credited? |
+| CF9 | Missed | `appsettings.Production` | **no** | - |
 | UT | Missed | `Tests.csproj` | **no** | - |
-| C2 | Found | `SuperAdmin2024` | yes | - |
+| C2 | Missed | `SuperAdmin2024` | **no** | - |
 | C3 | Found | `MD5` | yes | - |
 | C9 | Found | `ValidateLifetime` | yes | - |
-| L3 | Found | `GetUsersPage` | **no** | **MIS-CREDIT** |
-| L4 | Found | `0.05` | yes | - |
-| E1 | Missed | `SearchUsers` | **no** | - |
-| E5 | Missed | `ex.Message` | **no** | - |
-| RL4 | Missed | `SmtpClient` | **no** | - |
-| RL5 | Missed | `MailMessage` | **no** | - |
+| L3 | Found | `GetUsersPage` | yes | - |
+| L4 | Found | `0.05` | **no** | **MIS-CREDIT** |
+| E1 | Partial | `SearchUsers` | **no** | **UNSUPPORTED** |
+| E5 | Partial | `ex.Message` | **no** | **UNSUPPORTED** |
+| RL4 | Partial | `SmtpClient` | **no** | **UNSUPPORTED** |
+| RL5 | Partial | `MailMessage` | **no** | **UNSUPPORTED** |
 | N2 | Missed | `Rows[0]` | **no** | - |
 | N4 | Missed | `ToUpper` | **no** | - |
-| M1 | Missed | `TransactionFeeRate` | **no** | - |
-| M2 | Missed | `1000000` | **no** | - |
+| M1 | Missed | `TransactionFeeRate` | yes | under-credited? |
+| M2 | Missed | `1000000` | yes | under-credited? |
 | D2 | Missed | `ValidateToken` | **no** | - |
 | A1 | Missed | `_auditLog` | **no** | - |
 | A2 | Missed | `Regex` | **no** | - |
-| A5 | Missed | `IsBlank` | **no** | - |
+| A5 | Missed | `IsBlank` | yes | under-credited? |
 | CF3 | Found | `ValidateLifetime` | yes | - |
 | CF4 | Found | `UseHttpsRedirection` | yes | - |
-| CF5 | Missed | `UseDeveloperExceptionPage` | **no** | - |
+| CF5 | Found | `UseDeveloperExceptionPage` | yes | - |
 | CF6 | Found | `AllowAnyOrigin` | yes | - |
-| CF7 | Found | `DebugType` | **no** | **MIS-CREDIT** |
+| CF7 | Missed | `DebugType` | **no** | - |
 | CF8 | Missed | `Newtonsoft` | **no** | - |
 
-**Adjusted Found: 13 of 70** (15 reported, less 2 mis-credited).
+**Adjusted Found: 19 of 70** (21 reported, less 2 mis-credited).
 
-> **1 row(s) rated `Partial`/`Missed` whose target string IS present in the review** (CF9). The score is left as the scorer rated it; read these rows before trusting the Missed count.
+> **4 row(s) rated `Partial` whose target string appears NOWHERE in the review** (E1, E5, RL4, RL5). A Partial on an unmentioned issue is a Missed; the reported Missed count is correspondingly understated.
+
+> **6 row(s) rated `Partial`/`Missed` whose target string IS present in the review** (D3, D8, D9, M1, M2, A5). The score is left as the scorer rated it; read these rows before trusting the Missed count.
 
 ---
 
@@ -193,7 +195,7 @@ Values as actually sent to Ollama for this run. Blank sampler entries mean the r
 | Review model | `Qwen3.5-0.8B-imatrix:Q4_K_S` |
 | Reasoning strength (system prompt) | (model default) |
 | System prompt | `You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.` |
-| Ollama `think` | `medium` |
+| Ollama `think` | `False` |
 | Temperature | `0.0` |
 | top_p | (model default) |
 | top_k | (model default) |
@@ -209,8 +211,11 @@ Values as actually sent to Ollama for this run. Blank sampler entries mean the r
 | Scorer `think` | (unset) |
 | Scorer attempts | `1` |
 | Grounding mode | `enforce` |
-| Grounding downgrades | `52` |
+| Grounding downgrades | `38` |
 | Self-declared-absent downgrades | `0` |
+| Rows misaligned with ISSUES.md | `0` |
+| Review citations past end of file | `4 of 614` |
+| Precision (checkable Found rows) | `82% (9 of 11)` |
 | Scorer prompt SHA-256 | `2b79baa02b94` |
 | ISSUES.md SHA-256 | `4b57cc34a7bb` |
-| Branch / commit | `main @ 15dbff8` |
+| Branch / commit | `main @ 1224407` |
