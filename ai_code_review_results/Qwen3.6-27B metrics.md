@@ -1,32 +1,32 @@
 # AI Model Performance Metrics
 
-> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `363e42f` &nbsp;·&nbsp; **Run:** #160
+> **Branch:** `main` &nbsp;·&nbsp; **Commit:** `67ece22` &nbsp;·&nbsp; **Run:** #211
 
 
 ## Score
-Total: 69 Found / 0 Partial / 1 Missed out of 70 issues (98.6% Found)
+Total: 70 Found / 0 Partial / 0 Missed out of 70 issues (100.0% Found)
 
-> **⚠ Spot-check: 1 row(s) rated Found (N3) name a target absent from the review. Adjusted: 68 Found (97.1%).**
+> **⚠ Spot-check: 5 row(s) rated Found (N3, D9, D10, CF9, N4) name a target absent from the review. Adjusted: 65 Found (92.9%).**
 
-Scorer grounding: enforce mode, 1 row(s) downgraded for unsupported evidence (R3)
+Scorer grounding: enforce mode, 0 row(s) downgraded for unsupported evidence
 
 ## Review Performance
 **Model:** `Qwen3.6-27B:Q4_K_S`
 
 | Metric | Value |
 |--------|-------|
-| Total time | 4m 39s |
-| Model load time | 5.0s |
-| Inference time | 4m 34s |
-| Sampler | temp 0.3, top_p (model default), top_k (model default) |
+| Total time | 3m 15s |
+| Model load time | 5.1s |
+| Inference time | 3m 10s |
+| Sampler | temp 0.0, top_p (model default), top_k (model default) |
 | Reasoning | system (model default), think medium |
-| Prompt tokens | 11,866 |
-| Output tokens | 10,320 of 40,000 limit |
-| Answer / reasoning split | 24,254 chars answer, 16,127 chars reasoning |
-| Output speed | 38.4 tok/s |
-| Prompt speed | 2526.1 tok/s |
+| Prompt tokens | 11,860 |
+| Output tokens | 7,149 of 40,000 limit |
+| Answer / reasoning split | 17,329 chars answer, 11,913 chars reasoning |
+| Output speed | 38.5 tok/s |
+| Prompt speed | 2524.4 tok/s |
 | Context window | 65,536 tokens |
-| Context utilization | 33.9% |
+| Context utilization | 29.0% |
 | Content truncated | No |
 | Completed naturally | Yes |
 
@@ -35,15 +35,15 @@ Scorer grounding: enforce mode, 1 row(s) downgraded for unsupported evidence (R3
 
 | Metric | Value |
 |--------|-------|
-| Total time | 35.1s |
+| Total time | 34.2s |
 | Model load time | 4.1s |
-| Prompt tokens | 11,721 |
-| Output tokens | 4,340 |
-| Output speed | 149.7 tok/s |
-| Prompt speed | 6120.7 tok/s |
+| Prompt tokens | 9,373 |
+| Output tokens | 4,478 |
+| Output speed | 157.3 tok/s |
+| Prompt speed | 6170.3 tok/s |
 | Completed naturally | Yes |
 
 ## Combined
 | Metric | Value |
 |--------|-------|
-| Review + scoring time | 5m 14s |
+| Review + scoring time | 3m 50s |
