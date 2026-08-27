@@ -111,7 +111,7 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           python3 - <<'PYEOF'
-          import hashlib, json, os, re, subprocess, sys
+          import hashlib, json, os, re, subprocess, sys, time
           from datetime import datetime
           from pathlib import Path
 
@@ -352,6 +352,7 @@ jobs:
               }
               if system_text:
                   body["system"] = system_text
+              _t0 = time.monotonic()
               result = subprocess.run(
                   ["curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
                    "-X", "POST", "https://api.anthropic.com/v1/messages",
@@ -370,10 +371,16 @@ jobs:
               content = "".join(b.get("text", "") for b in blocks if b.get("type") == "text").strip()
               thinking = "".join(b.get("thinking", "") for b in blocks if b.get("type") == "thinking")
               usage = data.get("usage") or {}
+              # Wall clock, because the Messages API reports no duration. This
+              # INCLUDES the network round trip, where Ollama's total_duration does
+              # not -- the honest figure for a hosted model, but not directly
+              # comparable with a local one. Flagged in the summary.
+              _elapsed = round(time.monotonic() - _t0, 1)
+              _out_tok = usage.get("output_tokens", 0)
               metrics = {
-                  "total_duration_s": 0.0,           # not reported by this API
-                  "output_tokens":    usage.get("output_tokens", 0),
-                  "output_tps":       0.0,
+                  "total_duration_s": _elapsed,
+                  "output_tokens":    _out_tok,
+                  "output_tps":       round(_out_tok / max(_elapsed, 0.001), 1),
                   "done_reason":      data.get("stop_reason", ""),
                   "thinking_chars":   len(thinking),
                   "content_chars":    len(content),
@@ -878,6 +885,9 @@ jobs:
               "post-processing production does — duplicate removal, downgrading Notes that",
               "cannot be matched to the review, and mis-credit detection. Production ships",
               "`processed`, so that is the column to rank on.",
+              "",
+              "Times for `claude-*` scorers are wall clock and include the network round trip;",
+              "Ollama figures are the server's own generation time and exclude it.",
               "",
               "| # | Model | TPR | TNR | Decoy spec. | Score | Ungrounded | False credits | Perfect time | Truncated? |",
               "|---|-------|----:|----:|------------:|------:|-----------:|--------------:|--------------|------------|",
