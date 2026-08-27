@@ -2,7 +2,7 @@ name: Scorer Benchmark
 
 # Visible in the Actions run list so the model set and scorer settings of a past
 # benchmark can be read off without opening it.
-run-name: "Scorers ${{ inputs.models || '(4 defaults)' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }} | num_predict ${{ inputs.num_predict || vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_SCORER_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_SCORER_THINK || 'unset' }}"
+run-name: "Scorers ${{ inputs.models || '(defaults)' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }} | num_predict ${{ inputs.num_predict || vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_SCORER_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_SCORER_THINK || 'unset' }}"
 
 on:
   workflow_dispatch:
@@ -10,7 +10,8 @@ on:
       models:
         description: >
           Comma-separated list of Ollama models to benchmark.
-          Leave blank to use the four defaults.
+          Leave blank to use the defaults. Per-model think override: "model=value",
+          or "model=none" to send no think field at all.
         required: false
         default: ''
       num_ctx:
@@ -79,18 +80,30 @@ jobs:
         uses: actions/checkout@v6
 
       # -----------------------------------------------------------------------
-      # Run every candidate scorer against two synthetic reviews:
+      # Run every candidate scorer against three synthetic reviews:
       #
       #   perfect  — auto-generated from ISSUES.md; names every planted bug
-      #              explicitly.  A good scorer should return ~70/70 Found.
+      #              explicitly.  A good scorer should return 70/70 Found.
       #
       #   null     — a positive review that mentions nothing specific.
       #              A good scorer should return 0/70 Found (all Missed).
       #
+      #   decoy    — genuine findings for the Critical and Logic issues only,
+      #              silent on the rest.  A good scorer credits those and nothing
+      #              else; anything more is evidence borrowed from a neighbouring
+      #              finding, which is the failure that inflated ten of the twenty
+      #              scorecards in the model benchmark.
+      #
       # Metrics:
-      #   TPR   = Found / 70  on the perfect review  (sensitivity)
-      #   TNR   = Missed / 70 on the null review      (specificity)
-      #   Score = harmonic mean of TPR and TNR
+      #   TPR   = Found / total  on the perfect review   (sensitivity)
+      #   TNR   = Missed / total on the null review      (specificity)
+      #   DSR   = share of the decoy's silent issues correctly declined
+      #   Score = harmonic mean of all three, zero on any zero term
+      #
+      # NOTE ON WHAT THIS CAN AND CANNOT DO. Two scorers known to behave
+      # differently on real reviews both scored 100/100/100 here. These tests
+      # screen out a broken scorer; they do not rank good ones. Ranking needs
+      # real, ambiguous prose -- the archived review.md files -- not generated text.
       # -----------------------------------------------------------------------
       - name: Run scorer benchmark
         env:
@@ -504,10 +517,6 @@ jobs:
                   return f"{int(secs // 60)}m {secs % 60:.0f}s"
               return f"{secs:.1f}s"
 
-          def harmonic(a: float, b: float) -> float:
-              return round(2 * a * b / (a + b), 1) if (a + b) > 0 else 0.0
-
-
           def harmonic3(*vals) -> float:
               """Harmonic mean. Zero on any zero term, which is the point: a scorer
               that fails one of the three tests outright cannot be rescued by the
@@ -787,10 +796,6 @@ jobs:
                   return None
               return harmonic3(*vals)
 
-          def score(r):
-              t, s = tpr(r), tnr(r)
-              return harmonic(t, s) if t is not None and s is not None else None
-
           # Rank on the processed score: that is the scorer production actually ships.
           ranked = sorted(
               all_results,
@@ -834,11 +839,17 @@ jobs:
               "",
               "The decoy test is the one that matters most in practice. `perfect` and `null` bracket the",
               "extremes, and a scorer passes both by being uniformly generous or uniformly strict. The decoy",
-              "supplies real evidence for 16 issues and none for the rest, so every credit it awards beyond",
-              "those 16 is produced by association with a nearby finding — the failure that inflated ten of",
-              "the twenty review scorecards in the model benchmark.",
+              f"supplies real evidence for {len(DECOY_IDS)} issues and none for the other {DECOY_SILENT}, so every credit",
+              f"it awards beyond those {len(DECOY_IDS)} is produced by association with a nearby finding — the failure",
+              "that inflated ten of the twenty review scorecards in the model benchmark.",
               "",
-              "The current production scorer is `Qwen3.8-27B-imatrix:Q4_K_S` (think=medium).",
+              "Note the limit of these tests: two scorers known to differ on real reviews both scored",
+              "100/100/100 here. They screen out a broken scorer; they do not rank good ones.",
+              "",
+              "The production scorer is `Qwen3-Coder-30B-imatrix:Q3_K_M`. Qwen3.8-27B-imatrix:Q4_K_S",
+              "was benchmarked as a replacement and matched it exactly (100/100/100), but is ~6x slower",
+              "(201s against 30s on the perfect review) and summarises the Description column rather than",
+              "reproducing it, so the incumbent was kept.",
               "",
               "## Ranked Results",
               "",
