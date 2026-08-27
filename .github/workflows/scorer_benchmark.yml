@@ -123,7 +123,7 @@ jobs:
           # spend their entire token budget reasoning and return no content at all
           # unless think is explicitly false; the 27B models need medium.
           DEFAULT_MODELS = [
-              "Qwen3-Coder-30B-imatrix:Q3_K_M",          # incumbent production scorer
+              "Qwen3-Coder-30B-imatrix:Q3_K_M=false",    # incumbent; has no thinking capability
               "Qwen3.8-27B-imatrix:Q4_K_S=medium",       # only local reviewer at 100% precision
               "Qwen3.5-9B-imatrix:Q4_K_S=false",         # best laptop-viable reviewer
               "Gemma-4-31B-it-imatrix:Q4_K_M",           # 97% precision, conservative grader
@@ -144,11 +144,17 @@ jobs:
           _entries = [m.strip() for m in raw_input.split(",") if m.strip()] or DEFAULT_MODELS
           MODELS = []
           THINK_FOR = {}
+          # An override of 'none' omits the think field entirely. An EMPTY override
+          # cannot express that -- it falls back to DEFAULT_THINK -- which matters
+          # once AI_ASSISTANT_SCORER_THINK is set repo-wide: sending think=medium to
+          # a model without the capability is a hard error ("does not support
+          # thinking"), not a silent no-op.
           for entry in _entries:
               name, _, override = entry.partition("=")
               name = name.strip()
+              override = override.strip()
               MODELS.append(name)
-              THINK_FOR[name] = override.strip() or DEFAULT_THINK
+              THINK_FOR[name] = "" if override.lower() == "none" else (override or DEFAULT_THINK)
 
           OLLAMA_URL  = os.environ.get("OLLAMA_URL")
           CLOUD_URL   = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").rstrip("/")
