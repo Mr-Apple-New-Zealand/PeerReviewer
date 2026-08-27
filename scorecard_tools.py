@@ -461,9 +461,15 @@ def reconcile_summary_line(md: str) -> str:
         r"^Total:\s*\d+\s*Found\s*/\s*\d+\s*Partial\s*/\s*\d+\s*Missed\s*out\s*of\s*\d+\s*issues\.?\s*$",
         re.MULTILINE | re.IGNORECASE,
     )
-    md2, n = pattern.subn(new_line, md, count=1)
+    # Every Total line, not just the first. Scorers sometimes append their own
+    # "## Summary" section further down; on the Qwen3.5-9B run the header read
+    # 18 Found while that trailing section still claimed 49, because the counts
+    # there predate the grounding downgrades. Two totals in one artefact is
+    # worse than none -- a reader may quote either.
+    md2, n = pattern.subn(new_line, md)
     if n:
-        print(f"Scorecard summary reconciled from tables: {new_line}")
+        note = f" ({n} occurrences)" if n > 1 else ""
+        print(f"Scorecard summary reconciled from tables{note}: {new_line}")
         return md2
     # No matching summary line — insert machine-derived counts after the first line.
     insert = "\n" + new_line + "\n"
