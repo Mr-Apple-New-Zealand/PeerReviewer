@@ -269,8 +269,11 @@ jobs:
                       continue
                   if prefix in findings:
                       line_ref = lines.strip()
+                      # Markdown table row, matching the shape every real model review
+                      # uses. The bullet form this replaced parsed to zero citations, so
+                      # location-aware evidence could never fire on a synthetic review.
                       findings[prefix].append(
-                          f"- **`{file_path}`** (line {line_ref}): {desc}"
+                          f"| {file_path} | {line_ref} | {desc} | Address as described. |"
                       )
 
               sections = ["# Code Review — SampleBankingApp\n",
@@ -280,6 +283,8 @@ jobs:
                   if not rows:
                       continue
                   sections.append(f"\n## {cat_names[prefix]}\n")
+                  sections.append("| File | Line | Issue | Fix |")
+                  sections.append("|------|------|-------|-----|")
                   sections.extend(rows)
 
               dropped = [i for i in seen_ids if i not in parsed_ids]
