@@ -2,7 +2,7 @@ name: Scorer Benchmark
 
 # Visible in the Actions run list so the model set and scorer settings of a past
 # benchmark can be read off without opening it.
-run-name: "Scorers ${{ inputs.models || '(4 defaults)' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }} | num_predict ${{ inputs.num_predict || vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_SCORER_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_SCORER_THINK || 'unset' }}"
+run-name: "Scorers ${{ inputs.models || '(4 defaults)' }} | ctx ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }} | num_predict ${{ inputs.num_predict || vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }} | temp ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }} | reasoning ${{ inputs.reasoning || vars.AI_ASSISTANT_SCORER_REASONING || 'modelfile' }} | think ${{ inputs.think || vars.AI_ASSISTANT_SCORER_THINK || 'unset' }}"
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       temperature:
-        description: "Scorer temperature. Blank = the production value (0.3)."
+        description: "Scorer temperature. Blank = the production value (0). Do not raise for a ranking run -- scorer variance was the largest noise source in the review benchmark."
         required: false
         type: string
       think:
@@ -36,6 +36,10 @@ on:
         description: "Reasoning strength via system prompt (low/medium/high/xhigh). Blank = model's Modelfile."
         required: false
         type: string
+      effort:
+        description: "Anthropic only (claude-* scorers): output_config.effort — low/medium/high/xhigh/max. Blank = high."
+        required: false
+        type: string
 
 env:
   # Internal Ollama instance (default for on-prem models).
@@ -43,6 +47,11 @@ env:
   # Hosted Ollama cloud — used automatically for any model tagged ':cloud'.
   OLLAMA_CLOUD_URL: https://ollama.com
   OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+  # Anthropic, for any model tagged 'claude-*'. The two strongest reviewers in
+  # the model benchmark were claude-opus-5 and claude-sonnet-5, so a scorer
+  # ranking that cannot include them is incomplete. Secret, never a variable.
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  AI_ASSISTANT_SCORER_EFFORT: ${{ inputs.effort || vars.AI_ASSISTANT_SCORER_EFFORT || 'high' }}
 
   # Scorer call settings. Same variable NAMES and same defaults as the scoring step
   # in ai_code_review.yml, so a repo variable set once applies to both and this
@@ -50,8 +59,14 @@ env:
   # Dispatch inputs override for one-off experiments.
   AI_ASSISTANT_MODEL_NUM_CTX: ${{ inputs.num_ctx || vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
   AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ inputs.num_predict || vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
-  AI_ASSISTANT_SCORER_TEMPERATURE: ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+  AI_ASSISTANT_SCORER_TEMPERATURE: ${{ inputs.temperature || vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }}
   AI_ASSISTANT_SCORER_REASONING: ${{ inputs.reasoning || vars.AI_ASSISTANT_SCORER_REASONING }}
+  # The persona production sends on every scoring request. Previously this file
+  # hardcoded "You are a helpful assistant." while ai_code_review.yml sent the
+  # standardised prompt, so the benchmark ranked scorers under a persona
+  # production never uses. A scorer's persona measurably moves its output.
+  AI_ASSISTANT_SCORER_SYSTEM_PROMPT: >-
+    ${{ vars.AI_ASSISTANT_SCORER_SYSTEM_PROMPT || 'You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.' }}
   AI_ASSISTANT_SCORER_THINK: ${{ inputs.think || vars.AI_ASSISTANT_SCORER_THINK }}
 
 jobs:
@@ -91,19 +106,27 @@ jobs:
           # copied -- the previous copy-paste had drifted 1,236 chars behind.
           sys.path.insert(0, ".")
           from scorecard_tools import (
+              check_row_alignment,
               count_table_statuses,
+              downgrade_self_declared_absent,
               drop_duplicate_ids,
+              drop_unknown_ids,
               enforce_note_grounding,
               hedge_check,
               spot_check,
           )
 
           # ── Config ─────────────────────────────────────────────────────────
+          # Chosen from the model benchmark results, and carrying the per-model
+          # `think` settings that benchmark established. The small Qwen3.5 models
+          # spend their entire token budget reasoning and return no content at all
+          # unless think is explicitly false; the 27B models need medium.
           DEFAULT_MODELS = [
-              "Qwen3-Coder-30B-imatrix:Q3_K_M",  # current production scorer
-              "Qwen3.6-27B:Q4_K_S",               # best overall reviewer
-              "Qwen3.5-9B-imatrix:Q4_K_S",                # best-value model
-              "gpt-oss:120B",                      # fastest top-tier
+              "Qwen3-Coder-30B-imatrix:Q3_K_M",          # incumbent production scorer
+              "Qwen3.8-27B-imatrix:Q4_K_S=medium",       # only local reviewer at 100% precision
+              "Qwen3.5-9B-imatrix:Q4_K_S=false",         # best laptop-viable reviewer
+              "Gemma-4-31B-it-imatrix:Q4_K_M",           # 97% precision, conservative grader
+              "claude-sonnet-5",                          # joint-best reviewer, cheapest of the leaders
           ]
 
           # A single `think` value cannot serve a mixed list -- Qwen3-Coder-30B needs
@@ -112,6 +135,9 @@ jobs:
           # separator because ':' already appears in every Ollama tag.
           DEFAULT_THINK = os.environ.get("AI_ASSISTANT_SCORER_THINK", "").strip()
           REASONING = os.environ.get("AI_ASSISTANT_SCORER_REASONING", "").strip()
+          SYSTEM_PROMPT = (os.environ.get("AI_ASSISTANT_SCORER_SYSTEM_PROMPT") or "").strip()
+          if SYSTEM_PROMPT.lower() == "none":
+              SYSTEM_PROMPT = ""
 
           raw_input = os.environ.get("MODELS_INPUT", "").strip()
           _entries = [m.strip() for m in raw_input.split(",") if m.strip()] or DEFAULT_MODELS
@@ -126,12 +152,14 @@ jobs:
           OLLAMA_URL  = os.environ.get("OLLAMA_URL")
           CLOUD_URL   = os.environ.get("OLLAMA_CLOUD_URL", "https://ollama.com").rstrip("/")
           API_KEY     = os.environ.get("OLLAMA_API_KEY", "").strip()
+          ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+          EFFORT      = os.environ.get("AI_ASSISTANT_SCORER_EFFORT", "high").strip() or "high"
           RUN_NUMBER  = os.environ.get("RUN_NUMBER", "?")
           # Read through the same variable names ai_code_review.yml uses, with the
           # same defaults, so the two cannot drift apart the way the preamble did.
           NUM_CTX     = int(os.environ.get("AI_ASSISTANT_MODEL_NUM_CTX", "65536"))
           NUM_PREDICT = int(os.environ.get("AI_ASSISTANT_SCORER_NUM_PREDICT", "24000"))
-          TEMPERATURE = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3"))
+          TEMPERATURE = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0"))
 
           OUT_DIR = Path("scorer_benchmark_results")
           OUT_DIR.mkdir(exist_ok=True)
@@ -179,7 +207,14 @@ jobs:
                   parts[i] = re.sub(r"\*{1,2}([^*]*?)\*{1,2}", r"\1", parts[i])
               return "".join(parts).strip()
 
-          def build_perfect_review(issues_md: str) -> str:
+          # The decoy holds genuine findings for these prefixes only. Critical and
+          # Logic are used because they are the issues every model finds, so a
+          # scorer cannot fail the positive half for lack of ability -- any credit
+          # it gives the remaining 54 is association, not recognition.
+          DECOY_PREFIXES = ("C", "L")
+
+
+          def build_perfect_review(issues_md: str, only_prefixes=None) -> str:
               row_re = re.compile(
                   r"^\|\s*([A-Z]{1,3}\d+)\s*"   # ID
                   r"\|\s*`([^`]+)`\s*"            # file (backtick-quoted)
@@ -219,6 +254,8 @@ jobs:
                   issue_id, file_path, lines, desc = m.groups()
                   desc = _strip_emphasis(desc)
                   prefix = re.match(r"^([A-Z]{1,3})", issue_id).group(1)
+                  if only_prefixes is not None and prefix not in only_prefixes:
+                      continue
                   if prefix in findings:
                       line_ref = lines.strip()
                       findings[prefix].append(
@@ -245,13 +282,17 @@ jobs:
               build_perfect_review.parsed = len(parsed_ids)
               build_perfect_review.seen = len(seen_ids)
 
-              sections.append(
-                  "\n## Missing Unit Tests\n"
-                  "\nThe project contains no test project and no test files of any kind. "
-                  "AuthService.Login, AuthService.GenerateJwtToken, TransactionService.Transfer, "
-                  "TransactionService.Deposit, UserService.GetUsersPage, StringHelper methods, "
-                  "and all controller actions lack any test coverage whatsoever.\n"
-              )
+              # The UT row is prose rather than a table row, so it is appended by hand --
+              # but only for the full review. The decoy must not mention tests at all,
+              # or UT stops being one of the 54 issues it is silent about.
+              if only_prefixes is None:
+                  sections.append(
+                      "\n## Missing Unit Tests\n"
+                      "\nThe project contains no test project and no test files of any kind. "
+                      "AuthService.Login, AuthService.GenerateJwtToken, TransactionService.Transfer, "
+                      "TransactionService.Deposit, UserService.GetUsersPage, StringHelper methods, "
+                      "and all controller actions lack any test coverage whatsoever.\n"
+                  )
               return "\n".join(sections)
 
           # Status counting comes from scorecard_tools too -- this file used to carry
@@ -263,7 +304,65 @@ jobs:
           # Models tagged ':cloud' (e.g. glm-5.2:cloud) are served by the hosted
           # Ollama cloud and need a Bearer key; everything else goes to the
           # internal instance with no auth.
+          def call_anthropic(model: str, prompt: str, system_text: str) -> tuple[str, dict]:
+              """Anthropic Messages API. Mirrors the branch in ai_code_review.yml.
+
+              temperature is deliberately NOT sent -- it is rejected on Opus 4.7 and
+              later. Reasoning is controlled by output_config.effort instead, which
+              is why Anthropic scorers cannot be pinned to temperature 0 the way the
+              Ollama ones are.
+              """
+              if not ANTHROPIC_KEY:
+                  raise RuntimeError(f"'{model}' needs ANTHROPIC_API_KEY, which is unset.")
+              body = {
+                  "model": model,
+                  "max_tokens": NUM_PREDICT,
+                  "messages": [{"role": "user", "content": prompt}],
+                  "thinking": {"type": "adaptive", "display": "summarized"},
+                  "output_config": {"effort": EFFORT},
+              }
+              if system_text:
+                  body["system"] = system_text
+              result = subprocess.run(
+                  ["curl", "-s", "--show-error", "--fail-with-body", "--max-time", "7200",
+                   "-X", "POST", "https://api.anthropic.com/v1/messages",
+                   "-H", "Content-Type: application/json",
+                   "-H", f"x-api-key: {ANTHROPIC_KEY}",
+                   "-H", "anthropic-version: 2023-06-01",
+                   "--data-binary", "@-"],
+                  input=json.dumps(body).encode(), capture_output=True)
+              if result.returncode != 0:
+                  raise RuntimeError(
+                      f"curl failed (exit {result.returncode})\n"
+                      f"stderr: {result.stderr.decode()}\n"
+                      f"body:   {result.stdout.decode()[:500]}")
+              data = json.loads(result.stdout.decode())
+              blocks = data.get("content") or []
+              content = "".join(b.get("text", "") for b in blocks if b.get("type") == "text").strip()
+              thinking = "".join(b.get("thinking", "") for b in blocks if b.get("type") == "thinking")
+              usage = data.get("usage") or {}
+              metrics = {
+                  "total_duration_s": 0.0,           # not reported by this API
+                  "output_tokens":    usage.get("output_tokens", 0),
+                  "output_tps":       0.0,
+                  "done_reason":      data.get("stop_reason", ""),
+                  "thinking_chars":   len(thinking),
+                  "content_chars":    len(content),
+              }
+              if not content:
+                  raise RuntimeError(
+                      f"empty content (stop_reason={data.get('stop_reason')}, "
+                      f"thinking={len(thinking)} chars)")
+              return content, metrics
+
+
           def call_ollama(model: str, prompt: str) -> tuple[str, dict]:
+              if model.startswith("claude-"):
+                  _sys = SYSTEM_PROMPT
+                  if REASONING:
+                      _sys = f"Reasoning strength: {REASONING}\n\n{_sys}".strip()
+                  return call_anthropic(model, prompt, _sys)
+
               is_cloud = model.strip().endswith(":cloud")
               base_url = CLOUD_URL if is_cloud else OLLAMA_URL
               if is_cloud and not API_KEY:
@@ -271,12 +370,14 @@ jobs:
                       f"'{model}' is a cloud model but OLLAMA_API_KEY is unset."
                   )
 
-              messages = []
+              # Same construction as ai_code_review.yml: reasoning is prepended to the
+              # standard persona rather than replacing it with a different one.
+              system_text = SYSTEM_PROMPT
               if REASONING:
-                  messages.append({
-                      "role": "system",
-                      "content": f"Reasoning strength: {REASONING}\n\nYou are a helpful assistant.",
-                  })
+                  system_text = f"Reasoning strength: {REASONING}\n\n{system_text}".strip()
+              messages = []
+              if system_text:
+                  messages.append({"role": "system", "content": system_text})
               messages.append({"role": "user", "content": prompt})
 
               body = {
@@ -353,6 +454,15 @@ jobs:
           def harmonic(a: float, b: float) -> float:
               return round(2 * a * b / (a + b), 1) if (a + b) > 0 else 0.0
 
+
+          def harmonic3(*vals) -> float:
+              """Harmonic mean. Zero on any zero term, which is the point: a scorer
+              that fails one of the three tests outright cannot be rescued by the
+              other two."""
+              if any(v is None for v in vals) or min(vals) <= 0:
+                  return 0.0
+              return round(len(vals) / sum(1.0 / v for v in vals), 1)
+
           # ── Load inputs ─────────────────────────────────────────────────────
           issues_md     = Path("ISSUES.md").read_text(encoding="utf-8")
           perfect_review = build_perfect_review(issues_md)
@@ -362,9 +472,31 @@ jobs:
           print(f"Reference issues: {build_perfect_review.seen} rows + UT = {TOTAL_ISSUES}; "
                 f"{build_perfect_review.parsed} parsed into the perfect review")
 
+          decoy_review = build_perfect_review(issues_md, only_prefixes=DECOY_PREFIXES)
+          DECOY_IDS = {m.group(1) for m in re.finditer(r"^\|\s*([A-Z]{1,3}\d+)\s*\|",
+                                                       issues_md, re.M)
+                       if re.match(r"^([A-Z]{1,3})", m.group(1)).group(1) in DECOY_PREFIXES}
+          DECOY_SILENT = TOTAL_ISSUES - len(DECOY_IDS)
+          print(f"Decoy review: covers {len(DECOY_IDS)} issues "
+                f"({', '.join(sorted(DECOY_IDS))}); silent on {DECOY_SILENT}")
+
           # Save the synthetic reviews so they can be inspected in the artifact.
           (OUT_DIR / "perfect_review.md").write_text(perfect_review, encoding="utf-8")
           (OUT_DIR / "null_review.md").write_text(NULL_REVIEW, encoding="utf-8")
+          (OUT_DIR / "decoy_review.md").write_text(decoy_review, encoding="utf-8")
+
+
+          _ROW = re.compile(r"^\|\s*\*{0,2}([A-Z]{1,3}\d*|UT)\*{0,2}\s*\|")
+          _ST = re.compile(r"\|\s*(Found|Partial|Missed)\s*\|", re.IGNORECASE)
+
+
+          def status_by_id(md: str) -> dict:
+              out = {}
+              for line in md.splitlines():
+                  mid, mst = _ROW.match(line.strip()), _ST.search(line)
+                  if mid and mst:
+                      out.setdefault(mid.group(1).upper(), mst.group(1).capitalize())
+              return out
 
           print(f"\nPerfect review: {len(perfect_review)} chars, "
                 f"{len(perfect_review.splitlines())} lines")
@@ -386,6 +518,7 @@ jobs:
               for review_name, review_text in [
                   ("perfect", perfect_review),
                   ("null",    NULL_REVIEW),
+                  ("decoy",   decoy_review),
               ]:
                   prompt = (PREAMBLE + issues_md +
                             "\n\n---\n## AI Review Output\n\n" + review_text + "\n")
@@ -400,20 +533,36 @@ jobs:
                       # drops Notes that cannot be matched to the review, and flags
                       # mis-credits. Report both so the ranking reflects the scorer as
                       # actually deployed, not just the model in isolation.
+                      # The full production pipeline, in production order. Three of these
+                      # were added after this file was last updated and each caught a real
+                      # failure during the model sweep: an invented R4/R5 pair, two sheets
+                      # with renumbered CF rows, and Partials whose own Notes conceded the
+                      # review never mentioned the issue.
                       proc = drop_duplicate_ids(content)
+                      proc, unknown_ids = drop_unknown_ids(proc, issues_md)
                       proc, downgrades = enforce_note_grounding(proc, review_text, "enforce")
+                      proc, self_declared = downgrade_self_declared_absent(proc)
+                      misaligned, missing_ids = check_row_alignment(proc, issues_md)
                       p_found, p_partial, p_missed = count_table_statuses(proc)
-                      _rows, miscredits, _under, _uns = spot_check(proc, review_text)
+                      _rows, miscredits, _under, unsupported = spot_check(proc, review_text)
                       hedged = hedge_check(proc)
                       p_adjusted = p_found - len(miscredits)
 
                       trunc = "⚠ TRUNCATED" if metrics["done_reason"] == "length" else ""
+                      _flags = []
+                      if unknown_ids:  _flags.append(f"{len(unknown_ids)} invented-id")
+                      if self_declared: _flags.append(f"{len(self_declared)} self-declared-absent")
+                      if misaligned or missing_ids:
+                          _flags.append(f"{len(misaligned) + len(missing_ids)} MISALIGNED")
+                      if unsupported: _flags.append(f"{len(unsupported)} unsupported-partial")
                       print(f"{fmt_s(metrics['total_duration_s'])} | "
                             f"{metrics['output_tps']} t/s | "
                             f"raw {found}F/{partial}P/{missed}M of {total} | "
                             f"processed {p_adjusted}F "
                             f"({len(downgrades)} ungrounded, {len(miscredits)} mis-credit, "
-                            f"{len(hedged)} hedged) {trunc}")
+                            f"{len(hedged)} hedged"
+                            + (", " + ", ".join(_flags) if _flags else "")
+                            + f") {trunc}")
 
                       # Save individual scorecard
                       safe = re.sub(r"[:/\\]", "_", model)
@@ -435,11 +584,30 @@ jobs:
                           "ungrounded":        len(downgrades),
                           "miscredits":        miscredits,
                           "hedged":            [h[0] for h in hedged],
+                          "unknown_ids":       unknown_ids,
+                          "self_declared":     [d[0] for d in self_declared],
+                          "misaligned":        [m[0] for m in misaligned] + missing_ids,
+                          "unsupported":       unsupported,
                           "total_duration_s": metrics["total_duration_s"],
                           "output_tps":       metrics["output_tps"],
                           "done_reason":      metrics["done_reason"],
                           "thinking_chars":   metrics["thinking_chars"],
                       }
+
+                      # Decoy only: of the issues this review is SILENT about, how many
+                      # did the scorer credit anyway? That count IS the credit-everything
+                      # rate, measured directly rather than inferred from a suspicious
+                      # zero-Partial sheet.
+                      if review_name == "decoy":
+                          st = status_by_id(proc)
+                          hit = sum(1 for i in DECOY_IDS if st.get(i) == "Found")
+                          false_credit = [i for i, v in st.items()
+                                          if i not in DECOY_IDS and v in ("Found", "Partial")]
+                          result[review_name]["decoy_hit"] = hit
+                          result[review_name]["decoy_false_credit"] = len(false_credit)
+                          result[review_name]["decoy_false_ids"] = sorted(false_credit)
+                          print(f"      decoy: {hit}/{len(DECOY_IDS)} genuine found, "
+                                f"{len(false_credit)}/{DECOY_SILENT} credited without evidence")
 
                   except Exception as exc:
                       print(f"ERROR — {exc}")
@@ -473,9 +641,18 @@ jobs:
               return (n.get("processed_missed", 0) / TOTAL_ISSUES * 100
                       if "error" not in n else None)
 
+          def dsr(r):
+              """Decoy specificity: of the issues the decoy is silent about, the share
+              the scorer correctly declined to credit. This is the direct measure of
+              the credit-everything failure -- a scorer that spreads one real finding
+              across neighbouring issues scores low here and nowhere else."""
+              d = r.get("decoy", {})
+              if "error" in d or "decoy_false_credit" not in d:
+                  return None
+              return (DECOY_SILENT - d["decoy_false_credit"]) / DECOY_SILENT * 100
+
           def score_proc(r):
-              t, s = tpr_proc(r), tnr_proc(r)
-              return harmonic(t, s) if t is not None and s is not None else None
+              return harmonic3(tpr_proc(r), tnr_proc(r), dsr(r))
 
           def score(r):
               t, s = tpr(r), tnr(r)
@@ -507,10 +684,21 @@ jobs:
               "|--------|---------|-----------------|",
               f"| **Perfect** | Explicitly names every planted bug by file, symbol, and behaviour | All {TOTAL_ISSUES} Found |",
               f"| **Null** | Generic positive review — nothing specific mentioned | All {TOTAL_ISSUES} Missed |",
+              f"| **Decoy** | Genuine findings for the {len(DECOY_IDS)} Critical and Logic issues only | "
+              f"{len(DECOY_IDS)} Found, {DECOY_SILENT} Missed |",
               "",
               f"- **TPR** (sensitivity): Found / {TOTAL_ISSUES} on the perfect review",
               f"- **TNR** (specificity): Missed / {TOTAL_ISSUES} on the null review",
-              "- **Score**: harmonic mean of TPR and TNR — a model that aces one but fails the other is penalised",
+              f"- **Decoy specificity**: of the {DECOY_SILENT} issues the decoy review says nothing about, "
+              "the share the scorer correctly declined to credit",
+              "- **Score**: harmonic mean of all three — a scorer that aces one test but fails another is penalised, "
+              "and any outright zero scores zero",
+              "",
+              "The decoy test is the one that matters most in practice. `perfect` and `null` bracket the",
+              "extremes, and a scorer passes both by being uniformly generous or uniformly strict. The decoy",
+              "supplies real evidence for 16 issues and none for the rest, so every credit it awards beyond",
+              "those 16 is produced by association with a nearby finding — the failure that inflated ten of",
+              "the twenty review scorecards in the model benchmark.",
               "",
               "The current production scorer is `Qwen3-Coder-30B-imatrix:Q3_K_M`.",
               "",
@@ -521,27 +709,27 @@ jobs:
               "cannot be matched to the review, and mis-credit detection. Production ships",
               "`processed`, so that is the column to rank on.",
               "",
-              "| # | Model | TPR raw | TPR proc | TNR raw | TNR proc | Score proc | Perfect time | Null time | Truncated? |",
-              "|---|-------|--------:|---------:|--------:|---------:|-----------:|--------------|-----------|------------|",
+              "| # | Model | TPR | TNR | Decoy spec. | Score | False credits | Perfect time | Truncated? |",
+              "|---|-------|----:|----:|------------:|------:|--------------:|--------------|------------|",
           ]
 
           for rank, r in enumerate(ranked, 1):
-              t = tpr(r); s_val = tnr(r); sc = score(r)
-              if t is None or s_val is None:
+              tp, np_, ds = tpr_proc(r), tnr_proc(r), dsr(r)
+              if tp is None or np_ is None:
                   lines.append(
-                      f"| {rank} | {r['model']} | ERROR | ERROR | ERROR | ERROR "
-                      f"| ERROR | — | — | — |"
-                  )
+                      f"| {rank} | {r['model']} | ERROR | ERROR | ERROR | ERROR | — | — | — |")
                   continue
-              p = r.get("perfect", {}); n = r.get("null", {})
-              trunc = (trunc_flag(r, "perfect") if trunc_flag(r, "perfect") != "No"
-                       else trunc_flag(r, "null"))
-              tp, np_, scp = tpr_proc(r), tnr_proc(r), score_proc(r)
+              p = r.get("perfect", {}); d = r.get("decoy", {})
+              trunc = next((trunc_flag(r, k) for k in ("perfect", "null", "decoy")
+                            if trunc_flag(r, k) != "No"), "No")
+              fc = d.get("decoy_false_credit")
               lines.append(
                   f"| {rank} | {r['model']} "
-                  f"| {t:.1f}% | **{tp:.1f}%** | {s_val:.1f}% | **{np_:.1f}%** | **{scp:.1f}%** "
+                  f"| {tp:.1f}% | {np_:.1f}% "
+                  f"| {('%.1f%%' % ds) if ds is not None else '—'} "
+                  f"| **{score_proc(r):.1f}%** "
+                  f"| {('%d / %d' % (fc, DECOY_SILENT)) if fc is not None else '—'} "
                   f"| {fmt_s(p.get('total_duration_s', 0))} "
-                  f"| {fmt_s(n.get('total_duration_s', 0))} "
                   f"| {trunc} |"
               )
 
@@ -584,6 +772,29 @@ jobs:
                       f"| {r['model']} | {n['found']} | {n['partial']} | {n['missed']} "
                       f"| {n['total']} | {fmt_s(n['total_duration_s'])} | {n['output_tps']} t/s |"
                   )
+
+          lines += [
+              "",
+              "## Detail — Decoy Review (discrimination)",
+              "",
+              f"The decoy names {len(DECOY_IDS)} issues explicitly and is silent on the other {DECOY_SILENT}.",
+              f"A calibrated scorer returns {len(DECOY_IDS)} Found. Anything it credits among the other",
+              f"{DECOY_SILENT} is a false credit — evidence borrowed from an unrelated finding.",
+              "",
+              "| Model | Genuine found | False credits | Falsely credited IDs |",
+              "|-------|---------------|---------------|----------------------|",
+          ]
+          for r in all_results:
+              d = r.get("decoy", {})
+              if "error" in d:
+                  lines.append(f"| {r['model']} | — | ERROR | — |")
+              else:
+                  ids = d.get("decoy_false_ids", [])
+                  shown = ", ".join(ids[:12]) + (" …" if len(ids) > 12 else "")
+                  lines.append(
+                      f"| {r['model']} | {d.get('decoy_hit', 0)} / {len(DECOY_IDS)} "
+                      f"| **{d.get('decoy_false_credit', 0)} / {DECOY_SILENT}** "
+                      f"| {shown or '—'} |")
 
           summary_path = OUT_DIR / "summary.md"
           summary_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
