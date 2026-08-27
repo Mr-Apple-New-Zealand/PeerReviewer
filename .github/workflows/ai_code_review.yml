@@ -611,6 +611,13 @@ jobs:
       - name: Score review against ISSUES.md
         if: steps.diff.outputs.empty == 'false'
         env:
+          # The scorer. Set by repo variable; Qwen3.8-27B-imatrix:Q4_K_S is the
+          # benchmarked choice (scorer_benchmark.yml run #16 and later): 70/70 on a
+          # review that names every defect, 0 false positives on one that names none,
+          # and no evidence borrowed between neighbouring issues on the decoy.
+          # It REQUIRES AI_ASSISTANT_SCORER_THINK=medium -- its card defaults to xhigh
+          # reasoning and it will otherwise spend the whole budget thinking and return
+          # empty content.
           SCORECARD_MODEL: ${{ vars.AI_ASSISTANT_OLLAMA_MODEL_REVIEWER }}
           # enforce = downgrade ungrounded Found/Partial rows to Missed (default)
           # warn    = log them but leave the scorecard untouched
@@ -620,9 +627,12 @@ jobs:
           # model's, and named so scorer_benchmark.yml can read the identical value.
           # A repo variable set once therefore applies to both workflows.
           AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
-          # The scorer is the measuring instrument: keep it pinned low and unchanged
+          # The scorer is the measuring instrument: keep it pinned at 0 and unchanged
           # even when the review sampler is retuned, or scores stop being comparable.
-          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0.3' }}
+          # This default was 0.3 while every actual run used the repo variable at 0 --
+          # scorer variance was the largest noise source in the model benchmark, where
+          # one unchanged review scored 67 on one run and 22 on the next.
+          AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }}
           # Reasoning control for the SCORER, mirroring the review model's knobs and
           # sharing names with scorer_benchmark.yml. Both blank by default. A scorer
           # whose card defaults to deep reasoning (Qwen3.8-27B defaults to xhigh) will
