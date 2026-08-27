@@ -106,6 +106,7 @@ jobs:
           # copied -- the previous copy-paste had drifted 1,236 chars behind.
           sys.path.insert(0, ".")
           from scorecard_tools import (
+              _content_words,
               check_row_alignment,
               count_table_statuses,
               downgrade_self_declared_absent,
@@ -487,9 +488,36 @@ jobs:
           DECOY_IDS = {m.group(1) for m in re.finditer(r"^\|\s*([A-Z]{1,3}\d+)\s*\|",
                                                        issues_md, re.M)
                        if re.match(r"^([A-Z]{1,3})", m.group(1)).group(1) in DECOY_PREFIXES}
-          DECOY_SILENT = TOTAL_ISSUES - len(DECOY_IDS)
+
+          # ISSUES.md records several defects twice under different categories --
+          # C8/CF1 are both "secrets in source control", C9/CF3 are both
+          # "ValidateLifetime = false". When the decoy names one half it describes the
+          # other, so the twin is NOT silent and crediting it is correct. Detected
+          # from the descriptions rather than hardcoded, so the exclusion tracks
+          # ISSUES.md rather than going stale against it.
+          _descs = {}
+          for _line in issues_md.splitlines():
+              _c = [x.strip() for x in _line.strip().strip("|").split("|")]
+              if len(_c) >= 4 and re.fullmatch(r"[A-Z]{1,3}\d+", _c[0]):
+                  _descs[_c[0]] = _c[-1]
+
+          DECOY_TWINS = set()
+          _pairs = []
+          for _a in DECOY_IDS:
+              for _b, _d in _descs.items():
+                  if _b in DECOY_IDS or _a not in _descs:
+                      continue
+                  _wa, _wb = _content_words(_descs[_a]), _content_words(_d)
+                  if len(_wa & _wb) / max(len(_wa | _wb), 1) >= 0.40:
+                      DECOY_TWINS.add(_b)
+                      _pairs.append(f"{_a}={_b}")
+
+          DECOY_SILENT = TOTAL_ISSUES - len(DECOY_IDS) - len(DECOY_TWINS)
           print(f"Decoy review: covers {len(DECOY_IDS)} issues "
                 f"({', '.join(sorted(DECOY_IDS))}); silent on {DECOY_SILENT}")
+          if DECOY_TWINS:
+              print(f"  excluded as duplicates of a covered issue: "
+                    f"{', '.join(sorted(_pairs))}")
 
           # Save the synthetic reviews so they can be inspected in the artifact.
           (OUT_DIR / "perfect_review.md").write_text(perfect_review, encoding="utf-8")
@@ -614,7 +642,8 @@ jobs:
                           st = status_by_id(proc)
                           hit = sum(1 for i in DECOY_IDS if st.get(i) == "Found")
                           false_credit = [i for i, v in st.items()
-                                          if i not in DECOY_IDS and v in ("Found", "Partial")]
+                                          if i not in DECOY_IDS and i not in DECOY_TWINS
+                                          and v in ("Found", "Partial")]
                           result[review_name]["decoy_hit"] = hit
                           result[review_name]["decoy_false_credit"] = len(false_credit)
                           result[review_name]["decoy_false_ids"] = sorted(false_credit)
@@ -706,6 +735,11 @@ jobs:
               f"| **Null** | Generic positive review — nothing specific mentioned | All {TOTAL_ISSUES} Missed |",
               f"| **Decoy** | Genuine findings for the {len(DECOY_IDS)} Critical and Logic issues only | "
               f"{len(DECOY_IDS)} Found, {DECOY_SILENT} Missed |",
+              "",
+              (f"{len(DECOY_TWINS)} further issues ({', '.join(sorted(DECOY_TWINS))}) are excluded from "
+               "the silent set: ISSUES.md records them twice under different categories, so the decoy "
+               "describes them via their twin and crediting them is correct."
+               if DECOY_TWINS else ""),
               "",
               f"- **TPR** (sensitivity): Found / {TOTAL_ISSUES} on the perfect review",
               f"- **TNR** (specificity): Missed / {TOTAL_ISSUES} on the null review",
