@@ -162,9 +162,13 @@ jobs:
           TEMPERATURE = float(os.environ.get("AI_ASSISTANT_SCORER_TEMPERATURE", "0"))
 
           OUT_DIR = Path("scorer_benchmark_results")
+          # Derived from the review list rather than written out, so adding a review
+          # type cannot leave its directory missing. The decoy runs did all their work
+          # and then died writing the scorecard because decoy/ did not exist.
+          REVIEW_TYPES = ("perfect", "null", "decoy")
           OUT_DIR.mkdir(exist_ok=True)
-          (OUT_DIR / "perfect").mkdir(exist_ok=True)
-          (OUT_DIR / "null").mkdir(exist_ok=True)
+          for _rt in REVIEW_TYPES:
+              (OUT_DIR / _rt).mkdir(exist_ok=True)
 
           print(f"Models to benchmark: {MODELS}")
 
@@ -652,7 +656,15 @@ jobs:
               return (DECOY_SILENT - d["decoy_false_credit"]) / DECOY_SILENT * 100
 
           def score_proc(r):
-              return harmonic3(tpr_proc(r), tnr_proc(r), dsr(r))
+              """None when any test did not report -- distinct from a genuine zero.
+
+              Reporting an errored test as 0.0% put a scorer at rank 1 with 100%
+              sensitivity, 100% specificity and a 0.0% score, which is three
+              contradictory numbers on one row."""
+              vals = (tpr_proc(r), tnr_proc(r), dsr(r))
+              if any(v is None for v in vals):
+                  return None
+              return harmonic3(*vals)
 
           def score(r):
               t, s = tpr(r), tnr(r)
@@ -720,14 +732,15 @@ jobs:
                       f"| {rank} | {r['model']} | ERROR | ERROR | ERROR | ERROR | — | — | — |")
                   continue
               p = r.get("perfect", {}); d = r.get("decoy", {})
-              trunc = next((trunc_flag(r, k) for k in ("perfect", "null", "decoy")
+              trunc = next((trunc_flag(r, k) for k in REVIEW_TYPES
                             if trunc_flag(r, k) != "No"), "No")
               fc = d.get("decoy_false_credit")
+              sp = score_proc(r)
               lines.append(
                   f"| {rank} | {r['model']} "
                   f"| {tp:.1f}% | {np_:.1f}% "
                   f"| {('%.1f%%' % ds) if ds is not None else '—'} "
-                  f"| **{score_proc(r):.1f}%** "
+                  f"| {('**%.1f%%**' % sp) if sp is not None else '_incomplete_'} "
                   f"| {('%d / %d' % (fc, DECOY_SILENT)) if fc is not None else '—'} "
                   f"| {fmt_s(p.get('total_duration_s', 0))} "
                   f"| {trunc} |"
@@ -787,7 +800,9 @@ jobs:
           for r in all_results:
               d = r.get("decoy", {})
               if "error" in d:
-                  lines.append(f"| {r['model']} | — | ERROR | — |")
+                  # Show the reason. A bare "ERROR" sent us looking at the model when
+                  # the fault was a missing output directory in this workflow.
+                  lines.append(f"| {r['model']} | — | ERROR | `{d['error'][:110]}` |")
               else:
                   ids = d.get("decoy_false_ids", [])
                   shown = ", ".join(ids[:12]) + (" …" if len(ids) > 12 else "")
