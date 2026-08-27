@@ -1,6 +1,6 @@
 # Scorer Benchmark Summary
 
-> **Run:** #26 &nbsp;·&nbsp; **Generated:** 2026-08-27 09:20
+> **Run:** #21 &nbsp;·&nbsp; **Generated:** 2026-08-27 08:37
 
 > Scorer prompt SHA `2b79baa02b94` &nbsp;·&nbsp; num_ctx 65,536 &nbsp;·&nbsp; num_predict 40,000 &nbsp;·&nbsp; temperature 0.0
 
@@ -21,17 +21,11 @@
 
 The decoy test is the one that matters most in practice. `perfect` and `null` bracket the
 extremes, and a scorer passes both by being uniformly generous or uniformly strict. The decoy
-supplies real evidence for 16 issues and none for the other 52, so every credit
-it awards beyond those 16 is produced by association with a nearby finding — the failure
-that inflated ten of the twenty review scorecards in the model benchmark.
+supplies real evidence for 16 issues and none for the rest, so every credit it awards beyond
+those 16 is produced by association with a nearby finding — the failure that inflated ten of
+the twenty review scorecards in the model benchmark.
 
-Note the limit of these tests: two scorers known to differ on real reviews both scored
-100/100/100 here. They screen out a broken scorer; they do not rank good ones.
-
-The production scorer is `Qwen3-Coder-30B-imatrix:Q3_K_M`. Qwen3.8-27B-imatrix:Q4_K_S
-was benchmarked as a replacement and matched it exactly (100/100/100), but is ~6x slower
-(201s against 30s on the perfect review) and summarises the Description column rather than
-reproducing it, so the incumbent was kept.
+The current production scorer is `Qwen3.8-27B-imatrix:Q4_K_S` (think=medium).
 
 ## Ranked Results
 
@@ -42,7 +36,7 @@ cannot be matched to the review, and mis-credit detection. Production ships
 
 | # | Model | TPR | TNR | Decoy spec. | Score | False credits | Perfect time | Truncated? |
 |---|-------|----:|----:|------------:|------:|--------------:|--------------|------------|
-| 1 | gpt-oss:120B | 100.0% | 100.0% | 100.0% | **100.0%** | 0 / 52 | 1m 15s | No |
+| 1 | Qwen3-Coder-30B-imatrix:Q3_K_M | 100.0% | 100.0% | 100.0% | **100.0%** | 0 / 52 | 30.0s | No |
 
 ## Detail — Perfect Review (sensitivity)
 
@@ -51,7 +45,7 @@ Missed = issues the scorer failed to recognise despite being clearly stated.
 
 | Model | Found | Partial | Missed | Total | Time | Speed |
 |-------|-------|---------|--------|-------|------|-------|
-| gpt-oss:120B | 70 | 0 | 0 | 70 | 1m 15s | 106.4 t/s |
+| Qwen3-Coder-30B-imatrix:Q3_K_M | 70 | 0 | 0 | 70 | 30.0s | 159.9 t/s |
 
 ## Detail — Null Review (specificity)
 
@@ -60,7 +54,7 @@ Found or Partial = false positives (the scorer invented matches that aren't ther
 
 | Model | Found | Partial | Missed | Total | Time | Speed |
 |-------|-------|---------|--------|-------|------|-------|
-| gpt-oss:120B | 0 | 0 | 70 | 70 | 24.2s | 110.2 t/s |
+| Qwen3-Coder-30B-imatrix:Q3_K_M | 0 | 0 | 70 | 70 | 17.2s | 175.0 t/s |
 
 ## Detail — Decoy Review (discrimination)
 
@@ -70,17 +64,17 @@ A calibrated scorer returns 16 Found. Anything it credits among the other
 
 | Model | Genuine found | False credits | Falsely credited IDs |
 |-------|---------------|---------------|----------------------|
-| gpt-oss:120B | 16 / 16 | **0 / 52** | — |
+| Qwen3-Coder-30B-imatrix:Q3_K_M | 16 / 16 | **0 / 52** | — |
 
-## Run Configuration — gpt-oss:120B
+## Run Configuration — Qwen3-Coder-30B-imatrix:Q3_K_M
 
 Values as actually sent for this run. Blank sampler entries mean the
 request omitted them, so the model's own Modelfile applied.
 
 | Setting | Value |
 |---|---|
-| Scorer model | `gpt-oss:120B` |
-| Ollama `think` | (unset) |
+| Scorer model | `Qwen3-Coder-30B-imatrix:Q3_K_M` |
+| Ollama `think` | (unset) _(requested `medium`, dropped: model has no thinking capability)_ |
 | Reasoning strength (system prompt) | (model default) |
 | System prompt | `You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.` |
 | Temperature | `0.0` |
@@ -93,10 +87,10 @@ request omitted them, so the model's own Modelfile applied.
 | ISSUES.md SHA-256 | `4b57cc34a7bb` |
 | Reference issues | `70` (69 rows + UT) |
 | Decoy coverage | `16` issues named, `52` silent |
-| Branch / commit | `main @ 9e7fe60` |
+| Branch / commit | `main @ 78aebc0` |
 
 | Review | Output tokens | Duration | Stop reason | Thinking chars |
 |---|---|---|---|---|
-| perfect | 6564 | 1m 15s | stop | 12,283 |
-| null | 2504 | 24.2s | stop | 1,670 |
-| decoy | 3052 | 28.7s | stop | 3,494 |
+| perfect | 4706 | 30.0s | stop | 0 |
+| null | 2890 | 17.2s | stop | 0 |
+| decoy | 4141 | 24.9s | stop | 0 |

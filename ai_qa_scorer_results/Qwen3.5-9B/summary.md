@@ -1,6 +1,6 @@
 # Scorer Benchmark Summary
 
-> **Run:** #26 &nbsp;·&nbsp; **Generated:** 2026-08-27 09:20
+> **Run:** #25 &nbsp;·&nbsp; **Generated:** 2026-08-27 09:09
 
 > Scorer prompt SHA `2b79baa02b94` &nbsp;·&nbsp; num_ctx 65,536 &nbsp;·&nbsp; num_predict 40,000 &nbsp;·&nbsp; temperature 0.0
 
@@ -42,7 +42,7 @@ cannot be matched to the review, and mis-credit detection. Production ships
 
 | # | Model | TPR | TNR | Decoy spec. | Score | False credits | Perfect time | Truncated? |
 |---|-------|----:|----:|------------:|------:|--------------:|--------------|------------|
-| 1 | gpt-oss:120B | 100.0% | 100.0% | 100.0% | **100.0%** | 0 / 52 | 1m 15s | No |
+| 1 | Qwen3.5-9B-imatrix:Q4_K_S | 98.6% | 100.0% | 100.0% | **99.5%** | 0 / 52 | 41.1s | No |
 
 ## Detail — Perfect Review (sensitivity)
 
@@ -51,7 +51,7 @@ Missed = issues the scorer failed to recognise despite being clearly stated.
 
 | Model | Found | Partial | Missed | Total | Time | Speed |
 |-------|-------|---------|--------|-------|------|-------|
-| gpt-oss:120B | 70 | 0 | 0 | 70 | 1m 15s | 106.4 t/s |
+| Qwen3.5-9B-imatrix:Q4_K_S | 69 | 0 | 1 | 70 | 41.1s | 111.8 t/s |
 
 ## Detail — Null Review (specificity)
 
@@ -60,7 +60,7 @@ Found or Partial = false positives (the scorer invented matches that aren't ther
 
 | Model | Found | Partial | Missed | Total | Time | Speed |
 |-------|-------|---------|--------|-------|------|-------|
-| gpt-oss:120B | 0 | 0 | 70 | 70 | 24.2s | 110.2 t/s |
+| Qwen3.5-9B-imatrix:Q4_K_S | 0 | 0 | 70 | 70 | 23.3s | 114.3 t/s |
 
 ## Detail — Decoy Review (discrimination)
 
@@ -70,17 +70,17 @@ A calibrated scorer returns 16 Found. Anything it credits among the other
 
 | Model | Genuine found | False credits | Falsely credited IDs |
 |-------|---------------|---------------|----------------------|
-| gpt-oss:120B | 16 / 16 | **0 / 52** | — |
+| Qwen3.5-9B-imatrix:Q4_K_S | 16 / 16 | **0 / 52** | — |
 
-## Run Configuration — gpt-oss:120B
+## Run Configuration — Qwen3.5-9B-imatrix:Q4_K_S
 
 Values as actually sent for this run. Blank sampler entries mean the
 request omitted them, so the model's own Modelfile applied.
 
 | Setting | Value |
 |---|---|
-| Scorer model | `gpt-oss:120B` |
-| Ollama `think` | (unset) |
+| Scorer model | `Qwen3.5-9B-imatrix:Q4_K_S` |
+| Ollama `think` | `false` |
 | Reasoning strength (system prompt) | (model default) |
 | System prompt | `You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.` |
 | Temperature | `0.0` |
@@ -97,6 +97,6 @@ request omitted them, so the model's own Modelfile applied.
 
 | Review | Output tokens | Duration | Stop reason | Thinking chars |
 |---|---|---|---|---|
-| perfect | 6564 | 1m 15s | stop | 12,283 |
-| null | 2504 | 24.2s | stop | 1,670 |
-| decoy | 3052 | 28.7s | stop | 3,494 |
+| perfect | 4055 | 41.1s | stop | 0 |
+| null | 2517 | 23.3s | stop | 0 |
+| decoy | 4266 | 38.3s | stop | 0 |
