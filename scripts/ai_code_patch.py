@@ -312,6 +312,7 @@ def build_run_config(
          f"{env('AI_ASSISTANT_SCORER_REASONING')} / {env('AI_ASSISTANT_SCORER_THINK', '(unset)')}"),
         ("Grounding mode", env("AI_ASSISTANT_SCORECARD_GROUNDING", "enforce")),
         ("**Reference**", ""),
+        ("Branch / commit", val(_git_head(), "(unknown)")),
         ("ISSUES.md SHA-256", val(_sha_of(REPO_ROOT / "ISSUES.md"), "(unknown)")),
         ("Scorer prompt SHA-256", val(_sha_of(REPO_ROOT / "scorer_prompt.md"), "(unknown)")),
         ("Review prompt SHA-256", val(_sha_of(REPO_ROOT / "review_prompt.md"), "(unknown)")),
@@ -328,6 +329,27 @@ def build_run_config(
     lines += [f"| {k} | {v} |" for k, v in rows]
     lines.append("")
     return "\n".join(lines)
+
+
+def _git_head() -> str | None:
+    """'branch @ shortsha' for the harness itself.
+
+    The review benchmark records this and the patch pipeline did not, so a sweep
+    could not be checked for having run on a single harness revision -- the first
+    question asked of any set of results here.
+    """
+    try:
+        branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                                capture_output=True, text=True, cwd=REPO_ROOT).stdout.strip()
+        head = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                              capture_output=True, text=True, cwd=REPO_ROOT).stdout.strip()
+        dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"],
+                               capture_output=True, text=True, cwd=REPO_ROOT).stdout.strip()
+    except OSError:
+        return None
+    if not head:
+        return None
+    return f"{branch or '(detached)'} @ {head}" + (" (dirty)" if dirty else "")
 
 
 def _sha_of(path) -> str | None:
@@ -472,8 +494,14 @@ def write_comparison_report(
             "issues_resolved": issues_resolved,
             "issues_resolved_raw": issues_resolved_raw,
             "row_count_mismatch": row_count_mismatch,
+            # None, not 0, when the check did not run -- 0 new errors is the same
+            # value a clean build produces, and the two must not be confused.
             "build_compiles": (build_result or {}).get("compiles"),
-            "build_new_errors": len((build_result or {}).get("new_errors") or []),
+            "build_new_errors": (len(build_result["new_errors"])
+                                 if (build_result or {}).get("ran") else None),
+            "build_skipped_reason": (None if (build_result or {}).get("ran")
+                                     else (build_result or {}).get("reason")),
+            "harness_commit": _git_head(),
             "resolution_pct": resolution_pct,
             "detectable_before": detectable_before,
             "detectable_after": detectable_after,
