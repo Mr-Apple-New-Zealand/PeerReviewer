@@ -50,7 +50,7 @@ def find_result_dirs(args: list[str]) -> list[Path]:
     return uniq
 
 
-def record(result_dir: Path, new_errors: list) -> None:
+def record(result_dir: Path, new_errors: list, baseline_errors: int = 0) -> None:
     """Write the verdict back into the run's patch_summary.json.
 
     The workflow leaves build_compiles null because the check is disabled there,
@@ -77,9 +77,45 @@ def record(result_dir: Path, new_errors: list) -> None:
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except OSError:
         pass
+    _rewrite_md_section(result_dir / "patch_summary.md", new_errors, baseline_errors)
 
 
+def _rewrite_md_section(md_path: Path, new_errors: list, baseline_errors: int) -> None:
+    """Replace the '## Build check' section so the prose matches the JSON.
+
+    The workflow writes that section before this runs, and with the in-process
+    check disabled it says "Not run". Leaving it would put a summary claiming the
+    build was never checked next to a JSON recording the compiler error, and the
+    markdown is what a person reads.
+    """
+    if not md_path.is_file():
+        return
+    try:
+        md = md_path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    start = md.find("## Build check")
+    if start < 0:
+        return
+    nxt = md.find("\n## ", start + 1)
+    end = len(md) if nxt < 0 else nxt + 1
+    section = build_check.render({
+        "ran": True,
+        "baseline_errors": baseline_errors,
+        "new_errors": new_errors,
+        "compiles": not new_errors,
+    })
+    try:
+        md_path.write_text(md[:start] + section + "\n" + md[end:], encoding="utf-8")
+    except OSError:
+        pass
 def main(argv: list[str]) -> int:
+    # In CI the verdict belongs in the JSON, not in the step's exit status: a
+    # patcher that writes non-compiling code is a finding about that model, not a
+    # failure of the run that measured it. Interactively the non-zero exit is
+    # useful for gating, so it stays the default.
+    gate = "--no-gate" not in argv
+    argv = [a for a in argv if a != "--no-gate"]
     dotnet = build_check.find_dotnet()
     if not dotnet:
         print("No .NET SDK found. Set AI_PATCH_DOTNET to the dotnet executable.",
@@ -115,7 +151,7 @@ def main(argv: list[str]) -> int:
             rows.append((d.name, f"FAILS ({len(new)})", first))
         else:
             rows.append((d.name, "compiles", ""))
-        record(d, new)
+        record(d, new, len(base['errors']))
 
     width = max([len("result")] + [len(r[0]) for r in rows])
     print(f"{'result':<{width}}  {'build':<12}  first new error")
@@ -124,7 +160,7 @@ def main(argv: list[str]) -> int:
         print(f"{name:<{width}}  {status:<12}  {detail}")
 
     print(f"\n{len(rows) - broken} of {len(rows)} patched trees compile.")
-    return 1 if broken else 0
+    return 1 if (broken and gate) else 0
 
 
 if __name__ == "__main__":

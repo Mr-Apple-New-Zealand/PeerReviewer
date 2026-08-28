@@ -219,6 +219,21 @@ jobs:
         run: |
           python3 scripts/ai_code_patch.py
 
+      # Its own step, so patch_summary.json is already on disk before it starts.
+      # Bounded by timeout-minutes and continue-on-error: a step timeout fails
+      # only the step, where the in-process check took two whole jobs with it and
+      # lost their model output. Writes the verdict back into patch_summary.json,
+      # which is what makes that one file complete on its own.
+      - name: Build check (does the patched tree still compile?)
+        if: always()
+        timeout-minutes: 6
+        continue-on-error: true
+        env:
+          AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
+          AI_PATCH_DOTNET: ${{ vars.AI_PATCH_DOTNET || '' }}
+        run: |
+          python3 scripts/check_patch_builds.py --no-gate "${AI_PATCH_OUTPUT_DIR}"
+
       - name: Print patch summary to workflow log
         if: always()
         run: |
