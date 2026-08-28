@@ -65,6 +65,24 @@ def _r3_long_method(text: str) -> bool:
     return body.count("\n") > 12
 
 
+def _c11_no_role_check(text: str) -> bool:
+    """C11: can a non-admin still delete an account?
+
+    Two idiomatic fixes: an [Authorize(Roles = ...)] attribute on the action, or
+    an inline claims check. The old marker recognised only the second, so the
+    better fix read as no fix.
+    """
+    m = re.search(r"\bDeleteUser\s*\(", text)
+    if not m:
+        return False                          # endpoint gone entirely
+    # The attributes sit above the signature; take a generous window back.
+    head = text[max(0, m.start() - 400):m.start()]
+    if re.search(r"\[Authorize\s*\([^)]*Roles", head, re.I):
+        return False
+    body = _method_body(text, "DeleteUser") or ""
+    return not re.search(r"ClaimTypes\.Role|IsInRole", body)
+
+
 def _a5_duplicates_bcl(text: str) -> bool:
     """A5: does IsBlank still reimplement string.IsNullOrWhiteSpace?
 
@@ -110,8 +128,10 @@ CHECKS: dict[str, tuple] = {
             "Transfer/Deposit interpolate balance updates"),
     "C7":  ("Services/TransactionService.cs", r'\$@?"\s*INSERT', PRESENT,
             "RecordTransaction interpolates the INSERT"),
-    "A6":  ("Data/DatabaseHelper.cs", r"ExecuteQuery\(\s*string\s+tableName", PRESENT,
-            "raw tableName/whereClause helper still accepts SQL fragments"),
+    # Same defect as RL2. ISSUES.md records GetOpenConnection twice, under
+    # Anti-patterns and under Resource Leaks, so both markers test it.
+    "A6":  ("Data/DatabaseHelper.cs", r"GetOpenConnection", PRESENT,
+            "connection-leaking GetOpenConnection still present"),
 
     # ---- credentials and crypto -----------------------------------------------------
     "C2":  ("Services/AuthService.cs", r"AdminBypassPassword", PRESENT,
@@ -126,10 +146,10 @@ CHECKS: dict[str, tuple] = {
             "JWT lifetime validation disabled"),
     "C10": ("Controllers/UserController.cs", r"ClaimTypes\.NameIdentifier", ABSENT,
             "UpdateUser performs no ownership check"),
-    "C11": ("Controllers/UserController.cs", r"ClaimTypes\.Role", ABSENT,
+    "C11": ("Controllers/UserController.cs", _c11_no_role_check, CUSTOM,
             "DeleteUser performs no role check"),
-    "E7":  ("Controllers/AuthController.cs", r"(?i)\b429\b|TooManyRequests|lockout|ratelimit|_failedAttempts", ABSENT,
-            "login endpoint has no rate limiting or lockout"),
+    "E7":  ("", r"(?i)\b429\b|TooManyRequests|lockout|ratelimit|_failedAttempts|MaxFailedAttempts", ABSENT,
+            "no rate limiting or lockout anywhere on the login path"),
 
     # ---- logic ----------------------------------------------------------------------
     "L1":  ("Services/TransactionService.cs", r"amount\s*<\s*0\b", PRESENT,
