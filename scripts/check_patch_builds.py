@@ -86,7 +86,7 @@ def main(argv: list[str]) -> int:
         else:
             rows.append((d.name, "compiles", ""))
 
-    width = max(len(r[0]) for r in rows)
+    width = max([len("result")] + [len(r[0]) for r in rows])
     print(f"{'result':<{width}}  {'build':<12}  first new error")
     print(f"{'-' * width}  {'-' * 12}  {'-' * 30}")
     for name, status, detail in rows:
