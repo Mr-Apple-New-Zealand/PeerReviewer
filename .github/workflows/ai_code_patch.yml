@@ -152,6 +152,15 @@ jobs:
           AI_SCORER_MODEL: ${{ inputs.scorer_model }}
           AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
           AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
+          # Does the patched tree still compile? Differential against the pristine
+          # tree, so the sample project's pre-existing NU1605 is not charged to the
+          # patcher. This is the only check that catches an invented API: one run
+          # scored 95.7% resolved with 41/41 markers clear on code calling
+          # CorsPolicyBuilder.AllowMethods, which does not exist.
+          AI_PATCH_BUILD_CHECK: ${{ vars.AI_PATCH_BUILD_CHECK || '1' }}
+          # Set if the runner's service account cannot see the SDK. Default
+          # locations are searched before giving up, so this is rarely needed.
+          AI_PATCH_DOTNET: ${{ vars.AI_PATCH_DOTNET || '' }}
 
           # The reviewer sub-run (scripts/ai_code_review.py) inherits this environment.
           # These use the SAME names and defaults as ai_code_review.yml, so a repo

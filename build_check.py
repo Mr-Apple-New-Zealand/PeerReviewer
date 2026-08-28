@@ -60,6 +60,41 @@ def _signature(m: re.Match) -> tuple[str, str, str]:
     return (m.group("code"), base, msg)
 
 
+def find_dotnet() -> str | None:
+    """Locate the SDK, falling back to the default install paths.
+
+    PATH alone is not enough. A GitHub Actions service account on Windows does
+    not inherit the interactive user's PATH, so the first sweep reported "dotnet
+    not on PATH" on a machine with 10.0.400 installed -- and silently skipped the
+    one check that catches a non-compiling patch. Set AI_PATCH_DOTNET to override.
+    """
+    override = os.environ.get("AI_PATCH_DOTNET", "").strip()
+    if override:
+        return override if Path(override).exists() else None
+
+    found = shutil.which("dotnet")
+    if found:
+        return found
+
+    candidates = [
+        Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "dotnet" / "dotnet.exe",
+        Path(os.environ.get("ProgramW6432", r"C:\Program Files")) / "dotnet" / "dotnet.exe",
+        Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "dotnet" / "dotnet.exe",
+        Path("/usr/share/dotnet/dotnet"),
+        Path("/usr/local/share/dotnet/dotnet"),
+        Path("/usr/lib/dotnet/dotnet"),
+        Path("/usr/bin/dotnet"),
+        Path.home() / ".dotnet" / "dotnet",
+    ]
+    for c in candidates:
+        try:
+            if c.is_file():
+                return str(c)
+        except OSError:
+            continue
+    return None
+
+
 def build(source_root: str | Path, timeout: int = 600) -> dict:
     """Compile one tree. Output goes to a temp dir so no obj/ or bin/ is left behind."""
     root = Path(source_root).resolve()
@@ -67,9 +102,11 @@ def build(source_root: str | Path, timeout: int = 600) -> dict:
     if proj is None:
         return {"ran": False, "reason": f"no .csproj under {root}", "errors": []}
 
-    dotnet = shutil.which("dotnet")
+    dotnet = find_dotnet()
     if not dotnet:
-        return {"ran": False, "reason": "dotnet not on PATH", "errors": []}
+        return {"ran": False, "errors": [], "reason":
+                "no .NET SDK found — not on PATH and not at any default install "
+                "location. Set AI_PATCH_DOTNET to the dotnet executable"}
 
     with tempfile.TemporaryDirectory(prefix="pr_build_") as tmp:
         cmd = [
