@@ -219,23 +219,16 @@ jobs:
         run: |
           python3 scripts/ai_code_patch.py
 
+      # Needs dotnet-sdk-8.0 installed on the runner host. setup-dotnet was tried
+      # and could not reach the .NET feed from there; it "succeeded" in six
+      # seconds having installed nothing, which is exactly the kind of silent
+      # pass this step now annotates against.
+      #
       # Its own step, so patch_summary.json is already on disk before it starts.
       # Bounded by timeout-minutes and continue-on-error: a step timeout fails
       # only the step, where the in-process check took two whole jobs with it and
-      # lost their model output. Writes the verdict back into patch_summary.json,
-      # which is what makes that one file complete on its own.
-      # The runner has no .NET SDK: the build-check step returned in under three
-      # seconds having found nothing. continue-on-error so a runner without
-      # network egress to the SDK feed degrades to "no verdict" rather than
-      # failing a run that has already produced its results.
-      - name: Set up .NET (for the build check)
-        if: always()
-        continue-on-error: true
-        timeout-minutes: 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
+      # lost their model output. Writes the verdict into patch_summary.json and
+      # .md, which is what makes those files complete without a follow-up.
       - name: Build check (does the patched tree still compile?)
         if: always()
         timeout-minutes: 6

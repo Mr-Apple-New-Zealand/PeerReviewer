@@ -19,10 +19,24 @@ Exits non-zero if any patch introduced a compiler error, so it can gate a sweep.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+IN_ACTIONS = os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+
+
+def annotate(level: str, title: str, message: str) -> None:
+    """Surface something on the run summary page.
+
+    continue-on-error means this step is green whatever happens, so without an
+    annotation a check that reached no verdict looks identical to one that
+    passed -- and would stay invisible across a twenty-model sweep.
+    """
+    if IN_ACTIONS:
+        one_line = " ".join(message.split())
+        print(f"::{level} title={title}::{one_line}")
 sys.path.insert(0, str(REPO_ROOT))
 
 import build_check  # noqa: E402
@@ -152,6 +166,9 @@ def main(argv: list[str]) -> int:
               file=sys.stderr)
         for d in find_result_dirs(argv):
             note_skipped(d, reason)
+        annotate("error", "Build check reached no verdict",
+                 f"{reason}. Install dotnet-sdk-8.0 on the runner, or set "
+                 "AI_PATCH_DOTNET. Whether this patch compiles is unknown.")
         return 2
     print(f"Using {dotnet}\n")
 
@@ -192,6 +209,11 @@ def main(argv: list[str]) -> int:
         print(f"{name:<{width}}  {status:<12}  {detail}")
 
     print(f"\n{len(rows) - broken} of {len(rows)} patched trees compile.")
+    for name, status, detail in rows:
+        if status.startswith("FAILS"):
+            annotate("notice", f"{name}: patched tree does not compile", detail)
+        elif status == "?":
+            annotate("error", f"{name}: build check reached no verdict", detail)
     return 1 if (broken and gate) else 0
 
 
