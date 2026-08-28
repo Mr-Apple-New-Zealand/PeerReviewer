@@ -95,7 +95,7 @@ def find_dotnet() -> str | None:
     return None
 
 
-def build(source_root: str | Path, timeout: int = 600) -> dict:
+def build(source_root: str | Path, timeout: int = 240) -> dict:
     """Compile one tree. Output goes to a temp dir so no obj/ or bin/ is left behind."""
     root = Path(source_root).resolve()
     proj = next(iter(sorted(root.glob("*.csproj"))), None)
@@ -112,19 +112,34 @@ def build(source_root: str | Path, timeout: int = 600) -> dict:
         cmd = [
             dotnet, "build", str(proj), "-v", "q", "--nologo",
             f"-p:NoWarn={DEFAULT_NOWARN}",
+            # One worker, and no surviving MSBuild nodes. The default keeps worker
+            # processes alive for reuse, which on a self-hosted runner shared with a
+            # resident 27B model means extra processes competing for RAM after the
+            # build returns.
+            "-m:1", "-nodereuse:false",
             # Keep every artefact out of the source tree: the pristine tree is the
             # user's repo, and a stray obj/ would show up as untracked noise.
             f"-p:BaseIntermediateOutputPath={Path(tmp) / 'obj'}{os.sep}",
             f"-p:BaseOutputPath={Path(tmp) / 'bin'}{os.sep}",
         ]
+        env = dict(os.environ)
+        env.update({
+            "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+            "DOTNET_NOLOGO": "1",
+            "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+            # A first run otherwise pauses to populate the package cache.
+            "DOTNET_CLI_UI_LANGUAGE": "en",
+        })
         try:
             res = subprocess.run(cmd, capture_output=True, text=True,
-                                 timeout=timeout, cwd=str(root))
+                                 timeout=timeout, cwd=str(root), env=env)
         except subprocess.TimeoutExpired:
             return {"ran": False, "reason": f"build timed out after {timeout}s",
                     "errors": []}
         except OSError as exc:
             return {"ran": False, "reason": f"could not run dotnet: {exc}", "errors": []}
+        except Exception as exc:                      # never take the run down
+            return {"ran": False, "reason": f"build check failed: {exc}", "errors": []}
 
     out = (res.stdout or "") + "\n" + (res.stderr or "")
     seen, errors = set(), []
@@ -138,7 +153,7 @@ def build(source_root: str | Path, timeout: int = 600) -> dict:
     return {"ran": True, "reason": "", "exit_code": res.returncode, "errors": errors}
 
 
-def compare(pristine_root, patched_root, timeout: int = 600) -> dict:
+def compare(pristine_root, patched_root, timeout: int = 240) -> dict:
     """Build both trees and attribute only the newly-introduced errors."""
     before = build(pristine_root, timeout)
     after = build(patched_root, timeout)

@@ -152,12 +152,17 @@ jobs:
           AI_SCORER_MODEL: ${{ inputs.scorer_model }}
           AI_PATCH_SKIP_BASELINE: ${{ inputs.skip_baseline == 'true' && '1' || '0' }}
           AI_PATCH_OUTPUT_DIR: ${{ github.workspace }}/.ai-patch
-          # Does the patched tree still compile? Differential against the pristine
-          # tree, so the sample project's pre-existing NU1605 is not charged to the
-          # patcher. This is the only check that catches an invented API: one run
-          # scored 95.7% resolved with 41/41 markers clear on code calling
-          # CorsPolicyBuilder.AllowMethods, which does not exist.
-          AI_PATCH_BUILD_CHECK: ${{ vars.AI_PATCH_BUILD_CHECK || '1' }}
+          # Does the patched tree still compile? OFF by default: two jobs on the
+          # self-hosted runner died mid-run once the SDK became findable there
+          # (one failed at 38 min, one was cancelled at 14), and a job that dies
+          # takes the whole run's model output with it. Ten seconds of build is
+          # not worth fifteen minutes of generation, twenty times over.
+          #
+          # Run it after the sweep instead, over the archived scratch trees:
+          #     python scripts/check_patch_builds.py
+          # Same code, same verdict, and it exits non-zero if any patch broke the
+          # build. Set this to 1 once the runner's .NET is known good.
+          AI_PATCH_BUILD_CHECK: ${{ vars.AI_PATCH_BUILD_CHECK || '0' }}
           # Set if the runner's service account cannot see the SDK. Default
           # locations are searched before giving up, so this is rarely needed.
           AI_PATCH_DOTNET: ${{ vars.AI_PATCH_DOTNET || '' }}
