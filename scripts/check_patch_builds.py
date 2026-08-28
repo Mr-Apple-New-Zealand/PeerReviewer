@@ -183,6 +183,23 @@ def main(argv: list[str]) -> int:
     if not base["ran"]:
         print(f"Could not build the pristine tree: {base['reason']}", file=sys.stderr)
         return 2
+    # A restore failure on the pristine tree invalidates the whole comparison:
+    # with no packages, the compiler never runs on either tree, both produce zero
+    # CS diagnostics, and the difference is zero -- indistinguishable from a
+    # patch that compiles cleanly.
+    restore_failed = sorted({e["code"] for e in base["errors"]
+                             if e["code"].startswith("NU")})
+    if restore_failed:
+        reason = ("the pristine tree could not restore its packages (%s), so the "
+                  "compiler did not run and no verdict is possible" %
+                  ", ".join(restore_failed))
+        print(f"Refusing to compare: {reason}.", file=sys.stderr)
+        for d in dirs:
+            note_skipped(d, reason)
+        annotate("error", "Build check reached no verdict",
+                 f"{reason}. The runner most likely cannot reach api.nuget.org.")
+        return 2
+
     base_sigs = {(e["code"], e["file"], e["message"]) for e in base["errors"]}
     print(f"Pristine tree: {len(base['errors'])} pre-existing error(s)\n")
 
