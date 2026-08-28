@@ -29,9 +29,76 @@ from pathlib import Path
 
 PRESENT = "present"   # bug still there if the pattern matches
 ABSENT = "absent"     # bug still there if the pattern is MISSING (the fix is an addition)
+CUSTOM = "custom"     # the pattern slot holds a predicate: text -> bug still there?
 
-# id -> (relative path, regex, polarity, what the marker means)
-CHECKS: dict[str, tuple[str, str, str, str]] = {
+
+def _method_body(text: str, name: str) -> str | None:
+    """The brace-matched body of a named method, or None if it is not there."""
+    m = re.search(r"\b%s\s*\(" % re.escape(name), text)
+    if not m:
+        return None
+    start = text.find("{", m.end())
+    if start < 0:
+        return None
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start:i]
+    return text[start:]
+
+
+def _r3_long_method(text: str) -> bool:
+    """R3: is GenerateJwtToken still doing everything itself?
+
+    Measured rather than name-matched. The original body is 20 lines; a patcher
+    that extracts the claims, credentials and token construction leaves about 5,
+    whatever it calls the helpers. The previous marker looked for three specific
+    names and missed BuildUserClaims / CreateJwtToken / CreateSigningCredentials.
+    """
+    body = _method_body(text, "GenerateJwtToken")
+    if body is None:
+        return False                      # method gone entirely
+    return body.count("\n") > 12
+
+
+def _a5_duplicates_bcl(text: str) -> bool:
+    """A5: does IsBlank still reimplement string.IsNullOrWhiteSpace?
+
+    Two valid fixes: delegate to the BCL, or delete the method. The old marker
+    recognised only the first, so a clean deletion read as an unfixed bug.
+    """
+    if not re.search(r"\bIsBlank\b", text):
+        return False                      # removed; callers checked separately
+    return "IsNullOrWhiteSpace" not in text
+
+
+def _cf7_unconditional_symbols(text: str) -> bool:
+    """CF7: are debug symbols emitted in RELEASE builds?
+
+    `<DebugSymbols>true` inside a Debug-conditioned PropertyGroup is correct and
+    expected. The bug is shipping PDBs from a release build, so this looks for a
+    Release group that turns them off rather than for the string anywhere.
+    """
+    if not re.search(r"<DebugSymbols>\s*true", text, re.I):
+        return False
+    for grp in re.findall(r"<PropertyGroup\b[^>]*>(.*?)</PropertyGroup>", text, re.S | re.I):
+        header_ok = False
+        # Re-find this group's opening tag to read its Condition.
+        for m in re.finditer(r"<PropertyGroup\b([^>]*)>", text, re.I):
+            if text[m.end():m.end() + len(grp)] == grp:
+                header_ok = re.search(r"Release", m.group(1), re.I) is not None
+                break
+        if header_ok and re.search(r"<DebugSymbols>\s*false|<DebugType>\s*none", grp, re.I):
+            return False
+    return True
+
+
+# id -> (relative path, regex OR predicate, polarity, what the marker means)
+CHECKS: dict[str, tuple] = {
     # ---- SQL injection: interpolated SQL is the bug; parameters are the fix ----------
     "C1":  ("Services/AuthService.cs", r'\$@?"\s*SELECT', PRESENT,
             "Login builds its SELECT by interpolation"),
@@ -85,8 +152,8 @@ CHECKS: dict[str, tuple[str, str, str, str]] = {
             "duplicated id validation not extracted"),
     "R2":  ("Helpers/StringHelper.cs", r"\+=\s*\w+\s*\+\s*separator|result\s*\+=", PRESENT,
             "JoinWithSeparator still concatenates in a loop"),
-    "R3":  ("Services/AuthService.cs", r"(BuildClaims|CreateToken|GetSigningCredentials)", ABSENT,
-            "GenerateJwtToken not split into helpers"),
+    "R3":  ("Services/AuthService.cs", _r3_long_method, CUSTOM,
+            "GenerateJwtToken still over 12 lines — not split into helpers"),
 
     # ---- dead code: the symbol's continued existence IS the bug ---------------------
     "D1":  ("Services/AuthService.cs", r"HashPasswordSha1", PRESENT, "unused SHA1 helper"),
@@ -105,7 +172,7 @@ CHECKS: dict[str, tuple[str, str, str, str]] = {
             "mutable static audit log"),
     "A2":  ("Helpers/StringHelper.cs", r"static\s+readonly\s+Regex", ABSENT,
             "Regex still constructed per call"),
-    "A5":  ("Helpers/StringHelper.cs", r"IsNullOrWhiteSpace", ABSENT,
+    "A5":  ("Helpers/StringHelper.cs", _a5_duplicates_bcl, CUSTOM,
             "IsBlank still reimplements the BCL"),
 
     # ---- configuration --------------------------------------------------------------
@@ -114,8 +181,8 @@ CHECKS: dict[str, tuple[str, str, str, str]] = {
     "CF5": ("Program.cs", r"IsDevelopment\(\)", ABSENT,
             "developer exception page still unconditional"),
     "CF6": ("Program.cs", r"AllowAnyOrigin", PRESENT, "open CORS policy"),
-    "CF7": ("SampleBankingApp.csproj", r"<DebugSymbols>\s*true", PRESENT,
-            "debug symbols emitted unconditionally"),
+    "CF7": ("SampleBankingApp.csproj", _cf7_unconditional_symbols, CUSTOM,
+            "debug symbols still emitted in Release builds"),
     "CF8": ("SampleBankingApp.csproj", r'Newtonsoft\.Json"\s+Version="12\.', PRESENT,
             "vulnerable Newtonsoft.Json 12.x pinned"),
     "CF9": ("appsettings.Production.json", r".", ABSENT,
@@ -154,8 +221,11 @@ def verify(source_root: str | Path) -> dict:
                 skipped.append(issue_id)
             continue
 
-        hit = re.search(pattern, text, re.MULTILINE) is not None
-        bug_remains = hit if polarity is PRESENT else not hit
+        if polarity is CUSTOM:
+            bug_remains = bool(pattern(text))
+        else:
+            hit = re.search(pattern, text, re.MULTILINE) is not None
+            bug_remains = hit if polarity is PRESENT else not hit
         rows.append((issue_id, rel, "STILL PRESENT" if bug_remains else "fixed", meaning))
         (still_present if bug_remains else fixed).append(issue_id)
 

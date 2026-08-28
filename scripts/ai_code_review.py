@@ -590,12 +590,18 @@ def main() -> int:
     body, self_declared = downgrade_self_declared_absent(body)
     misaligned, missing_ids = check_row_alignment(body, issues)
     body = reconcile_summary_line(body)
-    cite_total, cite_bad, _cite_files = check_line_citations(review)
+    # Against the tree that was actually reviewed. Defaulting to
+    # SampleBankingApp made the patch pipeline's post-patch stage check its
+    # citations against the pristine files: 4 bogus beyond-EOF hits on a
+    # review whose line numbers were correct for the patched source.
+    _cite_root = source_root.rstrip('/')
+    cite_total, cite_bad, _cite_files = check_line_citations(review, _cite_root)
     warn_repeated_notes(body)
     rf, rp, rm = count_table_statuses(body)
     row_total = rf + rp + rm
 
-    spot_rows, miscredits, undercredits, unsupported = spot_check(body, review)
+    spot_rows, miscredits, undercredits, unsupported = spot_check(
+        body, review, _cite_root)
     hedged = hedge_check(body)
     found_checked = len([r for r in spot_rows if r[1] == "Found"])
     precision = (1.0 - len(miscredits) / found_checked) if found_checked else None

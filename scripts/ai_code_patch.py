@@ -150,6 +150,7 @@ from ai_code_review import resolve_think as _resolve_think  # noqa: E402
 
 sys.path.insert(0, str(REPO_ROOT))
 import patch_checks  # noqa: E402
+import build_check  # noqa: E402
 
 
 def extract_file_blocks(patch_output: str) -> dict[str, str]:
@@ -303,7 +304,6 @@ def build_run_config(
         ("Reasoning / `think`",
          f"{val(rev.get('reasoning'))} / {val(rev.get('think'), '(unset)')}"),
         ("Source truncated", val("yes" if rev.get("content_truncated") else "no")),
-        ("Review prompt SHA-256", val(rev.get("prompt_sha"), "(unknown)")),
         ("**Scorer**", ""),
         ("Model", val(scorer_model)),
         ("Temperature", env("AI_ASSISTANT_SCORER_TEMPERATURE", "0.3")),
@@ -373,6 +373,8 @@ def write_comparison_report(
     checks: dict | None = None,
     checks_section: str = "",
     config_section: str = "",
+    build_result: dict | None = None,
+    build_section: str = "",
 ) -> None:
     def score(m: dict | None) -> dict:
         if not m:
@@ -400,18 +402,33 @@ def write_comparison_report(
     # the same patched tree, reviewed by the same model, read as 51 resolved
     # under a Gemma scorer and 25 under Qwen3-Coder-30B, purely because the
     # latter parked 37 of 69 rows in Partial.
-    def effective_missed(d: dict) -> int | None:
-        """Missed, plus Partials the review does not support.
+    def detectable(d: dict) -> int | None:
+        """Issues the reviewer genuinely named at this stage.
 
-        A Partial on an issue the review never mentions is a Missed wearing a
-        different label, and the harness already identifies those. Counting them
-        keeps the metric stable across scorers: on one run Gemma produced 2
-        post-patch Partials and Qwen3-Coder-30B produced 37, which halved the
-        reported result for an identical patch.
+        Every row the scorer credited without support in the review is excluded,
+        on both sides and by the same rule:
+
+          * Found rows the evidence spot-check could not corroborate -- already
+            subtracted in found_adjusted.
+          * Partials with nothing in the review behind them.
+
+        Symmetry is the point. Discounting only the post-patch side inflates the
+        result: one run's baseline showed 69 Found against found_adjusted of 60,
+        every one of the nine a fabricated citation, and counting them made nine
+        never-detected bugs look resolved. Discounting only the baseline would
+        understate it just as badly.
+
+        Partials count as detected. A partial credit is not nothing, and treating
+        it as full detection keeps the estimate conservative.
         """
-        if d.get("missed") is None:
+        if d.get("found") is None:
             return None
-        return d["missed"] + len(d.get("spotcheck_unsupported_partials") or [])
+        found = d.get("found_adjusted")
+        if found is None:
+            found = d["found"]
+        partial = d.get("partial") or 0
+        unsupported = len(d.get("spotcheck_unsupported_partials") or [])
+        return found + max(0, partial - unsupported)
 
     issues_resolved: int | None = None
     issues_resolved_raw: int | None = None
@@ -425,11 +442,10 @@ def write_comparison_report(
         and b.get("total") is not None
         and p.get("total") is not None
     ):
-        bm, pm = effective_missed(b), effective_missed(p)
-        issues_resolved = pm - bm
+        detectable_before = detectable(b)
+        detectable_after = detectable(p)
+        issues_resolved = detectable_before - detectable_after
         issues_resolved_raw = p["missed"] - b["missed"]
-        detectable_before = b["total"] - bm
-        detectable_after = p["total"] - pm
         if b["total"]:
             resolution_pct = round(issues_resolved / b["total"] * 100, 1)
         # The two halves must be measured against the same denominator. A scorer
@@ -456,6 +472,8 @@ def write_comparison_report(
             "issues_resolved": issues_resolved,
             "issues_resolved_raw": issues_resolved_raw,
             "row_count_mismatch": row_count_mismatch,
+            "build_compiles": (build_result or {}).get("compiles"),
+            "build_new_errors": len((build_result or {}).get("new_errors") or []),
             "resolution_pct": resolution_pct,
             "detectable_before": detectable_before,
             "detectable_after": detectable_after,
@@ -526,10 +544,10 @@ def write_comparison_report(
             "## Verdict",
             "",
             f"- **Issues {emoji_label}: {issues_resolved}**{pct_str}. "
-            "Computed as `post_missed - baseline_missed`, counting Partials the "
-            "review does not support as Missed — bugs that were "
-            "detectable before the patch but the reviewer can no longer name "
-            "afterwards.",
+            "Bugs the reviewer named before the patch and cannot name after. "
+            "Rows the scorer credited without support in the review are excluded "
+            "from both sides — unverifiable `Found` ratings and `Partial` "
+            "ratings alike.",
             f"- Reviewer still detects **{detectable_after}** of the "
             f"{p.get('total', '?')} seeded issues, down from "
             f"**{detectable_before}** before the patch.",
@@ -537,15 +555,17 @@ def write_comparison_report(
         # Both figures, because the gap between them is the scorer's Partial
         # habit rather than anything the patcher did. On one run the raw figure
         # was 25 and the corrected one 40, from the same patch.
-        _bu = len(b.get("spotcheck_unsupported_partials") or [])
-        _pu = len(p.get("spotcheck_unsupported_partials") or [])
-        if _bu or _pu:
+        _drop_b = (b["found"] - (b.get("found_adjusted") or b["found"])
+                   + len(b.get("spotcheck_unsupported_partials") or []))
+        _drop_p = (p["found"] - (p.get("found_adjusted") or p["found"])
+                   + len(p.get("spotcheck_unsupported_partials") or []))
+        if _drop_b or _drop_p:
             lines.append(
-                f"- Counting only rows the scorer called `Missed`, the figure would be "
-                f"**{issues_resolved_raw}**. The difference is {_pu} post-patch and {_bu} "
-                "baseline `Partial` ratings with nothing in the review to support them, "
-                "which are Missed in substance. A scorer that parks issues in `Partial` "
-                "would otherwise hide the patch's effect."
+                f"- Taking the scorer's columns at face value would give "
+                f"**{issues_resolved_raw}**. {_drop_b} baseline and {_drop_p} post-patch "
+                "rows were credited with evidence the review does not contain, and are "
+                "excluded. Baseline fabrications matter most: they invent bugs the "
+                "reviewer never detected, each of which then counts as resolved."
             )
         if row_count_mismatch:
             lines.append(f"- **Warning:** {row_count_mismatch}.")
@@ -579,6 +599,9 @@ def write_comparison_report(
         lines += ["## Files patched", ""]
         lines += [f"- `{p}`" for p in patched_paths]
         lines.append("")
+
+    if build_section:
+        lines += ["", build_section]
 
     if config_section:
         lines += ["", config_section]
@@ -760,6 +783,28 @@ def main() -> int:
 
     patched_paths = sorted(blocks.keys())
     checks, checks_section = run_patch_checks(scratch_root / "SampleBankingApp")
+
+    # Whether the result compiles. Differential against the pristine tree, so the
+    # sample project's pre-existing NU1605 is not charged to the patcher. Opt out
+    # with AI_PATCH_BUILD_CHECK=0 on a runner with no .NET SDK.
+    build_result: dict = {"ran": False, "reason": "disabled (AI_PATCH_BUILD_CHECK=0)"}
+    build_section = ""
+    if os.environ.get("AI_PATCH_BUILD_CHECK", "1").strip() not in {"0", "false", "no"}:
+        print("\n>>> Build check: compiling pristine and patched trees \u2026")
+        build_result = build_check.compare(
+            source_root, scratch_root / source_root.name,
+            timeout=int(os.environ.get("AI_PATCH_BUILD_TIMEOUT", "600")),
+        )
+        if not build_result.get("ran"):
+            print(f"    not run: {build_result.get('reason')}")
+        elif build_result["new_errors"]:
+            print(f"    FAILED: {len(build_result['new_errors'])} new compiler error(s) "
+                  f"(baseline had {build_result['baseline_errors']})")
+            for e in build_result["new_errors"][:5]:
+                print(f"      {e['code']} {e['file']}:{e['line'] or '?'} {e['message'][:90]}")
+        else:
+            print(f"    compiles (baseline errors: {build_result['baseline_errors']})")
+    build_section = build_check.render(build_result)
     config_section = build_run_config(
         patcher_model, reviewer_model, scorer_model,
         patcher_metrics, baseline_metrics, post_metrics,
@@ -777,6 +822,8 @@ def main() -> int:
         checks,
         checks_section,
         config_section,
+        build_result,
+        build_section,
     )
 
     print()

@@ -162,7 +162,13 @@ jobs:
           # instrument from the review benchmark.
           AI_ASSISTANT_MODEL_NUM_CTX: ${{ vars.AI_ASSISTANT_MODEL_NUM_CTX || '65536' }}
           AI_ASSISTANT_MODEL_NUM_PREDICT: ${{ vars.AI_ASSISTANT_MODEL_NUM_PREDICT || '40000' }}
-          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_ASSISTANT_MODEL_TEMPERATURE || '0' }}
+          # Pinned, and deliberately NOT reading vars.AI_ASSISTANT_MODEL_TEMPERATURE.
+          # The reviewer is the fixed instrument every patcher is measured against, so
+          # it must not drift when that shared variable is retuned for the review
+          # benchmark. It was set to 0.3 during one run whose baseline read 69F/0P/1M
+          # at 77% precision, against 55F/3P/12M at 97% for the same model, same
+          # prompts, at 0.0. Override per-sweep with AI_PATCH_REVIEWER_TEMPERATURE.
+          AI_ASSISTANT_MODEL_TEMPERATURE: ${{ vars.AI_PATCH_REVIEWER_TEMPERATURE || '0' }}
           AI_ASSISTANT_SCORER_NUM_PREDICT: ${{ vars.AI_ASSISTANT_SCORER_NUM_PREDICT || '24000' }}
           AI_ASSISTANT_SCORER_TEMPERATURE: ${{ vars.AI_ASSISTANT_SCORER_TEMPERATURE || '0' }}
           AI_ASSISTANT_SCORECARD_GROUNDING: ${{ vars.AI_ASSISTANT_SCORECARD_GROUNDING || 'enforce' }}
