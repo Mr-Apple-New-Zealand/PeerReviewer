@@ -392,24 +392,56 @@ def write_comparison_report(
     # The success metric is the change in *undetectable* issues, not the
     # change in Found. When the patcher genuinely fixes a bug, the reviewer
     # can no longer point at it, so that bug moves into the Missed column.
-    # issues_resolved = post_missed - baseline_missed. A positive number is
-    # good news; zero or negative means the patch had no visible effect (or
-    # made things worse from the reviewer's perspective).
+    # A positive number is good news; zero or negative means the patch had no
+    # visible effect (or made things worse from the reviewer's perspective).
+    #
+    # Partials the review does not support count as Missed. Taking Missed
+    # literally makes the headline depend on the scorer rather than the patch:
+    # the same patched tree, reviewed by the same model, read as 51 resolved
+    # under a Gemma scorer and 25 under Qwen3-Coder-30B, purely because the
+    # latter parked 37 of 69 rows in Partial.
+    def effective_missed(d: dict) -> int | None:
+        """Missed, plus Partials the review does not support.
+
+        A Partial on an issue the review never mentions is a Missed wearing a
+        different label, and the harness already identifies those. Counting them
+        keeps the metric stable across scorers: on one run Gemma produced 2
+        post-patch Partials and Qwen3-Coder-30B produced 37, which halved the
+        reported result for an identical patch.
+        """
+        if d.get("missed") is None:
+            return None
+        return d["missed"] + len(d.get("spotcheck_unsupported_partials") or [])
+
     issues_resolved: int | None = None
+    issues_resolved_raw: int | None = None
     detectable_before: int | None = None
     detectable_after: int | None = None
     resolution_pct: float | None = None
+    row_count_mismatch: str | None = None
     if (
         b.get("missed") is not None
         and p.get("missed") is not None
         and b.get("total") is not None
         and p.get("total") is not None
     ):
-        issues_resolved = p["missed"] - b["missed"]
-        detectable_before = b["total"] - b["missed"]
-        detectable_after = p["total"] - p["missed"]
+        bm, pm = effective_missed(b), effective_missed(p)
+        issues_resolved = pm - bm
+        issues_resolved_raw = p["missed"] - b["missed"]
+        detectable_before = b["total"] - bm
+        detectable_after = p["total"] - pm
         if b["total"]:
             resolution_pct = round(issues_resolved / b["total"] * 100, 1)
+        # The two halves must be measured against the same denominator. A scorer
+        # that drops a row shrinks its own sheet, and the comparison then spans
+        # two different yardsticks without saying so.
+        if b["total"] != p["total"]:
+            row_count_mismatch = (
+                f"baseline sheet has {b['total']} rows, post-patch has {p['total']} "
+                "-- the scorer dropped a row, so the two halves are not measured "
+                "against the same set of issues"
+            )
+            print(f"WARN: {row_count_mismatch}", file=sys.stderr)
 
     combined = {
         "patcher_model": patcher_model,
@@ -422,6 +454,8 @@ def write_comparison_report(
             # Positive => issues moved from detectable to undetectable
             # (i.e. the patcher successfully hid them from the reviewer).
             "issues_resolved": issues_resolved,
+            "issues_resolved_raw": issues_resolved_raw,
+            "row_count_mismatch": row_count_mismatch,
             "resolution_pct": resolution_pct,
             "detectable_before": detectable_before,
             "detectable_after": detectable_after,
@@ -492,13 +526,29 @@ def write_comparison_report(
             "## Verdict",
             "",
             f"- **Issues {emoji_label}: {issues_resolved}**{pct_str}. "
-            "Computed as `post_missed - baseline_missed` — bugs that were "
+            "Computed as `post_missed - baseline_missed`, counting Partials the "
+            "review does not support as Missed — bugs that were "
             "detectable before the patch but the reviewer can no longer name "
             "afterwards.",
             f"- Reviewer still detects **{detectable_after}** of the "
             f"{p.get('total', '?')} seeded issues, down from "
             f"**{detectable_before}** before the patch.",
         ]
+        # Both figures, because the gap between them is the scorer's Partial
+        # habit rather than anything the patcher did. On one run the raw figure
+        # was 25 and the corrected one 40, from the same patch.
+        _bu = len(b.get("spotcheck_unsupported_partials") or [])
+        _pu = len(p.get("spotcheck_unsupported_partials") or [])
+        if _bu or _pu:
+            lines.append(
+                f"- Counting only rows the scorer called `Missed`, the figure would be "
+                f"**{issues_resolved_raw}**. The difference is {_pu} post-patch and {_bu} "
+                "baseline `Partial` ratings with nothing in the review to support them, "
+                "which are Missed in substance. A scorer that parks issues in `Partial` "
+                "would otherwise hide the patch's effect."
+            )
+        if row_count_mismatch:
+            lines.append(f"- **Warning:** {row_count_mismatch}.")
         if issues_resolved < 0:
             lines.append(
                 "- Warning: `issues_resolved` is negative. The reviewer now "
