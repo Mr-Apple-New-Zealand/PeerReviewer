@@ -147,6 +147,7 @@ _FILE_HEADER_RE = re.compile(r"^\s*#{1,6}\s*File\s*:\s*(.+?)\s*$", re.MULTILINE)
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from ai_code_review import reasoning_controls as _reasoning_controls  # noqa: E402
 from ai_code_review import resolve_think as _resolve_think  # noqa: E402
+from ai_code_review import DEFAULT_SYSTEM_PROMPT as _DEFAULT_SYSTEM_PROMPT  # noqa: E402
 
 sys.path.insert(0, str(REPO_ROOT))
 import patch_checks  # noqa: E402
@@ -484,6 +485,13 @@ def write_comparison_report(
     def _env(name):
         return (os.environ.get(name) or "").strip() or None
 
+    def _sys_prompt(prefix):
+        """What reasoning_controls() would have sent for this role."""
+        raw = (os.environ.get(f"{prefix}_SYSTEM_PROMPT") or "").strip()
+        if raw.lower() == "none":
+            return None                      # no system message; Modelfile applies
+        return raw or _DEFAULT_SYSTEM_PROMPT
+
     combined = {
         "config": {
             "harness_commit": _git_head(),
@@ -491,6 +499,7 @@ def write_comparison_report(
                 "temperature": patcher_metrics.get("temperature") or _env("AI_PATCH_MODEL_TEMPERATURE"),
                 "think": _env("AI_PATCH_MODEL_THINK"),
                 "reasoning": _env("AI_PATCH_MODEL_REASONING"),
+                "system_prompt": _sys_prompt("AI_PATCH_MODEL"),
                 "num_ctx": patcher_metrics.get("context_window"),
                 "num_predict": patcher_metrics.get("output_token_limit"),
             },
@@ -499,10 +508,12 @@ def write_comparison_report(
                                or _env("AI_ASSISTANT_MODEL_TEMPERATURE"),
                 "think": _env("AI_ASSISTANT_MODEL_THINK"),
                 "reasoning": _env("AI_ASSISTANT_MODEL_REASONING"),
+                "system_prompt": _sys_prompt("AI_ASSISTANT_MODEL"),
             },
             "scorer": {
                 "temperature": _env("AI_ASSISTANT_SCORER_TEMPERATURE"),
                 "think": _env("AI_ASSISTANT_SCORER_THINK"),
+                "system_prompt": _sys_prompt("AI_ASSISTANT_SCORER"),
                 "grounding": _env("AI_ASSISTANT_SCORECARD_GROUNDING") or "enforce",
             },
             "issues_sha": _sha_of(REPO_ROOT / "ISSUES.md"),
