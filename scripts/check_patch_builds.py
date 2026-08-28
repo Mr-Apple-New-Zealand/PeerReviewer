@@ -70,6 +70,8 @@ def note_skipped(result_dir: Path, reason: str) -> None:
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except (OSError, json.JSONDecodeError):
         pass
+    _replace_md_section(result_dir / "patch_summary.md",
+                        build_check.render({"ran": False, "reason": reason}))
 
 
 def record(result_dir: Path, new_errors: list, baseline_errors: int = 0) -> None:
@@ -102,14 +104,8 @@ def record(result_dir: Path, new_errors: list, baseline_errors: int = 0) -> None
     _rewrite_md_section(result_dir / "patch_summary.md", new_errors, baseline_errors)
 
 
-def _rewrite_md_section(md_path: Path, new_errors: list, baseline_errors: int) -> None:
-    """Replace the '## Build check' section so the prose matches the JSON.
-
-    The workflow writes that section before this runs, and with the in-process
-    check disabled it says "Not run". Leaving it would put a summary claiming the
-    build was never checked next to a JSON recording the compiler error, and the
-    markdown is what a person reads.
-    """
+def _replace_md_section(md_path: Path, section: str) -> None:
+    """Swap the '## Build check' block for `section`, leaving the rest alone."""
     if not md_path.is_file():
         return
     try:
@@ -121,16 +117,26 @@ def _rewrite_md_section(md_path: Path, new_errors: list, baseline_errors: int) -
         return
     nxt = md.find("\n## ", start + 1)
     end = len(md) if nxt < 0 else nxt + 1
-    section = build_check.render({
-        "ran": True,
-        "baseline_errors": baseline_errors,
-        "new_errors": new_errors,
-        "compiles": not new_errors,
-    })
     try:
         md_path.write_text(md[:start] + section + "\n" + md[end:], encoding="utf-8")
     except OSError:
         pass
+
+
+def _rewrite_md_section(md_path: Path, new_errors: list, baseline_errors: int) -> None:
+    """Replace the '## Build check' section so the prose matches the JSON.
+
+    The workflow writes that section before this runs, and with the in-process
+    check disabled it says "Not run". Leaving it would put a summary claiming the
+    build was never checked next to a JSON recording the compiler error, and the
+    markdown is what a person reads.
+    """
+    _replace_md_section(md_path, build_check.render({
+        "ran": True,
+        "baseline_errors": baseline_errors,
+        "new_errors": new_errors,
+        "compiles": not new_errors,
+    }))
 def main(argv: list[str]) -> int:
     # In CI the verdict belongs in the JSON, not in the step's exit status: a
     # patcher that writes non-compiling code is a finding about that model, not a
