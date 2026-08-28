@@ -224,6 +224,18 @@ jobs:
       # only the step, where the in-process check took two whole jobs with it and
       # lost their model output. Writes the verdict back into patch_summary.json,
       # which is what makes that one file complete on its own.
+      # The runner has no .NET SDK: the build-check step returned in under three
+      # seconds having found nothing. continue-on-error so a runner without
+      # network egress to the SDK feed degrades to "no verdict" rather than
+      # failing a run that has already produced its results.
+      - name: Set up .NET (for the build check)
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Build check (does the patched tree still compile?)
         if: always()
         timeout-minutes: 6

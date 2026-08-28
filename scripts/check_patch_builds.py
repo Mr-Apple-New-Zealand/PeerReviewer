@@ -50,6 +50,28 @@ def find_result_dirs(args: list[str]) -> list[Path]:
     return uniq
 
 
+def note_skipped(result_dir: Path, reason: str) -> None:
+    """Say why no verdict was reached, in the run's own JSON.
+
+    Otherwise build_skipped_reason keeps whatever the in-process check wrote --
+    "disabled (AI_PATCH_BUILD_CHECK=0)" -- which describes a different decision
+    and hides the fact that this step ran and could not do its job.
+    """
+    path = result_dir / "patch_summary.json"
+    if not path.is_file():
+        return
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data.setdefault("delta", {}).update({
+            "build_compiles": None,
+            "build_new_errors": None,
+            "build_skipped_reason": reason,
+        })
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except (OSError, json.JSONDecodeError):
+        pass
+
+
 def record(result_dir: Path, new_errors: list, baseline_errors: int = 0) -> None:
     """Write the verdict back into the run's patch_summary.json.
 
@@ -118,8 +140,12 @@ def main(argv: list[str]) -> int:
     argv = [a for a in argv if a != "--no-gate"]
     dotnet = build_check.find_dotnet()
     if not dotnet:
-        print("No .NET SDK found. Set AI_PATCH_DOTNET to the dotnet executable.",
+        reason = ("no .NET SDK on the machine that ran the check — not on PATH "
+                  "and not at any default install location")
+        print(f"No .NET SDK found. {reason}. Set AI_PATCH_DOTNET to override.",
               file=sys.stderr)
+        for d in find_result_dirs(argv):
+            note_skipped(d, reason)
         return 2
     print(f"Using {dotnet}\n")
 
