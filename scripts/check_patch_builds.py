@@ -18,6 +18,7 @@ Exits non-zero if any patch introduced a compiler error, so it can gate a sweep.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -47,6 +48,35 @@ def find_result_dirs(args: list[str]) -> list[Path]:
             seen.add(d)
             uniq.append(d)
     return uniq
+
+
+def record(result_dir: Path, new_errors: list) -> None:
+    """Write the verdict back into the run's patch_summary.json.
+
+    The workflow leaves build_compiles null because the check is disabled there,
+    so without this the compile column exists only in this script's stdout and a
+    summary built from the JSON would have a hole in it. Writing it back means one
+    file per model still answers every question.
+    """
+    path = result_dir / "patch_summary.json"
+    if not path.is_file():
+        return
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    delta = data.setdefault("delta", {})
+    delta["build_compiles"] = not new_errors
+    delta["build_new_errors"] = len(new_errors)
+    delta["build_skipped_reason"] = None
+    delta["build_errors"] = [
+        {k: e[k] for k in ("code", "file", "line", "message")} for e in new_errors[:15]
+    ]
+    delta["build_checked_by"] = "scripts/check_patch_builds.py"
+    try:
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError:
+        pass
 
 
 def main(argv: list[str]) -> int:
@@ -85,6 +115,7 @@ def main(argv: list[str]) -> int:
             rows.append((d.name, f"FAILS ({len(new)})", first))
         else:
             rows.append((d.name, "compiles", ""))
+        record(d, new)
 
     width = max([len("result")] + [len(r[0]) for r in rows])
     print(f"{'result':<{width}}  {'build':<12}  first new error")

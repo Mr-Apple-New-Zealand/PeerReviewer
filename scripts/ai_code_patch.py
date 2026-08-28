@@ -481,7 +481,34 @@ def write_comparison_report(
             )
             print(f"WARN: {row_count_mismatch}", file=sys.stderr)
 
+    def _env(name):
+        return (os.environ.get(name) or "").strip() or None
+
     combined = {
+        "config": {
+            "harness_commit": _git_head(),
+            "patcher": {
+                "temperature": patcher_metrics.get("temperature") or _env("AI_PATCH_MODEL_TEMPERATURE"),
+                "think": _env("AI_PATCH_MODEL_THINK"),
+                "reasoning": _env("AI_PATCH_MODEL_REASONING"),
+                "num_ctx": patcher_metrics.get("context_window"),
+                "num_predict": patcher_metrics.get("output_token_limit"),
+            },
+            "reviewer": {
+                "temperature": (post_metrics or {}).get("review", {}).get("temperature")
+                               or _env("AI_ASSISTANT_MODEL_TEMPERATURE"),
+                "think": _env("AI_ASSISTANT_MODEL_THINK"),
+                "reasoning": _env("AI_ASSISTANT_MODEL_REASONING"),
+            },
+            "scorer": {
+                "temperature": _env("AI_ASSISTANT_SCORER_TEMPERATURE"),
+                "think": _env("AI_ASSISTANT_SCORER_THINK"),
+                "grounding": _env("AI_ASSISTANT_SCORECARD_GROUNDING") or "enforce",
+            },
+            "issues_sha": _sha_of(REPO_ROOT / "ISSUES.md"),
+            "review_prompt_sha": _sha_of(REPO_ROOT / "review_prompt.md"),
+            "scorer_prompt_sha": _sha_of(REPO_ROOT / "scorer_prompt.md"),
+        },
         "patcher_model": patcher_model,
         "reviewer_model": reviewer_model,
         "scorer_model": scorer_model,
