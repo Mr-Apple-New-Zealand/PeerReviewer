@@ -100,10 +100,17 @@ env:
 
 jobs:
   patch-and-review:
-    runs-on: mra-ubuntu-01
+    runs-on: mra-ubuntu
     timeout-minutes: 240
 
     steps:
+      - name: Verify runner name
+        # If the runner picked isn't the one you want, exit immediately
+        if: ${{ runner.name != 'mra-github-01' }}
+        run: |
+          echo "Wrong runner picked (${{ runner.name }}). Canceling execution."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v6
         with:
