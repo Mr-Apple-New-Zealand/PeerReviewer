@@ -20,24 +20,24 @@ on:
           Ollama model that produces the fix. Any model tag is accepted
           (on-prem or ':cloud'). Example: Qwen3.6-27B-imatrix:Q4_K_S
         required: true
-        default: 'Qwen3.6-27B:Q4_K_S'
       reviewer_model:
         description: >
           Model used by the peer reviewer to grade the patched code.
           Should NOT be the same as the patcher (a model marking its
           own work is not an independent check).
         required: true
-        default: 'gpt-oss:120b'
+        default: 'Qwen3.8-27B-imatrix:Q4_K_S'
       scorer_model:
         description: >
           Model that maps the peer review onto ISSUES.md rows.
           Leave blank to reuse the reviewer model.
         required: false
-        default: ''
+        default: 'Qwen3-Coder-30B-imatrix:Q3_K_M'
       patch_temperature:
         description: "Temperature for PATCH GENERATION only. Blank = 0.2 (code should be near-deterministic)."
         required: false
         type: string
+        default: '0'
       patch_num_ctx:
         description: "Context window for patch generation. Blank = 65536."
         required: false
@@ -58,6 +58,7 @@ on:
         description: "Reviewer Ollama think. Blank = unset. Qwen3.8-27B needs medium."
         required: false
         type: string
+        default: 'medium'
       scorer_think:
         description: "Scorer Ollama think. Blank = unset."
         required: false
