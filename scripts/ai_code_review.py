@@ -166,6 +166,16 @@ def resolve_endpoint(model: str) -> tuple[str, str | None]:
 ANTHROPIC_URL = "https://api.anthropic.com"
 ANTHROPIC_VERSION = "2023-06-01"
 
+# Anthropic reports why generation stopped in its own words. Every truncation
+# check in this harness speaks Ollama's, so translate once at the boundary
+# instead of teaching each check both. claude-opus-5 hit max_tokens and was
+# reported as having completed naturally because of this gap.
+_ANTHROPIC_STOP = {
+    "end_turn": "stop",
+    "stop_sequence": "stop",
+    "max_tokens": "length",
+}
+
 
 def _anthropic_chat(payload: dict, payload_path: Path, label: str,
                     api_key: str) -> dict:
@@ -232,7 +242,9 @@ def _anthropic_chat(payload: dict, payload_path: Path, label: str,
         "total_duration": int(elapsed * 1e9),
         "eval_duration": int(elapsed * 1e9),
         "prompt_eval_duration": 0,
-        "done_reason": data.get("stop_reason", ""),
+        # Ollama's vocabulary, so the truncation guards downstream keep working.
+        "done_reason": _ANTHROPIC_STOP.get(
+            data.get("stop_reason", ""), data.get("stop_reason", "")),
     }
 
 
