@@ -383,6 +383,53 @@ def run_patch_checks(scratch_source_root) -> tuple[dict, str]:
     return result, section
 
 
+def build_config_block(patcher_metrics: dict, post_metrics: dict | None = None) -> dict:
+    """How this run was actually configured, for both the normal and no-patch paths.
+
+    Shared rather than duplicated: a run that fails to produce a patch still has
+    to record the same sampling as one that succeeds, or a summary reading
+    config.patcher.think gets a value from nineteen models and nothing from the
+    twentieth.
+    """
+    def env(name):
+        return (os.environ.get(name) or "").strip() or None
+
+    def sys_prompt(prefix):
+        """What reasoning_controls() would have sent for this role."""
+        raw = (os.environ.get(f"{prefix}_SYSTEM_PROMPT") or "").strip()
+        if raw.lower() == "none":
+            return None                      # no system message; Modelfile applies
+        return raw or _DEFAULT_SYSTEM_PROMPT
+
+    return {
+        "harness_commit": _git_head(),
+        "patcher": {
+            "temperature": patcher_metrics.get("temperature") or env("AI_PATCH_MODEL_TEMPERATURE"),
+            "think": env("AI_PATCH_MODEL_THINK"),
+            "reasoning": env("AI_PATCH_MODEL_REASONING"),
+            "system_prompt": sys_prompt("AI_PATCH_MODEL"),
+            "num_ctx": patcher_metrics.get("context_window"),
+            "num_predict": patcher_metrics.get("output_token_limit"),
+        },
+        "reviewer": {
+            "temperature": (post_metrics or {}).get("review", {}).get("temperature")
+                           or env("AI_ASSISTANT_MODEL_TEMPERATURE"),
+            "think": env("AI_ASSISTANT_MODEL_THINK"),
+            "reasoning": env("AI_ASSISTANT_MODEL_REASONING"),
+            "system_prompt": sys_prompt("AI_ASSISTANT_MODEL"),
+        },
+        "scorer": {
+            "temperature": env("AI_ASSISTANT_SCORER_TEMPERATURE"),
+            "think": env("AI_ASSISTANT_SCORER_THINK"),
+            "system_prompt": sys_prompt("AI_ASSISTANT_SCORER"),
+            "grounding": env("AI_ASSISTANT_SCORECARD_GROUNDING") or "enforce",
+        },
+        "issues_sha": _sha_of(REPO_ROOT / "ISSUES.md"),
+        "review_prompt_sha": _sha_of(REPO_ROOT / "review_prompt.md"),
+        "scorer_prompt_sha": _sha_of(REPO_ROOT / "scorer_prompt.md"),
+    }
+
+
 def write_no_patch_report(
     output_dir: Path,
     patcher_model: str,
@@ -399,8 +446,11 @@ def write_no_patch_report(
     marker in place, and compiles exactly as the original does.
     """
     checks, reference_total = patch_checks.coverage(REPO_ROOT / "ISSUES.md")
+    # Nothing was applied, so every marker the checker knows about is outstanding.
+    # Naming them keeps this row comparable with a run that genuinely fixed none.
+    outstanding = sorted(patch_checks.CHECKS)
     combined = {
-        "config": {"harness_commit": _git_head()},
+        "config": build_config_block(patcher_metrics),
         "patcher_model": patcher_model,
         "reviewer_model": reviewer_model,
         "scorer_model": scorer_model,
@@ -426,8 +476,9 @@ def write_no_patch_report(
         "patched_files": [],
         "rejected_paths": [],
         "verified": {
-            "fixed": [], "still_present": [], "undetermined": [],
-            "checked": checks, "fixed_count": 0, "still_present_count": checks,
+            "fixed": [], "still_present": outstanding, "undetermined": [],
+            "checked": checks, "fixed_count": 0,
+            "still_present_count": len(outstanding),
         },
     }
     (output_dir / "patch_summary.json").write_text(
@@ -581,44 +632,8 @@ def write_comparison_report(
             )
             print(f"WARN: {row_count_mismatch}", file=sys.stderr)
 
-    def _env(name):
-        return (os.environ.get(name) or "").strip() or None
-
-    def _sys_prompt(prefix):
-        """What reasoning_controls() would have sent for this role."""
-        raw = (os.environ.get(f"{prefix}_SYSTEM_PROMPT") or "").strip()
-        if raw.lower() == "none":
-            return None                      # no system message; Modelfile applies
-        return raw or _DEFAULT_SYSTEM_PROMPT
-
     combined = {
-        "config": {
-            "harness_commit": _git_head(),
-            "patcher": {
-                "temperature": patcher_metrics.get("temperature") or _env("AI_PATCH_MODEL_TEMPERATURE"),
-                "think": _env("AI_PATCH_MODEL_THINK"),
-                "reasoning": _env("AI_PATCH_MODEL_REASONING"),
-                "system_prompt": _sys_prompt("AI_PATCH_MODEL"),
-                "num_ctx": patcher_metrics.get("context_window"),
-                "num_predict": patcher_metrics.get("output_token_limit"),
-            },
-            "reviewer": {
-                "temperature": (post_metrics or {}).get("review", {}).get("temperature")
-                               or _env("AI_ASSISTANT_MODEL_TEMPERATURE"),
-                "think": _env("AI_ASSISTANT_MODEL_THINK"),
-                "reasoning": _env("AI_ASSISTANT_MODEL_REASONING"),
-                "system_prompt": _sys_prompt("AI_ASSISTANT_MODEL"),
-            },
-            "scorer": {
-                "temperature": _env("AI_ASSISTANT_SCORER_TEMPERATURE"),
-                "think": _env("AI_ASSISTANT_SCORER_THINK"),
-                "system_prompt": _sys_prompt("AI_ASSISTANT_SCORER"),
-                "grounding": _env("AI_ASSISTANT_SCORECARD_GROUNDING") or "enforce",
-            },
-            "issues_sha": _sha_of(REPO_ROOT / "ISSUES.md"),
-            "review_prompt_sha": _sha_of(REPO_ROOT / "review_prompt.md"),
-            "scorer_prompt_sha": _sha_of(REPO_ROOT / "scorer_prompt.md"),
-        },
+        "config": build_config_block(patcher_metrics, post_metrics),
         "patcher_model": patcher_model,
         "reviewer_model": reviewer_model,
         "scorer_model": scorer_model,
