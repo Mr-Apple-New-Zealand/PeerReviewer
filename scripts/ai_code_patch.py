@@ -538,8 +538,7 @@ def write_no_patch_report(
     # "no usable output" does not suggest it.
     hint = ""
     if patcher_metrics.get("done_reason") == "length" and "reasoning" in reason:
-        hint = ("
-- **Likely cause:** `think` was unset, so the model's own default "
+        hint = ("\n- **Likely cause:** `think` was unset, so the model's own default "
                 "applied and thinking stayed on. Ollama returns reasoning in a "
                 "separate field, so the answer never started before the token limit "
                 "was reached. Re-run with `patch_think: false`.")
