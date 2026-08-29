@@ -383,6 +383,105 @@ def run_patch_checks(scratch_source_root) -> tuple[dict, str]:
     return result, section
 
 
+def write_no_patch_report(
+    output_dir: Path,
+    patcher_model: str,
+    reviewer_model: str,
+    scorer_model: str,
+    patcher_metrics: dict,
+    reason: str,
+) -> None:
+    """Artefact for a run where the patcher emitted nothing to apply.
+
+    Same filenames and the same delta/verified keys as a normal run, so anything
+    reading the archive gets a comparable row rather than a special case. The
+    figures are not estimates: an unchanged tree resolves nothing, leaves every
+    marker in place, and compiles exactly as the original does.
+    """
+    checks, reference_total = patch_checks.coverage(REPO_ROOT / "ISSUES.md")
+    combined = {
+        "config": {"harness_commit": _git_head()},
+        "patcher_model": patcher_model,
+        "reviewer_model": reviewer_model,
+        "scorer_model": scorer_model,
+        "patcher": patcher_metrics,
+        "baseline": None,
+        "post_patch": None,
+        "delta": {
+            "patch_failed": True,
+            "patch_failure_reason": reason,
+            "issues_resolved": 0,
+            "issues_resolved_raw": 0,
+            "resolution_pct": 0.0,
+            "detectable_before": None,   # no review was run; see reason
+            "detectable_after": None,
+            # No verdict rather than a pass. The untouched tree does compile, but
+            # recording that as True would let a model that produced nothing rank
+            # beside models whose patches actually survive the compiler.
+            "build_compiles": None,
+            "build_new_errors": None,
+            "build_skipped_reason": "no patch was applied, so nothing was compiled",
+            "harness_commit": _git_head(),
+        },
+        "patched_files": [],
+        "rejected_paths": [],
+        "verified": {
+            "fixed": [], "still_present": [], "undetermined": [],
+            "checked": checks, "fixed_count": 0, "still_present_count": checks,
+        },
+    }
+    (output_dir / "patch_summary.json").write_text(
+        json.dumps(combined, indent=2), encoding="utf-8")
+
+    lines = [
+        "# AI Patch + Peer Review Summary",
+        "",
+        f"- **Patcher model:** `{patcher_model}`",
+        f"- **Files the patcher rewrote:** 0",
+        "",
+        "## Verdict",
+        "",
+        f"- **No patch was produced.** {reason[0].upper() + reason[1:]}.",
+        "- **Issues resolved: 0** (0.0% of all seeded bugs). The source tree is "
+        "unchanged, so nothing was fixed and every seeded issue remains.",
+        f"- Mechanical verification: **0 fixed / {checks} still present** — not a "
+        "measurement of the patch but of its absence.",
+        "- The peer review was skipped: reviewing the unmodified source would "
+        "spend several minutes reproducing the baseline every other run already "
+        "establishes.",
+        "",
+        "## Patcher performance",
+        "",
+        "| Metric | Value |",
+        "|--------|-------|",
+        f"| Total time | {patcher_metrics.get('total_duration_s')}s |",
+        f"| Prompt tokens | {patcher_metrics.get('prompt_tokens'):,} |",
+        f"| Output tokens | {patcher_metrics.get('output_tokens'):,} |",
+        f"| Output speed | {patcher_metrics.get('output_tps')} tok/s |",
+        f"| Completed naturally | {'Yes' if patcher_metrics.get('done_reason') == 'stop' else patcher_metrics.get('done_reason')} |",
+        "",
+        "## Build check",
+        "",
+        "Not run — no patch was applied, so there was nothing to compile. The "
+        "pristine tree builds as it always did; that is a fact about the sample "
+        "project, not about this model, and is recorded as no verdict rather "
+        "than as a pass.",
+        "",
+        f"## Run Configuration",
+        "",
+        f"| Setting | Value |",
+        "|---|---|",
+        f"| Patcher | `{patcher_model}` |",
+        f"| Branch / commit | `{_git_head() or '(unknown)'}` |",
+        f"| ISSUES.md SHA-256 | `{_sha_of(REPO_ROOT / 'ISSUES.md') or '(unknown)'}` |",
+        "",
+        "The raw response is in `patch_response.md`.",
+        "",
+    ]
+    (output_dir / "patch_summary.md").write_text("\n".join(lines), encoding="utf-8")
+    print(f"\n>>> No patch produced. Recorded a zero result in {output_dir}")
+
+
 def write_comparison_report(
     output_dir: Path,
     patcher_model: str,
@@ -807,7 +906,15 @@ def main() -> int:
             "patcher output. See patch_response.md for the raw response.",
             file=sys.stderr,
         )
-        return 1
+        write_no_patch_report(
+            output_dir, patcher_model, reviewer_model, scorer_model, patcher_metrics,
+            "the patcher produced no `### File:` blocks — its response contains "
+            "prose about the code but no code",
+        )
+        # Not an error exit: "cannot produce a patch" is a measurement, and the
+        # sweep needs the row. A non-zero exit here would leave the weakest model
+        # with no artefact, which reads as "not run" rather than "scored zero".
+        return 0
     print(f"Extracted {len(blocks)} patched files from response.")
 
     scratch_root = output_dir / "scratch"
