@@ -286,16 +286,32 @@ def build_run_config(
     def env(name, blank="(model default)"):
         return val((os.environ.get(name) or "").strip() or None, blank)
 
+    def _note(model, key):
+        """Italicised note when this provider does not use the setting."""
+        n = provider_notes(model).get(key)
+        return f"*{n}*" if n else ""
+
     rev = (post_metrics or {}).get("review", {})
     sco = (post_metrics or {}).get("scoring", {})
 
     rows = [
         ("**Patcher**", ""),
         ("Model", val(patcher_model)),
-        ("Temperature", val(patcher_metrics.get("temperature") or os.environ.get("AI_PATCH_MODEL_TEMPERATURE"))),
+        ("Provider", val(provider_of(patcher_model))),
+        ("Temperature",
+         _note(patcher_model, "temperature")
+         or val(patcher_metrics.get("temperature") or os.environ.get("AI_PATCH_MODEL_TEMPERATURE"))),
         ("num_ctx / num_predict",
-         f"{val(patcher_metrics.get('context_window'))} / {val(patcher_metrics.get('output_token_limit'))}"),
-        ("Reasoning / `think`", f"{env('AI_PATCH_MODEL_REASONING')} / {env('AI_PATCH_MODEL_THINK', '(unset)')}"),
+         (_note(patcher_model, "num_ctx") + " / " if _note(patcher_model, "num_ctx")
+          else f"{val(patcher_metrics.get('context_window'))} / ")
+         + val(patcher_metrics.get("output_token_limit"))),
+        ("Reasoning / `think`",
+         _note(patcher_model, "think")
+         or f"{env('AI_PATCH_MODEL_REASONING')} / {env('AI_PATCH_MODEL_THINK', '(unset)')}"),
+        # The review benchmark records this row too, so the two stay comparable.
+        ("Effort (Anthropic only)",
+         env("AI_ASSISTANT_EFFORT", "`high` (default)")
+         if provider_of(patcher_model) == "anthropic" else "(n/a)"),
         ("Source truncated", val("yes" if patcher_metrics.get("content_truncated") else "no")),
         ("**Reviewer**", ""),
         ("Model", val(reviewer_model)),
@@ -383,6 +399,35 @@ def run_patch_checks(scratch_source_root) -> tuple[dict, str]:
     return result, section
 
 
+def provider_of(model: str) -> str:
+    """Which API a model name routes to. Mirrors resolve_endpoint()."""
+    low = (model or "").strip().lower()
+    if low.startswith("claude-"):
+        return "anthropic"
+    if low.endswith(":cloud"):
+        return "ollama-cloud"
+    return "ollama"
+
+
+# What each provider actually does with the sampler settings we record. Anything
+# not listed is sent and honoured.
+_PROVIDER_NOTES = {
+    "anthropic": {
+        "temperature": "not sent — rejected by the API on Opus 4.7 and later",
+        "num_ctx": "not sent — the context window is fixed per model",
+        "think": "not sent — reasoning is set by output_config.effort",
+    },
+    "ollama-cloud": {
+        "num_ctx": "sent, but the cloud model is already resident with its own "
+                   "context; effect unconfirmed",
+    },
+}
+
+
+def provider_notes(model: str) -> dict:
+    return _PROVIDER_NOTES.get(provider_of(model), {})
+
+
 def build_config_block(patcher_metrics: dict, post_metrics: dict | None = None) -> dict:
     """How this run was actually configured, for both the normal and no-patch paths.
 
@@ -401,15 +446,20 @@ def build_config_block(patcher_metrics: dict, post_metrics: dict | None = None) 
             return None                      # no system message; Modelfile applies
         return raw or _DEFAULT_SYSTEM_PROMPT
 
+    p_model = patcher_metrics.get("model") or ""
     return {
         "harness_commit": _git_head(),
         "patcher": {
+            "provider": provider_of(p_model),
+            "ignored_settings": provider_notes(p_model),
             "temperature": patcher_metrics.get("temperature") or env("AI_PATCH_MODEL_TEMPERATURE"),
             "think": env("AI_PATCH_MODEL_THINK"),
             "reasoning": env("AI_PATCH_MODEL_REASONING"),
             "system_prompt": sys_prompt("AI_PATCH_MODEL"),
             "num_ctx": patcher_metrics.get("context_window"),
             "num_predict": patcher_metrics.get("output_token_limit"),
+            "effort": ((os.environ.get("AI_ASSISTANT_EFFORT") or "high").strip()
+                       if provider_of(p_model) == "anthropic" else None),
         },
         "reviewer": {
             "temperature": (post_metrics or {}).get("review", {}).get("temperature")
