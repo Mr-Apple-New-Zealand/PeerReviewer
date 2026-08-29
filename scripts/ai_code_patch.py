@@ -937,11 +937,19 @@ def main() -> int:
 
     data = ollama_chat(patcher_url, payload, output_dir / "patch_payload.json", "patch", patcher_key)
     raw = (data.get("message") or {}).get("content", "")
+    thinking = (data.get("message") or {}).get("thinking", "") or ""
     patch_output = strip_thinking(raw).strip()
-    if not patch_output:
-        print("ERROR: patcher returned an empty response.", file=sys.stderr)
-        return 1
-    (output_dir / "patch_response.md").write_text(patch_output, encoding="utf-8")
+
+    # Always keep the unprocessed reply. When the response strips to nothing,
+    # this is the only way to tell a model that emitted pure reasoning from one
+    # that emitted zero bytes -- and the answer decides whether the fix is a
+    # prompt change or a note that the model cannot do the task.
+    if raw != patch_output or not patch_output:
+        (output_dir / "patch_response_raw.md").write_text(raw, encoding="utf-8")
+    if thinking:
+        (output_dir / "patch_thinking.md").write_text(thinking, encoding="utf-8")
+    if patch_output:
+        (output_dir / "patch_response.md").write_text(patch_output, encoding="utf-8")
 
     patcher_metrics = {
         "model": patcher_model,
@@ -993,6 +1001,21 @@ def main() -> int:
         print(f"WARNING: {_msg}", file=sys.stderr)
         if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
             print(f"::warning title=Output budget nearly exhausted::{_msg}")
+
+    if not patch_output:
+        detail = (f"it returned {patcher_metrics['output_tokens']:,} tokens, all of "
+                  "them reasoning rather than an answer"
+                  if (thinking or raw) else "it returned nothing at all")
+        reason = f"the patcher produced no usable output — {detail}"
+        print(f"ERROR: patcher returned an empty response; {detail}. "
+              "See patch_response_raw.md.", file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::error title=Patcher returned nothing::{reason}")
+        write_no_patch_report(
+            output_dir, patcher_model, reviewer_model, scorer_model,
+            patcher_metrics, reason,
+        )
+        return 0
 
     blocks = extract_file_blocks(patch_output)
     if not blocks:
