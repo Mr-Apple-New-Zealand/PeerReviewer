@@ -512,9 +512,31 @@ def main() -> int:
     if _think is not None:
         review_payload["think"] = _think
     review_data = ollama_chat(review_url, review_payload, output_dir / "payload.json", "review", review_key)
-    review = strip_thinking((review_data.get("message") or {}).get("content", "")).strip()
+    _msg = review_data.get("message") or {}
+    _raw = _msg.get("content", "") or ""
+    _thinking = _msg.get("thinking", "") or ""
+    review = strip_thinking(_raw).strip()
     if not review:
-        print("ERROR: Ollama returned an empty review.", file=sys.stderr)
+        # Keep everything before giving up. A model that emits only reasoning
+        # strips to nothing and is otherwise indistinguishable from one that
+        # returned zero bytes, and the two have different remedies.
+        try:
+            (output_dir / "review_raw.md").write_text(_raw, encoding="utf-8")
+            if _thinking:
+                (output_dir / "review_thinking.md").write_text(_thinking, encoding="utf-8")
+        except OSError:
+            pass
+        _out = review_data.get("eval_count", 0) or 0
+        _why = review_data.get("done_reason", "") or "(none)"
+        print(f"ERROR: Ollama returned an empty review. The model emitted "
+              f"{_out:,} tokens (done_reason={_why}); "
+              f"{len(_thinking):,} chars of that went to the separate thinking "
+              f"field and {len(_raw):,} chars to content. See review_raw.md.",
+              file=sys.stderr)
+        if _why == "length" or _thinking:
+            print("       Likely cause: thinking is on by default for this model. "
+                  "Set AI_ASSISTANT_MODEL_THINK=false for the reviewer.",
+                  file=sys.stderr)
         return 1
     (output_dir / "review.md").write_text(review, encoding="utf-8")
 
