@@ -917,18 +917,36 @@ def main() -> int:
 
     chars_per_token = 2.5
     instruction_chars = len(PATCH_PROMPT_TEMPLATE.format(issues=issues, diff=""))
-    available_tokens = num_ctx - num_predict - 500
+
+    # For Anthropic, num_ctx is never sent: the window belongs to the model, and
+    # Opus 5's is 1M. Sizing the input budget from it applies Ollama's arithmetic
+    # where it does not hold -- raising num_predict to fix a truncated OUTPUT
+    # then silently starves the INPUT, which is how a patcher came to be scored
+    # on the issue list alone. Take the larger of the two.
+    budget_ctx = num_ctx
+    if provider_of(patcher_model) == "anthropic":
+        budget_ctx = max(num_ctx, int(os.environ.get("AI_PATCH_ANTHROPIC_CTX") or 200000))
+
+    available_tokens = budget_ctx - num_predict - 500
     max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
-    truncated = len(diff) > max_diff_chars
+    source_chars = len(diff)
+    truncated = source_chars > max_diff_chars
     if truncated:
+        pct = (max_diff_chars / source_chars * 100) if source_chars else 0.0
         diff = diff[:max_diff_chars]
-        print(
-            f"WARN: source listing truncated to fit context — patcher may miss "
-            f"issues in the trailing {file_count} files.",
-            file=sys.stderr,
-        )
+        msg = (f"the patcher was shown {max_diff_chars:,} of {source_chars:,} chars "
+               f"({pct:.0f}%) across {file_count} files; it cannot be measured on "
+               "code it never received")
+        print(f"ERROR: source listing truncated — {msg}. Raise num_ctx (or lower "
+              "num_predict) and re-run; this result is not comparable.",
+              file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::error title=Patcher input truncated::{msg}")
     print(
-        f"Context: {num_ctx} tokens; instruction overhead {instruction_chars} chars; "
+        f"Context: {budget_ctx} tokens"
+        + (f" (num_ctx {num_ctx} raised for {provider_of(patcher_model)})"
+           if budget_ctx != num_ctx else "")
+        + f"; instruction overhead {instruction_chars} chars; "
         f"diff budget {max_diff_chars} chars; actual diff {len(diff)} chars; "
         f"truncated={truncated}"
     )
