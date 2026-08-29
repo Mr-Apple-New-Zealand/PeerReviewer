@@ -534,6 +534,16 @@ def write_no_patch_report(
     (output_dir / "patch_summary.json").write_text(
         json.dumps(combined, indent=2), encoding="utf-8")
 
+    # A model that spent its whole budget reasoning has one specific remedy, and
+    # "no usable output" does not suggest it.
+    hint = ""
+    if patcher_metrics.get("done_reason") == "length" and "reasoning" in reason:
+        hint = ("
+- **Likely cause:** `think` was unset, so the model's own default "
+                "applied and thinking stayed on. Ollama returns reasoning in a "
+                "separate field, so the answer never started before the token limit "
+                "was reached. Re-run with `patch_think: false`.")
+
     lines = [
         "# AI Patch + Peer Review Summary",
         "",
@@ -549,7 +559,7 @@ def write_no_patch_report(
         "measurement of the patch but of its absence.",
         "- The peer review was skipped: reviewing the unmodified source would "
         "spend several minutes reproducing the baseline every other run already "
-        "establishes.",
+        "establishes." + hint,
         "",
         "## Patcher performance",
         "",
@@ -576,7 +586,8 @@ def write_no_patch_report(
         f"| Branch / commit | `{_git_head() or '(unknown)'}` |",
         f"| ISSUES.md SHA-256 | `{_sha_of(REPO_ROOT / 'ISSUES.md') or '(unknown)'}` |",
         "",
-        "The raw response is in `patch_response.md`.",
+        "The unprocessed reply is in `patch_response_raw.md`; any reasoning the "
+        "model emitted separately is in `patch_thinking.md`.",
         "",
     ]
     (output_dir / "patch_summary.md").write_text("\n".join(lines), encoding="utf-8")
