@@ -429,9 +429,16 @@ def tps(tokens: int | None, duration_ns: int | None) -> float:
 
 
 def fmt_s(secs: float) -> str:
-    if secs >= 60:
-        return f"{int(secs // 60)}m {secs % 60:.0f}s"
-    return f"{secs:.1f}s"
+    """Seconds as 'Xm Ys', carrying properly.
+
+    Taking minutes from the unrounded value and then rounding the remainder
+    printed 479.7s as "7m 60s": 59.7 rounds to 60 with nothing to carry into.
+    Round to whole seconds first, then split.
+    """
+    if secs < 60:
+        return f"{secs:.1f}s"
+    whole = round(secs)
+    return f"{whole // 60}m {whole % 60}s"
 
 
 def main() -> int:
