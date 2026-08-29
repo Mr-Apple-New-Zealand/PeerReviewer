@@ -73,13 +73,13 @@ The decision-relevant comparison is not Qwen3.8-27B but the scorer actually in p
 | | Jack-27B | Qwen3-Coder-30B *(incumbent)* |
 |---|---|---|
 | Score | 100.0% | 100.0% |
-| Decoy credited (of 70) | **17** | 19 |
+| Decoy credited (of 70, post-processing) | **17** | 18 |
 | Ungrounded | **0** | 1 |
 | Misaligned | 4 | **0** |
 | Perfect-review time | 2m 48s | **30s** |
 | Throughput | 47.5 t/s | **159.9 t/s** |
 
-Jack is marginally *better* on grading — one fewer ungrounded note, two fewer decoy credits —
+Jack is marginally *better* on grading — one fewer ungrounded note, one fewer decoy credit —
 and marginally worse on alignment. Those differences are within the noise of a single run.
 
 The gap that is not within noise is speed: **30 seconds against 2m 48s**. The scorer runs
