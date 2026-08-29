@@ -1,35 +1,35 @@
 # AI Patch + Peer Review Summary
 
-- **Patcher model:** `Qwen3.8-27B-imatrix:Q4_K_S`
+- **Patcher model:** `Qwen3-Coder-30B-imatrix:Q3_K_M`
 - **Reviewer model:** `Gemma-4-31B-it-imatrix:Q4_K_M`
 - **Scorer model:** `Qwen3-Coder-30B-imatrix:Q3_K_M`
-- **Files the patcher rewrote:** 13
+- **Files the patcher rewrote:** 11
 - **Rejected paths** (outside source root or invalid): 0
 
 ## Score comparison
 
 | Stage | Found | Partial | Missed | Total | % Found |
 |-------|-------|---------|--------|-------|---------|
-| Baseline (before patch) | 54 | 13 | 3 | 70 | 77.1% |
-| Post-patch | 1 | 14 | 55 | 70 | 1.4% |
+| Baseline (before patch) | 47 | 14 | 9 | 70 | 67.1% |
+| Post-patch | 1 | 40 | 29 | 70 | 1.4% |
 
 > **How to read this table.** `%Found` is the peer reviewer's *recall*, not the patcher's success. A patch that removes bugs makes them undetectable, so those IDs move into `Missed` — that's the column to watch. `Found` and `Partial` can even shift *upwards* post-patch when the reviewer gets a cleaner view of the bugs that weren't fixed.
 
 ## Verdict
 
-- **Issues resolved: 58** (82.9% of all seeded bugs). Bugs the reviewer named before the patch and cannot name after. Rows the scorer credited without support in the review are excluded from both sides — unverifiable `Found` ratings and `Partial` ratings alike.
-- Reviewer still detects **4** of the 70 seeded issues, down from **62** before the patch.
-- Taking the scorer's columns at face value would give **52**. 5 baseline and 11 post-patch rows were credited with evidence the review does not contain, and are excluded. Baseline fabrications matter most: they invent bugs the reviewer never detected, each of which then counts as resolved.
+- **Issues resolved: 34** (48.6% of all seeded bugs). Bugs the reviewer named before the patch and cannot name after. Rows the scorer credited without support in the review are excluded from both sides — unverifiable `Found` ratings and `Partial` ratings alike.
+- Reviewer still detects **24** of the 70 seeded issues, down from **58** before the patch.
+- Taking the scorer's columns at face value would give **20**. 3 baseline and 17 post-patch rows were credited with evidence the review does not contain, and are excluded. Baseline fabrications matter most: they invent bugs the reviewer never detected, each of which then counts as resolved.
 
 ## Patcher performance
 
 | Metric | Value |
 |--------|-------|
-| Total time | 12m 9s |
-| Prompt tokens | 14,697 |
-| Output tokens | 17,064 |
-| Output speed | 23.8 tok/s |
-| Prompt speed | 2217.4 tok/s |
+| Total time | 57.7s |
+| Prompt tokens | 13,830 |
+| Output tokens | 7,134 |
+| Output speed | 140.1 tok/s |
+| Prompt speed | 5694.7 tok/s |
 | Completed naturally | Yes |
 
 ## Files patched
@@ -45,13 +45,17 @@
 - `SampleBankingApp/Services/EmailService.cs`
 - `SampleBankingApp/Services/TransactionService.cs`
 - `SampleBankingApp/Services/UserService.cs`
-- `SampleBankingApp/appsettings.Production.json`
-- `SampleBankingApp/appsettings.json`
 
 
 ## Build check
 
-**The patched tree compiles.** No compiler error appears that was not already present before the patch. The pristine tree compiles cleanly.
+**The patched tree does not compile — 1 new error(s).** The pristine tree compiles cleanly.
+
+Read every figure above in this light. A resolved-issues count measures whether the reviewer can still name each bug, and code that does not build can score well on that while being unusable.
+
+| Error | File | Line | Message |
+|---|---|---|---|
+| `MSB4025` | `SampleBankingApp.csproj` | 1 | The project file could not be loaded. Data at the root level is invalid. Line 1, position 6. |
 
 ## Run Configuration
 
@@ -60,10 +64,10 @@ Values as actually used, so this run can be re-dispatched exactly. Blank sampler
 | Setting | Value |
 |---|---|
 | **Patcher** |  |
-| Model | `Qwen3.8-27B-imatrix:Q4_K_S` |
+| Model | `Qwen3-Coder-30B-imatrix:Q3_K_M` |
 | Temperature | `0` |
 | num_ctx / num_predict | `65536` / `40000` |
-| Reasoning / `think` | (model default) / `medium` |
+| Reasoning / `think` | (model default) / (unset) |
 | Source truncated | `no` |
 | **Reviewer** |  |
 | Model | `Gemma-4-31B-it-imatrix:Q4_K_M` |
@@ -78,7 +82,7 @@ Values as actually used, so this run can be re-dispatched exactly. Blank sampler
 | Reasoning / `think` | (model default) / (unset) |
 | Grounding mode | `enforce` |
 | **Reference** |  |
-| Branch / commit | `main @ eb8f66b` |
+| Branch / commit | `main @ 83ba9c8` |
 | ISSUES.md SHA-256 | `4b57cc34a7bb` |
 | Scorer prompt SHA-256 | `2b79baa02b94` |
 | Review prompt SHA-256 | `82bd5f768ca9` |
@@ -88,7 +92,20 @@ Values as actually used, so this run can be re-dispatched exactly. Blank sampler
 
 Direct inspection of the patched source for 41 of the 69 seeded issues — those with an unambiguous textual marker. Independent of the peer reviewer, so it is not affected by review recall or scorer mis-attribution.
 
-**41 fixed / 0 still present** (of 41 checked).
+**31 fixed / 10 still present** (of 41 checked).
+
+| ID | File | Still present |
+|---|---|---|
+| A6 | `Data/DatabaseHelper.cs` | connection-leaking GetOpenConnection still present |
+| C3 | `Services/AuthService.cs` | MD5 password hashing |
+| C8 | `appsettings.json` | a real DB password is still committed |
+| E7 | `(tree)` | no rate limiting or lockout anywhere on the login path |
+| RL2 | `Data/DatabaseHelper.cs` | connection-leaking helper still exported |
+| R3 | `Services/AuthService.cs` | GenerateJwtToken still over 12 lines — not split into helpers |
+| D10 | `Helpers/StringHelper.cs` | experimental helper retained |
+| A1 | `Services/UserService.cs` | mutable static audit log |
+| CF4 | `Program.cs` | HTTPS redirection still commented out |
+| CF9 | `appsettings.Production.json` | no environment-specific config file |
 
 A marker proves the bug's *shape* is gone, not that the replacement is correct — read this next to the peer review, not instead of it.
 

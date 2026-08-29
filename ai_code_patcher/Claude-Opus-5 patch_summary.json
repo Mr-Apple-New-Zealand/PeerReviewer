@@ -1,13 +1,20 @@
 {
   "config": {
-    "harness_commit": "main @ eb8f66b",
+    "harness_commit": "main @ 2915add",
     "patcher": {
+      "provider": "anthropic",
+      "ignored_settings": {
+        "temperature": "not sent \u2014 rejected by the API on Opus 4.7 and later",
+        "num_ctx": "not sent \u2014 the context window is fixed per model",
+        "think": "not sent \u2014 reasoning is set by output_config.effort"
+      },
       "temperature": "0",
-      "think": "medium",
+      "think": null,
       "reasoning": null,
       "system_prompt": "You are an expert computer programmer with an eye for detail, who loves to provide high quality answers.",
       "num_ctx": 65536,
-      "num_predict": 40000
+      "num_predict": 64000,
+      "effort": "high"
     },
     "reviewer": {
       "temperature": "0",
@@ -25,143 +32,130 @@
     "review_prompt_sha": "82bd5f768ca9",
     "scorer_prompt_sha": "2b79baa02b94"
   },
-  "patcher_model": "Qwen3.8-27B-imatrix:Q4_K_S",
+  "patcher_model": "claude-opus-5",
   "reviewer_model": "Gemma-4-31B-it-imatrix:Q4_K_M",
   "scorer_model": "Qwen3-Coder-30B-imatrix:Q3_K_M",
   "patcher": {
-    "model": "Qwen3.8-27B-imatrix:Q4_K_S",
-    "total_duration_s": 728.9,
-    "load_duration_s": 4.7,
-    "prompt_tokens": 14697,
-    "output_tokens": 17064,
-    "output_token_limit": 40000,
-    "prompt_tps": 2217.4,
-    "output_tps": 23.8,
+    "model": "claude-opus-5",
+    "total_duration_s": 377.2,
+    "load_duration_s": 0.0,
+    "prompt_tokens": 20442,
+    "output_tokens": 42406,
+    "output_token_limit": 64000,
+    "prompt_tps": 0.0,
+    "output_tps": 112.4,
     "context_window": 65536,
     "content_truncated": false,
-    "done_reason": "stop"
+    "done_reason": "stop",
+    "output_tps_basis": "eval_duration"
   },
   "baseline": {
     "review": {
       "model": "Gemma-4-31B-it-imatrix:Q4_K_M",
-      "total_duration_s": 193.9,
-      "load_duration_s": 5.6,
-      "prompt_tokens": 12232,
-      "output_tokens": 5518,
+      "total_duration_s": 208.8,
+      "load_duration_s": 5.7,
+      "prompt_tokens": 12229,
+      "output_tokens": 5958,
       "output_token_limit": 40000,
-      "prompt_tps": 2309.3,
-      "output_tps": 30.2,
+      "prompt_tps": 2314.1,
+      "output_tps": 30.1,
       "context_window": 65536,
-      "context_utilization_pct": 27.1,
+      "context_utilization_pct": 27.8,
       "content_truncated": false,
       "done_reason": "stop"
     },
     "scoring": {
       "model": "Qwen3-Coder-30B-imatrix:Q3_K_M",
-      "total_duration_s": 29.2,
-      "load_duration_s": 3.0,
-      "prompt_tokens": 7707,
-      "output_tokens": 4054,
-      "prompt_tps": 6225.4,
-      "output_tps": 162.7,
+      "total_duration_s": 29.6,
+      "load_duration_s": 4.1,
+      "prompt_tokens": 8011,
+      "output_tokens": 3938,
+      "prompt_tps": 6265.7,
+      "output_tps": 162.9,
       "done_reason": "stop"
     },
     "score": {
-      "found": 54,
-      "partial": 13,
-      "missed": 3,
+      "found": 53,
+      "partial": 4,
+      "missed": 13,
       "found_adjusted": 53,
       "found_floor": 53,
-      "spotcheck_miscredits": [
-        "N4"
-      ],
-      "spotcheck_found_checked": 31,
-      "precision": 0.9677,
-      "citations_total": 71,
+      "spotcheck_miscredits": [],
+      "spotcheck_found_checked": 30,
+      "precision": 1.0,
+      "citations_total": 91,
       "citations_beyond_eof": 0,
       "spotcheck_unsupported_partials": [
-        "N3",
-        "D5",
-        "CF9",
-        "CF7"
+        "N3"
       ],
       "hedged_rows": [],
-      "grounding_downgrades": 1,
+      "grounding_downgrades": 11,
       "total": 70,
-      "score_pct": 77.1
+      "score_pct": 75.7
     },
-    "combined_total_s": 223.1
+    "combined_total_s": 238.4
   },
   "post_patch": {
     "review": {
       "model": "Gemma-4-31B-it-imatrix:Q4_K_M",
-      "total_duration_s": 163.0,
+      "total_duration_s": 192.8,
       "load_duration_s": 0.4,
-      "prompt_tokens": 14298,
-      "output_tokens": 4627,
+      "prompt_tokens": 18637,
+      "output_tokens": 5365,
       "output_token_limit": 40000,
-      "prompt_tps": 2243.3,
-      "output_tps": 30.0,
+      "prompt_tps": 2129.2,
+      "output_tps": 29.5,
       "context_window": 65536,
-      "context_utilization_pct": 28.9,
-      "content_truncated": false,
+      "context_utilization_pct": 36.6,
+      "content_truncated": true,
       "done_reason": "stop"
     },
     "scoring": {
       "model": "Qwen3-Coder-30B-imatrix:Q3_K_M",
-      "total_duration_s": 23.4,
+      "total_duration_s": 21.0,
       "load_duration_s": 0.1,
-      "prompt_tokens": 6518,
-      "output_tokens": 3792,
-      "prompt_tps": 30921.0,
-      "output_tps": 168.2,
+      "prompt_tokens": 5985,
+      "output_tokens": 3467,
+      "prompt_tps": 46335.7,
+      "output_tps": 171.4,
       "done_reason": "stop"
     },
     "score": {
-      "found": 1,
-      "partial": 14,
-      "missed": 55,
-      "found_adjusted": 1,
-      "found_floor": 1,
+      "found": 0,
+      "partial": 3,
+      "missed": 67,
+      "found_adjusted": 0,
+      "found_floor": 0,
       "spotcheck_miscredits": [],
-      "spotcheck_found_checked": 1,
-      "precision": 1.0,
-      "citations_total": 27,
+      "spotcheck_found_checked": 0,
+      "precision": null,
+      "citations_total": 14,
       "citations_beyond_eof": 0,
       "spotcheck_unsupported_partials": [
-        "D3",
-        "D4",
-        "D6",
-        "D7",
-        "D8",
-        "D9",
-        "D10",
-        "D11",
-        "C9",
-        "L4",
-        "CF8"
+        "D1",
+        "D6"
       ],
       "hedged_rows": [],
-      "grounding_downgrades": 26,
+      "grounding_downgrades": 1,
       "total": 70,
-      "score_pct": 1.4
+      "score_pct": 0.0
     },
-    "combined_total_s": 186.4
+    "combined_total_s": 213.8
   },
   "delta": {
-    "issues_resolved": 58,
-    "issues_resolved_raw": 52,
+    "issues_resolved": 55,
+    "issues_resolved_raw": 54,
     "row_count_mismatch": null,
     "build_compiles": true,
     "build_new_errors": 0,
     "build_skipped_reason": null,
-    "harness_commit": "main @ eb8f66b",
-    "resolution_pct": 82.9,
-    "detectable_before": 62,
-    "detectable_after": 4,
+    "harness_commit": "main @ 2915add",
+    "resolution_pct": 78.6,
+    "detectable_before": 56,
+    "detectable_after": 1,
     "found_delta": "-53",
-    "partial_delta": "+1",
-    "missed_delta": "+52",
+    "partial_delta": "-1",
+    "missed_delta": "+54",
     "build_errors": [],
     "build_checked_by": "scripts/check_patch_builds.py"
   },
@@ -173,8 +167,10 @@
     "SampleBankingApp/Helpers/StringHelper.cs",
     "SampleBankingApp/Program.cs",
     "SampleBankingApp/SampleBankingApp.csproj",
+    "SampleBankingApp/Services/AuditLogService.cs",
     "SampleBankingApp/Services/AuthService.cs",
     "SampleBankingApp/Services/EmailService.cs",
+    "SampleBankingApp/Services/LoginAttemptTracker.cs",
     "SampleBankingApp/Services/TransactionService.cs",
     "SampleBankingApp/Services/UserService.cs",
     "SampleBankingApp/appsettings.Production.json",
@@ -212,7 +208,6 @@
       "D5",
       "D6",
       "D7",
-      "D8",
       "D9",
       "E7",
       "L1",
@@ -225,10 +220,12 @@
       "RL2",
       "RL4"
     ],
-    "still_present": [],
+    "still_present": [
+      "D8"
+    ],
     "undetermined": [],
     "checked": 41,
-    "fixed_count": 41,
-    "still_present_count": 0
+    "fixed_count": 40,
+    "still_present_count": 1
   }
 }
