@@ -906,6 +906,16 @@ def main() -> int:
         "content_truncated": truncated,
         "done_reason": data.get("done_reason", ""),
     }
+    # Cloud endpoints report no eval_duration, so tps() yields 0.0. Total
+    # duration includes prompt processing and so understates generation, which is
+    # why the basis travels with the number instead of being blended into it.
+    patcher_metrics["output_tps_basis"] = "eval_duration"
+    if not patcher_metrics["output_tps"] and patcher_metrics["total_duration_s"]:
+        patcher_metrics["output_tps"] = round(
+            patcher_metrics["output_tokens"] / patcher_metrics["total_duration_s"], 1)
+        patcher_metrics["output_tps_basis"] = "total_duration (approximate — "
+        patcher_metrics["output_tps_basis"] += "includes prompt processing)"
+
     print(
         f"Patcher: {patcher_metrics['total_duration_s']}s | "
         f"in {patcher_metrics['prompt_tokens']:,} tok / "
@@ -913,6 +923,26 @@ def main() -> int:
         f"{patcher_metrics['output_tps']} tok/s | "
         f"done_reason={patcher_metrics['done_reason']}"
     )
+
+    # A patch cut off mid-block is still parseable: extract_file_blocks will
+    # return whatever completed, the harness will apply it, and the run will be
+    # scored as though the model had finished. Say so loudly rather than leaving
+    # it to a table row nobody reads.
+    _limit = patcher_metrics.get("output_token_limit") or 0
+    _used = patcher_metrics.get("output_tokens") or 0
+    if patcher_metrics.get("done_reason") == "length":
+        _msg = (f"the patcher hit its {_limit:,}-token output limit, so the patch "
+                "is cut off mid-response and any result from it is partial")
+        print(f"ERROR: {_msg}. Re-run with a larger AI_PATCH_MODEL_NUM_PREDICT.",
+              file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::error title=Patch truncated::{_msg}")
+    elif _limit and _used >= _limit * 0.95:
+        _msg = (f"the patcher used {_used:,} of {_limit:,} output tokens "
+                f"({_used / _limit * 100:.1f}%); the next model may not fit")
+        print(f"WARNING: {_msg}", file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::warning title=Output budget nearly exhausted::{_msg}")
 
     blocks = extract_file_blocks(patch_output)
     if not blocks:
