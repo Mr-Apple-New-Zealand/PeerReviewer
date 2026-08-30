@@ -491,17 +491,45 @@ def main() -> int:
     chars_per_token = 2.5
     instruction_chars = len(REVIEW_PROMPT_TEMPLATE.format(
         branch_name=branch, commit_sha=commit_sha, diff="", truncation_note=""))
-    available_tokens = num_ctx - num_predict - 500
+    # num_ctx is not a local cap for either hosted provider: Anthropic never
+    # receives it, and Ollama's cloud endpoint serves a model already resident
+    # with its own context. Subtracting num_predict from it applies local
+    # arithmetic to a remote window, which is how a reviewer was once handed a
+    # prompt with an empty "## Source Files" section and scored 0 of 70.
+    low = review_model.strip().lower()
+    budget_ctx = num_ctx
+    if low.startswith("claude-") or low.endswith(":cloud"):
+        budget_ctx = max(num_ctx, int(os.environ.get("AI_PATCH_HOSTED_CTX") or 200000))
+
+    available_tokens = budget_ctx - num_predict - 500
     max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
-    truncated = len(diff) > max_diff_chars
+    source_chars = len(diff)
+    truncated = source_chars > max_diff_chars
+    truncation_note = ""
     if truncated:
+        pct = (max_diff_chars / source_chars * 100) if source_chars else 0.0
         diff = diff[:max_diff_chars]
         truncation_note = "[Note: the source listing below was truncated to fit the context window]"
-    else:
-        truncation_note = ""
+        msg = (f"the reviewer was shown {max_diff_chars:,} of {source_chars:,} chars "
+               f"({pct:.0f}%); it cannot be measured on code it never received")
+        print(f"ERROR: source listing truncated — {msg}. Raise num_ctx (or lower "
+              "num_predict) and re-run; this result is not comparable.",
+              file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::error title=Reviewer input truncated::{msg}")
+        # Stop rather than spend the call. A reviewer handed no source either
+        # invents a review or refuses to, and neither measures the model.
+        if os.environ.get("AI_PATCH_ALLOW_TRUNCATION", "").strip() not in {"1", "true", "yes"}:
+            print("       Not sending the request. Set AI_PATCH_ALLOW_TRUNCATION=1 "
+                  "to override.", file=sys.stderr)
+            return 1
 
-    print(f"Context: {num_ctx} tokens, instruction overhead: {instruction_chars} chars, "
-          f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, truncated: {truncated}")
+    print(f"Context: {budget_ctx} tokens"
+          + (f" (num_ctx {num_ctx} raised for the hosted window)"
+             if budget_ctx != num_ctx else "")
+          + f", instruction overhead: {instruction_chars} chars, "
+          f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, "
+          f"truncated: {truncated}")
 
     review_prompt = REVIEW_PROMPT_TEMPLATE.format(
         branch_name=branch, commit_sha=commit_sha, diff=diff, truncation_note=truncation_note,
