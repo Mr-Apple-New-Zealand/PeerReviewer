@@ -708,6 +708,11 @@ def write_comparison_report(
             "row_count_mismatch": row_count_mismatch,
             # None, not 0, when the check did not run -- 0 new errors is the same
             # value a clean build produces, and the two must not be confused.
+            # Surfaced next to the verdict, not just in patcher.done_reason. A
+            # truncated patch is scored on the files that arrived, so its marker
+            # count and build result describe a fragment -- and a summary reading
+            # delta alone would rank it against complete patches.
+            "patch_truncated": patcher_metrics.get("done_reason") == "length",
             "build_compiles": (build_result or {}).get("compiles"),
             "build_new_errors": (len(build_result["new_errors"])
                                  if (build_result or {}).get("ran") else None),
@@ -775,6 +780,17 @@ def write_comparison_report(
         "the reviewer gets a cleaner view of the bugs that weren't fixed.",
         "",
     ]
+
+    if patcher_metrics.get("done_reason") == "length":
+        lines += [
+            "> **This patch is incomplete.** The patcher hit its "
+            f"{patcher_metrics.get('output_token_limit', 0):,}-token output limit, so the "
+            "response was cut off partway through. Every figure below describes the "
+            "files that arrived, not the patch the model would have written — a "
+            "defect in a file it never reached is recorded as unfixed. Re-run with a "
+            "larger `num_predict` before comparing this against a complete patch.",
+            "",
+        ]
 
     if issues_resolved is not None:
         good = issues_resolved > 0
