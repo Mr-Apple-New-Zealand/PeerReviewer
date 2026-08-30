@@ -316,15 +316,46 @@ jobs:
           chars_per_token = 2.5
           instruction_chars = len(prompt_template.format(
               branch_name=branch_name, commit_sha=commit_sha, diff="", truncation_note=""))
-          available_tokens = num_ctx_tokens - num_predict_tokens - 500  # 500 token safety buffer
+          # num_ctx is not a local cap for either hosted provider: Anthropic never
+          # receives it, and Ollama's cloud endpoint serves a model already
+          # resident with its own context. Subtracting num_predict from it applies
+          # local arithmetic to a remote window, which is how glm-5.3:cloud was
+          # handed an empty "## Source Files" section at num_predict 128,000.
+          # This mirrors scripts/ai_code_review.py; the two implementations of
+          # this block must stay in step.
+          _low = model.strip().lower()
+          budget_ctx = num_ctx_tokens
+          if _low.startswith("claude-") or _low.endswith(":cloud"):
+              budget_ctx = max(num_ctx_tokens,
+                               int(os.environ.get("AI_PATCH_HOSTED_CTX") or 200000))
+
+          available_tokens = budget_ctx - num_predict_tokens - 500  # 500 token safety buffer
           max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
-          truncated = len(diff) > max_diff_chars
+          source_chars = len(diff)
+          truncated = source_chars > max_diff_chars
           if truncated:
+              pct = (max_diff_chars / source_chars * 100) if source_chars else 0.0
               diff = diff[:max_diff_chars]
               truncation_note = "[Note: the source listing below was truncated to fit the context window]"
+              _msg = (f"the reviewer was shown {max_diff_chars:,} of {source_chars:,} chars "
+                      f"({pct:.0f}%); it cannot be measured on code it never received")
+              print(f"ERROR: source listing truncated \u2014 {_msg}. Raise num_ctx (or lower "
+                    "num_predict) and re-run; this result is not comparable.", file=sys.stderr)
+              if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+                  print(f"::error title=Reviewer input truncated::{_msg}")
+              # Stop rather than spend the call. A reviewer handed no source either
+              # invents a review or refuses to, and neither measures the model.
+              if os.environ.get("AI_PATCH_ALLOW_TRUNCATION", "").strip() not in {"1", "true", "yes"}:
+                  print("       Not sending the request. Set AI_PATCH_ALLOW_TRUNCATION=1 "
+                        "to override.", file=sys.stderr)
+                  sys.exit(1)
 
-          print(f"Context: {num_ctx_tokens} tokens, instruction overhead: {instruction_chars} chars, "
-                f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, truncated: {truncated}")
+          print(f"Context: {budget_ctx} tokens"
+                + (f" (num_ctx {num_ctx_tokens} raised for the hosted window)"
+                   if budget_ctx != num_ctx_tokens else "")
+                + f", instruction overhead: {instruction_chars} chars, "
+                f"diff budget: {max_diff_chars} chars, actual diff: {len(diff)} chars, "
+                f"truncated: {truncated}")
 
           prompt = prompt_template.format(
               branch_name=branch_name,
