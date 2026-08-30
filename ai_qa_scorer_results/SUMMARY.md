@@ -1,10 +1,10 @@
 # Scorer Benchmark — Results Summary
 
-Twenty models were tested as *scorers* — the component that grades a code review against
+Twenty-one models were tested as *scorers* — the component that grades a code review against
 `ISSUES.md` — rather than as reviewers. Each was given three synthetic reviews with known
 correct answers and asked to produce a scorecard. Every model received an identical prompt,
 system prompt and sampler settings; the harness records both digests and the decoy definition
-in each run's `results.json`, and all twenty share the same values.
+in each run’s `results.json`, and all twenty-one share the same values.
 
 The companion document for the review benchmark is
 [../ai_code_review_results/SUMMARY.md](../ai_code_review_results/SUMMARY.md).
@@ -13,7 +13,7 @@ The companion document for the review benchmark is
 
 ## Executive Summary
 
-**Eleven of the twenty scored a perfect 100.0%, so the headline Score does not rank them.**
+**Twelve of the twenty-one scored a perfect 100.0%, so the headline Score does not rank them.**
 The number that separates a good scorer from a bad one is **Ungrounded** — rows the scorer
 rated Found or Partial with nothing in the review to support them. That column runs from 0 to
 84 across a field whose Scores run from 100.0% to 98.9%.
@@ -86,24 +86,27 @@ correct.
 | 3 | Claude-Sonnet-5 | 100.0% | **0** | 16/70 | 17 | 43.9s | Clean, hosted |
 | 4 | Claude-Opus-5 | 100.0% | **0** | 18/70 | 19 | 63.7s | Clean, hosted |
 | 5 | gpt-oss-120B | 100.0% | **0** | 18/70 | 36 | 74.6s | Clean |
-| 6 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
-| 7 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
-| 8 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
-| 9 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
-| 10 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
-| 11 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
-| 12 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
-| 13 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
-| 14 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
-| 15 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
-| 16 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
-| 17 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
-| 18= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
-| 18= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
-| 18= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
+| 6 | **glm-5.3** | 100.0% | **0** | 18/70 | 8 | 81.7s ◊ | Duplicated every row — see notes |
+| 7 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
+| 8 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
+| 9 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
+| 10 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
+| 11 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
+| 12 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
+| 13 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
+| 14 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
+| 15 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
+| 16 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
+| 17 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
+| 18 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
+| 19= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
+| 19= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
+| 19= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
 
 *Decoy credited = issues rated Found or Partial on a review that names 16. Times are Ollama
 generation time; `claude-*` figures are wall clock and include the network round trip.*
+◊ *Emitted 140 rows on two of the three reviews — every issue twice. The figures shown are
+post-processing, after duplicate removal; see* The scorer that graded everything twice.*
 
 ---
 
@@ -120,7 +123,7 @@ summarises descriptions instead of copying them. No candidate offered a measurab
 improvement, so the incumbent stays.
 
 The scorer benchmark also retroactively supports the review results: the instrument that
-graded all twenty reviews grades correctly here.
+graded all twenty-one reviews grades correctly here.
 
 ### The three that credit everything
 
@@ -138,6 +141,27 @@ would have been indistinguishable from Claude Opus.
 
 All three still score 98.9–100% because grounding removes the unsupported rows before scoring.
 Read the Ungrounded column, not the Score.
+
+### The scorer that graded everything twice
+
+`glm-5.3` grades correctly and is the second-fastest hosted scorer at 81.7 seconds, with zero
+ungrounded rows and only 8 misaligned descriptions — cleaner on both counts than
+`Qwen3.8-27B` (47 misaligned) or `Gemma-4-31B` (52).
+
+It also emitted **140 rows instead of 70** on the null and decoy reviews, listing every issue
+twice. It is the only scorer in the field to produce more rows than the reference; every other
+deviation was a model failing to produce rows at all. The `perfect` review came back at 70, so
+the duplication is intermittent within a single run.
+
+The duplicates agreed with each other, so `drop_duplicate_ids` halved the sheet cleanly —
+36F/104M became 18F/52M, and the graded result is correct. But had the two copies of a row
+disagreed on Status, the first would have won arbitrarily. A scorer whose correctness depends
+on the harness repairing its output belongs in the same category as the models that credit
+everything and rely on the grounding check to clean up after them.
+
+It also needs `think: false` and a raised `num_predict`; with reasoning on by default it spends
+its whole budget deliberating and returns nothing. See the patcher summary for the full
+sequence.
 
 ### The three that fail
 
@@ -174,7 +198,9 @@ Its single miss is `UT`, the one reference issue written as prose. Paired with i
 performance, one 5.4GB model does both jobs on a 32GB machine.
 
 **If a hosted call is acceptable: `glm-5.2`.** Fastest of everything measured at 25.6 seconds
-with zero ungrounded rows.
+with zero ungrounded rows. Its successor `glm-5.3` grades just as cleanly and keeps far more of
+the reference Descriptions intact (8 misaligned against glm-5.2's 16), but takes three times as
+long, duplicates rows, and will not run at this benchmark's defaults.
 
 **Never use as a scorer:** `MiniMax-M2.7`, `Codestral-22B`, `Devstral-2-123B` — all credit
 almost everything. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail outright.
@@ -196,7 +222,7 @@ almost everything. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail outrig
   Models that spend their budget on internal reasoning were run with `think: false`; the
   effective value is recorded in every run.
 - **Comparability:** every run records the harness commit, both prompt digests, the
-  `ISSUES.md` digest and the decoy definition. All twenty share the same inputs.
+  `ISSUES.md` digest and the decoy definition. All twenty-one share the same inputs.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 
 ---
