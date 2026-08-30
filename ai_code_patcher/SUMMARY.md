@@ -9,10 +9,6 @@ The companion documents are [../ai_code_review_results/SUMMARY.md](../ai_code_re
 (finding defects) and [../ai_qa_scorer_results/SUMMARY.md](../ai_qa_scorer_results/SUMMARY.md)
 (grading reviews).
 
-`Jack-27B` was measured later as a head-to-head against `Qwen3.8-27B` rather than as part of
-this field, and is written up separately in [jack/](jack/) — 39 of 41 markers, one missing
-package reference short of a clean build.
-
 ---
 
 ## Executive Summary
