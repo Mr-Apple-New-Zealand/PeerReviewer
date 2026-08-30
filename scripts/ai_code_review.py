@@ -595,12 +595,25 @@ def main() -> int:
         ),
         "content_truncated": truncated,
         "done_reason": review_data.get("done_reason", ""),
+        # Recorded next to the score, not only in the timing table. A review cut
+        # off mid-sentence is missing whole categories, and every figure derived
+        # from it describes a fragment.
+        "output_truncated": review_data.get("done_reason", "") == "length",
     }
     print(f"Review metrics: {review_metrics['total_duration_s']}s total | "
           f"prompt {review_metrics['prompt_tokens']:,} tok @ {review_metrics['prompt_tps']} tok/s | "
           f"output {review_metrics['output_tokens']:,} tok @ {review_metrics['output_tps']} tok/s | "
           f"context {review_metrics['context_utilization_pct']}% used | "
           f"done_reason={review_metrics['done_reason']}")
+
+    if review_metrics.get("output_truncated"):
+        _msg = (f"the review hit its {review_metrics['output_token_limit']:,}-token "
+                "output limit and stops mid-sentence; whole categories are missing "
+                "and any score derived from it describes a fragment")
+        print(f"ERROR: {_msg}. Re-run with a larger AI_ASSISTANT_MODEL_NUM_PREDICT.",
+              file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            print(f"::error title=Review truncated::{_msg}")
 
     issues_path = REPO_ROOT / "ISSUES.md"
     if not issues_path.exists():
@@ -789,6 +802,8 @@ def main() -> int:
         f"| Context window | {review_metrics['context_window']:,} tokens |",
         f"| Context utilization | {review_metrics['context_utilization_pct']}% |",
         f"| Content truncated | {'**Yes**' if truncated else 'No'} |",
+        f"| Review cut off at the token limit | "
+        f"{'**Yes — sections are missing; the score describes a fragment**' if review_metrics.get('output_truncated') else 'No'} |",
         f"| Completed naturally | {'No (hit token limit)' if done_r == 'length' else 'Yes'} |",
         "",
         "## Scoring Performance",
