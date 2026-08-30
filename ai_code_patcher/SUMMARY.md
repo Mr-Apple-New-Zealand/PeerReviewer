@@ -1,6 +1,6 @@
 # AI Code Patcher Benchmark — Results Summary
 
-Twenty models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
+Twenty-one models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
 find them. Each received the same source listing and the same issue list, and returned
 rewritten files. Every patch was then measured three ways: a peer review scored against
 `ISSUES.md`, a direct inspection of the patched source, and a compiler.
@@ -9,11 +9,15 @@ The companion documents are [../ai_code_review_results/SUMMARY.md](../ai_code_re
 (finding defects) and [../ai_qa_scorer_results/SUMMARY.md](../ai_qa_scorer_results/SUMMARY.md)
 (grading reviews).
 
+`Jack-27B` was measured later as a head-to-head against `Qwen3.8-27B` rather than as part of
+this field, and is written up separately in [jack/](jack/) — 39 of 41 markers, one missing
+package reference short of a clean build.
+
 ---
 
 ## Executive Summary
 
-**Seven of twenty produced code that compiles.** That is the finding. Thirteen models
+**Eight of twenty-one produced code that compiles.** That is the finding. Thirteen models
 returned patches that a C# compiler rejects — inventing methods that do not exist, deleting a
 class while still referencing it, dropping a `using` directive, or in one case emitting a
 project file that is not valid XML. A patch that does not build is not a patch, however many
@@ -23,10 +27,14 @@ defects it appears to remove.
 cleared all 41 mechanical markers, both compile, and both run on hardware you already have.
 Nothing hosted beat them on ground truth.
 
-**`claude-opus-5` and `kimi-k3` are next, at 40 of 41 with clean builds.** Opus was the only
-model to solve two of the hardest defects by *adding* files — an `AuditLogService` and a
-`LoginAttemptTracker` — rather than patching around them. Both leave only `D8`, an unenforced
-daily transaction limit.
+**`claude-opus-5`, `kimi-k3` and `glm-5.3` are next, at 40 of 41 with clean builds.** Opus was
+the only model to solve two of the hardest defects by *adding* files — an `AuditLogService` and
+a `LoginAttemptTracker` — rather than patching around them. All three leave only `D8`, an
+unenforced daily transaction limit.
+
+**`glm-5.3` will not run at this benchmark's defaults**, which is a finding in its own right —
+see below. Once configured it is the best of the hosted models bar Opus, and a clear
+improvement on `glm-5.2`.
 
 **Model size predicts almost nothing.** `Devstral-2-123B` (75GB) cleared 31 markers in 16
 minutes and did not compile. `Qwen3.5-122B` managed 37 and did not compile. Meanwhile
@@ -73,27 +81,30 @@ Ordered by whether the patch builds, then by mechanical coverage.
 | 2 | **Qwen3.6-27B** | **41/41** | **compiles** | 56/62 | 90% | 21,615 | 9m 52s |
 | 3 | **claude-opus-5** | 40/41 | **compiles** | 55/56 | 98% † | 42,406 | 6m 17s |
 | 4 | **kimi-k3** | 40/41 | **compiles** | 54/61 | 89% | 38,927 | 6m 33s |
-| 5 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
-| 6 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
-| 7 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
-| 8 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
-| 9 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
-| 10 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
-| 11 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
-| 12 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
-| 13 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
-| 14 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
-| 15 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
-| 16 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
-| 17 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
-| 18 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
-| 19 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
-| 20 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
+| 5 | **glm-5.3** | 40/41 | **compiles** | 52/62 | 84% | 63,652 | 4m 35s ◊ |
+| 6 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
+| 7 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
+| 8 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
+| 9 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
+| 10 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
+| 11 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
+| 12 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
+| 13 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
+| 14 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
+| 15 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
+| 16 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
+| 17 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
+| 18 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
+| 19 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
+| 20 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
+| 21 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
 
 † Its patched tree was large enough to truncate the reviewer's input, so 98% is an upper bound.
 ‡ Reviewed by Muse-Glimmer, not Gemma — the figure is not comparable (see Limitations).
 ¶ Its C# compiles; it set `TreatWarningsAsErrors` and tripped over a pre-existing package
 advisory it never touched.
+◊ Required `think: false` and `num_predict: 128000`; it will not run at this benchmark's
+defaults. See *The glm-5.2 → 5.3 regression*.
 
 ---
 
@@ -122,7 +133,36 @@ silently truncated under the original 40,000-token ceiling. Its patch is sound o
 (37/41) and fails on a single missing `using System.Net.Mail;`.
 
 `kimi-k3` and `glm-5.2` both build cleanly with high coverage, and glm-5.2 is the fastest of the
-seven that compile, at 2m 16s.
+eight that compile, at 2m 16s.
+
+### The glm-5.2 → 5.3 regression
+
+`glm-5.3` writes a better patch than `glm-5.2` — 40 of 41 markers against 39, both compiling —
+and it took four attempts to get a valid measurement out of it. Every failure was a
+configuration trap that `glm-5.2` did not have:
+
+| `num_predict` | emitted | stop | outcome |
+|---|---|---|---|
+| 40,000 | 40,000 | `length` | thinking on by default; no file blocks at all |
+| 64,000 | — | — | input starved by the harness's own budget arithmetic |
+| 64,000 | 64,000 | `length` | 10 of 14 files; scored 37/41 on a truncated patch |
+| **128,000** | **63,652** | `stop` | **12 of 14 files, 40/41, compiles** |
+
+Two settings are mandatory and neither is the default. **`think: false`** — 5.3 has reasoning
+on by default and spends the entire output budget on it, returning nothing in the answer
+field. **`num_predict: 128000`** — it emits ~63,700 tokens for this task against glm-5.2's
+19,922, better than three times as much for one extra marker.
+
+The third row is worth dwelling on. At 64,000 it produced a patch that scored **37/41 with a
+clean build** and looked like a respectable mid-table result. Two of those four "still present"
+markers, `C8` and `CF9`, live in `appsettings.json` and `appsettings.Production.json` — files
+the response never reached. The model had not failed them; the patch was cut off first. Only
+`done_reason: length` distinguished that run from a complete one, and it was recorded where a
+summary would not look. The harness now carries `delta.patch_truncated` and leads the summary
+with a warning, because a truncated patch reads as a finished one on every other figure.
+
+`glm-5.3` at 63,652 tokens is also uncomfortably close to the 64,000 that truncated the
+previous attempt — same model, same settings, same prompt. Keep the ceiling at 128,000.
 
 ### The compiler is the discriminator
 
@@ -208,8 +248,9 @@ identical patch every run, where Qwen3.8 does not.
 **Laptop: `Muse-Glimmer-30B-imatrix:Q4_K_S`.** The only sub-20GB model whose output compiles.
 
 **If a hosted call is acceptable: `claude-opus-5`.** 40 of 41 with a clean build, and the only
-model that added new files where the fix required them. `kimi-k3` matches it on coverage for
-less money.
+model that added new files where the fix required them. `kimi-k3` and `glm-5.3` match it on
+coverage for less money — but budget `num_predict: 128000` and `think: false` for glm-5.3, which
+will otherwise return nothing usable.
 
 **Never use for patching:** `Qwen3.5-2B` and `Qwen3.5-0.8B` — one fixes almost nothing, the
 other fabricates having done so.
@@ -271,6 +312,20 @@ reviewer-as-patcher — but it is not zero.
 **Opus's review delta was measured on a truncated view.** Its patched tree exceeded the
 reviewer's input budget, the only run where that happened. Its 98% is an upper bound; its
 mechanical and build results are unaffected.
+
+**The output ceiling silently invalidates a run.** A patcher cut off mid-response still
+returns parseable file blocks, so the harness applies them and scores a fragment as though it
+were finished — and a defect in a file the model never reached is recorded as unfixed.
+`claude-opus-5` and `glm-5.3` both hit this, and `kimi-k3` came within 1,073 tokens of it.
+Every run now records `delta.patch_truncated`, but three of the twenty-one needed a raised
+`num_predict` to produce a valid measurement at all, and the right ceiling is not knowable in
+advance.
+
+**Two models needed non-default settings to run.** `glm-5.3` and `Gemma-4-31B` both have
+reasoning enabled by default and spend their entire output budget on it, returning nothing in
+the answer field; both need `think: false`. `think` unset does not mean off — it means the
+model decides. Per-model settings are in
+[../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 
 **Single runs.** Every model was patched once. Temperature 0 is deterministic only within a
 backend session — Qwen3.8-27B produced two materially different patches across restarts, one
