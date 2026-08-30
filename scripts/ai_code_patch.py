@@ -923,9 +923,15 @@ def main() -> int:
     # where it does not hold -- raising num_predict to fix a truncated OUTPUT
     # then silently starves the INPUT, which is how a patcher came to be scored
     # on the issue list alone. Take the larger of the two.
+    # num_ctx is not a local cap for either hosted provider. Anthropic never
+    # receives it, and Ollama's cloud endpoint serves a model already resident
+    # with its own context -- the note recorded in every cloud run's config says
+    # as much. Subtracting num_predict from it applies local arithmetic to a
+    # remote window, which is how one run reached the model with 4,132 prompt
+    # tokens of a 12,864-token source.
     budget_ctx = num_ctx
-    if provider_of(patcher_model) == "anthropic":
-        budget_ctx = max(num_ctx, int(os.environ.get("AI_PATCH_ANTHROPIC_CTX") or 200000))
+    if provider_of(patcher_model) in ("anthropic", "ollama-cloud"):
+        budget_ctx = max(num_ctx, int(os.environ.get("AI_PATCH_HOSTED_CTX") or 200000))
 
     available_tokens = budget_ctx - num_predict - 500
     max_diff_chars = max(0, int(available_tokens * chars_per_token) - instruction_chars)
@@ -942,6 +948,15 @@ def main() -> int:
               file=sys.stderr)
         if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
             print(f"::error title=Patcher input truncated::{msg}")
+        # Stop here rather than spending the call. The previous behaviour printed
+        # this and continued, so glm-5.3 wrote 64,000 tokens about code it had not
+        # been shown. Nothing downstream can rescue that, and the model bill is
+        # real. Set AI_PATCH_ALLOW_TRUNCATION=1 where reviewing part of an
+        # oversized codebase is the actual intent.
+        if os.environ.get("AI_PATCH_ALLOW_TRUNCATION", "").strip() not in {"1", "true", "yes"}:
+            print("       Not sending the request. Set AI_PATCH_ALLOW_TRUNCATION=1 "
+                  "to override.", file=sys.stderr)
+            return 1
     print(
         f"Context: {budget_ctx} tokens"
         + (f" (num_ctx {num_ctx} raised for {provider_of(patcher_model)})"
