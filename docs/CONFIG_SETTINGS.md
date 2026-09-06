@@ -9,6 +9,7 @@ glm-5.2                              | 65536   | 40000       | blank  | 0
 gpt-oss:120B                         | 65536   | 40000       | blank  | 0          
 Kimi-k3                              | 65536   | 40000       | blank  | 0        
 MiniMax-M2.7:Q3_K_S                  | 65536   | 40000       | blank  | 0          
+minimax-m3:cloud                     | 65536   | 40000       | blank  | 0          
 Muse-Glimmer-30B-imatrix:Q4_K_S      | 65536   | 40000       | blank  | 0          
 Qwen3-32B-imatrix:Q4_K_M             | 65536   | 40000       | blank  | 0          
 Qwen3-Coder-30B-imatrix:Q3_K_M       | 65536   | 40000       | blank  | 0          
