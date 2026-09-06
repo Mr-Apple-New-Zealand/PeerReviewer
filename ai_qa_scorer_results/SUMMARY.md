@@ -1,10 +1,10 @@
 # Scorer Benchmark — Results Summary
 
-Twenty-one models were tested as *scorers* — the component that grades a code review against
+Twenty-two models were tested as *scorers* — the component that grades a code review against
 `ISSUES.md` — rather than as reviewers. Each was given three synthetic reviews with known
 correct answers and asked to produce a scorecard. Every model received an identical prompt,
 system prompt and sampler settings; the harness records both digests and the decoy definition
-in each run’s `results.json`, and all twenty-one share the same values.
+in each run’s `results.json`, and all twenty-two share the same values.
 
 The companion document for the review benchmark is
 [../ai_code_review_results/SUMMARY.md](../ai_code_review_results/SUMMARY.md).
@@ -13,7 +13,7 @@ The companion document for the review benchmark is
 
 ## Executive Summary
 
-**Twelve of the twenty-one scored a perfect 100.0%, so the headline Score does not rank them.**
+**Thirteen of the twenty-two scored a perfect 100.0%, so the headline Score does not rank them.**
 The number that separates a good scorer from a bad one is **Ungrounded** — rows the scorer
 rated Found or Partial with nothing in the review to support them. That column runs from 0 to
 84 across a field whose Scores run from 100.0% to 98.9%.
@@ -28,6 +28,14 @@ found that would justify a change.
 rated 63. The grounding check stripped 52, 49 and 58 unsupported rows respectively, so all
 three still *score* 98.9–100%. Without that check they would silently inflate every review
 they graded.
+
+**`MiniMax-M3` is the best-balanced scorer measured.** It is one of six to get the decoy
+exactly right — 16 of the 16 named issues, 0 of the 52 silent ones — with zero ungrounded rows,
+and at 44.0 seconds it is one of the three quick ones in that group, against 229.9s for
+`Gemma-4-31B` and 266s for `Muse-Glimmer-30B`. It rewrites only 5 reference
+Descriptions across the three reviews, where `glm-5.2` rewrites 16. Its predecessor `MiniMax-M2.7` credited all 70 on the same
+decoy — the single worst result in the benchmark — so this is the largest measured improvement
+between two versions of any model tested.
 
 **Three more fail outright at 0.0%,** by two different mechanisms. `Qwen3.5-0.8B` and
 `Qwen3.5-2B` cannot produce a usable scorecard — the 0.8B returned unparseable output on two
@@ -84,24 +92,25 @@ correct.
 | 1 | **glm-5.2** | 100.0% | **0** | 16/70 | 16 | **25.6s** | Fastest measured |
 | 2 | **Qwen3-Coder-30B** | 100.0% | 1 | 19/70 | **0** | 30.0s | **Incumbent — keep** |
 | 3 | Claude-Sonnet-5 | 100.0% | **0** | 16/70 | 17 | 43.9s | Clean, hosted |
-| 4 | Claude-Opus-5 | 100.0% | **0** | 18/70 | 19 | 63.7s | Clean, hosted |
-| 5 | gpt-oss-120B | 100.0% | **0** | 18/70 | 36 | 74.6s | Clean |
-| 6 | **glm-5.3** | 100.0% | **0** | 18/70 | 8 | 81.7s ◊ | Duplicated every row — see notes |
-| 7 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
-| 8 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
-| 9 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
-| 10 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
-| 11 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
-| 12 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
-| 13 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
-| 14 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
-| 15 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
-| 16 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
-| 17 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
-| 18 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
-| 19= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
-| 19= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
-| 19= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
+| 4 | **MiniMax-M3** | 100.0% | **0** | **16/70** | 5 | 44.0s | Perfect decoy, and fast |
+| 5 | Claude-Opus-5 | 100.0% | **0** | 18/70 | 19 | 63.7s | Clean, hosted |
+| 6 | gpt-oss-120B | 100.0% | **0** | 18/70 | 36 | 74.6s | Clean |
+| 7 | **glm-5.3** | 100.0% | **0** | 18/70 | 8 | 81.7s ◊ | Duplicated every row — see notes |
+| 8 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
+| 9 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
+| 10 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
+| 11 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
+| 12 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
+| 13 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
+| 14 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
+| 15 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
+| 16 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
+| 17 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
+| 18 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
+| 19 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
+| 20= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
+| 20= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
+| 20= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
 
 *Decoy credited = issues rated Found or Partial on a review that names 16. Times are Ollama
 generation time; `claude-*` figures are wall clock and include the network round trip.*
@@ -123,7 +132,7 @@ summarises descriptions instead of copying them. No candidate offered a measurab
 improvement, so the incumbent stays.
 
 The scorer benchmark also retroactively supports the review results: the instrument that
-graded all twenty-one reviews grades correctly here.
+graded all twenty-two reviews grades correctly here.
 
 ### The three that credit everything
 
@@ -142,9 +151,36 @@ would have been indistinguishable from Claude Opus.
 All three still score 98.9–100% because grounding removes the unsupported rows before scoring.
 Read the Ungrounded column, not the Score.
 
+The failure is not inherent to the family. `MiniMax-M3`, run under identical settings, credits
+16 of 70 on the same decoy with zero ungrounded rows — see below.
+
+### MiniMax-M3 — the calibrated one
+
+M3 is clean on all three tests: 70/70 on perfect, 0/70 on null, and exactly 16 on the decoy —
+the 16 the decoy names, with no false credits and no ungrounded rows anywhere in the set.
+
+Six scorers manage that decoy result. What separates them is cost:
+
+| Scorer | Decoy credited | Ungrounded | Misaligned | Perfect time |
+|---|---|---|---|---|
+| glm-5.2 | 16 | 0 | 16 | 25.6s |
+| Claude-Sonnet-5 | 16 | 0 | 17 | 43.9s |
+| **MiniMax-M3** | **16** | **0** | **5** | **44.0s** |
+| Gemma-4-31B | 16 | 0 | 52 | 229.9s |
+| Muse-Glimmer-30B | 16 | 0 | **0** | 266.1s |
+| Qwen3.6-27B | 16 | 0 | **0** | 268.3s |
+
+The two flawless sheets, `Muse-Glimmer-30B` and `Qwen3.6-27B`, take six times as long. M3 is
+within a tenth of a second of Sonnet while paraphrasing a third as many Descriptions, and the
+other sixteen scorers either credit more than the decoy names, credit fewer than the 16 real
+ones, or fail outright.
+
+It does not displace the incumbent, which is free, local and faster still at 30 seconds. It is
+the hosted scorer to reach for when the grading itself is the thing being questioned.
+
 ### The scorer that graded everything twice
 
-`glm-5.3` grades correctly and is the second-fastest hosted scorer at 81.7 seconds, with zero
+`glm-5.3` grades correctly in 81.7 seconds, with zero
 ungrounded rows and only 8 misaligned descriptions — cleaner on both counts than
 `Qwen3.8-27B` (47 misaligned) or `Gemma-4-31B` (52).
 
@@ -197,13 +233,16 @@ ungrounded and zero misaligned rows — one of only four scorers with a complete
 Its single miss is `UT`, the one reference issue written as prose. Paired with its review
 performance, one 5.4GB model does both jobs on a 32GB machine.
 
-**If a hosted call is acceptable: `glm-5.2`.** Fastest of everything measured at 25.6 seconds
-with zero ungrounded rows. Its successor `glm-5.3` grades just as cleanly and keeps far more of
+**If a hosted call is acceptable: `glm-5.2` for speed, `MiniMax-M3` for auditability.** glm-5.2
+is the fastest of everything measured at 25.6 seconds with zero ungrounded rows; M3 takes 44.0
+seconds for the same decoy result and rewrites 5 Descriptions against glm-5.2's 16, so its
+scorecards are appreciably easier to check by eye. Its successor `glm-5.3` grades just as cleanly and keeps far more of
 the reference Descriptions intact (8 misaligned against glm-5.2's 16), but takes three times as
 long, duplicates rows, and will not run at this benchmark's defaults.
 
 **Never use as a scorer:** `MiniMax-M2.7`, `Codestral-22B`, `Devstral-2-123B` — all credit
-almost everything. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail outright.
+almost everything. Note that the M2.7 objection does **not** carry to `MiniMax-M3`, which is
+among the best measured. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail outright.
 
 ---
 
@@ -222,14 +261,14 @@ almost everything. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail outrig
   Models that spend their budget on internal reasoning were run with `think: false`; the
   effective value is recorded in every run.
 - **Comparability:** every run records the harness commit, both prompt digests, the
-  `ISSUES.md` digest and the decoy definition. All twenty-one share the same inputs.
+  `ISSUES.md` digest and the decoy definition. All twenty-two share the same inputs.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 
 ---
 
 ## Known limitations
 
-**The Score alone is not a ranking.** Eleven scorers tie at 100.0%, including one that
+**The Score alone is not a ranking.** Thirteen scorers tie at 100.0%, including one that
 credited every issue on the decoy. The Score answers "is this scorer broken?"; the Ungrounded
 column answers "is it any good?".
 

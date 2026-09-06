@@ -1,6 +1,6 @@
 # AI Code Patcher Benchmark — Results Summary
 
-Twenty-one models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
+Twenty-two models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
 find them. Each received the same source listing and the same issue list, and returned
 rewritten files. Every patch was then measured three ways: a peer review scored against
 `ISSUES.md`, a direct inspection of the patched source, and a compiler.
@@ -13,7 +13,7 @@ The companion documents are [../ai_code_review_results/SUMMARY.md](../ai_code_re
 
 ## Executive Summary
 
-**Eight of twenty-one produced code that compiles.** That is the finding. Thirteen models
+**Nine of twenty-two produced code that compiles.** That is the finding. Thirteen models
 returned patches that a C# compiler rejects — inventing methods that do not exist, deleting a
 class while still referencing it, dropping a `using` directive, or in one case emitting a
 project file that is not valid XML. A patch that does not build is not a patch, however many
@@ -23,10 +23,12 @@ defects it appears to remove.
 cleared all 41 mechanical markers, both compile, and both run on hardware you already have.
 Nothing hosted beat them on ground truth.
 
-**`claude-opus-5`, `kimi-k3` and `glm-5.3` are next, at 40 of 41 with clean builds.** Opus was
-the only model to solve two of the hardest defects by *adding* files — an `AuditLogService` and
-a `LoginAttemptTracker` — rather than patching around them. All three leave only `D8`, an
-unenforced daily transaction limit.
+**`claude-opus-5`, `kimi-k3`, `glm-5.3` and `MiniMax-M3` are next, at 40 of 41 with clean
+builds.** Opus was the only model to solve two of the hardest defects by *adding* files — an
+`AuditLogService` and a `LoginAttemptTracker` — rather than patching around them. The first
+three leave only `D8`, an unenforced daily transaction limit. `MiniMax-M3` clears `D8` and
+leaves `L5` instead — the missing self-transfer guard, and the only marker in the field that no
+other serious patcher missed.
 
 **`glm-5.3` will not run at this benchmark's defaults**, which is a finding in its own right —
 see below. Once configured it is the best of the hosted models bar Opus, and a clear
@@ -78,25 +80,27 @@ Ordered by whether the patch builds, then by mechanical coverage.
 | 3 | **claude-opus-5** | 40/41 | **compiles** | 55/56 | 98% † | 42,406 | 6m 17s |
 | 4 | **kimi-k3** | 40/41 | **compiles** | 54/61 | 89% | 38,927 | 6m 33s |
 | 5 | **glm-5.3** | 40/41 | **compiles** | 52/62 | 84% | 63,652 | 4m 35s ◊ |
-| 6 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
-| 7 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
-| 8 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
-| 9 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
-| 10 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
-| 11 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
-| 12 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
-| 13 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
-| 14 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
-| 15 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
-| 16 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
-| 17 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
-| 18 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
-| 19 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
-| 20 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
-| 21 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
+| 6 | **MiniMax-M3** | 40/41 | **compiles** | 31/61 | n/c ‡ | 41,834 | 5m 30s |
+| 7 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
+| 8 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
+| 9 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
+| 10 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
+| 11 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
+| 12 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
+| 13 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
+| 14 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
+| 15 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
+| 16 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
+| 17 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
+| 18 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
+| 19 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
+| 20 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
+| 21 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
+| 22 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
 
 † Its patched tree was large enough to truncate the reviewer's input, so 98% is an upper bound.
-‡ Reviewed by Muse-Glimmer, not Gemma — the figure is not comparable (see Limitations).
+‡ Reviewed by Muse-Glimmer, not Gemma — the figure is not comparable (see Limitations). Applies
+to `Gemma-4-31B`, which cannot review its own patch, and to `MiniMax-M3`.
 ¶ Its C# compiles; it set `TreatWarningsAsErrors` and tripped over a pre-existing package
 advisory it never touched.
 ◊ Required `think: false` and `num_predict: 128000`; it will not run at this benchmark's
@@ -117,6 +121,30 @@ bytes and one produced 37,687, and the build verdict flipped from failing to pas
 them. Its entry here is the passing run. Qwen3.6-27B produced a byte-identical patch on every
 run, days apart, and is the more predictable of the two.
 
+### MiniMax-M3 — 40/41, and the only model to miss `L5`
+
+M3 rewrote 13 files, compiles clean, and clears 40 of the 41 markers including all five of the
+defects the field found hardest — `CF9`, `R3`, `E7`, `A6`/`RL2` and `D8`. It is the only patcher
+above `Qwen3.5-2B` to leave `L5`, the missing self-transfer guard in `Transfer`. Every other
+model in the top six fixed `L5`; the three that also cleared 40 of 41 — `claude-opus-5`,
+`kimi-k3` and `glm-5.3` — left `D8` instead. Adding a `fromUserId == toUserId` check is a
+one-line fix, so this reads as an oversight rather than a capability limit.
+
+At 41,834 output tokens in 5m 30s it is the fourth-heaviest patch in the sweep, behind
+`glm-5.3`, `claude-sonnet-5` and `claude-opus-5`, and it finished naturally against a 64,000
+ceiling — no truncation, and 22,000 tokens of headroom.
+
+**Its Resolved figure is not comparable.** This run was peer-reviewed by `Muse-Glimmer-30B`
+rather than the pinned `Gemma-4-31B`, the same substitution that makes `Gemma-4-31B`'s own row
+incomparable. Muse resolves far fewer issues than Gemma on identical patches (31 against 56 on
+one fixed tree) and has been observed to invert the ranking outright, so the 31/61 shown above
+should not be read against any other row. Its mechanical and build results are unaffected —
+neither involves a reviewer. Re-running M3 under Gemma would settle it.
+
+Also worth noting against its predecessor: `MiniMax-M2.7` cleared 39 markers but did not
+compile, because it replaced MD5 with a call to a `HashAlgorithmNames` type that does not
+exist. M3 clears more and builds.
+
 ### Where the hosted models landed
 
 `claude-opus-5` is the only model to fix defects by adding well-structured new files rather
@@ -129,7 +157,7 @@ silently truncated under the original 40,000-token ceiling. Its patch is sound o
 (37/41) and fails on a single missing `using System.Net.Mail;`.
 
 `kimi-k3` and `glm-5.2` both build cleanly with high coverage, and glm-5.2 is the fastest of the
-eight that compile, at 2m 16s.
+nine that compile, at 2m 16s.
 
 ### The glm-5.2 → 5.3 regression
 
@@ -190,15 +218,15 @@ one that reported success without attempting the work.
 
 ### What the field found hardest
 
-Across the nineteen models that produced a patch:
+Across the twenty models that produced a patch:
 
 | defect | survived | |
 |---|---|---|
-| `CF9` | 13/19 | no `appsettings.Production.json` created |
-| `R3` | 12/19 | `GenerateJwtToken` left as one long method |
-| `E7` | 12/19 | no rate limiting or account lockout |
-| `A6` / `RL2` | 10/19 | connection-leaking `GetOpenConnection` retained |
-| `D8` | 8/19 | daily transaction limit never enforced |
+| `CF9` | 13/20 | no `appsettings.Production.json` created |
+| `R3` | 12/20 | `GenerateJwtToken` left as one long method |
+| `E7` | 12/20 | no rate limiting or account lockout |
+| `A6` / `RL2` | 10/20 | connection-leaking `GetOpenConnection` retained |
+| `D8` | 8/20 | daily transaction limit never enforced |
 
 The pattern is consistent: models fix what is visibly wrong in a line of code and skip what
 requires adding something that is not there. Every one of these five needs new code rather
@@ -244,9 +272,10 @@ identical patch every run, where Qwen3.8 does not.
 **Laptop: `Muse-Glimmer-30B-imatrix:Q4_K_S`.** The only sub-20GB model whose output compiles.
 
 **If a hosted call is acceptable: `claude-opus-5`.** 40 of 41 with a clean build, and the only
-model that added new files where the fix required them. `kimi-k3` and `glm-5.3` match it on
-coverage for less money — but budget `num_predict: 128000` and `think: false` for glm-5.3, which
-will otherwise return nothing usable.
+model that added new files where the fix required them. `kimi-k3`, `glm-5.3` and `MiniMax-M3`
+match it on coverage for less money — but budget `num_predict: 128000` and `think: false` for
+glm-5.3, which will otherwise return nothing usable, and note that M3's peer-review figure was
+measured against a different reviewer and cannot be compared with the rest of the table.
 
 **Never use for patching:** `Qwen3.5-2B` and `Qwen3.5-0.8B` — one fixes almost nothing, the
 other fabricates having done so.
@@ -290,9 +319,10 @@ Qwen3.8-27B reviewer   resolved 26      Muse-Glimmer   resolved 31      Gemma   
 ```
 
 Worse than the spread, Muse-Glimmer *inverted* the ranking — it scored a 37/41 patch 25 points
-above a 41/41 one. That is why the sweep pinned Gemma throughout, and why Gemma's own row
-carries no comparable figure. Six repeat runs of one patcher under Gemma gave 53–60, so
-differences under about 7 points are not meaningful.
+above a 41/41 one. That is why the sweep pinned Gemma throughout, and why the two rows reviewed
+by Muse — `Gemma-4-31B`, which cannot review itself, and `MiniMax-M3` — carry no comparable
+figure. Six repeat runs of one patcher under Gemma gave 53–60, so differences under about 7
+points are not meaningful.
 
 **The baseline ceiling drifted from 51 to 64** across runs, with the same reviewer on the same
 pristine tree. The ratio column corrects for it; the raw count does not.
@@ -313,7 +343,7 @@ mechanical and build results are unaffected.
 returns parseable file blocks, so the harness applies them and scores a fragment as though it
 were finished — and a defect in a file the model never reached is recorded as unfixed.
 `claude-opus-5` and `glm-5.3` both hit this, and `kimi-k3` came within 1,073 tokens of it.
-Every run now records `delta.patch_truncated`, but three of the twenty-one needed a raised
+Every run now records `delta.patch_truncated`, but three of the twenty-two needed a raised
 `num_predict` to produce a valid measurement at all, and the right ceiling is not knowable in
 advance.
 

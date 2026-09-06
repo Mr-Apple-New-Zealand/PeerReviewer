@@ -1,6 +1,6 @@
 # AI Code Review Benchmark — Results Summary
 
-Twenty-one models were asked to review the same deliberately-flawed C# application
+Twenty-two models were asked to review the same deliberately-flawed C# application
 (`SampleBankingApp/`) and their reviews were scored against 70 known, seeded defects
 recorded in `ISSUES.md`. Every model received an identical prompt, an identical system
 prompt, and identical sampler settings. Full per-model settings are in
@@ -11,9 +11,16 @@ prompt, and identical sampler settings. Full per-model settings are in
 
 ## Executive Summary
 
-**Five models found essentially everything: `claude-sonnet-5`, `claude-opus-5`, `kimi-k3`,
-`glm-5.2` and `glm-5.3`, all scoring 69 of 70.** They are separated by nothing meaningful — one
-mis-credited row between them — and all five are hosted services rather than local models.
+**`MiniMax-M3` is the only model to return a clean 70 of 70.** Every issue credited, all 40
+checkable findings verified, 214 source citations all valid, no mis-credited rows, no grounding
+downgrades. It is the only full-marks sheet in the field that survives every integrity check
+untouched, and it produced it in 1m 55s on 12,497 output tokens — second only to `glm-5.2` on
+speed among the leaders.
+
+**Six models found essentially everything: `MiniMax-M3` at 70, then `claude-sonnet-5`,
+`claude-opus-5`, `kimi-k3`, `glm-5.2` and `glm-5.3` at 69.** The five behind it are separated by
+nothing meaningful — one mis-credited row each — and all six are hosted services rather than
+local models.
 
 **The headline result is that Claude Sonnet 5 matched Claude Opus 5.** Both scored 69
 adjusted; Sonnet used fewer output tokens (19,751 vs 23,932) and finished in 2m53s against
@@ -21,7 +28,7 @@ adjusted; Sonnet used fewer output tokens (19,751 vs 23,932) and finished in 2m5
 there is no evidence in this benchmark for paying the Opus premium on this task.
 
 **The best local model is `Qwen3.8-27B` — but for a reason the raw score hides.** It scored
-62, below `Qwen3.6-27B` at 65 and `Muse-Glimmer-30B` at 64. However it is one of only three
+62, below `Qwen3.6-27B` at 65 and `Muse-Glimmer-30B` at 64. However it is one of only four
 models in the entire fleet to achieve **100% precision on a full-size sample**: every one of
 the 38 findings we could independently verify was genuinely supported by its review. The two
 models above it scored higher partly by claiming issues their reviews never actually raised.
@@ -64,27 +71,28 @@ Adjusted Found as an upper bound.** Manual inspection of several such sheets fou
 
 | # | Model | Adjusted | Raw F/P/M | Precision | Fabricated cites | Notes |
 |---|---|---|---|---|---|---|
-| 1= | **claude-opus-5** | **69** | 69/0/1 | **100% (39)** | 0 / 374 | Clean on every check |
-| 1= | **claude-sonnet-5** | **69** | 70/0/0 | 98% (40) | 0 / 201 | Matches Opus at lower cost |
-| 1= | **kimi-k3** | **69** | 70/0/0 | 98% (40) | 0 / 312 | Cloud-hosted |
-| 1= | **glm-5.2** | **69** | 70/0/0 | 98% (40) | 0 / 154 | Cloud-hosted; fastest at 47s |
-| 1= | **glm-5.3** | **69** | 70/0/0 | 98% (40) | 0 / 66 | Reasoning inlined in the review — see notes |
-| 6 | Qwen3.5-122B | 66 | 69/0/1 | 92% (39) | 0 / 141 | Reading found ~6 further over-credits |
-| 7 | Qwen3.6-27B | 65 | 70/0/0 | 88% (40) | 0 / 72 | Reading found ~9 further over-credits |
-| 8 | Muse-Glimmer-30B | 64 | 69/0/1 | 87% (39) | 0 / 110 | Strong for its RAM footprint |
-| 9 | **Qwen3.8-27B** | 62 | 62/0/8 | **100% (38)** | 0 / 220 | **Best local model — see notes** |
-| 10= | gpt-oss-120B | 58 | 62/0/8 | 89% (35) | 1 / 55 | |
-| 10= | Qwen3-Coder-Next | 58 | 63/0/7 | 86% (35) | 0 / 126 | Reading found ~7 further over-credits |
-| 12 | MiniMax-M2.7 | 57 | 58/7/5 | 97% (32) | 0 / 176 | 99GB for a mid-table result |
-| 13 | Qwen3.5-4B | 55 | 60/9/1 | 86% (35) | 0 / 285 | Remarkable for 3GB |
-| 14 | Gemma-4-31B | 54 | 55/3/12 | 97% (33) | 0 / 87 | Honest scoring, few false claims |
-| 15 | **Qwen3.5-9B** | 41 | 41/28/1 | **100% (24)** | 1 / 97 | **Best laptop model — see notes** |
-| 16 | Qwen3-Coder-30B | 34 | 36/27/7 | 88% (17) | 0 / 1039 | Truncated; 90% of rows were test filler |
-| 17 | Devstral-2-123B | 32 | 32/28/10 | 100% (18) | 0 / 63 | 75GB, shallowest review of any model |
-| 18 | Qwen3-32B | 25 | 29/11/30 | 78% (18) | 0 / 44 | 2 rows scored against the wrong issue |
-| 19= | Qwen3.5-2B | 22 | 22/36/12 | 100% (13) | 0 / 143 | Thin but honest |
-| 19= | Codestral-22B | 22 | 23/46/1 | 93% (14) | 0 / 79 | Under-credited; ~26 on reading |
-| 21 | Qwen3.5-0.8B | 19 | 21/10/39 | 82% (11) | **4 / 902** | Hit token limit at 14m41s |
+| 1 | **MiniMax-M3** | **70** | 70/0/0 | **100% (40)** | 0 / 214 | Only clean sweep in the field |
+| 2= | **claude-opus-5** | **69** | 69/0/1 | **100% (39)** | 0 / 374 | Clean on every check |
+| 2= | **claude-sonnet-5** | **69** | 70/0/0 | 98% (40) | 0 / 201 | Matches Opus at lower cost |
+| 2= | **kimi-k3** | **69** | 70/0/0 | 98% (40) | 0 / 312 | Cloud-hosted |
+| 2= | **glm-5.2** | **69** | 70/0/0 | 98% (40) | 0 / 154 | Cloud-hosted; fastest at 47s |
+| 2= | **glm-5.3** | **69** | 70/0/0 | 98% (40) | 0 / 66 | Reasoning inlined in the review — see notes |
+| 7 | Qwen3.5-122B | 66 | 69/0/1 | 92% (39) | 0 / 141 | Reading found ~6 further over-credits |
+| 8 | Qwen3.6-27B | 65 | 70/0/0 | 88% (40) | 0 / 72 | Reading found ~9 further over-credits |
+| 9 | Muse-Glimmer-30B | 64 | 69/0/1 | 87% (39) | 0 / 110 | Strong for its RAM footprint |
+| 10 | **Qwen3.8-27B** | 62 | 62/0/8 | **100% (38)** | 0 / 220 | **Best local model — see notes** |
+| 11= | gpt-oss-120B | 58 | 62/0/8 | 89% (35) | 1 / 55 | |
+| 11= | Qwen3-Coder-Next | 58 | 63/0/7 | 86% (35) | 0 / 126 | Reading found ~7 further over-credits |
+| 13 | MiniMax-M2.7 | 57 | 58/7/5 | 97% (32) | 0 / 176 | 99GB for a mid-table result |
+| 14 | Qwen3.5-4B | 55 | 60/9/1 | 86% (35) | 0 / 285 | Remarkable for 3GB |
+| 15 | Gemma-4-31B | 54 | 55/3/12 | 97% (33) | 0 / 87 | Honest scoring, few false claims |
+| 16 | **Qwen3.5-9B** | 41 | 41/28/1 | **100% (24)** | 1 / 97 | **Best laptop model — see notes** |
+| 17 | Qwen3-Coder-30B | 34 | 36/27/7 | 88% (17) | 0 / 1039 | Truncated; 90% of rows were test filler |
+| 18 | Devstral-2-123B | 32 | 32/28/10 | 100% (18) | 0 / 63 | 75GB, shallowest review of any model |
+| 19 | Qwen3-32B | 25 | 29/11/30 | 78% (18) | 0 / 44 | 2 rows scored against the wrong issue |
+| 20= | Qwen3.5-2B | 22 | 22/36/12 | 100% (13) | 0 / 143 | Thin but honest |
+| 20= | Codestral-22B | 22 | 23/46/1 | 93% (14) | 0 / 79 | Under-credited; ~26 on reading |
+| 22 | Qwen3.5-0.8B | 19 | 21/10/39 | 82% (11) | **4 / 902** | Hit token limit at 14m41s |
 
 *Fabricated cites = review references to source lines that do not exist in the file.*
 
@@ -92,12 +100,33 @@ Adjusted Found as an upper bound.** Manual inspection of several such sheets fou
 
 ## Model notes
 
-### The five leaders
+### MiniMax-M3 — the only clean 70
 
-`claude-opus-5` is the only model with a perfect precision score on the largest sample: all
-39 checkable findings verified, 374 source citations all valid, no misaligned rows, no
-unsupported claims. `claude-sonnet-5`, `kimi-k3`, `glm-5.2` and `glm-5.3` each carry a single
-mis-credited row and are otherwise equally clean. The difference between 69 and 69 is noise.
+70 Found, 0 Partial, 0 Missed, and nothing for the integrity checks to take back: 40 of 40
+checkable findings verified, 0 grounding downgrades, 0 self-declared absences, 0 misaligned
+rows and 0 of 214 citations pointing past the end of a file. Five other models were credited
+with 70 raw; every one of them then lost at least one row to a mis-credit or a grounding check.
+
+It is also efficient about it. 12,497 output tokens against a 40,000 ceiling, 35% context
+utilisation, `done_reason: stop`, and 1m 55s end to end — under half of `claude-opus-5`'s 4m
+20s for one more issue. Its reasoning came back in the separate reasoning field (22,382
+characters of it, against 29,504 characters of answer), so unlike `glm-5.3` nothing downstream
+graded its working-out as review text.
+
+The usual caveat on a zero-Partial sheet applies: the scorer recorded no Partials at all, so 70
+is an upper bound and manual reading could still find over-credits at the margins. What is not
+in doubt is that no automated check found one, and no other sheet in the field can say that at
+this score.
+
+The jump from `MiniMax-M2.7` is the largest generational gain measured here — 57 to 70 as a
+reviewer, and 97% precision on 32 rows to 100% on 40.
+
+### The five at 69
+
+`claude-opus-5` has a perfect precision score on the second-largest sample: all 39 checkable
+findings verified, 374 source citations all valid, no misaligned rows, no unsupported claims.
+`claude-sonnet-5`, `kimi-k3`, `glm-5.2` and `glm-5.3` each carry a single mis-credited row and
+are otherwise equally clean. The difference between 69 and 69 is noise.
 
 `glm-5.2` deserves a specific mention for speed — 47 seconds for a 69-point review, against
 5m22s for `kimi-k3` at the same score.
@@ -279,8 +308,8 @@ Each scorecard is validated by eight checks before its score is reported:
 ## Known limitations
 
 **The scorer is the weakest component.** It is a model, not a parser, and it consistently
-prefers crediting a near-miss over recording a clean Missed. Ten of the twenty-one sheets contain
-zero Partial ratings, which is not credible on a 70-issue task. The automated checks recover
+prefers crediting a near-miss over recording a clean Missed. Eleven of the twenty-two sheets
+contain zero Partial ratings, which is not credible on a 70-issue task. The automated checks recover
 much of this — they made 15 to 17 corrections on some sheets — but they verify that evidence
 *exists*, not that it is *relevant*. Manual reading of several sheets found a further 6–9
 over-credits each.
