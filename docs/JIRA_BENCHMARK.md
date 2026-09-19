@@ -13,23 +13,40 @@ Finds which model gives the best Jira ticket analysis for the least resource cos
 
 ## Running it
 
-From Actions, set `models` to a comma-separated list of tags. Per-model `think` works as in the scorer benchmark: `qwen3.6:27b=false`, `gpt-oss:120b=medium`, `model=none`.
+The workflow benchmarks **one model per run**. Each run is short, uses the settings that suit its model, and fails on its own. Runs queue on the single self-hosted runner, so starting several at once is fine: they never share the GPU.
+
+1. **Benchmark a model:** Actions > Jira Analyst Benchmark with `mode: benchmark` and `model` set to one tag. A per-model `think` override works as in the scorer benchmark: `qwen3.6:27b=false`, `gpt-oss:120b=medium`, `model=none`. Use `repeats: 3` for anything you will make a decision on; one run of the same model varied by about 6 points.
+2. **Keep the result:** use the download link at the top of the run's summary and unzip it into `jira_analyst_results/<Model>/`, for example `jira_analyst_results/Qwen3-VL-32B-Thinking/`. Re-running a model replaces its folder.
+3. **Summarise:** `jira_analyst_results/SUMMARY.md` is written from the committed folders, as with the review and scorer results. `python3 scripts/jira_benchmark.py --compare jira_analyst_results` produces the ranking it is based on: quality against memory and time, the best-value pick and the Pareto front. That command needs no GPU or judge.
+
+Settings per model family:
+
+| Model | num_ctx | num_predict | Why |
+|---|---|---|---|
+| Qwen3-VL Instruct | 49152 | 16384 | Native window 256K; matches the Thinking runs |
+| Qwen3-VL Thinking | 49152 | 16384 | Reasoning counts against num_predict; too little returns empty answers |
+| Qwen2.5-VL | 32768 | 8192 | Trained window is 32768; never run it higher |
+| Anything else | at most its trained window | 4096+, or 16384 if it thinks | The largest case (C08) needs ~15k tokens of input |
+
+**Which runs can be compared.** `--compare` ranks runs side by side only if they share the cases, judge, judge effort, judge prompt, analyst prompt, temperature and system-prompt mode. These are the things that change a score. Anything else is listed under "Not ranked" with the reason, never mixed in. `num_ctx`, `num_predict` and `repeats` may differ: they don't change a score unless a run was truncated, and each run's own warnings flag that. After changing the judge prompt or a case, bring older runs up to date with `mode: rejudge` rather than re-running them.
 
 Locally:
 
 ```
 export OLLAMA_URL=http://192.168.10.100:11434
 export ANTHROPIC_API_KEY=...
-python3 scripts/jira_benchmark.py --models "Qwen2.5-VL-7B-Instruct:latest, Qwen2.5-VL-32B-Instruct:latest"
+python3 scripts/jira_benchmark.py --models "Qwen3-VL-32B-Instruct:latest" --num-ctx 49152 --num-predict 16384 --repeats 3
 ```
+
+The script also accepts a comma-separated list of models locally; the one-model rule is only enforced by the workflow.
 
 Other modes:
 - `--list-cases`: sizes and point counts. No model calls.
 - `--skip-judge`: analyses and cost only.
-- `--rejudge <run dir>`: re-grade saved analyses after changing the judge, the judge prompt, an answer key or the scoring code, without regenerating them. In Actions, use `mode: rejudge` with `rejudge_dir` set to a results folder committed to the repo (the runner only sees committed files). Each `*.judge.json` keeps the judge's raw output and its original verdicts, so you can see what the harness downgraded and why.
+- `--rejudge <run dir>`: re-grade saved analyses after changing the judge, the judge prompt, an answer key or the scoring code, without regenerating them. In Actions, use `mode: rejudge` with `results_dir` set to a committed model folder such as `jira_analyst_results/Qwen3-VL-32B-Instruct` (the runner only sees committed files). Each `*.judge.json` keeps the judge's raw output and its original verdicts, so you can see what the harness downgraded and why.
 - `--calibrate-judge`: check the judge (see below).
 
-Defaults are `num_ctx 32768`, `num_predict 4096` and `temperature 0.3`, sent explicitly to every model so the Modelfiles cannot make the comparison unequal. By default the analyst prompt comes from the file, so every model gets the same one. Pass `--system-prompt modelfile` to test each model with its own `SYSTEM` instead.
+Defaults are `num_ctx 32768`, `num_predict 4096` and `temperature 0.3`, sent explicitly to the model so its Modelfile cannot make the comparison unequal. By default the analyst prompt comes from the file, so every model gets the same one. Pass `--system-prompt modelfile` to test each model with its own `SYSTEM` instead.
 
 ## The cases
 

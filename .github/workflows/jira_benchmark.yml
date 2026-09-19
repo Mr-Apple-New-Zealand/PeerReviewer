@@ -1,27 +1,31 @@
 name: Jira Analyst Benchmark
 
-# Visible in the Actions run list so the model set and settings of a past run
-# can be read off without opening it.
-run-name: "Jira analysts ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.rejudge_dir) || inputs.models }} | ctx ${{ inputs.num_ctx || '32768' }} | temp ${{ inputs.temperature || '0.3' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
+# One model per run. Each run is short and independent, runs at the settings
+# that suit that model, and fails alone. Results are copied into
+# jira_analyst_results/<Model>/ and summarised from there. Runs queue behind
+# each other on the single self-hosted runner, so they never share the GPU.
+#
+# Visible in the Actions run list so the model and settings of a past run can
+# be read off without opening it.
+run-name: "Jira analyst ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.results_dir) || inputs.model }} | ctx ${{ inputs.num_ctx || '32768' }} | predict ${{ inputs.num_predict || '4096' }} | repeats ${{ inputs.repeats || '1' }}"
 
 on:
   workflow_dispatch:
     inputs:
-      models:
+      model:
         description: >
-          Comma-separated Ollama tags to benchmark. Per-model think override:
+          benchmark only: ONE Ollama tag. Optional think override as
           "model=value", or "model=none" to send no think field.
-          Not needed for judge calibration.
         required: false
         type: string
       mode:
-        description: "benchmark = run the models; calibrate-judge = check the judge against synthetic answers; rejudge = re-grade saved analyses"
+        description: "benchmark = run one model; calibrate-judge = check the judge; rejudge = re-grade a saved run"
         required: false
         type: choice
         options: [benchmark, calibrate-judge, rejudge]
         default: benchmark
-      rejudge_dir:
-        description: "rejudge only: a committed results folder holding results.json and the model folders (e.g. jira_analyst_results)"
+      results_dir:
+        description: "rejudge only: a committed run folder holding results.json (e.g. jira_analyst_results/Qwen3-VL-32B-Instruct)"
         required: false
         type: string
       cases:
@@ -29,19 +33,19 @@ on:
         required: false
         type: string
       num_ctx:
-        description: "Context window sent to every model. Blank = 32768 (Qwen2.5-VL's native window)."
+        description: "Blank = 32768. Qwen3-VL: 49152. Never above the model's trained window."
         required: false
         type: string
       num_predict:
-        description: "Output cap per analysis. Blank = 4096. Raise for thinking models."
+        description: "Blank = 4096. Thinking models: 16384. Qwen2.5-VL: 8192."
         required: false
         type: string
       temperature:
-        description: "Blank = 0.3."
+        description: "Blank = 0.3. Keep it the same across runs, or their scores are not comparable."
         required: false
         type: string
       repeats:
-        description: "Runs per case. Blank = 1. Use 3 when two models are within ~5 points."
+        description: "Runs per case. Blank = 1. Use 3 for anything you will decide on."
         required: false
         type: string
       judge:
@@ -74,8 +78,9 @@ jobs:
       # are the same code. Inputs arrive as env vars, not ${{ }} splices into
       # the script, so a model name cannot inject shell.
       - name: Run Jira analyst benchmark
+        id: run
         env:
-          JIRA_BENCH_MODELS: ${{ inputs.models }}
+          MODEL: ${{ inputs.model }}
           MODE: ${{ inputs.mode || 'benchmark' }}
           CASES: ${{ inputs.cases }}
           NUM_CTX: ${{ inputs.num_ctx || '32768' }}
@@ -84,21 +89,34 @@ jobs:
           REPEATS: ${{ inputs.repeats || '1' }}
           JUDGE: ${{ inputs.judge || 'claude-sonnet-5' }}
           JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
-          REJUDGE_DIR: ${{ inputs.rejudge_dir }}
+          RESULTS_DIR: ${{ inputs.results_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           args=(--num-ctx "$NUM_CTX" --num-predict "$NUM_PREDICT" --temperature "$TEMPERATURE"
                 --repeats "$REPEATS" --judge "$JUDGE" --judge-effort "$JUDGE_EFFORT"
                 --out jira_benchmark_results)
           if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
-          if [ "$MODE" = "calibrate-judge" ]; then args+=(--calibrate-judge); fi
-          if [ "$MODE" = "rejudge" ]; then
-            if [ ! -f "$REJUDGE_DIR/results.json" ]; then
-              echo "::error::rejudge_dir '$REJUDGE_DIR' has no results.json. Commit the results folder first."
-              exit 1
-            fi
-            args+=(--rejudge "$REJUDGE_DIR")
-          fi
+          label="$MODE"
+          case "$MODE" in
+            benchmark)
+              if [ -z "$MODEL" ]; then echo "::error::benchmark mode needs a model."; exit 1; fi
+              if [[ "$MODEL" == *,* ]]; then
+                echo "::error::One model per run. Start a separate run for each model."
+                exit 1
+              fi
+              args+=(--models "$MODEL")
+              label="${MODEL%%=*}" ;;
+            calibrate-judge)
+              args+=(--calibrate-judge) ;;
+            rejudge)
+              if [ ! -f "$RESULTS_DIR/results.json" ]; then
+                echo "::error::results_dir '$RESULTS_DIR' has no results.json. Commit the results folder first."
+                exit 1
+              fi
+              args+=(--rejudge "$RESULTS_DIR") ;;
+          esac
+          # Artifact names cannot contain ':' and similar, so the tag is slugged.
+          echo "label=$(printf '%s' "$label" | sed 's/[^A-Za-z0-9._-]/_/g')" >> "$GITHUB_OUTPUT"
           python3 scripts/jira_benchmark.py "${args[@]}"
 
       # Upload first: the artifact's download URL only exists once the upload
@@ -108,7 +126,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jira-benchmark-${{ github.run_number }}
+          name: jira-benchmark-${{ github.run_number }}-${{ steps.run.outputs.label || 'run' }}
           path: jira_benchmark_results/
           retention-days: 90
 
@@ -123,6 +141,10 @@ jobs:
           {
             if [ -n "$ARTIFACT_URL" ]; then
               echo "**[Download the full results]($ARTIFACT_URL)**: every analysis, judge verdict and results.json (kept 90 days)."
+              if [ "$MODE" = "benchmark" ]; then
+                echo
+                echo "To keep this run, unzip it into \`jira_analyst_results/<Model>/\`."
+              fi
               echo
             fi
             if [ -f "$f" ]; then cat "$f"; else echo "(no summary generated)"; fi

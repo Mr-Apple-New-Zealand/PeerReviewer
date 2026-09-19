@@ -18,6 +18,7 @@ Examples:
   python3 scripts/jira_benchmark.py --calibrate-judge
   python3 scripts/jira_benchmark.py --rejudge jira_benchmark_results/run-12
   python3 scripts/jira_benchmark.py --list-cases
+  python3 scripts/jira_benchmark.py --compare jira_analyst_results
 """
 from __future__ import annotations
 
@@ -796,14 +797,21 @@ def pareto(aggs: dict) -> set[str]:
     return front
 
 
-def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dict]) -> str:
+RUN_SETTINGS = ("started", "harness_commit", "num_ctx", "num_predict", "temperature", "seed", "repeats",
+                "system_prompt", "analyst_prompt_sha", "judge", "judge_effort", "judge_prompt_sha", "cases_sha")
+
+
+def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dict], title: str | None = None,
+                  settings: tuple = RUN_SETTINGS, runs: dict | None = None, notes: list[str] | None = None) -> str:
+    """Summary for one run, or (with title/settings/runs) the cross-run leaderboard.
+    runs maps model -> the run it came from, shown as its own table because
+    num_ctx, num_predict and repeats may differ between models there."""
     aggs = {r["model"]: aggregate(r) for r in records}
     front = pareto(aggs)
     ranked = sorted(aggs, key=lambda m: (aggs[m]["quality"] is None, -(aggs[m]["quality"] or 0)))
-    L = [f"# Jira Analyst Benchmark - run {cfg['run_id']}", ""]
+    L = [title or f"# Jira Analyst Benchmark - run {cfg['run_id']}", ""]
     L += ["| Setting | Value |", "|---|---|"]
-    for k in ("started", "harness_commit", "num_ctx", "num_predict", "temperature", "seed", "repeats",
-              "system_prompt", "analyst_prompt_sha", "judge", "judge_effort", "judge_prompt_sha", "cases_sha"):
+    for k in settings:
         L.append(f"| {k} | {cfg.get(k)} |")
     L.append(f"| cases | {', '.join(c['id'] for c in cases)} |")
     L.append("")
@@ -846,6 +854,21 @@ def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dic
                  f"| {fmt_s(a['mean_case_s'])} | {f(a['output_tps'])} | {f(a['mean_output_tokens'], '{:.0f}')} "
                  f"| {'yes' if m in front else ''} |")
     L.append("")
+
+    if runs:
+        L += ["## Runs", "",
+              "Resident GB includes the KV cache at each run's own num_ctx, so it reads higher for a model "
+              "run at a larger context.", "",
+              "| Model | Run | Started | num_ctx | num_predict | Repeats | Harness | Folder |",
+              "|---|---|---|---|---|---|---|---|"]
+        for m in ranked:
+            ri = runs[m]
+            L.append(f"| {m} | {ri['run_id']} | {ri['started']} | {ri['num_ctx']} | {ri['num_predict']} "
+                     f"| {ri['repeats']} | {ri['harness_commit']} | {ri['folder']} |")
+        L.append("")
+
+    if notes:
+        L += notes + [""]
 
     if not cfg["skip_judge"]:
         L += ["## Score per case", "", "| Model | " + " | ".join(c["id"] for c in cases) + " |",
@@ -894,6 +917,88 @@ def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dic
 def save_results(out_dir: Path, cfg: dict, records: list[dict]) -> None:
     payload = {"config": cfg, "results": [{**r, "aggregate": aggregate(r)} for r in records]}
     (out_dir / "results.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+# ── Leaderboard across runs ──────────────────────────────────────────────────
+
+# Scores are only comparable when these match. num_ctx, num_predict and
+# repeats may differ: each model runs at the settings that suit it, and none of
+# them changes a score unless the run was truncated, which the run's own
+# warnings flag.
+COMPARABLE_ON = ("cases_sha", "judge", "judge_effort", "judge_prompt_sha", "analyst_prompt_sha",
+                 "temperature", "system_prompt")
+
+
+def compare_runs(roots: list[Path], out_dir: Path, value_margin: float) -> str:
+    """Rank the latest comparable run of every model found under roots."""
+    entries, notes = [], []
+    for root in roots:
+        for path in sorted(root.rglob("results.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                cfg = data["config"]
+            except (json.JSONDecodeError, KeyError) as e:
+                notes.append(f"- `{path}`: unreadable ({e})")
+                continue
+            if cfg.get("skip_judge"):
+                notes.append(f"- `{(Path(root.name) / path.parent.relative_to(root)).as_posix()}`: "
+                             f"run {cfg.get('run_id')} was not judged")
+                continue
+            for rec in data.get("results", []):
+                # Shown relative to the folder being compared, e.g. jira_analyst_results/run-4
+                folder = (Path(root.name) / path.parent.relative_to(root)).as_posix()
+                entries.append({"model": rec["model"], "rec": rec, "cfg": cfg, "folder": folder,
+                                "fp": tuple(cfg.get(k) for k in COMPARABLE_ON)})
+    if not entries:
+        sys.exit(f"ERROR: no judged results.json found under {', '.join(map(str, roots))}")
+
+    # The reference conditions are the ones most models were run under; on a
+    # tie, the most recent run's. Anything else is listed, not silently mixed in.
+    counts = {}
+    for e in entries:
+        counts.setdefault(e["fp"], set()).add(e["model"])
+    newest = max(entries, key=lambda e: e["cfg"].get("started") or "")
+    ref = max(counts, key=lambda fp: (len(counts[fp]), fp == newest["fp"]))
+    ref_cfg = dict(zip(COMPARABLE_ON, ref))
+
+    latest = {}
+    for e in entries:
+        if e["fp"] != ref:
+            diff = [f"{k} {v!r} (ranked runs: {ref_cfg[k]!r})"
+                    for k, v in zip(COMPARABLE_ON, e["fp"]) if v != ref_cfg[k]]
+            notes.append(f"- {e['model']} in `{e['folder']}` (run {e['cfg'].get('run_id')}): "
+                         f"different {'; '.join(diff)}")
+            continue
+        prev = latest.get(e["model"])
+        if prev is None or (e["cfg"].get("started") or "") > (prev["cfg"].get("started") or ""):
+            if prev:
+                notes.append(f"- {e['model']}: run {prev['cfg'].get('run_id')} in `{prev['folder']}` "
+                             f"superseded by run {e['cfg'].get('run_id')}")
+            latest[e["model"]] = e
+        else:
+            notes.append(f"- {e['model']}: run {e['cfg'].get('run_id')} in `{e['folder']}` "
+                         f"superseded by run {prev['cfg'].get('run_id')}")
+
+    records = [{k: v for k, v in e["rec"].items() if k != "aggregate"} for e in latest.values()]
+    runs = {m: {"run_id": e["cfg"].get("run_id"), "started": e["cfg"].get("started"),
+                "num_ctx": e["cfg"].get("num_ctx"), "num_predict": e["cfg"].get("num_predict"),
+                "repeats": e["cfg"].get("repeats"), "harness_commit": e["cfg"].get("harness_commit"),
+                "folder": str(e["folder"])} for m, e in latest.items()}
+    case_ids = {c["case"] for r in records for c in r["cases"]}
+    cases = [c for c in load_cases() if c["id"] in case_ids]
+    cfg = {**ref_cfg, "run_id": "leaderboard", "skip_judge": False, "value_margin": value_margin,
+           "generated": datetime.now().isoformat(timespec="seconds"), "models": len(records)}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    extra = (["## Not ranked", ""] + notes) if notes else None
+    text = write_summary(out_dir, cfg, records, cases, title="# Jira Analyst Leaderboard",
+                         settings=("generated", "models") + COMPARABLE_ON, runs=runs, notes=extra)
+    # Deliberately not named results.json, so a leaderboard written inside a
+    # results folder is never read back in as a run.
+    (out_dir / "leaderboard.json").write_text(json.dumps(
+        {"config": cfg, "runs": runs, "not_ranked": notes,
+         "results": [{"model": r["model"], "aggregate": aggregate(r)} for r in records]}, indent=2),
+        encoding="utf-8")
+    return text
 
 
 # ── Judge calibration ────────────────────────────────────────────────────────
@@ -997,8 +1102,17 @@ def main() -> None:
     ap.add_argument("--calibrate-judge", action="store_true")
     ap.add_argument("--rejudge", default="", help="Re-grade the analyses in an earlier run directory")
     ap.add_argument("--list-cases", action="store_true")
+    ap.add_argument("--compare", nargs="+", default=None, metavar="DIR",
+                    help="Build a leaderboard from every judged results.json under these folders "
+                         "(no model or judge calls)")
     ap.add_argument("--out", default="", help="Output directory (default jira_benchmark_results/run-<id>)")
     args = ap.parse_args()
+
+    if args.compare:
+        out = Path(args.out) if args.out else ROOT / "jira_benchmark_results" / "leaderboard"
+        print(compare_runs([Path(p) for p in args.compare], out, args.value_margin))
+        print(f"\nWritten to {out}")
+        return
 
     cases = load_cases([c for c in args.cases.split(",")] if args.cases else None)
     case_texts = {c["id"]: render_case(c) for c in cases}
