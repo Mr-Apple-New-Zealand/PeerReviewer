@@ -1,0 +1,89 @@
+{
+  "id": "C01",
+  "title": "Well-specified bug: double debit on transfer retry",
+  "tests": "Baseline. A complete, well-written bug with a clear root cause, an open PR and a customer remediation action. A capable model should score near 100; the traps check it does not overstate progress or widen the scope.",
+  "analysis_date": "2026-09-15",
+  "request": "Analyse this ticket.",
+  "tickets": [
+    {
+      "key": "BANK-412",
+      "summary": "Transfer retry after timeout debits the source account twice",
+      "type": "Bug",
+      "status": "In Progress",
+      "priority": "High",
+      "assignee": "Priya Nair",
+      "reporter": "Marcus Reid",
+      "created": "2026-09-08 10:14",
+      "updated": "2026-09-12 16:40",
+      "components": ["Transactions"],
+      "affects_versions": ["3.1.4"],
+      "fix_versions": ["3.2.0"],
+      "sprint": "Sprint 38 (2026-09-09 to 2026-09-22)",
+      "story_points": 5,
+      "labels": ["customer-impact", "mobile-web"],
+      "description": [
+        "Customer transferred $250 from their cheque account to savings on mobile web. The spinner hung for about 30 seconds and then showed \"Request timed out (ERR_TXN_504)\". They tapped Retry.",
+        "Result: the cheque account was debited $250 twice, and savings was credited once.",
+        "",
+        "Steps to reproduce (staging):",
+        "1. Log in on mobile web and start a transfer between two own accounts.",
+        "2. Add more than 30s of latency between the API and the database (we used toxiproxy).",
+        "3. When ERR_TXN_504 appears, tap Retry.",
+        "",
+        "Expected: one debit and one credit.",
+        "Actual: two debits, one credit.",
+        "",
+        "Three customers have reported this so far (support calls on 5, 6 and 8 September).",
+        "",
+        "Log excerpt:",
+        "2026-09-08 09:41:02 INFO  TransactionService.Transfer: debit committed txn=8841 account=***1180 amount=250.00",
+        "2026-09-08 09:41:32 ERROR TransactionService.Transfer: credit failed txn=8841: timeout after 30000ms",
+        "2026-09-08 09:41:40 INFO  TransactionService.Transfer: debit committed txn=8842 account=***1180 amount=250.00",
+        "2026-09-08 09:41:41 INFO  TransactionService.Transfer: credit committed txn=8842 account=***2271 amount=250.00"
+      ],
+      "history": [
+        {"when": "2026-09-08 10:30", "who": "Aroha Walker", "field": "Priority", "from": "Medium", "to": "High"},
+        {"when": "2026-09-09 09:05", "who": "Priya Nair", "field": "Status", "from": "Open", "to": "In Progress"}
+      ],
+      "comments": [
+        {"author": "Priya Nair", "created": "2026-09-09 11:02", "body": [
+          "Reproduced in staging. Two problems:",
+          "1. The Retry button calls POST /api/transaction/transfer again with no idempotency key, so the server treats it as a new transfer.",
+          "2. The debit and the credit are not in one database transaction, so when the credit times out the first debit stays committed."
+        ]},
+        {"author": "Tom Becker", "created": "2026-09-10 14:20", "body": [
+          "Confirmed on 3.1.4 staging with Priya's steps. It does NOT reproduce on desktop web: desktop disables the submit button and has no Retry button after a timeout."
+        ]},
+        {"author": "Aroha Walker", "created": "2026-09-11 09:15", "body": [
+          "Finance will need to reverse the duplicate debits for the three affected customers manually. Marcus, can you raise that with Finance Ops?",
+          "Target is the 3.2.0 release on 2026-09-24."
+        ]},
+        {"author": "Priya Nair", "created": "2026-09-12 16:40", "body": [
+          "PR #218 is open: wraps the debit and credit in a single transaction and adds Idempotency-Key header support to the transfer endpoint. Waiting on code review."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C01-P1", "kind": "point", "category": "fact",
+     "expect": "Retrying a transfer after the ERR_TXN_504 timeout debits the source account twice while crediting the destination only once."},
+    {"id": "C01-P2", "kind": "point", "category": "fact",
+     "expect": "The bug affects version 3.1.4 and the fix is targeted at 3.2.0, which releases on 2026-09-24."},
+    {"id": "C01-P3", "kind": "point", "category": "fact",
+     "expect": "Root cause (per Priya's reproduction): the retry resends the transfer with no idempotency key, and the debit and credit are not in a single database transaction."},
+    {"id": "C01-P4", "kind": "point", "category": "state",
+     "expect": "The ticket is In Progress, assigned to Priya Nair, and the fix (PR #218) is waiting on code review."},
+    {"id": "C01-P5", "kind": "point", "category": "fact",
+     "expect": "Three customers are affected and need their duplicate debits reversed manually by Finance; Marcus Reid was asked to raise this with Finance Ops."},
+    {"id": "C01-P6", "kind": "point", "category": "gap",
+     "expect": "The ticket does not confirm that the Finance reversal request has been raised or that the three customers have been refunded."},
+    {"id": "C01-P7", "kind": "point", "category": "action",
+     "expect": "Next actions include getting PR #218 reviewed and merged, and confirming the customer reversals with Finance Ops."},
+    {"id": "C01-T1", "kind": "trap", "category": "overstated progress",
+     "expect": "Claims PR #218 has been merged, or that the fix is deployed or released.",
+     "claim": "PR #218 has been merged and the fix is already deployed to production."},
+    {"id": "C01-T2", "kind": "trap", "category": "wrong scope",
+     "expect": "Claims desktop web is also affected (QA confirmed it does not reproduce on desktop).",
+     "claim": "The double debit affects desktop web as well as mobile web."}
+  ]
+}

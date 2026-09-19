@@ -1,0 +1,107 @@
+name: Jira Analyst Benchmark
+
+# Visible in the Actions run list so the model set and settings of a past run
+# can be read off without opening it.
+run-name: "Jira analysts ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.models }} | ctx ${{ inputs.num_ctx || '32768' }} | temp ${{ inputs.temperature || '0.3' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: >
+          Comma-separated Ollama tags to benchmark. Per-model think override:
+          "model=value", or "model=none" to send no think field.
+          Not needed for judge calibration.
+        required: false
+        type: string
+      mode:
+        description: "benchmark = run the models; calibrate-judge = check the judge against synthetic answers"
+        required: false
+        type: choice
+        options: [benchmark, calibrate-judge]
+        default: benchmark
+      cases:
+        description: "Comma-separated case ids (e.g. C01,C08). Blank = all."
+        required: false
+        type: string
+      num_ctx:
+        description: "Context window sent to every model. Blank = 32768 (Qwen2.5-VL's native window)."
+        required: false
+        type: string
+      num_predict:
+        description: "Output cap per analysis. Blank = 4096. Raise for thinking models."
+        required: false
+        type: string
+      temperature:
+        description: "Blank = 0.3."
+        required: false
+        type: string
+      repeats:
+        description: "Runs per case. Blank = 1. Use 3 when two models are within ~5 points."
+        required: false
+        type: string
+      judge:
+        description: "Judge model. Blank = claude-sonnet-5. Any Ollama tag also works."
+        required: false
+        type: string
+      judge_effort:
+        description: "Anthropic judge only: low/medium/high/xhigh/max. Blank = high."
+        required: false
+        type: string
+
+env:
+  OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  OLLAMA_CLOUD_URL: https://ollama.com
+  OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
+  # The judge. The tickets are synthetic, so sending them to Anthropic exposes
+  # no company data.
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  jira-benchmark:
+    runs-on: mra-ubuntu
+    timeout-minutes: 480
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # All logic lives in scripts/jira_benchmark.py so a local run and a CI run
+      # are the same code. Inputs arrive as env vars, not ${{ }} splices into
+      # the script, so a model name cannot inject shell.
+      - name: Run Jira analyst benchmark
+        env:
+          JIRA_BENCH_MODELS: ${{ inputs.models }}
+          MODE: ${{ inputs.mode || 'benchmark' }}
+          CASES: ${{ inputs.cases }}
+          NUM_CTX: ${{ inputs.num_ctx || '32768' }}
+          NUM_PREDICT: ${{ inputs.num_predict || '4096' }}
+          TEMPERATURE: ${{ inputs.temperature || '0.3' }}
+          REPEATS: ${{ inputs.repeats || '1' }}
+          JUDGE: ${{ inputs.judge || 'claude-sonnet-5' }}
+          JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          args=(--num-ctx "$NUM_CTX" --num-predict "$NUM_PREDICT" --temperature "$TEMPERATURE"
+                --repeats "$REPEATS" --judge "$JUDGE" --judge-effort "$JUDGE_EFFORT"
+                --out jira_benchmark_results)
+          if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
+          if [ "$MODE" = "calibrate-judge" ]; then args+=(--calibrate-judge); fi
+          python3 scripts/jira_benchmark.py "${args[@]}"
+
+      - name: Publish summary
+        if: always()
+        env:
+          MODE: ${{ inputs.mode || 'benchmark' }}
+        run: |
+          f=jira_benchmark_results/summary.md
+          if [ "$MODE" = "calibrate-judge" ]; then f=jira_benchmark_results/calibration.md; fi
+          if [ -f "$f" ]; then cat "$f" >> "$GITHUB_STEP_SUMMARY"; cat "$f"; else echo "(no summary generated)"; fi
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jira-benchmark-${{ github.run_number }}
+          path: jira_benchmark_results/
+          retention-days: 90

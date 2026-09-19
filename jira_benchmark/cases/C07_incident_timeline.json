@@ -1,0 +1,74 @@
+{
+  "id": "C07",
+  "title": "Incident timeline, durations and root cause",
+  "tests": "Chronology and arithmetic. The model must order the events, compute time to detect and time to recover from the timestamps, and take the root cause from the confirmed finding, not the early speculation.",
+  "analysis_date": "2026-09-15",
+  "request": "Write an incident timeline, calculate the time to detect and the time to recover, and state the root cause.",
+  "tickets": [
+    {
+      "key": "BANK-450",
+      "summary": "P1: Transfers failing for all users",
+      "type": "Incident",
+      "status": "Resolved",
+      "resolution": "Fixed",
+      "priority": "Highest",
+      "assignee": "Sam Okafor",
+      "reporter": "Sam Okafor",
+      "created": "2026-09-11 09:52",
+      "updated": "2026-09-11 10:50",
+      "components": ["Transactions", "Auth"],
+      "links": [{"type": "is caused by", "key": "OPS-81"}],
+      "description": [
+        "All times NZST.",
+        "Monitoring alert fired at 09:47: TransferErrorRate > 20%. Customers are unable to complete transfers."
+      ],
+      "comments": [
+        {"author": "Sam Okafor", "created": "2026-09-11 09:52", "body": [
+          "Incident declared. Transfer error rate is at 64%. The dashboards show errors starting at around 09:31."
+        ]},
+        {"author": "Marcus Reid", "created": "2026-09-11 10:05", "body": [
+          "Support queue spiking, 40+ calls in the last 15 minutes."
+        ]},
+        {"author": "Priya Nair", "created": "2026-09-11 10:10", "body": [
+          "Could it be the database? I'm seeing some slow queries on the transactions table."
+        ]},
+        {"author": "Sam Okafor", "created": "2026-09-11 10:24", "body": [
+          "The database is healthy; those slow queries are normal for this time of day.",
+          "The failing requests are 401s from the Transactions API: \"IDX10503: Signature validation failed\".",
+          "The config deploy at 09:30 (OPS-81) rotated the JWT signing key for the Auth service. Auth started issuing tokens signed with the new key, but the Transactions API still validates against the old key."
+        ]},
+        {"author": "Sam Okafor", "created": "2026-09-11 10:31", "body": [
+          "Rolling back the OPS-81 config deploy."
+        ]},
+        {"author": "Sam Okafor", "created": "2026-09-11 10:44", "body": [
+          "Rollback complete. The transfer error rate was back under 1% at 10:42."
+        ]},
+        {"author": "Sam Okafor", "created": "2026-09-11 10:50", "body": [
+          "Resolving. Root cause: the JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against. A post-incident review is booked for 2026-09-16."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C07-P1", "kind": "point", "category": "timeline",
+     "expect": "The config deploy OPS-81 was at 09:30 and impact started at about 09:31."},
+    {"id": "C07-P2", "kind": "point", "category": "timeline",
+     "expect": "The alert fired at 09:47 and the incident was declared at 09:52."},
+    {"id": "C07-P3", "kind": "point", "category": "timeline",
+     "expect": "The rollback started at 10:31, the error rate recovered below 1% at 10:42, and the incident was resolved at 10:50."},
+    {"id": "C07-P4", "kind": "point", "category": "arithmetic",
+     "expect": "Time to detect is 16 minutes (09:31 to the 09:47 alert)."},
+    {"id": "C07-P5", "kind": "point", "category": "arithmetic",
+     "expect": "Time to recover is 71 minutes from impact start (09:31 to 10:42), or 55 minutes from detection (09:47 to 10:42). Either is acceptable if the start point is stated; 79 minutes to resolution (09:31 to 10:50) is also acceptable if it is labelled as time to resolution."},
+    {"id": "C07-P6", "kind": "point", "category": "root cause",
+     "expect": "Root cause: config deploy OPS-81 rotated the JWT signing key for the Auth service without updating the key the Transactions API validates against, so the Transactions API rejected tokens with 401 'IDX10503: Signature validation failed'."},
+    {"id": "C07-P7", "kind": "point", "category": "follow-up",
+     "expect": "A post-incident review is booked for 2026-09-16."},
+    {"id": "C07-T1", "kind": "trap", "category": "speculation as fact",
+     "expect": "Names the database or slow queries as the cause or a contributing cause (Sam ruled this out at 10:24).",
+     "claim": "Slow database queries on the transactions table contributed to the outage."},
+    {"id": "C07-T2", "kind": "trap", "category": "arithmetic error",
+     "expect": "States a time to detect or a time to recover that no pair of timestamps in the ticket supports (for example 12 minutes to detect, or 90 minutes to recover).",
+     "claim": "Time to detect was 12 minutes and time to recover was 90 minutes."}
+  ]
+}

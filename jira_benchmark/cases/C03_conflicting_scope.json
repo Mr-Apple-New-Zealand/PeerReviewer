@@ -1,0 +1,74 @@
+{
+  "id": "C03",
+  "title": "Story with conflicting scope decisions",
+  "tests": "Conflict handling. The product owner cut PDF from scope, and compliance says PDF is mandatory. The written acceptance criteria still say both. The model must surface the conflict without resolving it, and notice that development is on hold despite the Ready for Dev status.",
+  "analysis_date": "2026-09-15",
+  "request": "Analyse this ticket.",
+  "tickets": [
+    {
+      "key": "BANK-398",
+      "summary": "Export account statements",
+      "type": "Story",
+      "status": "Ready for Dev",
+      "priority": "High",
+      "assignee": "Hana Sato",
+      "reporter": "Aroha Walker",
+      "created": "2026-08-27 13:20",
+      "updated": "2026-09-11 17:05",
+      "components": ["Statements"],
+      "affects_versions": [],
+      "fix_versions": ["3.2.0"],
+      "sprint": "Sprint 38 (2026-09-09 to 2026-09-22)",
+      "story_points": null,
+      "labels": ["customer-request"],
+      "attachments": [
+        {"name": "statement_export_v2.fig", "size": "2.1 MB", "kind": "design file"}
+      ],
+      "description": [
+        "As a customer, I want to export my account statements so that I can keep records and share them with my accountant.",
+        "",
+        "Acceptance criteria:",
+        "AC1. The customer can export statements for a chosen date range of up to 12 months.",
+        "AC2. Export formats: PDF and CSV.",
+        "AC3. Export is available from the Account page."
+      ],
+      "comments": [
+        {"author": "Lena Fischer", "created": "2026-09-03 10:40", "body": [
+          "Designs attached (statement_export_v2.fig). The PDF layout follows the bank letterhead. Compliance asked for the regulatory footer on every PDF page."
+        ]},
+        {"author": "Aroha Walker", "created": "2026-09-08 09:12", "body": [
+          "Scope cut for MVP: CSV only. PDF moves to a follow-up story. We need this in the 3.2.0 release."
+        ]},
+        {"author": "Chris Morgan", "created": "2026-09-10 15:31", "body": [
+          "Compliance position: a statement provided to customers must be a PDF with the regulatory footer. A CSV on its own is not acceptable as a customer statement for the 3.2.0 release."
+        ]},
+        {"author": "Hana Sato", "created": "2026-09-11 17:05", "body": [
+          "Which one do I build? I'm holding off until this is settled.",
+          "Separately: 12 months of transactions for our heaviest business accounts is 40k+ rows. Generating that synchronously may time out. Do we need async generation with an email or notification when it's ready?"
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C03-P1", "kind": "point", "category": "conflict",
+     "expect": "There is an unresolved scope conflict: Aroha Walker cut the MVP to CSV only (PDF deferred), but Chris Morgan (Compliance) says customer statements must be PDF with the regulatory footer and CSV alone is not acceptable for 3.2.0."},
+    {"id": "C03-P2", "kind": "point", "category": "conflict",
+     "expect": "The written acceptance criteria (AC2: PDF and CSV) have not been updated to reflect either position."},
+    {"id": "C03-P3", "kind": "point", "category": "state",
+     "expect": "Although the status is Ready for Dev, development is on hold: Hana Sato is waiting for the scope to be settled."},
+    {"id": "C03-P4", "kind": "point", "category": "risk",
+     "expect": "Hana raised an unanswered performance question: 12-month exports for heavy accounts (40k+ rows) may time out if generated synchronously, so async generation may be needed."},
+    {"id": "C03-P5", "kind": "point", "category": "gap",
+     "expect": "The story has no story points or estimate, and no follow-up story for PDF has been created or linked."},
+    {"id": "C03-P6", "kind": "point", "category": "action",
+     "expect": "Aroha Walker and Chris Morgan (product and compliance) need to agree the 3.2.0 scope before development starts, and the acceptance criteria must then be updated."},
+    {"id": "C03-I1", "kind": "inference", "category": "risk",
+     "expect": "With the sprint ending 2026-09-22 and work not started, delivery in 3.2.0 is at risk."},
+    {"id": "C03-T1", "kind": "trap", "category": "resolves conflict",
+     "expect": "Presents either position as the settled scope (for example 'the scope is CSV only' or 'PDF is included') without flagging the conflict as unresolved.",
+     "claim": "The agreed scope for 3.2.0 is CSV export only."},
+    {"id": "C03-T2", "kind": "trap", "category": "overstated progress",
+     "expect": "Claims development is underway or partly complete.",
+     "claim": "Hana Sato has started building the CSV export."}
+  ]
+}

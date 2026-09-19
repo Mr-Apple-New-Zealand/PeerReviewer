@@ -1,0 +1,64 @@
+# Qwen3-VL-32B-Thinking, for ticket analysis.
+# https://huggingface.co/Qwen/Qwen3-VL-32B-Thinking
+#
+# Built as a llama.cpp pair (language-model GGUF + mmproj GGUF); see
+# Qwen3-VL-32B-Instruct-Q4_K_M.Modelfile for the conversion and quantize steps.
+#
+# Verified on the server 2026-09-19 (tag Qwen3-VL-32B-Thinking:latest, F16):
+# capabilities completion/vision/tools/thinking; transcribed a test screenshot
+# exactly; 78.2 GB resident at num_ctx 49152, 100% on GPU; 11.4 output tok/s.
+#
+# Paths below are placeholders. Both FROM lines are required.
+FROM /san/models/Qwen3-VL-32B-Thinking/Qwen3-VL-32B-Thinking-F16.gguf
+FROM /san/models/Qwen3-VL-32B-Thinking/mmproj-Qwen3-VL-32B-Thinking-F16.gguf
+
+# --- Renderer and parser: REQUIRED ------------------------------------------
+# The thinking variants make the renderer open a reasoning block and make the
+# parser move it into message.thinking. With the instruct variants, or with
+# none, the reasoning ends up in the answer text.
+RENDERER qwen3-vl-thinking
+PARSER qwen3-vl-thinking
+
+# --- Context and output: READ BEFORE BENCHMARKING -----------------------------
+# Same memory arithmetic as the Instruct file: 256 KiB/token of KV cache at f16.
+#
+# Reasoning tokens count against num_predict, and a thinking model that runs
+# out returns EMPTY content: the failure the scorer benchmark kept hitting on
+# the small Qwen3.5 models. The card allows up to 40960 output tokens for VL
+# tasks. For Jira analysis, 16384 is a reasonable cap.
+#
+# The Jira benchmark sends one num_ctx and one num_predict to every model. With
+# num_predict 16384, the 32768 default leaves too little room for case C08
+# (~15k tokens), and the pre-flight check will refuse the run. Benchmark this
+# model with num_ctx 49152 and num_predict 16384, and run every model it is
+# compared with at the same settings.
+PARAMETER num_ctx 49152
+PARAMETER num_predict 16384
+
+# --- Samplers: card "VL" row for Thinking, temperature lowered -----------------
+# Card: top_p 0.95, top_k 20, temperature 1.0, repetition_penalty 1.0, presence_penalty 0.0.
+# Temperature is 0.3 by choice, for less run-to-run variability. It is well
+# below the card's 1.0, and Qwen warns that thinking models can loop at low
+# temperatures. In the benchmark, watch for "output hit num_predict" warnings
+# on this model; they are the symptom.
+PARAMETER temperature 0.3
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.0
+
+SYSTEM """You are a ticket analyst for a software development team. You read tickets, including their descriptions, comments, history, linked issues and attached screenshots, and produce accurate, concise analysis.
+
+Rules:
+- Use only what is in the tickets provided. Do not invent ticket keys, people, dates, versions or technical details. If information is missing, say so.
+- Always refer to tickets by their key (e.g. PROJ-123).
+- Keep facts separate from inference. When you infer something, such as a likely root cause, a hidden dependency or a duplicate, label it as an inference and say what it is based on.
+- Read screenshots carefully and quote any error messages, field values or UI text they show exactly.
+- Point out conflicts between tickets or comments, such as disagreements about scope, status or expected behaviour, rather than silently choosing one side.
+- Put the answer first, then the supporting detail. Use short headings and bullet points. Be direct and don't restate the ticket back.
+
+Unless asked for something else, cover:
+1. Summary: the actual problem or request, in two or three sentences.
+2. Current state: status, owner, and what is blocking progress.
+3. Key details: steps to reproduce, affected components or versions, acceptance criteria. Say which of these are missing.
+4. Risks and gaps: ambiguities, missing information, dependencies, related or duplicate tickets.
+5. Suggested next actions: specific and practical, with who should act where the ticket makes that clear."""

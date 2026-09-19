@@ -1,0 +1,88 @@
+{
+  "id": "C06",
+  "title": "Release risk from an overdue external dependency",
+  "tests": "Dependency chains and dates. The story is blocked by an ops ticket that is waiting on a vendor and is past its due date. The model must work out the release risk from the dates against today's date, and must not invent a vendor commitment.",
+  "analysis_date": "2026-09-15",
+  "request": "Will BANK-405 make the 3.2.0 release? What is blocking it and what should happen next?",
+  "tickets": [
+    {
+      "key": "BANK-405",
+      "summary": "Enable mutual TLS for the partner payments API",
+      "type": "Story",
+      "status": "In Progress",
+      "priority": "High",
+      "assignee": "Ravi Kumar",
+      "reporter": "Dev Patel",
+      "created": "2026-08-25 10:00",
+      "updated": "2026-09-12 17:20",
+      "components": ["Partner API"],
+      "fix_versions": ["3.2.0"],
+      "sprint": "Sprint 38 (2026-09-09 to 2026-09-22)",
+      "story_points": 8,
+      "links": [{"type": "is blocked by", "key": "OPS-77"}],
+      "description": [
+        "Northwind Payments requires mutual TLS on all partner API calls from 1 October 2026. Our partner payments API must present and validate client certificates.",
+        "Release 3.2.0 is scheduled for 2026-09-24.",
+        "",
+        "Acceptance criteria:",
+        "AC1. Partner API calls without a valid Northwind client certificate are rejected.",
+        "AC2. End-to-end test passes in staging against Northwind's sandbox."
+      ],
+      "comments": [
+        {"author": "Ravi Kumar", "created": "2026-09-08 16:45", "body": [
+          "Code is done and merged behind the feature flag MTLS_PARTNER (off by default). I can't run the end-to-end test until Northwind's CA certificates are in the staging trust store. That's OPS-77."
+        ]},
+        {"author": "Ravi Kumar", "created": "2026-09-12 17:20", "body": [
+          "Still waiting on OPS-77. Once the certs are in staging I need about two days for the end-to-end test and fixes."
+        ]}
+      ]
+    },
+    {
+      "key": "OPS-77",
+      "summary": "Install Northwind Payments CA certificates in staging and production trust stores",
+      "type": "Task",
+      "status": "Waiting for vendor",
+      "priority": "High",
+      "assignee": "Jo Tan",
+      "reporter": "Ravi Kumar",
+      "created": "2026-09-01 09:30",
+      "updated": "2026-09-11 10:05",
+      "due": "2026-09-10",
+      "components": ["Infrastructure"],
+      "links": [{"type": "blocks", "key": "BANK-405"}],
+      "description": [
+        "Import the Northwind Payments CA bundle into the staging trust store first, then production. Needs the bundle from Northwind."
+      ],
+      "comments": [
+        {"author": "Jo Tan", "created": "2026-09-05 14:00", "body": [
+          "Requested the CA bundle from Northwind's integration team. They said \"early next week\"."
+        ]},
+        {"author": "Jo Tan", "created": "2026-09-11 10:05", "body": [
+          "Chased Northwind again, no reply yet. Asked our partner manager to escalate."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C06-P1", "kind": "point", "category": "blocker",
+     "expect": "BANK-405 is blocked by OPS-77: the end-to-end test cannot run until Northwind's CA certificates are in the staging trust store, and OPS-77 is waiting for Northwind to send the CA bundle."},
+    {"id": "C06-P2", "kind": "point", "category": "dates",
+     "expect": "OPS-77 was due on 2026-09-10 and is overdue as of 2026-09-15; the last update (2026-09-11) says Northwind has not replied and the partner manager was asked to escalate."},
+    {"id": "C06-P3", "kind": "point", "category": "dates",
+     "expect": "Release 3.2.0 is on 2026-09-24 (sprint ends 2026-09-22), and Ravi needs about two days of end-to-end testing after the certificates arrive."},
+    {"id": "C06-I1", "kind": "inference", "category": "verdict",
+     "expect": "Making 3.2.0 is at serious risk / uncertain: it depends on Northwind supplying the bundle within roughly a week, and nothing in the tickets commits them to a date."},
+    {"id": "C06-P4", "kind": "point", "category": "fact",
+     "expect": "The code is complete and merged behind the MTLS_PARTNER feature flag (off by default)."},
+    {"id": "C06-P5", "kind": "point", "category": "risk",
+     "expect": "The certificates are also needed in production (OPS-77 covers staging then production), and Northwind requires mTLS from 1 October 2026, so there is a hard external deadline beyond the release."},
+    {"id": "C06-P6", "kind": "point", "category": "action",
+     "expect": "Next actions: escalate with Northwind through the partner manager (owner Jo Tan) for a firm delivery date, and plan for 3.2.0 shipping with the MTLS_PARTNER flag off if the certificates do not arrive in time."},
+    {"id": "C06-T1", "kind": "trap", "category": "invented progress",
+     "expect": "Claims the certificates have been received or installed, or that OPS-77 is done.",
+     "claim": "Northwind has sent the CA bundle and it is installed in staging."},
+    {"id": "C06-T2", "kind": "trap", "category": "invented commitment",
+     "expect": "States a specific date by which Northwind has committed to deliver the bundle.",
+     "claim": "Northwind has committed to deliver the CA bundle by 2026-09-17."}
+  ]
+}

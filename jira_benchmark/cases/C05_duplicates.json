@@ -1,0 +1,109 @@
+{
+  "id": "C05",
+  "title": "Duplicate detection across four tickets",
+  "tests": "Cross-ticket reasoning. One ticket is a true duplicate, one looks similar but has a different cause and component, and one is a completed task that probably introduced the bug. The model must separate them and use the older ticket's root-cause analysis.",
+  "analysis_date": "2026-09-15",
+  "request": "Are any of these tickets duplicates of BANK-440? Recommend what to do with each ticket.",
+  "tickets": [
+    {
+      "key": "BANK-440",
+      "summary": "Dashboard balance doesn't update after a transfer",
+      "type": "Bug",
+      "status": "Open",
+      "priority": "Medium",
+      "assignee": null,
+      "reporter": "Tom Becker",
+      "created": "2026-09-13 10:05",
+      "updated": "2026-09-13 10:05",
+      "components": ["Transactions"],
+      "affects_versions": ["3.1.4"],
+      "description": [
+        "After a successful transfer, the balance on the web dashboard still shows the old value. It only updates after logging out and back in.",
+        "The API is fine: GET /api/user/balance returns the correct new balance immediately after the transfer."
+      ],
+      "comments": []
+    },
+    {
+      "key": "BANK-425",
+      "summary": "Account balance stale on home screen after moving money",
+      "type": "Bug",
+      "status": "Open",
+      "priority": "Medium",
+      "assignee": null,
+      "reporter": "Marcus Reid",
+      "created": "2026-09-05 14:22",
+      "updated": "2026-09-06 09:40",
+      "components": ["Web"],
+      "affects_versions": ["3.1.4"],
+      "description": [
+        "Customers report that after moving money between accounts the balance shown on the home screen (web) is out of date for a while. Refreshing the page does not help."
+      ],
+      "comments": [
+        {"author": "Hana Sato", "created": "2026-09-06 09:40", "body": [
+          "Had a look. The web front end caches the balance response in local storage for 15 minutes (BalanceCache). Nothing invalidates the cache after a transfer. The fix is to clear BalanceCache when a transfer succeeds."
+        ]}
+      ]
+    },
+    {
+      "key": "MOB-88",
+      "summary": "Push notification after transfer shows pre-transfer balance",
+      "type": "Bug",
+      "status": "In Progress",
+      "priority": "Low",
+      "assignee": "Ravi Kumar",
+      "reporter": "Lena Fischer",
+      "created": "2026-09-09 16:10",
+      "updated": "2026-09-11 12:00",
+      "components": ["Mobile App", "Notifications"],
+      "affects_versions": ["mobile 5.4.0"],
+      "description": [
+        "The 'Transfer complete' push notification on iOS and Android says 'Your new balance is $X', but $X is the balance from before the transfer."
+      ],
+      "comments": [
+        {"author": "Ravi Kumar", "created": "2026-09-11 12:00", "body": [
+          "The notification service builds the message from the TransferRequested event, which is published before the debit is applied. Switching it to the TransferCompleted event."
+        ]}
+      ]
+    },
+    {
+      "key": "BANK-419",
+      "summary": "Reduce API calls on dashboard by caching balance",
+      "type": "Task",
+      "status": "Done",
+      "resolution": "Done",
+      "priority": "Medium",
+      "assignee": "Hana Sato",
+      "reporter": "Dev Patel",
+      "created": "2026-08-20 11:00",
+      "updated": "2026-08-29 15:30",
+      "components": ["Web"],
+      "fix_versions": ["3.1.4"],
+      "description": [
+        "The dashboard calls GET /api/user/balance on every render, about 40 calls per session. Cache the balance response in local storage for 15 minutes to cut load."
+      ],
+      "comments": [
+        {"author": "Hana Sato", "created": "2026-08-29 15:30", "body": ["Done, shipped in 3.1.4."]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C05-P1", "kind": "point", "category": "duplicate",
+     "expect": "BANK-425 is a duplicate of BANK-440: both report the web dashboard/home screen balance staying stale after a transfer on 3.1.4."},
+    {"id": "C05-P2", "kind": "point", "category": "recommendation",
+     "expect": "Keep one ticket and close the other as a duplicate. BANK-425 is older and already has Hana Sato's root-cause analysis, so it is the natural one to keep (either direction is acceptable if the tickets are linked and the analysis is preserved)."},
+    {"id": "C05-P3", "kind": "point", "category": "not duplicate",
+     "expect": "MOB-88 is not a duplicate: it is a mobile push-notification problem with a different cause (the message is built from the TransferRequested event before the debit is applied), and it is already in progress with Ravi Kumar."},
+    {"id": "C05-P4", "kind": "point", "category": "root cause",
+     "expect": "The cause of the BANK-440/BANK-425 bug is the 15-minute BalanceCache in local storage, which is not invalidated after a transfer; the fix is to clear it when a transfer succeeds."},
+    {"id": "C05-I1", "kind": "inference", "category": "inference",
+     "expect": "BANK-419, which added the 15-minute balance cache in 3.1.4, probably introduced this bug as a regression, so BANK-419 should be linked to it."},
+    {"id": "C05-P5", "kind": "point", "category": "gap",
+     "expect": "The duplicate tickets are both unassigned."},
+    {"id": "C05-T1", "kind": "trap", "category": "false duplicate",
+     "expect": "Says MOB-88 is a duplicate of BANK-440.",
+     "claim": "MOB-88 is also a duplicate of BANK-440 and should be closed."},
+    {"id": "C05-T2", "kind": "trap", "category": "contradicts ticket",
+     "expect": "Says the balance API returns a wrong or stale value (BANK-440 says GET /api/user/balance returns the correct balance).",
+     "claim": "The GET /api/user/balance API returns the stale balance after a transfer."}
+  ]
+}

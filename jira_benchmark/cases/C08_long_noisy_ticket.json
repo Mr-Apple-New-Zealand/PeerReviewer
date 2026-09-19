@@ -1,0 +1,88 @@
+{
+  "id": "C08",
+  "title": "Long noisy ticket: current state, decisions and owner",
+  "tests": "Long context. About 260 generated low-value comments (CI bots, reminders, chasers) bury seven real ones. Two decisions are made, one of which supersedes an earlier plan, and the owner changes twice. The model must find the live facts and not report superseded ones.",
+  "analysis_date": "2026-09-15",
+  "request": "Summarise the current state of this ticket and the decisions that have been made. Who owns it now, and what is left to do?",
+  "tickets": [
+    {
+      "key": "BANK-360",
+      "summary": "Migrate transactional email from SMTP to the EmailHub API",
+      "type": "Story",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assignee": "Hana Sato",
+      "reporter": "Dev Patel",
+      "created": "2026-07-01 09:00",
+      "updated": "2026-09-14 16:55",
+      "components": ["Email"],
+      "fix_versions": ["3.3.0"],
+      "sprint": "Sprint 38 (2026-09-09 to 2026-09-22)",
+      "story_points": 13,
+      "labels": ["platform", "email"],
+      "description": [
+        "Move all transactional email (password reset, statements, transfer receipts) from our SMTP relay to the EmailHub API.",
+        "",
+        "Scope:",
+        "- EmailHub client in EmailService",
+        "- Templates migrated to EmailHub",
+        "- Bounce and complaint handling via EmailHub webhooks",
+        "- Load test at 3x peak volume before cutover"
+      ],
+      "history": [
+        {"when": "2026-07-01 09:00", "who": "Dev Patel", "field": "Assignee", "from": null, "to": "Priya Nair"},
+        {"when": "2026-08-18 10:30", "who": "Dev Patel", "field": "Assignee", "from": "Priya Nair", "to": "Ravi Kumar"},
+        {"when": "2026-09-09 09:15", "who": "Ravi Kumar", "field": "Assignee", "from": "Ravi Kumar", "to": "Hana Sato"}
+      ],
+      "comments": [
+        {"author": "Priya Nair", "created": "2026-07-03 14:12", "body": [
+          "First send from the EmailHub sandbox with a statement PDF attached failed:",
+          "\"EH-413 Payload Too Large: attachments limited to 10 MB per message\".",
+          "Most statements are small, but a 12-month business statement can be 25 MB."
+        ]},
+        {"author": "Priya Nair", "created": "2026-07-10 11:05", "body": [
+          "Plan: we'll keep sending statements as attachments and compress PDFs to get under 10 MB. Anything still too big falls back to SMTP."
+        ]},
+        {"author": "Aroha Walker", "created": "2026-08-05 15:40", "body": [
+          "Decision (agreed with Dev and Priya): statements will be sent as secure download links, not attachments. That replaces the compression plan from July. Attachments are out of scope for this story."
+        ]},
+        {"author": "Dev Patel", "created": "2026-08-20 09:50", "body": [
+          "Decision: we keep the SMTP relay as a fallback until 2026-12-31. EmailHub sending goes behind the feature flag EMAILHUB_ENABLED so we can switch back without a deploy."
+        ]},
+        {"author": "Ravi Kumar", "created": "2026-09-09 09:14", "body": [
+          "Handing over to Hana; I'm moving to the payments team. Templates and the client are done. Remaining: bounce webhook handling and the load test."
+        ]},
+        {"author": "Hana Sato", "created": "2026-09-12 17:30", "body": [
+          "Bounce and complaint webhook handling is done and merged (PR #230)."
+        ]},
+        {"author": "Hana Sato", "created": "2026-09-14 16:55", "body": [
+          "Load test is the only thing left. It's blocked until we get the performance environment, which is booked for the week of 2026-09-21."
+        ]}
+      ],
+      "noise": {"seed": 360, "comments": 260, "from": "2026-07-01 09:30", "to": "2026-09-14 16:00",
+                "owners": [{"from": "2026-07-01 09:00", "who": "Priya Nair"},
+                           {"from": "2026-08-18 10:30", "who": "Ravi Kumar"},
+                           {"from": "2026-09-09 09:15", "who": "Hana Sato"}]}
+    }
+  ],
+  "answer_key": [
+    {"id": "C08-P1", "kind": "point", "category": "owner",
+     "expect": "Hana Sato owns the ticket now, having taken over from Ravi Kumar on 2026-09-09 (Ravi had taken it over from Priya Nair in August)."},
+    {"id": "C08-P2", "kind": "point", "category": "decision",
+     "expect": "Decision (2026-08-05): statements are sent as secure download links rather than attachments, and attachments are out of scope. This replaced the July plan to compress PDF attachments."},
+    {"id": "C08-P3", "kind": "point", "category": "decision",
+     "expect": "Decision (2026-08-20): the SMTP relay stays as a fallback until 2026-12-31, with EmailHub sending behind the EMAILHUB_ENABLED feature flag."},
+    {"id": "C08-P4", "kind": "point", "category": "state",
+     "expect": "Done so far: the EmailHub client, the templates, and bounce/complaint webhook handling (PR #230)."},
+    {"id": "C08-P5", "kind": "point", "category": "remaining",
+     "expect": "The only remaining work is the load test at 3x peak volume, which is blocked until the performance environment is available in the week of 2026-09-21."},
+    {"id": "C08-P6", "kind": "point", "category": "context",
+     "expect": "The switch to download links was driven by EmailHub's 10 MB attachment limit (error EH-413), which large statements exceed."},
+    {"id": "C08-T1", "kind": "trap", "category": "stale owner",
+     "expect": "Says the current owner is Ravi Kumar or Priya Nair.",
+     "claim": "Ravi Kumar currently owns the ticket."},
+    {"id": "C08-T2", "kind": "trap", "category": "superseded decision",
+     "expect": "Reports the superseded July plan (compressing statements to send as attachments under 10 MB) as the current approach.",
+     "claim": "Statements will be compressed and sent as email attachments under 10 MB."}
+  ]
+}

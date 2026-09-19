@@ -1,0 +1,71 @@
+{
+  "id": "C04",
+  "title": "Closed as fixed, but QA says it still fails",
+  "tests": "Status versus evidence. The ticket is Done/Fixed, but a later QA retest shows it still failing with a different error, and nobody reopened it. The model must answer the support question with 'no', and not trust the status field.",
+  "analysis_date": "2026-09-15",
+  "request": "Support want to know: can we tell the customer this is fixed?",
+  "tickets": [
+    {
+      "key": "BANK-377",
+      "summary": "Password reset email not sent for plus-addressed emails (name+tag@domain)",
+      "type": "Bug",
+      "status": "Done",
+      "resolution": "Fixed",
+      "priority": "High",
+      "assignee": "Priya Nair",
+      "reporter": "Marcus Reid",
+      "created": "2026-08-28 09:10",
+      "updated": "2026-09-12 13:22",
+      "components": ["Email"],
+      "affects_versions": ["3.1.3"],
+      "fix_versions": ["3.1.4"],
+      "labels": ["customer-impact"],
+      "description": [
+        "Customers whose email address contains a plus sign (for example alex+bank@example.com) never receive the password reset email. No error is shown to the customer.",
+        "Reported by a customer on 2026-08-27."
+      ],
+      "history": [
+        {"when": "2026-08-29 10:00", "who": "Priya Nair", "field": "Status", "from": "Open", "to": "In Progress"},
+        {"when": "2026-09-02 16:10", "who": "Priya Nair", "field": "Status", "from": "In Progress", "to": "In Review"},
+        {"when": "2026-09-03 11:45", "who": "Priya Nair", "field": "Status", "from": "In Review", "to": "Done"},
+        {"when": "2026-09-03 11:45", "who": "Priya Nair", "field": "Resolution", "from": "Unresolved", "to": "Fixed"}
+      ],
+      "comments": [
+        {"author": "Priya Nair", "created": "2026-09-02 16:05", "body": [
+          "Root cause: EmailService validated recipient addresses with a regex that rejected '+'. Fixed the validation in PR #201."
+        ]},
+        {"author": "Priya Nair", "created": "2026-09-03 11:44", "body": [
+          "PR #201 merged, will go out in 3.1.4."
+        ]},
+        {"author": "Tom Becker", "created": "2026-09-10 15:02", "body": [
+          "Retested on staging with 3.1.4 (build 3.1.4.17): the reset email for test+qa1@example.com still does not arrive.",
+          "The SMTP log now shows: \"Rejected: 550 5.1.3 Invalid recipient address\".",
+          "Looks like the email provider is rejecting it now rather than our regex."
+        ]},
+        {"author": "Marcus Reid", "created": "2026-09-12 13:22", "body": [
+          "The customer asked again today whether this is fixed. Can I tell them yes?"
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C04-P1", "kind": "point", "category": "verdict",
+     "expect": "No: support should not tell the customer it is fixed."},
+    {"id": "C04-P2", "kind": "point", "category": "conflict",
+     "expect": "The ticket is marked Done with resolution Fixed in 3.1.4, but Tom Becker's retest on 2026-09-10 on 3.1.4 staging shows reset emails to plus-addressed recipients still not arriving."},
+    {"id": "C04-P3", "kind": "point", "category": "fact",
+     "expect": "The failure now shows a different error in the SMTP log: '550 5.1.3 Invalid recipient address'."},
+    {"id": "C04-I1", "kind": "inference", "category": "inference",
+     "expect": "The remaining failure appears to come from the email provider rejecting the address, a different cause from the regex fixed in PR #201 (Tom says it 'looks like' this; not confirmed)."},
+    {"id": "C04-P4", "kind": "point", "category": "gap",
+     "expect": "Nobody reopened the ticket or raised a follow-up after the failed retest, so no one currently owns the remaining problem."},
+    {"id": "C04-P5", "kind": "point", "category": "action",
+     "expect": "Reopen BANK-377 (or raise a linked new bug), assign an owner to investigate the provider's rejection, and give the customer a holding response rather than confirming a fix."},
+    {"id": "C04-T1", "kind": "trap", "category": "trusts status field",
+     "expect": "Says the issue is fixed or that support can confirm the fix to the customer.",
+     "claim": "Yes, the issue is fixed in 3.1.4, so support can tell the customer it is resolved."},
+    {"id": "C04-T2", "kind": "trap", "category": "invented event",
+     "expect": "Claims the ticket has already been reopened or that a follow-up ticket exists.",
+     "claim": "Tom Becker reopened the ticket after the retest."}
+  ]
+}

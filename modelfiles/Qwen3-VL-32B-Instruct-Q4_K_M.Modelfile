@@ -1,0 +1,77 @@
+# Qwen3-VL-32B-Instruct, for ticket analysis.
+# https://huggingface.co/Qwen/Qwen3-VL-32B-Instruct
+#
+# ############################################################################
+# BUILT AS A llama.cpp PAIR: LANGUAGE-MODEL GGUF + mmproj (VISION) GGUF
+#
+# This is how the server's Qwen3-VL-32B-Thinking was built, and on Ollama 0.32.13
+# it works: `ollama show` lists 'vision', and on 2026-09-19 it transcribed a
+# test error-dialog screenshot word for word. Both FROM lines are required. The
+# Qwen2.5-VL builds lost vision because only the first file was imported.
+#
+#   python convert_hf_to_gguf.py <hf folder> --outtype f16 --outfile Qwen3-VL-32B-Instruct-F16.gguf
+#   python convert_hf_to_gguf.py <hf folder> --mmproj --outtype f16 --outfile Qwen3-VL-32B-Instruct-F16.gguf
+#       (--mmproj prefixes the output name: mmproj-Qwen3-VL-32B-Instruct-F16.gguf)
+#
+# Plan: benchmark at F16, then quantize the winner. Ollama does NOT quantize a
+# GGUF on import (--quantize is silently ignored), so quantize the language
+# model with llama.cpp, leave the mmproj at F16, and point the first FROM at
+# the quantized file:
+#   llama-quantize Qwen3-VL-32B-Instruct-F16.gguf Qwen3-VL-32B-Instruct-Q4_K_M.gguf Q4_K_M
+#
+# Paths below are placeholders.
+# ############################################################################
+FROM /san/models/Qwen3-VL-32B-Instruct/Qwen3-VL-32B-Instruct-F16.gguf
+FROM /san/models/Qwen3-VL-32B-Instruct/mmproj-Qwen3-VL-32B-Instruct-F16.gguf
+
+# --- Renderer and parser: REQUIRED ------------------------------------------
+# Qwen3-VL uses Ollama's built-in renderer and parser, not a TEMPLATE. They are
+# what place image tokens and handle tool calls. `ollama create` does not
+# auto-detect them for this architecture, so without these lines the model
+# falls back to whatever template it can find and images are not handled
+# correctly.
+RENDERER qwen3-vl-instruct
+PARSER qwen3-vl-instruct
+
+# --- Context ------------------------------------------------------------------
+# Native window is 256K (262144), with no YaRN needed. The limit that matters
+# here is memory. KV cache is 64 layers x 8 KV heads x 128 dim x K+V, which is
+# 256 KiB/token at f16, on top of ~21 GB of Q4_K_M weights plus the vision
+# tower:
+#     32768 ->  8 GiB     65536 -> 16 GiB     131072 -> 32 GiB     262144 -> 64 GiB
+# Halve those with OLLAMA_FLASH_ATTENTION=1 and OLLAMA_KV_CACHE_TYPE=q8_0 on
+# the server. Set this to the largest value that keeps `ollama ps` at 100% GPU.
+# The Jira benchmark sends its own num_ctx (default 32768), overriding this.
+PARAMETER num_ctx 32768
+
+# --- Samplers: card "VL" row, temperature lowered -----------------------------
+# Card: top_p 0.8, top_k 20, temperature 0.7, repetition_penalty 1.0, presence_penalty 1.5.
+# Temperature is 0.3 by choice, for less run-to-run variability in ticket
+# analysis. It matches the benchmark default.
+PARAMETER temperature 0.3
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.0
+# The card's value. Whether Ollama's newer engine applies presence_penalty to
+# this architecture is unverified; it is harmless if ignored.
+PARAMETER presence_penalty 1.5
+
+# No stop parameters: the renderer and parser handle the end-of-turn tokens.
+# Inventing stops is how the MiniMax build ended up truncating responses.
+
+SYSTEM """You are a ticket analyst for a software development team. You read tickets, including their descriptions, comments, history, linked issues and attached screenshots, and produce accurate, concise analysis.
+
+Rules:
+- Use only what is in the tickets provided. Do not invent ticket keys, people, dates, versions or technical details. If information is missing, say so.
+- Always refer to tickets by their key (e.g. PROJ-123).
+- Keep facts separate from inference. When you infer something, such as a likely root cause, a hidden dependency or a duplicate, label it as an inference and say what it is based on.
+- Read screenshots carefully and quote any error messages, field values or UI text they show exactly.
+- Point out conflicts between tickets or comments, such as disagreements about scope, status or expected behaviour, rather than silently choosing one side.
+- Put the answer first, then the supporting detail. Use short headings and bullet points. Be direct and don't restate the ticket back.
+
+Unless asked for something else, cover:
+1. Summary: the actual problem or request, in two or three sentences.
+2. Current state: status, owner, and what is blocking progress.
+3. Key details: steps to reproduce, affected components or versions, acceptance criteria. Say which of these are missing.
+4. Risks and gaps: ambiguities, missing information, dependencies, related or duplicate tickets.
+5. Suggested next actions: specific and practical, with who should act where the ticket makes that clear."""
