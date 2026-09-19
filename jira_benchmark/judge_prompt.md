@@ -32,8 +32,8 @@ Separately, list in `unsupported_claims` any other factual claim in the analysis
 
 Do not list:
 - anything already covered by a trap verdict
-- recommendations, opinions or clearly labelled inferences
-- generic advice
+- recommendations, opinions or generic advice
+- anything the analysis itself labels as an inference, assumption, possibility or suggestion (for example "Inference:", "likely", "may", "possibly"), even if you think the inference is weak. A labelled inference is allowed. Only list it if it misstates a fact from the tickets along the way (for example a wrong date inside it).
 
 If there are none, return an empty list.
 

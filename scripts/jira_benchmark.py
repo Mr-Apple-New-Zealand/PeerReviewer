@@ -499,8 +499,13 @@ def _norm(s: str) -> str:
     for a, b in (("’", "'"), ("‘", "'"), ("“", '"'), ("”", '"'),
                  ("–", "-"), ("—", "-"), ("→", "->"), ("…", "...")):
         s = s.replace(a, b)
-    s = re.sub(r"[*_`#>|\[\]]", " ", s)
-    return re.sub(r"\s+", " ", s).strip()
+    # Emphasis markers are deleted, not spaced: "**Status**: In Progress" must
+    # match a judge quote of "Status: In Progress". Replacing them with spaces
+    # left "status : in progress" and threw out two correct verdicts in run 2.
+    s = re.sub(r"[*_`]", "", s)
+    s = re.sub(r"[#>|\[\]]", " ", s)
+    s = re.sub(r"\s+", " ", s)
+    return re.sub(r" ([:;,.!?)])", r"\1", s).strip()
 
 
 def grounded(quote: str, analysis_norm: str) -> bool:
@@ -577,8 +582,10 @@ def apply_judgement(case: dict, analysis: str, raw: dict, usage: dict) -> dict:
         if item is None:
             notes["omitted"].append(cp["id"])
             verdict, quote, reason = ("clean" if trap else "missed"), "", "judge gave no verdict"
+            judge_verdict = None
         else:
             verdict = str(item.get("verdict", "")).lower()
+            judge_verdict = verdict
             quote, reason = item.get("quote") or "", item.get("reason") or ""
             if trap and verdict not in ("violated", "clean"):
                 notes["normalised"].append(cp["id"])
@@ -590,8 +597,10 @@ def apply_judgement(case: dict, analysis: str, raw: dict, usage: dict) -> dict:
             notes["ungrounded"].append(cp["id"])
             reason = f"[downgraded: quote not found in analysis] {reason}"
             verdict = "clean" if trap else "missed"
+        # judge_verdict is what the judge said before any downgrade, so a
+        # harness fix can be re-applied later without paying for the judge again.
         rows.append({"id": cp["id"], "kind": cp["kind"], "verdict": verdict,
-                     "quote": quote, "reason": reason})
+                     "judge_verdict": judge_verdict, "quote": quote, "reason": reason})
     unsupported = []
     for claim in raw.get("unsupported_claims") or []:
         if grounded(claim.get("quote") or "", analysis_norm):
@@ -599,7 +608,7 @@ def apply_judgement(case: dict, analysis: str, raw: dict, usage: dict) -> dict:
         else:
             notes["ungrounded"].append("unsupported_claim")
     return {"checkpoints": rows, "unsupported_claims": unsupported, "judge_notes": notes,
-            "judge_usage": usage}
+            "judge_usage": usage, "raw": raw}
 
 
 def score_case(judged: dict, invented: list[str]) -> dict:

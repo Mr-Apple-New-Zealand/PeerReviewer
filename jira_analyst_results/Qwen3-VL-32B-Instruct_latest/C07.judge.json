@@ -1,0 +1,79 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "quote": "09:31 NZST**: Transfer errors begin to appear in monitoring dashboards.",
+      "reason": "Impact start at 09:31 is captured but the analysis never states the OPS-81 deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "09:47 NZST**: Monitoring alert fires due to TransferErrorRate > 20%.",
+      "reason": "Both the alert time and the declaration time are correctly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "10:31 NZST**: Sam Okafor initiates rollback of config deploy OPS-81.",
+      "reason": "Rollback start, recovery below 1%, and resolution times all match the tickets."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "quote": "= 09:52 - 09:31 = **21 minutes**",
+      "reason": "The analysis computes detection time using the declaration time rather than the 09:47 alert, giving 21 minutes instead of the expected 16 minutes."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "quote": "= 10:42 - 09:52 = **50 minutes**",
+      "reason": "Time to recover is calculated from incident declaration (09:52) rather than from impact start or alert time, giving 50 minutes which matches none of the acceptable reference points (71, 55, or 79 minutes)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key used by the Transactions API for signature validation. This caused the Transactions API to reject valid tokens signed with the new key, resulting in 401 errors (`IDX10503: Signature validation failed`)",
+      "reason": "Root cause, error code, and mechanism are all correctly and specifically stated."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the post-incident review scheduled for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "quote": "",
+      "reason": "The database suggestion is only attributed to Priya Nair and is not endorsed as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "quote": "",
+      "reason": "Both time calculations (21 and 50 minutes) are derived from real timestamp pairs in the ticket, even though they use non-standard reference points."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 35.0,
+    "input_tokens": 3786,
+    "output_tokens": 3766
+  }
+}

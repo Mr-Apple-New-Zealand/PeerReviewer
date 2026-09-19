@@ -26,7 +26,7 @@ python3 scripts/jira_benchmark.py --models "Qwen2.5-VL-7B-Instruct:latest, Qwen2
 Other modes:
 - `--list-cases`: sizes and point counts. No model calls.
 - `--skip-judge`: analyses and cost only.
-- `--rejudge <run dir>`: re-grade saved analyses after changing the judge or an answer key, without regenerating them.
+- `--rejudge <run dir>`: re-grade saved analyses after changing the judge, the judge prompt, an answer key or the scoring code, without regenerating them. In Actions, use `mode: rejudge` with `rejudge_dir` set to a results folder committed to the repo (the runner only sees committed files). Each `*.judge.json` keeps the judge's raw output and its original verdicts, so you can see what the harness downgraded and why.
 - `--calibrate-judge`: check the judge (see below).
 
 Defaults are `num_ctx 32768`, `num_predict 4096` and `temperature 0.3`, sent explicitly to every model so the Modelfiles cannot make the comparison unequal. By default the analyst prompt comes from the file, so every model gets the same one. Pass `--system-prompt modelfile` to test each model with its own `SYSTEM` instead.

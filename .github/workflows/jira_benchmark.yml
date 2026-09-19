@@ -2,7 +2,7 @@ name: Jira Analyst Benchmark
 
 # Visible in the Actions run list so the model set and settings of a past run
 # can be read off without opening it.
-run-name: "Jira analysts ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.models }} | ctx ${{ inputs.num_ctx || '32768' }} | temp ${{ inputs.temperature || '0.3' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
+run-name: "Jira analysts ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.rejudge_dir) || inputs.models }} | ctx ${{ inputs.num_ctx || '32768' }} | temp ${{ inputs.temperature || '0.3' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
 
 on:
   workflow_dispatch:
@@ -15,11 +15,15 @@ on:
         required: false
         type: string
       mode:
-        description: "benchmark = run the models; calibrate-judge = check the judge against synthetic answers"
+        description: "benchmark = run the models; calibrate-judge = check the judge against synthetic answers; rejudge = re-grade saved analyses"
         required: false
         type: choice
-        options: [benchmark, calibrate-judge]
+        options: [benchmark, calibrate-judge, rejudge]
         default: benchmark
+      rejudge_dir:
+        description: "rejudge only: a committed results folder holding results.json and the model folders (e.g. jira_analyst_results)"
+        required: false
+        type: string
       cases:
         description: "Comma-separated case ids (e.g. C01,C08). Blank = all."
         required: false
@@ -80,6 +84,7 @@ jobs:
           REPEATS: ${{ inputs.repeats || '1' }}
           JUDGE: ${{ inputs.judge || 'claude-sonnet-5' }}
           JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
+          REJUDGE_DIR: ${{ inputs.rejudge_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           args=(--num-ctx "$NUM_CTX" --num-predict "$NUM_PREDICT" --temperature "$TEMPERATURE"
@@ -87,21 +92,40 @@ jobs:
                 --out jira_benchmark_results)
           if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
           if [ "$MODE" = "calibrate-judge" ]; then args+=(--calibrate-judge); fi
+          if [ "$MODE" = "rejudge" ]; then
+            if [ ! -f "$REJUDGE_DIR/results.json" ]; then
+              echo "::error::rejudge_dir '$REJUDGE_DIR' has no results.json. Commit the results folder first."
+              exit 1
+            fi
+            args+=(--rejudge "$REJUDGE_DIR")
+          fi
           python3 scripts/jira_benchmark.py "${args[@]}"
 
-      - name: Publish summary
-        if: always()
-        env:
-          MODE: ${{ inputs.mode || 'benchmark' }}
-        run: |
-          f=jira_benchmark_results/summary.md
-          if [ "$MODE" = "calibrate-judge" ]; then f=jira_benchmark_results/calibration.md; fi
-          if [ -f "$f" ]; then cat "$f" >> "$GITHUB_STEP_SUMMARY"; cat "$f"; else echo "(no summary generated)"; fi
-
+      # Upload first: the artifact's download URL only exists once the upload
+      # has run, and the summary below links to it.
       - name: Upload benchmark results
+        id: upload
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: jira-benchmark-${{ github.run_number }}
           path: jira_benchmark_results/
           retention-days: 90
+
+      - name: Publish summary
+        if: always()
+        env:
+          MODE: ${{ inputs.mode || 'benchmark' }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          f=jira_benchmark_results/summary.md
+          if [ "$MODE" = "calibrate-judge" ]; then f=jira_benchmark_results/calibration.md; fi
+          {
+            if [ -n "$ARTIFACT_URL" ]; then
+              echo "**[Download the full results]($ARTIFACT_URL)**: every analysis, judge verdict and results.json (kept 90 days)."
+              echo
+            fi
+            if [ -f "$f" ]; then cat "$f"; else echo "(no summary generated)"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$f" ]; then cat "$f"; fi
+          echo "Download: ${ARTIFACT_URL:-(no artifact uploaded)}"

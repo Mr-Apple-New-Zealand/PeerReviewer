@@ -1,0 +1,77 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "**BANK-425** is a **duplicate** of **BANK-440** \u2014 same issue (stale balance after transfer), same root cause (cache not invalidated), same component (web dashboard), same version (3.1.4).",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440 citing the same stale-balance issue on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "Close with resolution \u201cDuplicate\u201d, link to BANK-440, and add comment: \u201cDuplicate of BANK-440. Fix: clear BalanceCache on transfer success.\u201d",
+      "reason": "The analysis recommends closing one ticket as duplicate while linking to the other and preserving the root-cause analysis, satisfying the checkpoint's acceptable-either-direction condition."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "Reason**: Affects mobile app and notifications, not the web dashboard. Root cause is different (uses TransferRequested event instead of TransferCompleted).  \n- **Next step**: No action needed \u2014 Ravi Kumar is already working on it.",
+      "reason": "The analysis correctly states MOB-88 is not a duplicate, gives the differing root cause, and notes it is already being worked on by Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "quote": "Fix: clear BalanceCache on transfer success.",
+      "reason": "The analysis repeatedly cites the BalanceCache invalidation fix matching Hana Sato's root-cause comment."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "quote": "BANK-419 is a feature/task that introduced the caching behavior, which is now causing the bug in BANK-440 and BANK-425.",
+      "reason": "The analysis states the regression link as established fact rather than as a likely inference, so it only partially satisfies the inference checkpoint."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that both BANK-440 and BANK-425 are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "quote": "",
+      "reason": "The analysis affirms the API returns the correct balance rather than claiming it is wrong or stale."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "same component (web dashboard)",
+      "reason": "BANK-440's component is listed as 'Transactions', not 'Web', so claiming they share the same component is factually incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 39.3,
+    "input_tokens": 4658,
+    "output_tokens": 4631
+  }
+}
