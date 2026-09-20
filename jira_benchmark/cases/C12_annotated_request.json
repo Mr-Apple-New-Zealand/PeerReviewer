@@ -1,0 +1,55 @@
+{
+  "id": "C12",
+  "title": "Annotated screenshot is the whole specification",
+  "tests": "Vision plus intent. The ticket text says nothing about what to change: the entire request is a crude MS Paint annotation on a screenshot, an arrow and the words 'Remove this' pointing at a control. The model must work out what is being asked for, not just transcribe what it sees, and must not mistake the annotation for part of the app or invent a defect.",
+  "analysis_date": "2026-09-15",
+  "request": "Analyse this ticket. What exactly is being asked for, and is it ready to build?",
+  "tickets": [
+    {
+      "key": "MOB-118",
+      "summary": "Login screen change requested by the client",
+      "type": "Story",
+      "status": "Open",
+      "priority": "Medium",
+      "assignee": null,
+      "reporter": "Aroha Walker",
+      "created": "2026-09-15 11:20",
+      "updated": "2026-09-15 11:20",
+      "components": ["Mobile App"],
+      "affects_versions": [],
+      "fix_versions": [],
+      "labels": ["client-request"],
+      "attachments": [
+        {"name": "login_screenshot_with_paint_arrow.png", "size": "54 KB", "kind": "image",
+         "file": "login_screenshot_with_paint_arrow.png"}
+      ],
+      "description": [
+        "The client sent this through after the demo. They have marked up the screenshot with what they want changed.",
+        "Attaching it as-is. Can someone pick this up for the next sprint?"
+      ],
+      "comments": []
+    }
+  ],
+  "answer_key": [
+    {"id": "C12-P1", "kind": "point", "category": "intent",
+     "expect": "The request is to remove the \"Save\" control (the save-username toggle beside the user name field) from the mobile Online Banking login screen."},
+    {"id": "C12-P2", "kind": "point", "category": "reads image",
+     "expect": "The request exists only as an annotation drawn on the screenshot: the handwritten words \"Remove this\" and a thick arrow pointing up at that control, added in an image editor rather than being part of the app."},
+    {"id": "C12-P3", "kind": "point", "category": "reads image",
+     "expect": "The screen is the \"Enter your Online Banking credentials\" login screen, showing user name TESTRELAXLUX4 with the password field empty."},
+    {"id": "C12-I1", "kind": "inference", "category": "inference",
+     "expect": "The arrow is crude and its tip sits near more than one control, so which element is meant (the Save toggle rather than, say, the show-password eye icon) should be confirmed with the client before development."},
+    {"id": "C12-P4", "kind": "point", "category": "gap",
+     "expect": "The ticket has no written requirement, acceptance criteria, estimate or assignee, and does not say what should happen to users who have already saved their user name."},
+    {"id": "C12-P5", "kind": "point", "category": "verdict",
+     "expect": "It is not ready to build: the whole specification is a drawing on an image, and it needs to be written up and confirmed first."},
+    {"id": "C12-P6", "kind": "point", "category": "action",
+     "expect": "Next actions: confirm the exact control and the reason with the client (via Aroha Walker), write the requirement and acceptance criteria into the ticket, then estimate and assign it."},
+    {"id": "C12-T1", "kind": "trap", "category": "invented defect",
+     "expect": "Describes this as a bug, error or failure, for example claiming the screenshot shows an error message or that login is broken.",
+     "claim": "The screenshot shows an error on the login screen, and the customer is unable to log in."},
+    {"id": "C12-T2", "kind": "trap", "category": "misreads annotation",
+     "expect": "Treats the drawn arrow or the words \"Remove this\" as part of the application's interface, or claims the app itself displays that text.",
+     "claim": "The login screen displays the text \"Remove this\" next to an arrow icon, which should be removed from the app."}
+  ]
+}
