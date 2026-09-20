@@ -23,12 +23,14 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
 import random
 import re
 import statistics
+import struct
 import sys
 import time
 import urllib.error
@@ -41,6 +43,7 @@ BENCH_DIR = ROOT / "jira_benchmark"
 CASES_DIR = BENCH_DIR / "cases"
 ANALYST_PROMPT_FILE = BENCH_DIR / "analyst_system_prompt.md"
 JUDGE_PROMPT_FILE = BENCH_DIR / "judge_prompt.md"
+IMAGES_DIR = BENCH_DIR / "images"
 
 # Scoring weights. Each point in the answer key is worth 1 (partial 0.5).
 # Penalties are subtracted from the points earned before dividing by the
@@ -236,6 +239,13 @@ def load_cases(selected: list[str] | None = None) -> list[dict]:
     for case in cases:
         validate_case(case)
         for ticket in case["tickets"]:
+            for att in ticket.get("attachments") or []:
+                if att.get("file"):
+                    path = IMAGES_DIR / att["file"]
+                    if not path.exists():
+                        sys.exit(f"ERROR: {case['id']} attachment {att['name']}: {path} not found")
+                    att["_path"] = path
+        for ticket in case["tickets"]:
             spec = ticket.pop("noise", None)
             if spec:
                 ticket["comments"] = sorted(ticket.get("comments", []) + noise_comments(spec),
@@ -279,7 +289,9 @@ def render_ticket(t: dict) -> str:
     lines.append("Links: " + ("; ".join(f"{l['type']} {l['key']}" for l in links) if links else "None"))
     atts = t.get("attachments") or []
     lines.append("Attachments: " + ("; ".join(
-        f"{a['name']} ({a.get('size', '?')}, {a.get('kind', 'file')})" for a in atts) if atts else "None"))
+        f"{a['name']} ({a.get('size', '?')}, {a.get('kind', 'file')})"
+        + (" [provided with this request]" if a.get("_path") else "")
+        for a in atts) if atts else "None"))
     lines += ["", "Description:", joined(t.get("description")) or "(empty)"]
     history = t.get("history") or []
     if history:
@@ -304,6 +316,26 @@ def render_case(case: dict) -> str:
             f"{tickets}\n\n"
             f"=== End of tickets ===\n\n"
             f"Request: {case['request']}")
+
+
+def case_images(case: dict) -> list[Path]:
+    """Attachment files to send with the request, in ticket then attachment order."""
+    return [a["_path"] for t in case["tickets"] for a in (t.get("attachments") or []) if a.get("_path")]
+
+
+def image_tokens(path: Path) -> int:
+    """Rough token cost of an image for a Qwen-VL model: 28px patches, merged
+    2x2. Only used for the pre-flight fit check; the real count comes back as
+    prompt_eval_count."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(33)
+        if head[1:4] != b"PNG":  # not a PNG: fall back to a flat allowance
+            return 1500
+        w, h = struct.unpack(">II", head[16:24])
+        return -(-w // 28) * -(-h // 28) // 4
+    except OSError:
+        return 1500
 
 
 # Ticket keys are only policed for the projects the dataset actually uses, so
@@ -400,10 +432,12 @@ class Endpoints:
 
 
 def ollama_chat(ep: Endpoints, model: str, system: str, user: str, options: dict,
-                think: str = "", fmt: dict | None = None) -> dict:
+                think: str = "", fmt: dict | None = None, images: list[Path] | None = None) -> dict:
     base, headers = ep.ollama_route(model)
-    messages = ([{"role": "system", "content": system}] if system else []) + \
-               [{"role": "user", "content": user}]
+    user_msg = {"role": "user", "content": user}
+    if images:
+        user_msg["images"] = [base64.b64encode(p.read_bytes()).decode() for p in images]
+    messages = ([{"role": "system", "content": system}] if system else []) + [user_msg]
     body = {"model": model, "messages": messages, "stream": False, "options": options}
     if think:
         t = think.lower()
@@ -671,6 +705,18 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
             print(f"   WARNING: other models resident before start: {others}. Timings may be contended.")
         record["resource"]["resident_before_start"] = others
 
+    # A case with an attached image cannot be answered by a text-only model:
+    # Ollama rejects the request outright. Those cases are recorded as errors
+    # and scored 0 rather than skipped, because reading the screenshot IS the
+    # task the case sets.
+    no_vision = []
+    if local and any(case_images(c) for c in cases):
+        caps = ep.capabilities(model)
+        if caps is not None and "vision" not in caps:
+            no_vision = [c["id"] for c in cases if case_images(c)]
+            print(f"   WARNING: {model} has no vision capability; case(s) {', '.join(no_vision)} "
+                  f"need an attached image and will score 0.")
+
     options = {"temperature": cfg["temperature"], "num_ctx": cfg["num_ctx"], "num_predict": cfg["num_predict"]}
     if cfg.get("seed") is not None:
         options["seed"] = cfg["seed"]
@@ -681,8 +727,16 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
             tag = case["id"] + (f".r{rep + 1}" if cfg["repeats"] > 1 else "")
             print(f"   {tag} {case['title']} ...", end=" ", flush=True)
             entry = {"case": case["id"], "repeat": rep + 1}
+            if case["id"] in no_vision:
+                print("SKIPPED: model cannot see the attached image")
+                entry.update({"error": "model has no vision capability", "score": 0.0,
+                              "flags": ["case needs vision; model has none"]})
+                record["cases"].append(entry)
+                record["errors"].append(f"{tag}: model has no vision capability")
+                continue
             try:
-                r = ollama_chat(ep, model, analyst_prompt, case_texts[case["id"]], options, think)
+                r = ollama_chat(ep, model, analyst_prompt, case_texts[case["id"]], options, think,
+                                images=case_images(case))
             except Exception as e:
                 print(f"ERROR: {e}")
                 entry.update({"error": f"request failed: {e}", "score": 0.0})
@@ -1122,12 +1176,16 @@ def main() -> None:
     system_for_models = analyst_prompt if args.system_prompt == "file" else ""
 
     budget = args.num_ctx - args.num_predict - PROMPT_OVERHEAD_TOKENS
-    sizes = {cid: int((len(t) + len(system_for_models)) / CHARS_PER_TOKEN) for cid, t in case_texts.items()}
+    img_tokens = {c["id"]: sum(image_tokens(p) for p in case_images(c)) for c in cases}
+    sizes = {cid: int((len(t) + len(system_for_models)) / CHARS_PER_TOKEN) + img_tokens[cid]
+             for cid, t in case_texts.items()}
     if args.list_cases:
         for c in cases:
             pts = sum(cp["kind"] != "trap" for cp in c["answer_key"])
             trs = sum(cp["kind"] == "trap" for cp in c["answer_key"])
-            print(f"{c['id']}  ~{sizes[c['id']]:>6} tok  {pts} points, {trs} traps  {c['title']}")
+            imgs = case_images(c)
+            note = f"  [{len(imgs)} image, ~{img_tokens[c['id']]} tok, needs vision]" if imgs else ""
+            print(f"{c['id']}  ~{sizes[c['id']]:>6} tok  {pts} points, {trs} traps  {c['title']}{note}")
         print(f"Budget at num_ctx {args.num_ctx} / num_predict {args.num_predict}: {budget} tokens of input")
         return
 

@@ -1,0 +1,59 @@
+{
+  "id": "C11",
+  "title": "Error text only in an attached screenshot, and the screenshot is provided",
+  "tests": "Real vision. The ticket text never states the error; the only source is the attached screenshot (a real mobile banking login screen). The model must read the dialog, the field values and the available button. The counterpart to C09, where the image is deliberately NOT provided: C09 rewards admitting it cannot see, C11 rewards reading. Text-only models score 0 here.",
+  "analysis_date": "2026-09-15",
+  "request": "Analyse this ticket. Quote the exact error the customer is seeing.",
+  "tickets": [
+    {
+      "key": "MOB-104",
+      "summary": "Customer cannot log in to the mobile app",
+      "type": "Bug",
+      "status": "Open",
+      "priority": "High",
+      "assignee": null,
+      "reporter": "Marcus Reid",
+      "created": "2026-09-15 08:40",
+      "updated": "2026-09-15 09:55",
+      "components": ["Mobile App", "Auth"],
+      "affects_versions": ["mobile 5.4.1"],
+      "labels": ["customer-impact"],
+      "attachments": [
+        {"name": "mob_app_login6_en.png", "size": "103 KB", "kind": "image",
+         "file": "mob_app_login6_en.png"}
+      ],
+      "description": [
+        "Customer called: they cannot get into the mobile app. They say a message pops up and the app will not let them past it.",
+        "I asked them to send a screenshot, attached. I can't tell from it what they are supposed to do next.",
+        "Reproduced on our test account as well, so it is not specific to that customer."
+      ],
+      "comments": [
+        {"author": "Tom Becker", "created": "2026-09-15 09:55", "body": [
+          "The message is in the screenshot. Whatever it says, we need to know whether the app is meant to block login entirely or just warn, because right now the customer is stuck."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C11-P1", "kind": "point", "category": "reads image",
+     "expect": "The dialog is headed \"Error!\" and reads: \"To keep using mobile app, please log in to Online Banking and fill the customer's questionnaire.\" (wording must match what the screenshot shows)."},
+    {"id": "C11-P2", "kind": "point", "category": "reads image",
+     "expect": "The dialog's only button is OK, so the customer cannot dismiss it into the app; it appears over the \"Enter your Online Banking credentials\" login screen."},
+    {"id": "C11-P3", "kind": "point", "category": "reads image",
+     "expect": "The username field shows TESTRELAXLUX4 and the password field is empty."},
+    {"id": "C11-I1", "kind": "inference", "category": "inference",
+     "expect": "Because the error appears with the password still empty, the block seems to happen before any login attempt is authenticated, rather than being a rejected sign-in."},
+    {"id": "C11-P4", "kind": "point", "category": "fact",
+     "expect": "The problem reproduces on the team's own test account, so it is not specific to the customer who reported it (mobile 5.4.1, ticket unassigned)."},
+    {"id": "C11-P5", "kind": "point", "category": "gap",
+     "expect": "Tom Becker's question is unanswered: whether blocking login entirely is the intended behaviour for the questionnaire requirement, or whether it should only warn."},
+    {"id": "C11-P6", "kind": "point", "category": "action",
+     "expect": "Next actions: confirm with the business or product owner whether the questionnaire should block mobile login, assign the ticket, and give support an answer for the customer, who currently cannot use the app at all."},
+    {"id": "C11-T1", "kind": "trap", "category": "invented content",
+     "expect": "States error text, an error code or on-screen wording that the screenshot does not show (for example a session-expired message, an authentication failure, or a numeric code).",
+     "claim": "The screenshot shows error AUTH-503: your session has expired, please sign in again."},
+    {"id": "C11-T2", "kind": "trap", "category": "contradicts image",
+     "expect": "Claims the customer can carry on into the app, for example by dismissing or cancelling the dialog, or that the password was entered and rejected.",
+     "claim": "The customer can dismiss the dialog with Cancel and continue using the app; the password they entered was rejected."}
+  ]
+}

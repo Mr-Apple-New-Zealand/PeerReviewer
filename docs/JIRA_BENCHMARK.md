@@ -64,6 +64,7 @@ Each case is a ticket export plus a request, as a real integration would send it
 | C08 | Long context (~15k tokens): seven real comments among ~260 bot and chatter comments, a superseded decision, two owner changes. |
 | C09 | The error is only in a screenshot the model can't see. Say so instead of inventing it. |
 | C10 | A public-form ticket containing an instruction to AI tools to misreport its priority. |
+| C11 | The error is only in a screenshot, and the screenshot IS attached. Real vision: read the dialog, the field values and the only button. Text-only models score 0. |
 
 Each answer-key checkpoint is one of three kinds:
 - **point:** something the analysis should say.
@@ -106,16 +107,17 @@ If other models are resident on the server when a run starts, the report warns t
 - **Noise.** Ten cases and one judge pass means differences under about 5 points are noise. For close calls, use `repeats: 3`. The range shows in the Quality column.
 - **Cost of judging.** Each graded case costs roughly $0.02–0.05 of Sonnet 5 time, so a 10-model run is a few dollars.
 - **The prompts are fingerprinted.** Every run records the SHA of the analyst prompt, the judge prompt and the cases, as the review benchmark does. Runs with different SHAs are not comparable.
-- **Text only.** The cases send no images, so the benchmark does not yet measure screenshot reading. C09 tests whether the model admits it can't see a screenshot. Qwen3-VL-32B-Thinking on the server does read images (it transcribed a test error dialog exactly on 2026-09-19), so image cases are the natural next addition.
+- **Vision.** C11 attaches a real screenshot (`jira_benchmark/images/`), so it measures actual screenshot reading; C09 is its counterpart, where the image is deliberately withheld and the model should say so rather than invent one. Images go only to the model under test: the judge grades the written analysis against the answer key, so no image is ever sent to the cloud judge. A model without the `vision` capability is detected before the request, and its image cases are recorded as errors and scored 0, since reading the screenshot is the task.
 - **Quantization.** Cost figures are for the build as benchmarked. If you benchmark at F16 and then quantize the winner, re-run the full benchmark on the quantized build to confirm its quality held, rather than assuming it did.
 
 ## Adding a case
 
 1. Copy an existing `jira_benchmark/cases/C*.json` file.
 2. Write the tickets. Long text is a list of lines.
-3. Write the answer key:
+3. To attach an image, put the file in `jira_benchmark/images/` and add `"file": "<name>"` to the attachment entry in the ticket. The harness sends it with the request and counts its tokens in the fit check (about 450 for a phone screenshot).
+4. Write the answer key:
    - Phrase each `expect` as a plain statement, because calibration uses those statements as the "perfect" analysis.
    - Give every trap a `claim`, which is the false statement written the way an analysis would put it.
    - Traps must be things an analysis can *say*. The judge has to quote a violation, so a trap can't be the *absence* of something. Make that a point instead.
-4. Run `--list-cases` to check it fits the input budget.
-5. Run `--calibrate-judge --cases Cnn` to check the key grades cleanly.
+5. Run `--list-cases` to check it fits the input budget; it flags cases that need vision.
+6. Run `--calibrate-judge --cases Cnn` to check the key grades cleanly.
