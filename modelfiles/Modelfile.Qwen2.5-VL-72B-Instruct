@@ -1,0 +1,83 @@
+# Qwen2.5-VL-72B-Instruct, for ticket analysis.
+# https://huggingface.co/Qwen/Qwen2.5-VL-72B-Instruct
+#
+# ############################################################################
+# BUILT AS A llama.cpp PAIR: LANGUAGE-MODEL GGUF + mmproj (VISION) GGUF
+#
+# Same approach as the Qwen3-VL-32B builds, which read images correctly on
+# Ollama 0.32.13. The first Qwen2.5-VL-72B import (2026-09-19) had only the
+# language-model file, so it had no vision. BOTH FROM lines below are what
+# fix that.
+#
+# From /san/geoff/Qwen2.5-VL/llama.cpp, if the GGUFs don't exist yet
+# (with no --outfile, llama.cpp writes them into the model folder):
+#   python convert_hf_to_gguf.py Qwen2.5-VL-72B-Instruct --outtype f16
+#   python convert_hf_to_gguf.py Qwen2.5-VL-72B-Instruct --mmproj --outtype f16
+#
+# CHECK THE FILENAMES: the FROM paths are llama.cpp's default output names.
+# Run `ls /san/geoff/Qwen2.5-VL/llama.cpp/Qwen2.5-VL-72B-Instruct/*.gguf` and
+# correct them if they differ.
+#
+# SIZE: at F16 the language model alone is ~145 GB. That is far more than the
+# 78 GB the Qwen3-VL-32B F16 builds used, so most of it would run on CPU:
+# very slow, and its benchmark cost figures would measure the spill, not the
+# model. Unlike the 32B models, it cannot be benchmarked usefully at F16.
+# Quantize the language model first (Ollama will not quantize a GGUF on
+# import) and point the first FROM at the result. Leave the mmproj at F16.
+#   Q8_0   (~77 GB, near-lossless; closest to the F16 32B runs):
+#     llama-quantize Qwen2.5-VL-72B-Instruct/Qwen2.5-VL-72B-Instruct-F16.gguf \
+#                    Qwen2.5-VL-72B-Instruct/Qwen2.5-VL-72B-Instruct-Q8_0.gguf Q8_0
+#   Q4_K_M (~47 GB): same command with Q4_K_M.
+#
+#   ollama create Qwen2.5-VL-72B-Instruct -f Qwen2.5-VL-72B-Instruct.Modelfile
+#
+# `ollama show Qwen2.5-VL-72B-Instruct` must list 'vision'. For this
+# architecture ('qwen2vl') that is not yet proven on this server, unlike
+# Qwen3-VL, so run the screenshot test before benchmarking.
+# ############################################################################
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen2.5-VL-72B-Instruct
+
+# --- No TEMPLATE, RENDERER or PARSER ------------------------------------------
+# Ollama has no built-in renderer for Qwen2.5-VL (it has them only for Qwen3-VL).
+# The GGUF carries Qwen's own chat template, and Ollama uses it. The earlier
+# text-only import answered correctly with it, including the system prompt.
+
+# --- Context: READ BEFORE BENCHMARKING ----------------------------------------
+# The trained window is 32768. config.json says 128000, but only with YaRN,
+# which is not enabled. So this model must NOT be run at the 49152 used for the
+# Qwen3-VL runs: benchmark it at num_ctx 32768 with num_predict 8192. That
+# leaves ~24k tokens of input, which fits the largest case (C08, ~15k). Its
+# quality scores are still comparable, because nothing is truncated and an
+# instruct model uses well under 8192 tokens. Its resident memory will read
+# lower only because of the smaller KV cache.
+# KV cache: 80 layers x 8 KV heads x 128 dim x K+V = 320 KiB/token at f16,
+# which is 10 GiB at 32768.
+PARAMETER num_ctx 32768
+
+# --- Samplers -----------------------------------------------------------------
+# The card publishes none; these are the Qwen2.5 family's chat values, with
+# temperature lowered to 0.3 by choice (matches the benchmark default).
+PARAMETER temperature 0.3
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.05
+
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+
+SYSTEM """You are a ticket analyst for a software development team. You read tickets, including their descriptions, comments, history, linked issues and attached screenshots, and produce accurate, concise analysis.
+
+Rules:
+- Use only what is in the tickets provided. Do not invent ticket keys, people, dates, versions or technical details. If information is missing, say so.
+- Always refer to tickets by their key (e.g. PROJ-123).
+- Keep facts separate from inference. When you infer something, such as a likely root cause, a hidden dependency or a duplicate, label it as an inference and say what it is based on.
+- Read screenshots carefully and quote any error messages, field values or UI text they show exactly.
+- Point out conflicts between tickets or comments, such as disagreements about scope, status or expected behaviour, rather than silently choosing one side.
+- Put the answer first, then the supporting detail. Use short headings and bullet points. Be direct and don't restate the ticket back.
+
+Unless asked for something else, cover:
+1. Summary: the actual problem or request, in two or three sentences.
+2. Current state: status, owner, and what is blocking progress.
+3. Key details: steps to reproduce, affected components or versions, acceptance criteria. Say which of these are missing.
+4. Risks and gaps: ambiguities, missing information, dependencies, related or duplicate tickets.
+5. Suggested next actions: specific and practical, with who should act where the ticket makes that clear."""
