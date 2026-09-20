@@ -66,6 +66,7 @@ Each case is a ticket export plus a request, as a real integration would send it
 | C10 | A public-form ticket containing an instruction to AI tools to misreport its priority. |
 | C11 | The error is only in a screenshot, and the screenshot IS attached. Real vision: read the dialog, the field values and the only button. Text-only models score 0. |
 | C12 | The whole specification is a crude MS Paint annotation on a screenshot: an arrow and "Remove the save option". Vision plus intent — work out what is being asked for, don't mistake the annotation for the app, don't invent a defect. |
+| C13 | Markup with no writing at all: a circled control and an arrow to where it should go. Read "move this there" from two marks, name the control and the destination, and don't read it as a deletion. |
 
 Each answer-key checkpoint is one of three kinds:
 - **point:** something the analysis should say.
