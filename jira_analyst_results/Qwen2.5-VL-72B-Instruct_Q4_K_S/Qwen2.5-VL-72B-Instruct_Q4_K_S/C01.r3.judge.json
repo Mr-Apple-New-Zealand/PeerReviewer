@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The bug causes the source account to be debited twice when a customer retries a timed-out transfer between their own accounts on mobile web.",
+      "reason": "States the double debit but omits that the destination account is only credited once."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Affects version: 3.1.4",
+      "reason": "Mentions the affected version but never states the fix version 3.2.0 or the 2026-09-24 release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This issue has affected three customers and is due to the retry mechanism not using an idempotency key and the debit/credit operations not being in a single transaction.",
+      "reason": "Correctly captures both root-cause elements from Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Blocking: Waiting for code review of PR #218, which addresses the issue by wrapping debit and credit in a single transaction and adding idempotency key support.",
+      "reason": "Correctly states status, owner, and that the fix is awaiting review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid: Coordinate with Finance Ops to ensure the duplicate debits are reversed for the three affected customers as per Aroha Walker's comment.",
+      "reason": "Correctly identifies the three affected customers, the need for manual reversal, and Marcus's role."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that it is unconfirmed whether the Finance reversal request was raised or refunds completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair: Follow up with the code review team to expedite the review process for PR #218.",
+      "reason": "Lists follow-up on PR #218 review and Finance Ops coordination as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes PR #218 as still awaiting review/merge, not as already merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim desktop web is affected; it only suggests verifying desktop behavior after merge."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 19.1,
+    "input_tokens": 4228,
+    "output_tokens": 2077
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "verdict": "partial",
+        "quote": "The bug causes the source account to be debited twice when a customer retries a timed-out transfer between their own accounts on mobile web.",
+        "reason": "States the double debit but omits that the destination account is only credited once."
+      },
+      {
+        "id": "C01-P2",
+        "verdict": "partial",
+        "quote": "Affects version: 3.1.4",
+        "reason": "Mentions the affected version but never states the fix version 3.2.0 or the 2026-09-24 release date."
+      },
+      {
+        "id": "C01-P3",
+        "verdict": "found",
+        "quote": "This issue has affected three customers and is due to the retry mechanism not using an idempotency key and the debit/credit operations not being in a single transaction.",
+        "reason": "Correctly captures both root-cause elements from Priya's reproduction."
+      },
+      {
+        "id": "C01-P4",
+        "verdict": "found",
+        "quote": "Blocking: Waiting for code review of PR #218, which addresses the issue by wrapping debit and credit in a single transaction and adding idempotency key support.",
+        "reason": "Correctly states status, owner, and that the fix is awaiting review."
+      },
+      {
+        "id": "C01-P5",
+        "verdict": "found",
+        "quote": "Marcus Reid: Coordinate with Finance Ops to ensure the duplicate debits are reversed for the three affected customers as per Aroha Walker's comment.",
+        "reason": "Correctly identifies the three affected customers, the need for manual reversal, and Marcus's role."
+      },
+      {
+        "id": "C01-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that it is unconfirmed whether the Finance reversal request was raised or refunds completed."
+      },
+      {
+        "id": "C01-P7",
+        "verdict": "found",
+        "quote": "Priya Nair: Follow up with the code review team to expedite the review process for PR #218.",
+        "reason": "Lists follow-up on PR #218 review and Finance Ops coordination as next actions."
+      },
+      {
+        "id": "C01-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis describes PR #218 as still awaiting review/merge, not as already merged or deployed."
+      },
+      {
+        "id": "C01-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not claim desktop web is affected; it only suggests verifying desktop behavior after merge."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31 NZST**: Transfer errors begin appearing in monitoring dashboards.",
+      "reason": "States impact start at 09:31 but never mentions the OPS-81 deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:47 NZST**: Monitoring alert fires due to TransferErrorRate exceeding 20%. Incident declared.",
+      "reason": "Alert time is correct but the analysis incorrectly states the incident was declared at 09:47, then again at 09:52, creating a contradictory/incorrect declaration time."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 NZST**: Sam Okafor initiates rollback of OPS-81 config deploy.",
+      "reason": "All three key times (rollback start, recovery below 1%, resolution) are correctly listed in the timeline."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "= Time from when errors started (09:31) to when alert fired (09:47)  \n\u2192 **16 minutes**",
+      "reason": "Correctly calculates 16-minute detection time using the right timestamps."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "= Time from when incident was declared (09:52) to when service was restored (10:42)  \n\u2192 **50 minutes**",
+      "reason": "The primary TTR figure (50 minutes) is not one of the accepted values; a correct alternative (71 minutes) is only mentioned as a footnote, so at best this is a hedged/partial answer."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used for signature validation in the **Transactions API**. This caused the API to reject valid tokens signed with the new key, resulting in 401 errors (`IDX10503: Signature validation failed`) for all transfer requests.",
+      "reason": "Accurately restates the root cause including the mechanism and error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A post-incident review is scheduled for 2026-09-16.",
+      "reason": "Correctly states the post-incident review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports Priya's database suggestion neutrally as a comment, without endorsing it as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 50-minute TTR figure, while not the expected metric, is derived from real timestamps (09:52 to 10:42) rather than fabricated or unsupported numbers."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This was a configuration drift issue between Auth and Transactions services during a key rotation.",
+      "reason": "The tickets do not use or support the term 'configuration drift'; this is an unsupported characterization not stated in the ticket text."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 24.0,
+    "input_tokens": 3958,
+    "output_tokens": 2681
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "partial",
+        "quote": "09:31 NZST**: Transfer errors begin appearing in monitoring dashboards.",
+        "reason": "States impact start at 09:31 but never mentions the OPS-81 deploy occurred at 09:30."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "partial",
+        "quote": "09:47 NZST**: Monitoring alert fires due to TransferErrorRate exceeding 20%. Incident declared.",
+        "reason": "Alert time is correct but the analysis incorrectly states the incident was declared at 09:47, then again at 09:52, creating a contradictory/incorrect declaration time."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31 NZST**: Sam Okafor initiates rollback of OPS-81 config deploy.",
+        "reason": "All three key times (rollback start, recovery below 1%, resolution) are correctly listed in the timeline."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "= Time from when errors started (09:31) to when alert fired (09:47)  \n\u2192 **16 minutes**",
+        "reason": "Correctly calculates 16-minute detection time using the right timestamps."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "partial",
+        "quote": "= Time from when incident was declared (09:52) to when service was restored (10:42)  \n\u2192 **50 minutes**",
+        "reason": "The primary TTR figure (50 minutes) is not one of the accepted values; a correct alternative (71 minutes) is only mentioned as a footnote, so at best this is a hedged/partial answer."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used for signature validation in the **Transactions API**. This caused the API to reject valid tokens signed with the new key, resulting in 401 errors (`IDX10503: Signature validation failed`) for all transfer requests.",
+        "reason": "Accurately restates the root cause including the mechanism and error code."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "A post-incident review is scheduled for 2026-09-16.",
+        "reason": "Correctly states the post-incident review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis reports Priya's database suggestion neutrally as a comment, without endorsing it as a cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 50-minute TTR figure, while not the expected metric, is derived from real timestamps (09:52 to 10:42) rather than fabricated or unsupported numbers."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This was a configuration drift issue between Auth and Transactions services during a key rotation.",
+        "reason": "The tickets do not use or support the term 'configuration drift'; this is an unsupported characterization not stated in the ticket text."
+      }
+    ]
+  }
+}

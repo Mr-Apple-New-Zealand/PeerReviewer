@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31**: Errors start appearing in the dashboards.",
+      "reason": "The analysis notes impact started at 09:31 but never states the OPS-81 config deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47**: Monitoring alert fires due to TransferErrorRate exceeding 20%.",
+      "reason": "Both the alert time (09:47) and the declaration time (09:52) are correctly listed in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31**: Sam Okafor initiates a rollback of the OPS-81 config deploy.",
+      "reason": "The rollback start (10:31), recovery under 1% (10:42), and resolution (10:50) are all correctly captured."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Time to Detect**: 09:47 - 09:31 = 16 minutes.",
+      "reason": "Matches the expected calculation of 16 minutes exactly."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Time to Recover**: 10:42 - 09:52 = 50 minutes.",
+      "reason": "The recovery time is calculated from the wrong start point (declaration time rather than impact start or detection), giving 50 minutes instead of one of the accepted values (55, 71, or 79)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause of the incident was that the JWT signing key was rotated in the config deploy OPS-81 without updating the key the Transactions API uses for validation.",
+      "reason": "Correctly states the root cause matching the ticket's explanation."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the post-incident review scheduled for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow query theory is mentioned only as Priya's suggestion, not asserted as the cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 50-minute recovery figure, though methodologically off, is derived from two real timestamps in the ticket (09:52 and 10:42), so it is not an unsupported time with no basis in the data."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 29.5,
+    "input_tokens": 3787,
+    "output_tokens": 2989
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "partial",
+        "quote": "09:31**: Errors start appearing in the dashboards.",
+        "reason": "The analysis notes impact started at 09:31 but never states the OPS-81 config deploy occurred at 09:30."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47**: Monitoring alert fires due to TransferErrorRate exceeding 20%.",
+        "reason": "Both the alert time (09:47) and the declaration time (09:52) are correctly listed in the timeline."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31**: Sam Okafor initiates a rollback of the OPS-81 config deploy.",
+        "reason": "The rollback start (10:31), recovery under 1% (10:42), and resolution (10:50) are all correctly captured."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "**Time to Detect**: 09:47 - 09:31 = 16 minutes.",
+        "reason": "Matches the expected calculation of 16 minutes exactly."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "partial",
+        "quote": "**Time to Recover**: 10:42 - 09:52 = 50 minutes.",
+        "reason": "The recovery time is calculated from the wrong start point (declaration time rather than impact start or detection), giving 50 minutes instead of one of the accepted values (55, 71, or 79)."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The root cause of the incident was that the JWT signing key was rotated in the config deploy OPS-81 without updating the key the Transactions API uses for validation.",
+        "reason": "Correctly states the root cause matching the ticket's explanation."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the post-incident review scheduled for 2026-09-16."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The database/slow query theory is mentioned only as Priya's suggestion, not asserted as the cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 50-minute recovery figure, though methodologically off, is derived from two real timestamps in the ticket (09:52 and 10:42), so it is not an unsupported time with no basis in the data."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31 NZST**: Transfer errors begin to appear in monitoring dashboards.",
+      "reason": "States impact started at 09:31 but never mentions the OPS-81 deploy occurring at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 NZST**: Monitoring alert fires due to TransferErrorRate exceeding 20%.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are correctly captured in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 NZST**: Sam Okafor initiates rollback of OPS-81 config deploy.",
+      "reason": "Timeline correctly lists rollback start at 10:31, recovery below 1% at 10:42, and resolution at 10:50."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "= 09:52 - 09:31 = **21 minutes**",
+      "reason": "Calculates a time-to-detect figure but uses the incident-declaration time instead of the 09:47 alert time, giving 21 minutes instead of the expected 16."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "= 10:42 - 09:52 = **50 minutes**",
+      "reason": "Calculates a recovery time but starts from incident declaration rather than impact start or alert time, giving 50 minutes rather than any of the accepted values (71, 55, or 79)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used by the **Transactions API** for token validation. This caused all incoming requests to fail with `IDX10503: Signature validation failed` (401 Unauthorized)",
+      "reason": "Root cause is stated accurately and matches the ticket's explanation including the error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the post-incident review scheduled for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow-query theory is attributed to Priya Nair as her suggestion, not asserted as the cause, and the root cause section correctly identifies the JWT key issue."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The TTD and TTR figures, while using the wrong reference points, are both derived from real timestamps in the ticket rather than fabricated numbers."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 41.9,
+    "input_tokens": 3838,
+    "output_tokens": 4374
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "partial",
+        "quote": "09:31 NZST**: Transfer errors begin to appear in monitoring dashboards.",
+        "reason": "States impact started at 09:31 but never mentions the OPS-81 deploy occurring at 09:30."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47 NZST**: Monitoring alert fires due to TransferErrorRate exceeding 20%.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are correctly captured in the timeline."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31 NZST**: Sam Okafor initiates rollback of OPS-81 config deploy.",
+        "reason": "Timeline correctly lists rollback start at 10:31, recovery below 1% at 10:42, and resolution at 10:50."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "partial",
+        "quote": "= 09:52 - 09:31 = **21 minutes**",
+        "reason": "Calculates a time-to-detect figure but uses the incident-declaration time instead of the 09:47 alert time, giving 21 minutes instead of the expected 16."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "partial",
+        "quote": "= 10:42 - 09:52 = **50 minutes**",
+        "reason": "Calculates a recovery time but starts from incident declaration rather than impact start or alert time, giving 50 minutes rather than any of the accepted values (71, 55, or 79)."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used by the **Transactions API** for token validation. This caused all incoming requests to fail with `IDX10503: Signature validation failed` (401 Unauthorized)",
+        "reason": "Root cause is stated accurately and matches the ticket's explanation including the error code."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the post-incident review scheduled for 2026-09-16."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The database/slow-query theory is attributed to Priya Nair as her suggestion, not asserted as the cause, and the root cause section correctly identifies the JWT key issue."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The TTD and TTR figures, while using the wrong reference points, are both derived from real timestamps in the ticket rather than fabricated numbers."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

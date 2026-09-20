@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy at 09:30 (OPS-81) rotated the JWT signing key",
+      "reason": "The analysis states the OPS-81 deploy occurred at 09:30 and separately lists errors starting at 09:31, matching the ticket."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fires (TransferErrorRate > 20%).",
+      "reason": "The analysis's timeline also lists 09:52 as the incident declared time, matching both facts required."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:42: Service recovered (error rate < 1%).",
+      "reason": "The timeline also lists rollback at 10:31 and resolution at 10:50, matching all three required timestamps."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "16 minutes (09:31 start \u2192 09:47 detection)",
+      "reason": "Correctly calculates 16 minutes to detect from 09:31 to 09:47."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "55 minutes (09:47 detection \u2192 10:42 recovery)",
+      "reason": "Matches the acceptable 55-minute time-to-recover calculation from detection to recovery."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause: the JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against.",
+      "reason": "Correctly states the root cause including the 401 IDX10503 error, matching the ticket's explanation."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the post-incident review booked for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the database was suspected but does not assert it as a cause, correctly attributing root cause to the JWT key mismatch."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both time-to-detect (16 min) and time-to-recover (55 min) figures are supported by the ticket timestamps."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 62.0,
+    "input_tokens": 4210,
+    "output_tokens": 6591
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "The config deploy at 09:30 (OPS-81) rotated the JWT signing key",
+        "reason": "The analysis states the OPS-81 deploy occurred at 09:30 and separately lists errors starting at 09:31, matching the ticket."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47: Monitoring alert fires (TransferErrorRate > 20%).",
+        "reason": "The analysis's timeline also lists 09:52 as the incident declared time, matching both facts required."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:42: Service recovered (error rate < 1%).",
+        "reason": "The timeline also lists rollback at 10:31 and resolution at 10:50, matching all three required timestamps."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "16 minutes (09:31 start \u2192 09:47 detection)",
+        "reason": "Correctly calculates 16 minutes to detect from 09:31 to 09:47."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "55 minutes (09:47 detection \u2192 10:42 recovery)",
+        "reason": "Matches the acceptable 55-minute time-to-recover calculation from detection to recovery."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "Root cause: the JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against.",
+        "reason": "Correctly states the root cause including the 401 IDX10503 error, matching the ticket's explanation."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the post-incident review booked for 2026-09-16."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis mentions the database was suspected but does not assert it as a cause, correctly attributing root cause to the JWT key mismatch."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Both time-to-detect (16 min) and time-to-recover (55 min) figures are supported by the ticket timestamps."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

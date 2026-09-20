@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**09:31 NZST**: Transfer errors begin appearing in monitoring dashboards.",
+      "reason": "Impact start time (09:31) is given but the 09:30 OPS-81 deploy time is never stated anywhere in the timeline."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "- **09:47 NZST**: Monitoring alert fires \u2014 TransferErrorRate exceeds 20%.\n- **09:52 NZST**: Incident declared (BANK-450). Error rate at 64%.",
+      "reason": "Both the alert time and the incident declaration time are correctly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "- **10:31 NZST**: Rollback of config deploy OPS-81 initiated.\n- **10:42 NZST**: Transfer error rate drops below 1%.\n- **10:50 NZST**: Incident resolved.",
+      "reason": "Rollback start, recovery time, and resolution time are all correctly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis defines TTD as the time between the alert (09:47) and declaration (09:52), yielding 5 minutes, rather than the expected 16 minutes from impact start to alert."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis computes TTR as 09:52 to 10:42 (50 minutes), which does not match any of the acceptable reference points (impact start, detection, or resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key used by the Transactions API for signature validation.",
+      "reason": "Root cause is stated accurately, including the mismatch between Auth's new key and the Transactions API's validation, and the resulting 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-Incident Review**: Scheduled for 2026-09-16.",
+      "reason": "The post-incident review date is correctly reported."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database suggestion is reported as Priya's tentative idea, not asserted as the cause, and the root cause section correctly attributes the incident to the JWT key mismatch."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Although the TTD/TTR figures use the wrong reference points, they are still derived from real timestamp pairs present in the ticket (09:47\u201309:52 and 09:52\u201310:42), so no fabricated timestamp pair is used."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 49.7,
+    "input_tokens": 4152,
+    "output_tokens": 5594
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "partial",
+        "quote": "**09:31 NZST**: Transfer errors begin appearing in monitoring dashboards.",
+        "reason": "Impact start time (09:31) is given but the 09:30 OPS-81 deploy time is never stated anywhere in the timeline."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "- **09:47 NZST**: Monitoring alert fires \u2014 TransferErrorRate exceeds 20%.\n- **09:52 NZST**: Incident declared (BANK-450). Error rate at 64%.",
+        "reason": "Both the alert time and the incident declaration time are correctly stated."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "- **10:31 NZST**: Rollback of config deploy OPS-81 initiated.\n- **10:42 NZST**: Transfer error rate drops below 1%.\n- **10:50 NZST**: Incident resolved.",
+        "reason": "Rollback start, recovery time, and resolution time are all correctly stated."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis defines TTD as the time between the alert (09:47) and declaration (09:52), yielding 5 minutes, rather than the expected 16 minutes from impact start to alert."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis computes TTR as 09:52 to 10:42 (50 minutes), which does not match any of the acceptable reference points (impact start, detection, or resolution)."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key used by the Transactions API for signature validation.",
+        "reason": "Root cause is stated accurately, including the mismatch between Auth's new key and the Transactions API's validation, and the resulting 401 IDX10503 errors."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Post-Incident Review**: Scheduled for 2026-09-16.",
+        "reason": "The post-incident review date is correctly reported."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The database suggestion is reported as Priya's tentative idea, not asserted as the cause, and the root cause section correctly attributes the incident to the JWT key mismatch."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Although the TTD/TTR figures use the wrong reference points, they are still derived from real timestamp pairs present in the ticket (09:47\u201309:52 and 09:52\u201310:42), so no fabricated timestamp pair is used."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

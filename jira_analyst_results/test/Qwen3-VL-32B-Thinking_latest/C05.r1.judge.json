@@ -1,0 +1,143 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440 (inference: based on matching problem description, root cause, and affected components/versions).",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, matching the same stale-balance issue on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-440**: Close as a duplicate of BANK-425.",
+      "reason": "The analysis recommends closing BANK-440 and keeping BANK-425, which already has the root-cause analysis, satisfying the checkpoint."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is unrelated: It concerns mobile push notifications (not the web dashboard) and a different root cause (event timing in notifications).",
+      "reason": "It correctly identifies MOB-88 as unrelated but omits the specific TransferRequested/TransferCompleted event detail and the assignee Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the web front end caches the balance in local storage for 15 minutes (BANK-425 explicitly states this and the lack of cache invalidation",
+      "reason": "The analysis correctly identifies the BalanceCache root cause and the fix of clearing it on transfer success."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is the cause, not a duplicate: It\u2019s a completed task that implemented the caching (shipped in 3.1.4) that introduced the issue in BANK-425/BANK-440.",
+      "reason": "The analysis states the BANK-419 regression link as established fact rather than as a hedged inference."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 and BANK-419 are not duplicates of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API itself returns an incorrect value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Both affect the same component (Web) and version (3.1.4).",
+      "reason": "BANK-440's Components field is 'Transactions', not 'Web', so this claim misstates the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 24.0,
+    "input_tokens": 4490,
+    "output_tokens": 2714
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "BANK-425 is a duplicate of BANK-440 (inference: based on matching problem description, root cause, and affected components/versions).",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, matching the same stale-balance issue on 3.1.4."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "**BANK-440**: Close as a duplicate of BANK-425.",
+        "reason": "The analysis recommends closing BANK-440 and keeping BANK-425, which already has the root-cause analysis, satisfying the checkpoint."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "partial",
+        "quote": "MOB-88 is unrelated: It concerns mobile push notifications (not the web dashboard) and a different root cause (event timing in notifications).",
+        "reason": "It correctly identifies MOB-88 as unrelated but omits the specific TransferRequested/TransferCompleted event detail and the assignee Ravi Kumar."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "the web front end caches the balance in local storage for 15 minutes (BANK-425 explicitly states this and the lack of cache invalidation",
+        "reason": "The analysis correctly identifies the BalanceCache root cause and the fix of clearing it on transfer success."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "BANK-419 is the cause, not a duplicate: It\u2019s a completed task that implemented the caching (shipped in 3.1.4) that introduced the issue in BANK-425/BANK-440.",
+        "reason": "The analysis states the BANK-419 regression link as established fact rather than as a hedged inference."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 and BANK-419 are not duplicates of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the balance API itself returns an incorrect value."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Both affect the same component (Web) and version (3.1.4).",
+        "reason": "BANK-440's Components field is 'Transactions', not 'Web', so this claim misstates the ticket data."
+      }
+    ]
+  }
+}

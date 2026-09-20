@@ -1,0 +1,143 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-425** is a **duplicate** of **BANK-440**. Both describe the same issue: the web dashboard balance does not update after a transfer, requiring a logout/login to refresh.",
+      "reason": "Analysis correctly identifies BANK-425 as a duplicate of BANK-440 with matching symptom and version."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-440**: **Close as duplicate of BANK-425**.  \n   - Reason: BANK-425 has more detail, including the root cause and fix. BANK-440 is a less detailed report of the same issue.  \n   - Action: Link BANK-440 to BANK-425 and close it with resolution \u201cDuplicate\u201d.",
+      "reason": "Analysis recommends closing one ticket as duplicate while keeping the other with the root-cause analysis, matching the expected resolution."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**MOB-88** is **not a duplicate** of BANK-440. It affects the mobile app\u2019s push notifications, not the web dashboard.",
+      "reason": "Correctly identifies MOB-88 as a distinct issue with a different cause and notes it is already being worked on by Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "caches the balance response in local storage for 15 minutes (BalanceCache). Nothing invalidates the cache after a transfer.",
+      "reason": "Analysis correctly states the root cause (uninvalidated BalanceCache) and the fix (clear it on transfer success)."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**BANK-419** is **not a duplicate** and is actually the **root cause** of the issue in BANK-440/BANK-425. It introduced the 15-minute local storage cache for balance, which is now not being invalidated after transfers.",
+      "reason": "The idea that BANK-419 caused the regression is stated as established fact rather than as an inference, and no explicit recommendation to link BANK-419 to the bug tickets is given."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API returns an incorrect or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**BANK-419**: **Keep closed**.",
+      "reason": "BANK-419's actual status is 'Done', not 'Closed'; the analysis misstates its status."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 22.4,
+    "input_tokens": 4904,
+    "output_tokens": 2505
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "**BANK-425** is a **duplicate** of **BANK-440**. Both describe the same issue: the web dashboard balance does not update after a transfer, requiring a logout/login to refresh.",
+        "reason": "Analysis correctly identifies BANK-425 as a duplicate of BANK-440 with matching symptom and version."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "**BANK-440**: **Close as duplicate of BANK-425**.  \n   - Reason: BANK-425 has more detail, including the root cause and fix. BANK-440 is a less detailed report of the same issue.  \n   - Action: Link BANK-440 to BANK-425 and close it with resolution \u201cDuplicate\u201d.",
+        "reason": "Analysis recommends closing one ticket as duplicate while keeping the other with the root-cause analysis, matching the expected resolution."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "**MOB-88** is **not a duplicate** of BANK-440. It affects the mobile app\u2019s push notifications, not the web dashboard.",
+        "reason": "Correctly identifies MOB-88 as a distinct issue with a different cause and notes it is already being worked on by Ravi Kumar."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "caches the balance response in local storage for 15 minutes (BalanceCache). Nothing invalidates the cache after a transfer.",
+        "reason": "Analysis correctly states the root cause (uninvalidated BalanceCache) and the fix (clear it on transfer success)."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "**BANK-419** is **not a duplicate** and is actually the **root cause** of the issue in BANK-440/BANK-425. It introduced the 15-minute local storage cache for balance, which is now not being invalidated after transfers.",
+        "reason": "The idea that BANK-419 caused the regression is stated as established fact rather than as an inference, and no explicit recommendation to link BANK-419 to the bug tickets is given."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the balance API returns an incorrect or stale value."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**BANK-419**: **Keep closed**.",
+        "reason": "BANK-419's actual status is 'Done', not 'Closed'; the analysis misstates its status."
+      }
+    ]
+  }
+}

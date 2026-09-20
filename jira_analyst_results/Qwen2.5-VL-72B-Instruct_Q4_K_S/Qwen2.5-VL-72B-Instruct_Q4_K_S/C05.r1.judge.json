@@ -1,0 +1,143 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-440 and BANK-425 describe similar issues where the balance on a web interface does not update after a transfer, suggesting they may be duplicates.",
+      "reason": "Identifies the two tickets as similar and possibly duplicates, but hedges rather than confirming the duplicate relationship the key expects."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "close one ticket (preferably BANK-425 since it has more context) and update the remaining ticket with all relevant details.",
+      "reason": "Recommends closing the ticket that has the root-cause context (BANK-425) rather than keeping it, which is confusing and only partially matches the expected keep/close logic even though it mentions preserving details."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is related but concerns push notifications in the mobile app, which is a different component.",
+      "reason": "Correctly states MOB-88 is not a duplicate due to a different component, but never mentions the specific cause (TransferRequested event) or that it is already in progress with Ravi Kumar as evidence."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never explicitly identifies the 15-minute BalanceCache in local storage as the root cause or that clearing it on transfer success is the fix; it only vaguely references BANK-419's caching as a possible related issue."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-419 introduced caching which might have caused the issues in BANK-440 and BANK-425.",
+      "reason": "States as a plausible inference (using 'might have caused') that BANK-419's caching regression is linked to the current bugs, matching the expected inference."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-440**: Open, Unassigned.\n- **BANK-425**: Open, Unassigned.",
+      "reason": "Explicitly notes both BANK-440 and BANK-425 are unassigned in the Current State section."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly distinguishes MOB-88 as a different component/issue rather than claiming it is a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API itself returns a stale or incorrect value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "BANK-419**: Done, Closed by Hana Sato.",
+      "reason": "BANK-419's actual status is 'Done', not 'Closed'; the analysis misstates the ticket status."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 61.4,
+    "input_tokens": 4520,
+    "output_tokens": 6547
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "partial",
+        "quote": "BANK-440 and BANK-425 describe similar issues where the balance on a web interface does not update after a transfer, suggesting they may be duplicates.",
+        "reason": "Identifies the two tickets as similar and possibly duplicates, but hedges rather than confirming the duplicate relationship the key expects."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "partial",
+        "quote": "close one ticket (preferably BANK-425 since it has more context) and update the remaining ticket with all relevant details.",
+        "reason": "Recommends closing the ticket that has the root-cause context (BANK-425) rather than keeping it, which is confusing and only partially matches the expected keep/close logic even though it mentions preserving details."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "partial",
+        "quote": "MOB-88 is related but concerns push notifications in the mobile app, which is a different component.",
+        "reason": "Correctly states MOB-88 is not a duplicate due to a different component, but never mentions the specific cause (TransferRequested event) or that it is already in progress with Ravi Kumar as evidence."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never explicitly identifies the 15-minute BalanceCache in local storage as the root cause or that clearing it on transfer success is the fix; it only vaguely references BANK-419's caching as a possible related issue."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "found",
+        "quote": "BANK-419 introduced caching which might have caused the issues in BANK-440 and BANK-425.",
+        "reason": "States as a plausible inference (using 'might have caused') that BANK-419's caching regression is linked to the current bugs, matching the expected inference."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "found",
+        "quote": "**BANK-440**: Open, Unassigned.\n- **BANK-425**: Open, Unassigned.",
+        "reason": "Explicitly notes both BANK-440 and BANK-425 are unassigned in the Current State section."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly distinguishes MOB-88 as a different component/issue rather than claiming it is a duplicate of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the balance API itself returns a stale or incorrect value."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "BANK-419**: Done, Closed by Hana Sato.",
+        "reason": "BANK-419's actual status is 'Done', not 'Closed'; the analysis misstates the ticket status."
+      }
+    ]
+  }
+}
