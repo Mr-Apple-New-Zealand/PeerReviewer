@@ -1,0 +1,47 @@
+# kubectl logs notifications-api-59d7c8b4f6-tq8wz -n banking-prod --tail=60
+# Pulled at 18:40. The pod restarted at 18:02, so this is everything the current
+# container has; the previous container's log was not captured before it was replaced.
+[18:02:41 INF] Configuring web host (Bank.Notifications.API)...
+[18:02:41 INF] Starting web host (Bank.Notifications.API)...
+[18:02:41 WRN] Storing keys in a directory '/app/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed. For more information go to https://aka.ms/aspnet/dataprotectionwarning
+[18:02:42 WRN] No XML encryptor configured. Key {3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085} may be persisted to storage in unencrypted form.
+[18:02:42 WRN] Overriding address(es) 'http://*:8080'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+[18:02:42 INF] Now listening on: http://0.0.0.0:8080
+[18:02:42 INF] Application started. Press Ctrl+C to shut down.
+[18:02:42 INF] Hosting environment: Production
+[18:02:42 WRN] Failed to determine the https port for redirect.
+[18:02:43 INF] NATS responder starting. App=2.3.4 Environment=Production Host=notifications-api-59d7c8b4f6-tq8wz Server=nats://nats-prd.internal:4222 Subscribe=notifications.prod.requests.>
+[18:02:43 INF] Outbox dispatcher started. Poll interval 5s.
+[18:02:48 INF] Outbox dispatcher: 1412 messages pending.
+[18:02:48 ERR] Sending 'payment-receipt' to customer 41082 failed.
+System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.
+   at System.Net.Mail.SmtpTransport.EndGetConnection(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+   at Application.Notifications.EmailSender.SendAsync(EmailMessage message, CancellationToken cancellationToken) in /src/Application/Notifications/EmailSender.cs:line 88
+   at Application.Notifications.OutboxDispatcher.DispatchAsync(OutboxItem item, CancellationToken cancellationToken) in /src/Application/Notifications/OutboxDispatcher.cs:line 61
+SMTP status code: 535
+[18:02:53 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:02:58 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:03:03 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:03:08 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:03:08 WRN] Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.
+[18:03:13 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:03:18 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:03:23 ERR] Sending 'payment-receipt' to customer 41082 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:05:00 INF] SMTP host smtp.example.com:587, user svc-notify@example.com, StartTls=True.
+[18:05:48 INF] Outbox dispatcher: 1508 messages pending.
+[18:07:12 WRN] NATS connection lost, reconnecting.
+[18:07:13 INF] NATS reconnected to nats://nats-prd.internal:4222 after 1 attempt.
+[18:09:31 INF] Request GetNotificationTemplateQuery completed in 62ms
+[18:11:04 INF] Request GetNotificationTemplateQuery completed in 55ms
+[18:12:48 INF] Outbox dispatcher: 1604 messages pending.
+[18:14:22 INF] Request PreviewTemplateQuery completed in 118ms
+[18:18:48 INF] Outbox dispatcher: 1702 messages pending.
+[18:21:09 INF] Health check /healthz: Healthy (db 8ms, nats 3ms, smtp skipped).
+[18:24:48 INF] Outbox dispatcher: 1799 messages pending.
+[18:28:33 ERR] Sending 'statement-ready' to customer 55617 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:30:48 INF] Outbox dispatcher: 1896 messages pending.
+[18:33:17 INF] Request GetNotificationTemplateQuery completed in 71ms
+[18:36:48 INF] Outbox dispatcher: 1993 messages pending.
+[18:38:02 ERR] Sending 'payment-receipt' to customer 63340 failed. SMTP status code: 535 [stack trace trimmed - identical to first]
+[18:39:48 INF] Outbox dispatcher: 2089 messages pending.

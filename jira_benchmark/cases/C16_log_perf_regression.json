@@ -1,0 +1,79 @@
+{
+  "id": "C16",
+  "title": "Two logs, one regression: quantify it without over-claiming the cause",
+  "tests": "Numeric comparison across two attached logs. The model must read timings out of both, work out the size of the regression, see that it worsens within the window, notice that the query the developer blames is unchanged in both, treat the release and migration as correlation rather than confirmed cause, and state that two short windows on different days are thin evidence.",
+  "analysis_date": "2026-09-15",
+  "request": "Compare the two attached logs. Quantify the regression, say what changed and what did not, and be explicit about what these logs cannot establish.",
+  "tickets": [
+    {
+      "key": "BANK-482",
+      "summary": "Statements page unusable since release 4.7.0",
+      "type": "Bug",
+      "status": "Open",
+      "priority": "High",
+      "assignee": "Tom Becker",
+      "reporter": "Hana Sato",
+      "created": "2026-09-15 08:15",
+      "updated": "2026-09-15 09:40",
+      "components": ["Statements"],
+      "affects_versions": ["4.7.0"],
+      "fix_versions": [],
+      "labels": ["performance"],
+      "attachments": [
+        {"name": "statements-api-before.log", "size": "1 KB", "kind": "log",
+         "file": "statements_api_before.log"},
+        {"name": "statements-api-after.log", "size": "2 KB", "kind": "log",
+         "file": "statements_api_after.log"}
+      ],
+      "description": [
+        "Since 4.7.0 went out, opening a customer's statement either takes over a minute or times out in the browser. Branch staff have started telling customers to call back.",
+        "I have attached the same five-minute window from the night before the release and the same window after it."
+      ],
+      "comments": [
+        {"author": "Tom Becker", "created": "2026-09-15 09:20", "body": [
+          "Nothing in 4.7.0 touched statements. The release was notifications and the admin screens. I don't think this is us."
+        ]},
+        {"author": "Ravi Kumar", "created": "2026-09-15 09:40", "body": [
+          "It'll be the account summary query. That one has always been slow, everyone knows it. I'd start there."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C16-P1", "kind": "point", "category": "measurement",
+     "expect": "GetStatementLineQuery went from roughly 300 ms in the baseline (281 ms to 319 ms across the samples on 2026-09-13) to between about 34 and 73 seconds after 4.7.0."},
+    {"id": "C16-P2", "kind": "point", "category": "arithmetic",
+     "expect": "That is a slowdown of about a hundredfold or more: roughly 110 times at the start of the after window and roughly 240 times at the worst reading of 72974 ms."},
+    {"id": "C16-P3", "kind": "point", "category": "trend",
+     "expect": "It gets worse within the after window rather than sitting at a fixed higher value: about 35 seconds at 00:20:43, about 44 seconds by 00:24:05, and about 69 to 73 seconds from 00:24:21 onward."},
+    {"id": "C16-P4", "kind": "point", "category": "what did not change",
+     "expect": "GetAccountSummaryQuery is effectively unchanged: 2987 ms to 3341 ms before, 3011 ms to 3402 ms after. It is slow in both, so it is not the regression, which contradicts Ravi Kumar's suggestion to start there."},
+    {"id": "C16-P5", "kind": "point", "category": "what did not change",
+     "expect": "ExportStatementCommand is also effectively unchanged, 1840 ms before and 1902 ms after, so the regression is specific to the statement line query and not a general slowdown of the service."},
+    {"id": "C16-P6", "kind": "point", "category": "conflict",
+     "expect": "Tom Becker's claim that nothing in 4.7.0 touched statements is contradicted by the after log, which records migration 20260914_2100_ReindexStatementLines applied at 2026-09-14 21:05:36 when 4.7.0 started."},
+    {"id": "C16-I1", "kind": "inference", "category": "inference",
+     "expect": "The ReindexStatementLines migration is the most likely place to look, since it ran with the release and touches the table the slow query reads, but the logs only show that the two coincide, not that the migration caused the slowdown."},
+    {"id": "C16-I2", "kind": "inference", "category": "inference",
+     "expect": "The ThreadPool starvation warning at 00:24:11 (31 work items queued, no threads available for 4200 ms) looks like a consequence of requests piling up behind the slow query rather than an independent cause, and it lines up with the jump from about 44 seconds to about 69 seconds just after it."},
+    {"id": "C16-P7", "kind": "point", "category": "limits of the evidence",
+     "expect": "The comparison rests on two windows of about five or six minutes each, on different days, with nothing in between, and only a handful of samples per query, so the size of the regression is indicative rather than measured."},
+    {"id": "C16-P8", "kind": "point", "category": "action",
+     "expect": "Next actions: check the execution plan and indexes for the statement line query against migration 20260914_2100_ReindexStatementLines, and collect a longer sample from both versions before concluding. The ticket is with Tom Becker, who currently believes it is not his team's change."},
+    {"id": "C16-T1", "kind": "trap", "category": "adopts wrong hypothesis",
+     "expect": "Names GetAccountSummaryQuery as the regression, or says it slowed down after 4.7.0.",
+     "claim": "The account summary query is the regression; it got slower after 4.7.0 and is what is dragging the statements page down."},
+    {"id": "C16-T2", "kind": "trap", "category": "inference as fact",
+     "expect": "States as established fact that the migration caused the slowdown, or describes what the migration did to the schema, such as dropping or rebuilding a specific index.",
+     "claim": "Migration 20260914_2100_ReindexStatementLines dropped the index on the statement line table, which is the confirmed cause of the slowdown."},
+    {"id": "C16-T3", "kind": "trap", "category": "arithmetic error",
+     "expect": "States a magnitude for the slowdown that the timings do not support, such as about ten times or about twice as slow.",
+     "claim": "The statement line query is running about ten times slower than it did before the release."},
+    {"id": "C16-T4", "kind": "trap", "category": "wrong cause",
+     "expect": "Names ThreadPool starvation as the root cause of the slow query rather than a symptom of it.",
+     "claim": "ThreadPool starvation is the root cause of the slow statement line query."},
+    {"id": "C16-T5", "kind": "trap", "category": "invents coverage",
+     "expect": "Describes a trend, build-up or measurements over the days between the two windows, which neither log covers.",
+     "claim": "The logs show the regression building steadily over the two days between 13 and 15 September."}
+  ]
+}

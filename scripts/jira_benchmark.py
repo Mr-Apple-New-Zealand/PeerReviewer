@@ -44,6 +44,8 @@ CASES_DIR = BENCH_DIR / "cases"
 ANALYST_PROMPT_FILE = BENCH_DIR / "analyst_system_prompt.md"
 JUDGE_PROMPT_FILE = BENCH_DIR / "judge_prompt.md"
 IMAGES_DIR = BENCH_DIR / "images"
+LOGS_DIR = BENCH_DIR / "logs"
+TEXT_ATTACHMENT_KINDS = {"log", "text", "csv", "json"}
 
 # Scoring weights. Each point in the answer key is worth 1 (partial 0.5).
 # Penalties are subtracted from the points earned before dividing by the
@@ -240,10 +242,21 @@ def load_cases(selected: list[str] | None = None) -> list[dict]:
         validate_case(case)
         for ticket in case["tickets"]:
             for att in ticket.get("attachments") or []:
-                if att.get("file"):
-                    path = IMAGES_DIR / att["file"]
-                    if not path.exists():
-                        sys.exit(f"ERROR: {case['id']} attachment {att['name']}: {path} not found")
+                if not att.get("file"):
+                    continue
+                # Images go to the model as images; logs and other text files are
+                # inlined into the ticket, the way an integration would paste an
+                # attached file into the prompt.
+                text = att.get("kind") in TEXT_ATTACHMENT_KINDS
+                path = (LOGS_DIR if text else IMAGES_DIR) / att["file"]
+                if not path.exists():
+                    sys.exit(f"ERROR: {case['id']} attachment {att['name']}: {path} not found")
+                if text:
+                    att["_text"] = path.read_text(encoding="utf-8").rstrip()
+                    # The case SHA has to move when an attached file changes, or
+                    # two runs with different inputs would look comparable.
+                    case["_sha"] = sha12(case["_sha"] + att["_text"])
+                else:
                     att["_path"] = path
         for ticket in case["tickets"]:
             spec = ticket.pop("noise", None)
@@ -291,6 +304,7 @@ def render_ticket(t: dict) -> str:
     lines.append("Attachments: " + ("; ".join(
         f"{a['name']} ({a.get('size', '?')}, {a.get('kind', 'file')})"
         + (" [provided with this request]" if a.get("_path") else "")
+        + (" [contents included below]" if a.get("_text") else "")
         for a in atts) if atts else "None"))
     lines += ["", "Description:", joined(t.get("description")) or "(empty)"]
     history = t.get("history") or []
@@ -304,6 +318,10 @@ def render_ticket(t: dict) -> str:
         lines.append(f"[{c['created']}] {c['author']}:")
         lines.append(joined(c["body"]))
         lines.append("")
+    for a in atts:
+        if a.get("_text"):
+            lines += ["", f"--- Attached file: {a['name']} ---", a["_text"],
+                      f"--- End of {a['name']} ---"]
     return "\n".join(lines).rstrip()
 
 

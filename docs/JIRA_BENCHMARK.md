@@ -26,7 +26,7 @@ Settings per model family:
 | Qwen3-VL Instruct | 49152 | 16384 | Native window 256K; matches the Thinking runs |
 | Qwen3-VL Thinking | 49152 | 16384 | Reasoning counts against num_predict; too little returns empty answers |
 | Qwen2.5-VL | 32768 | 8192 | Trained window is 32768; never run it higher |
-| Anything else | at most its trained window | 4096+, or 16384 if it thinks | The largest case (C08) needs ~15k tokens of input |
+| Anything else | at most its trained window | 4096+, or 16384 if it thinks | The largest cases (C08, C17) need ~18k and ~16k tokens of input |
 
 **Which runs can be compared.** `--compare` ranks runs side by side only if they share the cases, judge, judge effort, judge prompt, analyst prompt, temperature and system-prompt mode. These are the things that change a score. Anything else is listed under "Not ranked" with the reason, never mixed in. `num_ctx`, `num_predict` and `repeats` may differ: they don't change a score unless a run was truncated, and each run's own warnings flag that. After changing the judge prompt or a case, bring older runs up to date with `mode: rejudge` rather than re-running them.
 
@@ -67,6 +67,11 @@ Each case is a ticket export plus a request, as a real integration would send it
 | C11 | The error is only in a screenshot, and the screenshot IS attached. Real vision: read the dialog, the field values and the only button. Text-only models score 0. |
 | C12 | The whole specification is a crude MS Paint annotation on a screenshot: an arrow and "Remove the save option". Vision plus intent — work out what is being asked for, don't mistake the annotation for the app, don't invent a defect. |
 | C13 | Markup with no writing at all: a circled control and an arrow to where it should go. Read "move this there" from two marks, name the control and the destination, and don't read it as a deletion. |
+| C14 | A 48-hour pod log with four real faults, a leaked credential and one restart, under a bed of routine startup warnings and heartbeats. Classify by severity, count recurrences, and say what the log cannot establish. |
+| C15 | A senior reporter has already read the log and blamed the wrong line. The real fault is an SMTP 535 a few lines down. Contradict the reporter with evidence. |
+| C16 | Two logs either side of a release. Quantify the regression, spot the query that did not change, and treat the release as correlation rather than proven cause. |
+| C17 | A Sentry event whose headline TypeError is the last link in a chain: an idle gap, then every request 401, then four undefined-property errors. Read the breadcrumbs, not the title; the environment tag, the culprit and the missing source maps all mislead. |
+| C18 | Eight Sentry issues, four causes. Group them, rank by users rather than event count, spot the browser-extension noise and the regressed issue, and don't add distinct-user counts. |
 
 Each answer-key checkpoint is one of three kinds:
 - **point:** something the analysis should say.
@@ -110,6 +115,7 @@ If other models are resident on the server when a run starts, the report warns t
 - **Cost of judging.** Each graded case costs roughly $0.02–0.05 of Sonnet 5 time, so a 10-model run is a few dollars.
 - **The prompts are fingerprinted.** Every run records the SHA of the analyst prompt, the judge prompt and the cases, as the review benchmark does. Runs with different SHAs are not comparable.
 - **Vision.** C11 attaches a real screenshot (`jira_benchmark/images/`), so it measures actual screenshot reading; C09 is its counterpart, where the image is deliberately withheld and the model should say so rather than invent one. Images go only to the model under test: the judge grades the written analysis against the answer key, so no image is ever sent to the cloud judge. A model without the `vision` capability is detected before the request, and its image cases are recorded as errors and scored 0, since reading the screenshot is the task.
+- **Log and telemetry cases.** C14 to C18 attach files from `jira_benchmark/logs/`, which the harness inlines as text rather than sending as images, so a text-only model is scored on them like any other. The fixtures are derived from a real production pod log and a real Sentry event, both anonymised; `jira_benchmark/logs/README.md` records what was changed.
 - **Quantization.** Cost figures are for the build as benchmarked. If you benchmark at F16 and then quantize the winner, re-run the full benchmark on the quantized build to confirm its quality held, rather than assuming it did.
 
 ## Adding a case
@@ -117,6 +123,7 @@ If other models are resident on the server when a run starts, the report warns t
 1. Copy an existing `jira_benchmark/cases/C*.json` file.
 2. Write the tickets. Long text is a list of lines.
 3. To attach an image, put the file in `jira_benchmark/images/` and add `"file": "<name>"` to the attachment entry in the ticket. The harness sends it with the request and counts its tokens in the fit check (about 450 for a phone screenshot).
+   To attach a log, a telemetry export or any other text file, put it in `jira_benchmark/logs/` and add a text `kind` alongside `"file"` (`log`, `text`, `csv` or `json`). The harness inlines the contents into the rendered ticket instead of sending it as an image, so text attachments need no vision capability, and it folds the file into the case SHA so an edited log shows up as a different case.
 4. Write the answer key:
    - Phrase each `expect` as a plain statement, because calibration uses those statements as the "perfect" analysis.
    - Give every trap a `claim`, which is the false statement written the way an analysis would put it.

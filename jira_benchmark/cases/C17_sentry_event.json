@@ -1,0 +1,87 @@
+{
+  "id": "C17",
+  "title": "A Sentry event whose headline error is the symptom, not the fault",
+  "tests": "Structured telemetry. The reported TypeError is the last link in a chain: the breadcrumbs show a four-hour idle gap, then every request returning 401, then four undefined-property errors in a row. The model must read the breadcrumb timeline rather than the exception title, notice that the environment tag, the transaction name and the release field all contradict or fail the rest of the event, work out that the minified stack cannot identify the component because source maps are missing, and resist proposing a null check as the root-cause fix.",
+  "analysis_date": "2026-09-15",
+  "request": "Analyse this ticket and the attached Sentry event. Say what actually happened in the user's session, what the underlying defect is, and what this event does not let you determine.",
+  "tickets": [
+    {
+      "key": "BANK-495",
+      "summary": "Batch actions screen throws 'Cannot read properties of undefined' and goes blank",
+      "type": "Bug",
+      "status": "Open",
+      "priority": "High",
+      "assignee": null,
+      "reporter": "Hana Sato",
+      "created": "2026-09-14 09:05",
+      "updated": "2026-09-14 11:30",
+      "components": ["Web UI", "Auth"],
+      "affects_versions": ["bank-ui 4.7.0"],
+      "labels": ["sentry"],
+      "attachments": [
+        {"name": "sentry-event-a17f3c9d.json", "size": "37 KB", "kind": "json",
+         "file": "sentry_event_batch_actions.json"}
+      ],
+      "description": [
+        "Sentry has been firing 'Cannot read properties of undefined' on the batch actions screen. Operations say the screen sometimes goes blank and they have to reload.",
+        "I have attached the full JSON for one event. Support removed the duplicated raw stack trace and trimmed the repeated frames before attaching it.",
+        "We do not have a reproduction. It seems to happen to people who have had the tab open a while, but nobody has pinned that down."
+      ],
+      "comments": [
+        {"author": "Tom Becker", "created": "2026-09-14 11:30", "body": [
+          "The obvious read is that something is calling .sort on an array that isn't there. I can put a guard in, but I'd rather understand why it's undefined before I paper over it.",
+          "Also worth someone confirming which environment this is actually coming from before we treat it as a production incident."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C17-P1", "kind": "point", "category": "sequence",
+     "expect": "The breadcrumbs split into two halves. Up to 03:13:33 the session is normal and every XHR returns 200; then there is a gap of about four hours and ten minutes (roughly 14,979 seconds) with no activity at all, and from 07:23:12 onward every request returns 401."},
+    {"id": "C17-P2", "kind": "point", "category": "root cause",
+     "expect": "The reported TypeError is a symptom, not the fault. The requests fail with 401, the components get no data, and dereferencing the undefined response is what throws. The underlying defect is that the app does not handle a 401 response: there is no redirect to sign-in and no guard, so each screen carries on as if it had data."},
+    {"id": "C17-P3", "kind": "point", "category": "cascade",
+     "expect": "This event is one of several from the same cascade. The breadcrumbs record four earlier sentry.event entries in the same few seconds: 'rows' twice, then 'returnProperties', then 'length'. They should be treated as one defect rather than four or five separate bugs."},
+    {"id": "C17-P4", "kind": "point", "category": "auth",
+     "expect": "The only token refresh in the event is a POST to /api/security/token/refresh at 03:12:46 which returned 200, before the gap. No refresh is attempted after the gap, so nothing renewed the session during the idle period."},
+    {"id": "C17-P5", "kind": "point", "category": "misconfiguration",
+     "expect": "The environment tag says Production, but the url tag, request.url and every breadcrumb point at https://bank-uat.example.com, which is the UAT host. The Sentry environment is misconfigured for UAT, so these events are polluting production alerting. That answers Tom Becker's question."},
+    {"id": "C17-P6", "kind": "point", "category": "misconfiguration",
+     "expect": "The transaction and culprit are both /settlements/run/8214, but the request URL and the url tag are /payments/batch/actions. The transaction name is stale, so the culprit Sentry shows and the grouping it drives point at the wrong screen."},
+    {"id": "C17-P7", "kind": "point", "category": "limits of the evidence",
+     "expect": "The stack cannot identify the failing component. Source maps are missing: there are three js_no_source errors and three scraping_attempts that failed because Sentry cannot resolve the internal UAT host, symbolicated_in_app is false, and the frames are minified names such as ie.project and O.notifyError."},
+    {"id": "C17-P8", "kind": "point", "category": "limits of the evidence",
+     "expect": "release and dist are both null, so the event cannot be tied to a build, which is also why source maps could not be matched to it."},
+    {"id": "C17-P9", "kind": "point", "category": "limits of the evidence",
+     "expect": "The 401 responses all have response_body_size 0, so the event does not say why the token was rejected, and nothing in it shows the token's expiry, so expiry cannot be distinguished from revocation or a server-side session drop from this event alone."},
+    {"id": "C17-I1", "kind": "inference", "category": "inference",
+     "expect": "The likely mechanism is that the access token expired while the tab sat idle and no silent refresh ran, based on the successful refresh before the gap, the four-hour gap, and every request failing with 401 immediately afterwards."},
+    {"id": "C17-P10", "kind": "point", "category": "noise",
+     "expect": "Several attention-grabbing details are not the fault: the 780 KB InvokeAction response succeeded with a 200, the Referer is just the browser's new-tab page, the browser and operating system are ordinary, and the '401 OK' wording in the console messages is Angular reporting statusText, not a contradictory server response."},
+    {"id": "C17-P11", "kind": "point", "category": "in_app",
+     "expect": "Every frame is marked in_app true, including the polyfills frames, which is why the metadata claims in_app_frame_mix 'in-app-only'; that flag is not evidence that the fault is in application code."},
+    {"id": "C17-P12", "kind": "point", "category": "action",
+     "expect": "Next actions: handle 401 centrally in the HTTP layer so an expired session redirects to sign-in instead of rendering with no data; fix the Sentry environment so UAT is not reported as Production; set release and dist and upload source maps so the frames symbolicate; and correct the stale transaction name. A null guard before .sort would hide the blank screen without fixing any of this."},
+    {"id": "C17-T1", "kind": "trap", "category": "symptom as root cause",
+     "expect": "Gives the missing null or undefined check before .sort as the root cause or as the fix, rather than as a defensive measure over the real 401 handling problem.",
+     "claim": "The root cause is a missing null check before .sort is called, and adding that guard fixes the defect."},
+    {"id": "C17-T2", "kind": "trap", "category": "trusts the tag",
+     "expect": "States that the error happened in the production environment, or treats it as a production incident, without flagging that the URL is the UAT host.",
+     "claim": "This is happening in Production and should be treated as a production incident."},
+    {"id": "C17-T3", "kind": "trap", "category": "trusts the culprit",
+     "expect": "States that the error occurred on the /settlements/run/8214 screen or settlements run 8214.",
+     "claim": "The error occurred on the settlements run screen for run 8214, which is where the fix is needed."},
+    {"id": "C17-T4", "kind": "trap", "category": "invents symbolication",
+     "expect": "Names a source file, component, method or line number in the application code as the location of the fault, which the minified and unsymbolicated stack does not give.",
+     "claim": "The fault is in the ngOnInit of the batch actions grid component, which sorts the rows before the response arrives."},
+    {"id": "C17-T5", "kind": "trap", "category": "wrong cause",
+     "expect": "Blames the 780 KB response, slow network, the browser, the browser version or the operating system.",
+     "claim": "The 780 KB InvokeAction response is overwhelming the browser and is what causes the screen to fail."},
+    {"id": "C17-T6", "kind": "trap", "category": "misreads the 401s",
+     "expect": "Describes the 401 responses as an attack, an intrusion attempt, a permissions or role misconfiguration, or a server outage.",
+     "claim": "The burst of 401 responses indicates unauthorised access attempts against the API."},
+    {"id": "C17-T7", "kind": "trap", "category": "invents the gap",
+     "expect": "Describes activity, requests or errors during the four-hour gap, or states that the failures ran continuously across it.",
+     "claim": "The 401 failures continued steadily for four hours before the error was finally reported."}
+  ]
+}

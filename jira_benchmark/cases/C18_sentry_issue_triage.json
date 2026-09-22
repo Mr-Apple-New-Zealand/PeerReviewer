@@ -1,0 +1,77 @@
+{
+  "id": "C18",
+  "title": "Eight Sentry issues, four causes: group them and prioritise by impact",
+  "tests": "Prioritising telemetry. Five of the eight issues share one cause, the two loudest issues by event count are the least worth fixing, the issue with the most distinct users is almost the quietest, one issue is a third-party browser extension rather than the app, and one marked resolved has regressed since the last release. The model must group, choose users over events as the impact measure, do the release-date arithmetic, and not add distinct-user counts together.",
+  "analysis_date": "2026-09-15",
+  "request": "Triage this issue list. Group the issues that share a cause, say what should be worked on first and why, and flag anything that is not our defect.",
+  "tickets": [
+    {
+      "key": "BANK-498",
+      "summary": "Weekly Sentry triage for bank-ui",
+      "type": "Task",
+      "status": "Open",
+      "priority": "Medium",
+      "assignee": "Priya Nair",
+      "reporter": "Priya Nair",
+      "created": "2026-09-15 08:00",
+      "updated": "2026-09-15 08:00",
+      "components": ["Web UI"],
+      "labels": ["sentry", "triage"],
+      "attachments": [
+        {"name": "sentry-issues-2026-09-05-to-09-12.json", "size": "6 KB", "kind": "json",
+         "file": "sentry_issue_digest.json"}
+      ],
+      "description": [
+        "Export of the open Sentry issues for bank-ui for the week. We have capacity for roughly two of these in the next sprint, so I need to know which two and why.",
+        "Last time we worked top down by event count and spent the sprint on something that turned out to affect one person."
+      ],
+      "comments": [
+        {"author": "Ravi Kumar", "created": "2026-09-15 08:00", "body": [
+          "Before anyone asks: yes, we still have not uploaded source maps for this project. It is on the backlog."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C18-P1", "kind": "point", "category": "grouping",
+     "expect": "Five issues share one cause: BANKUI-4A1 ('sort'), BANKUI-4A2 ('rows'), BANKUI-4A9 ('returnProperties'), BANKUI-4B3 ('length') and BANKUI-3C8 (the 401 HttpErrorResponse). Each undefined-property issue is preceded by 401 responses, so they are four screens failing the same way after the session is rejected, plus the console logger that records the 401 itself."},
+    {"id": "C18-P2", "kind": "point", "category": "arithmetic",
+     "expect": "The distinct-user counts cannot be added together, because the export says the same user can appear in more than one issue. For that cluster the best single estimate of reach is the 44 users on BANKUI-3C8, not the sum of 41, 39, 33, 31 and 44."},
+    {"id": "C18-P3", "kind": "point", "category": "prioritisation",
+     "expect": "BANKUI-5D6, the ChunkLoadError, affects 58 distinct users, more than any other issue in the list, on only 63 events. By user impact it is the top item even though it is nearly the quietest by event count."},
+    {"id": "C18-P4", "kind": "point", "category": "arithmetic",
+     "expect": "BANKUI-5D6 was first seen at 2026-09-10 21:11:36, about six and a half minutes after release 4.7.0 was deployed at 21:05:00, and the requested bundle returns 404, which is the signature of open sessions asking for hashed bundles that the deploy replaced."},
+    {"id": "C18-P5", "kind": "point", "category": "not our defect",
+     "expect": "BANKUI-2F0, the SecurityError, has 4,812 events but only one affected user, and its culprit and top frame are both in a chrome-extension script with no application breadcrumbs. It is a browser extension on one person's machine, not a defect in the application, and should be filtered rather than fixed."},
+    {"id": "C18-P6", "kind": "point", "category": "prioritisation",
+     "expect": "Event count is a misleading ranking here: the two largest counts are BANKUI-3C8 with 5,140, which is a logger recording a symptom, and BANKUI-2F0 with 4,812, which is one user's extension. Neither is the most valuable thing to fix."},
+    {"id": "C18-P7", "kind": "point", "category": "regression",
+     "expect": "BANKUI-1A7 is marked resolved in release 4.6.0, but it was last seen on 2026-09-11, after 4.7.0 was deployed on 2026-09-10. It has regressed and should be reopened rather than left as resolved."},
+    {"id": "C18-P8", "kind": "point", "category": "limits of the evidence",
+     "expect": "Source maps are not uploaded for this project, so every lastFrame is a minified name such as ie.project or N.setRows and none of these issues can be traced to a component from this export alone."},
+    {"id": "C18-P9", "kind": "point", "category": "limits of the evidence",
+     "expect": "The export does not say whether the 58 users hitting the ChunkLoadError are the same people as the 44 in the 401 cluster, so the total number of affected users cannot be worked out from it."},
+    {"id": "C18-I1", "kind": "inference", "category": "inference",
+     "expect": "The 401 cluster looks like sessions expiring without the application handling the rejection, given that every one of the four undefined-property issues is preceded by 401 responses on different endpoints; confirming that would need a full event, not this summary."},
+    {"id": "C18-P10", "kind": "point", "category": "action",
+     "expect": "For the two slots: BANKUI-5D6 first, because it affects the most users and points at how bundles are deployed and cached; then the 401 cluster, because one fix in the HTTP layer closes five issues. Alongside those, reopen BANKUI-1A7 and mute or filter BANKUI-2F0, neither of which needs sprint capacity."},
+    {"id": "C18-T1", "kind": "trap", "category": "ranks by event count",
+     "expect": "Puts BANKUI-2F0, the SecurityError, at or near the top of the priority list, or treats its event count as evidence of impact.",
+     "claim": "The SecurityError is the highest priority with 4,812 events, so it should be first in the sprint."},
+    {"id": "C18-T2", "kind": "trap", "category": "fails to group",
+     "expect": "Treats the list as eight separate defects, or gives the four undefined-property issues separate causes or separate fixes.",
+     "claim": "There are eight distinct defects here and each needs its own fix."},
+    {"id": "C18-T3", "kind": "trap", "category": "arithmetic error",
+     "expect": "Adds the distinct-user counts across issues, for example reporting about 188 users affected by the undefined-property errors or about 279 users overall.",
+     "claim": "Roughly 188 users are affected by the undefined-property errors across the four issues."},
+    {"id": "C18-T4", "kind": "trap", "category": "trusts the status field",
+     "expect": "States that BANKUI-1A7 is fixed, resolved or needs no action.",
+     "claim": "BANKUI-1A7 was resolved in 4.6.0 and needs no further action."},
+    {"id": "C18-T5", "kind": "trap", "category": "misreads the 401s",
+     "expect": "Describes the 401 issue as an attack, an intrusion attempt or a security breach.",
+     "claim": "The 5,140 401 errors point to a brute-force attempt against the API and should be escalated to security."},
+    {"id": "C18-T6", "kind": "trap", "category": "over-groups",
+     "expect": "Groups BANKUI-5D6, the ChunkLoadError, or BANKUI-1A7, the RangeError, into the same cause as the 401 cluster.",
+     "claim": "The ChunkLoadError is part of the same session-expiry cause as the undefined-property errors."}
+  ]
+}

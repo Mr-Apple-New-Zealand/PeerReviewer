@@ -1,0 +1,82 @@
+{
+  "id": "C14",
+  "title": "Triage a production pod log: real faults, routine noise, and what the log cannot say",
+  "tests": "Log reading. A 48-hour Kubernetes log dump with four distinct real faults, a credential leak, a container restart, and a bed of routine startup warnings and heartbeat lines that look alarming but are not. The model must separate ERR from WRN from noise, count recurrences, notice that the SQL message is masked so the offending column cannot be named, notice that the log has times but no dates and is not in order, and resist blaming the warnings it can see for the errors it cannot explain.",
+  "analysis_date": "2026-09-15",
+  "request": "Triage the attached log. Say what is actually broken and how badly, what is routine noise that can be ignored, and what the log does not let you determine.",
+  "tickets": [
+    {
+      "key": "OPS-92",
+      "summary": "Payments API: log dump for triage after user reports of failed saves",
+      "type": "Task",
+      "status": "Open",
+      "priority": "High",
+      "assignee": null,
+      "reporter": "Marcus Reid",
+      "created": "2026-09-15 07:20",
+      "updated": "2026-09-15 08:05",
+      "components": ["Payments", "Platform"],
+      "labels": ["triage", "production"],
+      "attachments": [
+        {"name": "payments-api-prod.log", "size": "26 KB", "kind": "log",
+         "file": "payments_api_prod.log"}
+      ],
+      "description": [
+        "Two users have reported that saving a secondary branch on a payment routing rule 'just spins and then says it failed'. No error code was given to them.",
+        "I have pulled the last 48 hours from the payments-api pod and attached it. I have not read it properly. Please work out what is going on and what needs an owner.",
+        "Support trimmed the repeated stack traces before attaching it, otherwise the file was too large."
+      ],
+      "comments": [
+        {"author": "Priya Nair", "created": "2026-09-15 08:05", "body": [
+          "Platform will want to know whether this is us or the database team before they pick it up. If there is more than one thing wrong in there, please say which one to fix first."
+        ]}
+      ]
+    }
+  ],
+  "answer_key": [
+    {"id": "C14-P1", "kind": "point", "category": "real fault",
+     "expect": "The most serious fault is that Dapr service invocation to app-id 'masterfile-api' is being rejected with 403 Forbidden, on both 'branchlocation/get?ID=71&includeDetails=False' and 'branchlocation/GetAll'. It appears four times and aborts AddPaymentRoutingRuleSecondaryCommand and BulkUpdateSecondaryBranchesCommand, which is exactly the save the users reported failing."},
+    {"id": "C14-P2", "kind": "point", "category": "real fault",
+     "expect": "SearchPaymentRoutingRuleQueryHandler throws SQL error 245, 'Conversion failed when converting the ****** value ... to data type ******', five times."},
+    {"id": "C14-P3", "kind": "point", "category": "redaction",
+     "expect": "The SQL 245 message has its value and data type masked as ****** in the log, so the offending column, value and type cannot be identified from this file; that detail has to come from the query or from an unmasked log."},
+    {"id": "C14-P4", "kind": "point", "category": "real fault",
+     "expect": "GetMonitorJobsQueryHandler hits SQL execution timeouts (Error Number:-2) eight times between 22:26:37 and 22:29:08, and then succeeds again from 22:36:47 onward, so it is a bounded episode rather than a permanent failure."},
+    {"id": "C14-P5", "kind": "point", "category": "logging gap",
+     "expect": "UpdatePaymentRoutingRuleCommand fails twice with ApplicationValidationException, but the individual validation messages are never logged, so the log says a validation failed without saying which one. That is a logging gap worth fixing."},
+    {"id": "C14-P6", "kind": "point", "category": "performance",
+     "expect": "GetStatementLineQuery breaches the 10000ms long-running threshold fourteen times, rising from about 35 seconds to about 73 seconds, and is still rising at the end of the log."},
+    {"id": "C14-P7", "kind": "point", "category": "security",
+     "expect": "A database connection string including the password (User ID=svc_payments;Password=Pr0d-Payments-2026!) is written to the log at DBG level. That is a credential exposure: the logging should be removed and the password rotated, given that pod logs are shipped and shared."},
+    {"id": "C14-P8", "kind": "point", "category": "fact",
+     "expect": "The pod restarted once during the window: 'Application is shutting down...' at 02:50:11 followed by a second 'Starting web host' at 02:50:14, which is why the startup warnings appear twice."},
+    {"id": "C14-P9", "kind": "point", "category": "benign",
+     "expect": "The startup warnings are routine for a containerised ASP.NET Core service and are not the cause of these failures: the DataProtection key directory warning, 'No XML encryptor configured', 'Overriding address(es)' and 'Failed to determine the https port for redirect'."},
+    {"id": "C14-P10", "kind": "point", "category": "benign",
+     "expect": "Other lines that look alarming but are not defects: the repeated 'Service Permissions found and sent on the event bus' messages, the ObjectMapper licence lines, the client-aborted TaskCanceledException at 21:11:02, and the 404 for pending payment 88213."},
+    {"id": "C14-P11", "kind": "point", "category": "limits of the log",
+     "expect": "The log records time of day with no date and the timestamps are not in order, so elapsed times and the sequence of events across the file cannot be established from it; the export also says repeated stack traces were trimmed, so it is not a complete record."},
+    {"id": "C14-I1", "kind": "inference", "category": "inference",
+     "expect": "The 403s are most likely an access-control or Dapr configuration problem between payments-api and masterfile-api, such as a missing or changed invocation policy, rather than a fault in the payments code, because the calls never reach a handler and fail consistently on both methods."},
+    {"id": "C14-P12", "kind": "point", "category": "priority",
+     "expect": "Priority order: the 403s first, because they block a user action outright; then the SQL 245 conversion errors and the degrading GetStatementLineQuery; the credential in the log should be handled in parallel as a security item."},
+    {"id": "C14-T1", "kind": "trap", "category": "blames benign warning",
+     "expect": "Names the DataProtection key or XML encryptor warnings as the cause of the 403s, the SQL errors or the failed saves.",
+     "claim": "The failures are caused by the missing XML encryptor and the DataProtection keys not being persisted outside the container."},
+    {"id": "C14-T2", "kind": "trap", "category": "invents masked detail",
+     "expect": "Names a specific column, value or data type for the SQL 245 conversion error, which the log masks as ******.",
+     "claim": "The conversion error comes from a non-numeric value in the RuleSetId column being converted to int."},
+    {"id": "C14-T3", "kind": "trap", "category": "false chronology",
+     "expect": "States elapsed time, a duration or an ordered sequence across the file as if the timestamps were dated and in order.",
+     "claim": "The errors ran continuously for just over three hours, from 19:13 through to 22:29 on the same day."},
+    {"id": "C14-T4", "kind": "trap", "category": "lexical red herring",
+     "expect": "Treats the NATS subject name 'payments.prod.requests.payments.errors' as evidence that errors occurred or were published.",
+     "claim": "The service is publishing failures to the payments.prod.requests.payments.errors subject, which confirms the error volume."},
+    {"id": "C14-T5", "kind": "trap", "category": "overstates severity",
+     "expect": "Claims the pod is crash-looping or restarting repeatedly, when the log shows one restart.",
+     "claim": "The pod is in a crash loop, restarting repeatedly across the window."},
+    {"id": "C14-T6", "kind": "trap", "category": "wrong cause",
+     "expect": "Claims the database was down, unreachable or the single cause of all the failures in the log.",
+     "claim": "The database was unavailable during this period, which is why all of these requests failed."}
+  ]
+}
