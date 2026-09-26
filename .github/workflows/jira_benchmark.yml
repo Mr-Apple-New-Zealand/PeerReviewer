@@ -7,7 +7,7 @@ name: Jira Analyst Benchmark
 #
 # Visible in the Actions run list so the model and settings of a past run can
 # be read off without opening it.
-run-name: "Jira analyst ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.results_dir) || inputs.model }} | ctx ${{ inputs.num_ctx || '32768' }} | predict ${{ inputs.num_predict || '4096' }} | repeats ${{ inputs.repeats || '1' }}"
+run-name: "Jira analyst ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.results_dir) || inputs.model }} | ctx ${{ inputs.num_ctx || '32768' }} | predict ${{ inputs.num_predict || '4096' }} | repeats ${{ inputs.repeats || '1' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
 
 on:
   workflow_dispatch:
@@ -49,7 +49,11 @@ on:
         required: false
         type: string
       judge:
-        description: "Judge model. Blank = claude-sonnet-5. Any Ollama tag also works."
+        description: >
+          Judge model. Blank = claude-sonnet-5. Also takes any Ollama tag on the
+          on-prem server, or a hosted one ending ':cloud' (e.g. MiniMax-M3:cloud),
+          which needs OLLAMA_API_KEY. Changing the judge makes a run incomparable
+          with runs graded by a different one.
         required: false
         type: string
       judge_effort:
@@ -58,11 +62,17 @@ on:
         type: string
 
 env:
+  # On-prem Ollama, used for any model tag NOT ending in ':cloud'.
   OLLAMA_URL: ${{ vars.AI_ASSISTANT_OLLAMA_URL }}
+  # Hosted Ollama cloud — used automatically for ':cloud' tags, whether that is
+  # the model under test or the judge.
   OLLAMA_CLOUD_URL: https://ollama.com
+  # Bearer token; sent ONLY to the cloud endpoint. The on-prem server answers
+  # 400 to an Authorization header, so the script never sends it there.
   OLLAMA_API_KEY: ${{ vars.OLLAMA_API_KEY }}
-  # The judge. The tickets are synthetic, so sending them to Anthropic exposes
-  # no company data.
+  # The default judge. The tickets are synthetic, so sending them to Anthropic —
+  # or to Ollama cloud, if the judge is a ':cloud' tag — exposes no company data.
+  # Images never go to the judge either way.
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
@@ -92,6 +102,19 @@ jobs:
           RESULTS_DIR: ${{ inputs.results_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
+          # A ':cloud' judge is served by hosted Ollama and needs a Bearer key.
+          # The script only finds that out at its first judge call, which is
+          # after every analysis has already been generated, so check up front
+          # rather than burn a full run and grade nothing.
+          judge_lc=$(printf '%s' "$JUDGE" | tr '[:upper:]' '[:lower:]')
+          case "$judge_lc" in
+            *:cloud)
+              if [ -z "$OLLAMA_API_KEY" ]; then
+                echo "::error::judge '$JUDGE' is a cloud model but OLLAMA_API_KEY is unset."
+                exit 1
+              fi ;;
+          esac
+
           args=(--num-ctx "$NUM_CTX" --num-predict "$NUM_PREDICT" --temperature "$TEMPERATURE"
                 --repeats "$REPEATS" --judge "$JUDGE" --judge-effort "$JUDGE_EFFORT"
                 --out jira_benchmark_results)
@@ -107,7 +130,10 @@ jobs:
               args+=(--models "$MODEL")
               label="${MODEL%%=*}" ;;
             calibrate-judge)
-              args+=(--calibrate-judge) ;;
+              # Name the artifact after the judge, so calibrations of different
+              # judges do not all land under the same label.
+              args+=(--calibrate-judge)
+              label="calibrate-$JUDGE" ;;
             rejudge)
               if [ ! -f "$RESULTS_DIR/results.json" ]; then
                 echo "::error::results_dir '$RESULTS_DIR' has no results.json. Commit the results folder first."
