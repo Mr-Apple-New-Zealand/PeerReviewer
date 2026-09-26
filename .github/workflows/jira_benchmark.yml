@@ -60,6 +60,20 @@ on:
         description: "Anthropic judge only: low/medium/high/xhigh/max. Blank = high."
         required: false
         type: string
+      judge_num_predict:
+        description: >
+          Ollama judge only. Blank = 16384. A reasoning judge spends this on
+          thinking before it writes any JSON, and returns empty content if it
+          runs out. Raise it if judging fails with parse errors.
+        required: false
+        type: string
+      judge_think:
+        description: >
+          Ollama judge only. Blank = leave the model's default. Set 'false' to
+          suppress a reasoning judge's thinking block so the whole budget goes
+          to the verdict JSON.
+        required: false
+        type: string
 
 env:
   # On-prem Ollama, used for any model tag NOT ending in ':cloud'.
@@ -99,6 +113,8 @@ jobs:
           REPEATS: ${{ inputs.repeats || '1' }}
           JUDGE: ${{ inputs.judge || 'claude-sonnet-5' }}
           JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
+          JUDGE_NUM_PREDICT: ${{ inputs.judge_num_predict }}
+          JUDGE_THINK: ${{ inputs.judge_think }}
           RESULTS_DIR: ${{ inputs.results_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
@@ -119,6 +135,8 @@ jobs:
                 --repeats "$REPEATS" --judge "$JUDGE" --judge-effort "$JUDGE_EFFORT"
                 --out jira_benchmark_results)
           if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
+          if [ -n "$JUDGE_NUM_PREDICT" ]; then args+=(--judge-num-predict "$JUDGE_NUM_PREDICT"); fi
+          if [ -n "$JUDGE_THINK" ]; then args+=(--judge-think "$JUDGE_THINK"); fi
           label="$MODE"
           case "$MODE" in
             benchmark)

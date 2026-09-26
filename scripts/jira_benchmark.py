@@ -590,6 +590,36 @@ def build_judge_input(case: dict, case_text: str, analysis: str) -> str:
             f"<analysis>\n{analysis}\n</analysis>")
 
 
+def judge_json(content: str, thinking: str) -> dict:
+    """Parse an Ollama judge's reply into the verdict object.
+
+    Not every model honours the format schema: some wrap the object in a
+    markdown fence, some prepend a sentence, and a reasoning model can return
+    empty content with the answer left in its thinking. Recover the object
+    from any of those rather than failing the case, and if it really is not
+    there, say what came back instead of just 'Expecting value'.
+    """
+    for candidate in (content, thinking):
+        if not candidate or not candidate.strip():
+            continue
+        text = candidate.strip()
+        fence = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
+        if fence:
+            text = fence.group(1).strip()
+        start, end = text.find("{"), text.rfind("}")
+        for attempt in (text, text[start:end + 1] if start != -1 and end > start else None):
+            if not attempt:
+                continue
+            try:
+                return json.loads(attempt)
+            except json.JSONDecodeError:
+                pass
+    got = (content or "").strip() or (thinking or "").strip()
+    where = "content" if (content or "").strip() else ("thinking only" if got else "nothing")
+    raise RuntimeError(f"judge returned no JSON object ({where}): {got[:200]!r}"
+                       if got else "judge returned empty content and empty thinking")
+
+
 def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
                    case_text: str, analysis: str) -> dict:
     user = build_judge_input(case, case_text, analysis)
@@ -601,9 +631,10 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
                                             cfg["judge_effort"])
             else:
                 r = ollama_chat(ep, cfg["judge"], judge_prompt, user,
-                                {"temperature": 0, "num_ctx": cfg["judge_num_ctx"], "num_predict": 8192},
+                                {"temperature": 0, "num_ctx": cfg["judge_num_ctx"],
+                                 "num_predict": cfg["judge_num_predict"]},
                                 think=cfg.get("judge_think", ""), fmt=JUDGE_SCHEMA)
-                raw = json.loads(r["content"])
+                raw = judge_json(r["content"], r.get("thinking", ""))
                 usage = {"wall_s": r["metrics"]["wall_s"]}
             return apply_judgement(case, analysis, raw, usage)
         except (json.JSONDecodeError, RuntimeError, HttpError, KeyError, TypeError) as e:
@@ -1166,6 +1197,12 @@ def main() -> None:
     ap.add_argument("--judge", default="claude-sonnet-5")
     ap.add_argument("--judge-effort", default="high")
     ap.add_argument("--judge-num-ctx", type=int, default=65536, help="Only for an Ollama judge")
+    # A reasoning judge spends this budget on thinking before it writes any
+    # JSON, and an Ollama judge that runs out returns empty content -- which
+    # is how minimax-m3:cloud failed all 54 calls at the old fixed 8192.
+    # 16384 matches what the Claude judge path allows itself (16000).
+    ap.add_argument("--judge-num-predict", type=int, default=16384,
+                    help="Only for an Ollama judge; raise it for a reasoning judge")
     ap.add_argument("--judge-think", default="", help="Only for an Ollama judge")
     ap.add_argument("--value-margin", type=float, default=5.0,
                     help="Best-value pick: smallest model within this many points of the best")
@@ -1220,6 +1257,7 @@ def main() -> None:
         "analyst_prompt_sha": sha12(analyst_prompt) if system_for_models else "modelfile",
         "judge": args.judge, "judge_effort": args.judge_effort, "judge_num_ctx": args.judge_num_ctx,
         "judge_think": args.judge_think, "judge_prompt_sha": sha12(judge_prompt),
+        "judge_num_predict": args.judge_num_predict,
         "cases_sha": sha12("".join(c["_sha"] for c in cases)),
         "value_margin": args.value_margin, "skip_judge": args.skip_judge, "keep_loaded": args.keep_loaded,
     }
