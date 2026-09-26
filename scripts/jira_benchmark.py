@@ -606,25 +606,39 @@ def judge_json(content: str, thinking: str) -> dict:
         fence = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
         if fence:
             text = fence.group(1).strip()
-        start, end = text.find("{"), text.rfind("}")
-        for attempt in (text, text[start:end + 1] if start != -1 and end > start else None):
-            if not attempt:
-                continue
+        else:
+            # An unterminated fence: the model opened ```json and stopped
+            # without closing it. The array inside is often complete.
+            text = re.sub(r"^```(?:json)?\s*", "", text).strip()
+        attempts = [text]
+        # Arrays first: a truncated array's last '}' closes its FIRST element,
+        # so brace extraction would quietly return one checkpoint and score
+        # the rest as missed. Better to fail loudly than to lose the verdicts.
+        for opener, closer in (("[", "]"), ("{", "}")):
+            a, b = text.find(opener), text.rfind(closer)
+            if a != -1 and b > a:
+                attempts.append(text[a:b + 1])
+        for attempt in attempts:
             try:
                 parsed = json.loads(attempt)
             except json.JSONDecodeError:
                 continue
-            # Some models return the checkpoints array bare instead of the
-            # object the schema asks for. Wrap it rather than handing a list
-            # to apply_judgement, which expects to call .get() on it.
             if isinstance(parsed, list):
                 return {"checkpoints": parsed}
             if isinstance(parsed, dict):
+                # A lone checkpoint is a fragment of a truncated array, not the
+                # envelope the schema asks for.
+                if "id" in parsed and "verdict" in parsed:
+                    continue
                 return parsed
     got = (content or "").strip() or (thinking or "").strip()
     where = "content" if (content or "").strip() else ("thinking only" if got else "nothing")
-    raise RuntimeError(f"judge returned no JSON object ({where}): {got[:200]!r}"
-                       if got else "judge returned empty content and empty thinking")
+    if not got:
+        raise RuntimeError("judge returned empty content and empty thinking")
+    detail = f"{len(got)} chars"
+    if got.count("[") != got.count("]") or got.count("{") != got.count("}"):
+        detail += ", brackets unbalanced so the reply looks truncated"
+    raise RuntimeError(f"judge returned no JSON object ({where}, {detail}): {got[:200]!r}")
 
 
 def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
