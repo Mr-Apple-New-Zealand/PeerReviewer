@@ -611,9 +611,16 @@ def judge_json(content: str, thinking: str) -> dict:
             if not attempt:
                 continue
             try:
-                return json.loads(attempt)
+                parsed = json.loads(attempt)
             except json.JSONDecodeError:
-                pass
+                continue
+            # Some models return the checkpoints array bare instead of the
+            # object the schema asks for. Wrap it rather than handing a list
+            # to apply_judgement, which expects to call .get() on it.
+            if isinstance(parsed, list):
+                return {"checkpoints": parsed}
+            if isinstance(parsed, dict):
+                return parsed
     got = (content or "").strip() or (thinking or "").strip()
     where = "content" if (content or "").strip() else ("thinking only" if got else "nothing")
     raise RuntimeError(f"judge returned no JSON object ({where}): {got[:200]!r}"
@@ -637,7 +644,8 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
                 raw = judge_json(r["content"], r.get("thinking", ""))
                 usage = {"wall_s": r["metrics"]["wall_s"]}
             return apply_judgement(case, analysis, raw, usage)
-        except (json.JSONDecodeError, RuntimeError, HttpError, KeyError, TypeError) as e:
+        except (json.JSONDecodeError, RuntimeError, HttpError, KeyError,
+                TypeError, AttributeError) as e:
             last_err = e
             print(f"      (judge attempt {attempt + 1} failed: {e})")
     raise RuntimeError(f"judge failed twice: {last_err}")
