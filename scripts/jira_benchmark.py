@@ -645,7 +645,11 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
                    case_text: str, analysis: str) -> dict:
     user = build_judge_input(case, case_text, analysis)
     last_err = None
-    for attempt in range(2):
+    # An Ollama judge whose schema is not enforced fails stochastically: the
+    # cases that fail differ run to run, so a retry is usually enough. Matches
+    # the 4 attempts ollama_chat already makes on the analyst side.
+    attempts = max(1, int(cfg.get("judge_attempts") or 4))
+    for attempt in range(attempts):
         try:
             if Endpoints.is_claude(cfg["judge"]):
                 raw, usage = anthropic_json(ep, cfg["judge"], judge_prompt, user, JUDGE_SCHEMA,
@@ -662,7 +666,7 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
                 TypeError, AttributeError) as e:
             last_err = e
             print(f"      (judge attempt {attempt + 1} failed: {e})")
-    raise RuntimeError(f"judge failed twice: {last_err}")
+    raise RuntimeError(f"judge failed {attempts}x: {last_err}")
 
 
 VERDICT_LIST_KEYS = ("checkpoints", "verdicts", "results", "items",
@@ -1247,6 +1251,8 @@ def main() -> None:
     ap.add_argument("--judge-num-predict", type=int, default=16384,
                     help="Only for an Ollama judge; raise it for a reasoning judge")
     ap.add_argument("--judge-think", default="", help="Only for an Ollama judge")
+    ap.add_argument("--judge-attempts", type=int, default=4,
+                    help="Tries per judge call before the case is recorded as an error")
     ap.add_argument("--value-margin", type=float, default=5.0,
                     help="Best-value pick: smallest model within this many points of the best")
     ap.add_argument("--skip-judge", action="store_true")
@@ -1301,6 +1307,7 @@ def main() -> None:
         "judge": args.judge, "judge_effort": args.judge_effort, "judge_num_ctx": args.judge_num_ctx,
         "judge_think": args.judge_think, "judge_prompt_sha": sha12(judge_prompt),
         "judge_num_predict": args.judge_num_predict,
+        "judge_attempts": args.judge_attempts,
         "cases_sha": sha12("".join(c["_sha"] for c in cases)),
         "value_margin": args.value_margin, "skip_judge": args.skip_judge, "keep_loaded": args.keep_loaded,
     }

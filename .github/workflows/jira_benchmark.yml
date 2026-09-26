@@ -67,6 +67,14 @@ on:
           runs out. Raise it if judging fails with parse errors.
         required: false
         type: string
+      judge_attempts:
+        description: >
+          Tries per judge call before the case is recorded as an error.
+          Blank = 4. An Ollama judge whose schema is not enforced fails
+          stochastically, so a retry usually clears it. If 4 is not enough the
+          judge is unreliable, not under-retried.
+        required: false
+        type: string
       judge_think:
         description: >
           Ollama judge only. Blank = leave the model's default. Set 'false' to
@@ -115,6 +123,7 @@ jobs:
           JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
           JUDGE_NUM_PREDICT: ${{ inputs.judge_num_predict }}
           JUDGE_THINK: ${{ inputs.judge_think }}
+          JUDGE_ATTEMPTS: ${{ inputs.judge_attempts }}
           RESULTS_DIR: ${{ inputs.results_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
@@ -137,6 +146,7 @@ jobs:
           if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
           if [ -n "$JUDGE_NUM_PREDICT" ]; then args+=(--judge-num-predict "$JUDGE_NUM_PREDICT"); fi
           if [ -n "$JUDGE_THINK" ]; then args+=(--judge-think "$JUDGE_THINK"); fi
+          if [ -n "$JUDGE_ATTEMPTS" ]; then args+=(--judge-attempts "$JUDGE_ATTEMPTS"); fi
           label="$MODE"
           case "$MODE" in
             benchmark)
