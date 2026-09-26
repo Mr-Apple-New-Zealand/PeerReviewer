@@ -651,6 +651,27 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
     raise RuntimeError(f"judge failed twice: {last_err}")
 
 
+VERDICT_LIST_KEYS = ("checkpoints", "verdicts", "results", "items",
+                     "judgements", "judgments", "evaluations")
+
+
+def verdict_items(raw: dict, known_ids: set) -> list:
+    """The judge's verdict list, whatever it decided to call it.
+
+    A judge that follows the schema returns {"checkpoints": [...]}. Others
+    return the same list under 'verdicts' or 'results', or a map of checkpoint
+    id to verdict. The content is identical and correct in each case, so take
+    it rather than defaulting every checkpoint to missed and scoring a good
+    judgement as zero.
+    """
+    for key in VERDICT_LIST_KEYS:
+        value = raw.get(key)
+        if isinstance(value, list):
+            return value
+    return [dict(v, id=v.get("id") or k) for k, v in raw.items()
+            if k in known_ids and isinstance(v, dict)]
+
+
 def apply_judgement(case: dict, analysis: str, raw: dict, usage: dict) -> dict:
     """Validate the judge's verdicts against the answer key and the analysis.
 
@@ -662,11 +683,11 @@ def apply_judgement(case: dict, analysis: str, raw: dict, usage: dict) -> dict:
       Ungrounded ones are downgraded to missed / clean and counted.
     """
     analysis_norm = _norm(analysis)
+    known_ids = {cp["id"] for cp in case["answer_key"]}
     by_id = {}
-    for item in raw.get("checkpoints") or []:
+    for item in verdict_items(raw, known_ids):
         by_id.setdefault(str(item.get("id", "")).strip(), item)
     rows, notes = [], {"omitted": [], "normalised": [], "ungrounded": [], "unknown_ids": []}
-    known_ids = {cp["id"] for cp in case["answer_key"]}
     notes["unknown_ids"] = sorted(set(by_id) - known_ids)
     for cp in case["answer_key"]:
         item = by_id.get(cp["id"])
