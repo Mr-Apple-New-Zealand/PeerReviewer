@@ -404,6 +404,7 @@ class Endpoints:
         self.cloud_key = (os.environ.get("OLLAMA_API_KEY") or "").strip()
         self.anthropic_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
         self._caps = {}
+        self._show = {}
 
     @staticmethod
     def is_cloud(model: str) -> bool:
@@ -424,12 +425,34 @@ class Endpoints:
             raise RuntimeError(f"'{model}' is a local model but OLLAMA_URL is not set.")
         return self.ollama, {}
 
+    def show(self, model: str) -> dict:
+        """The /api/show payload, cached. Carries 'capabilities', the Modelfile
+        'parameters', and 'model_info', which holds the GGUF's own
+        <arch>.context_length - the trained window, not a local choice."""
+        if model not in self._show:
+            try:
+                self._show[model] = post_json(f"{self.ollama}/api/show",
+                                              {"model": model}, timeout=30) or {}
+            except Exception:
+                self._show[model] = {}
+        return self._show[model]
+
+    def trained_window(self, model: str) -> int | None:
+        """The model's own context length from GGUF metadata, or None if the
+        server did not say. Any '*.context_length' key: the prefix is the
+        architecture name and varies by model."""
+        info = self.show(model).get("model_info") or {}
+        for key, value in info.items():
+            if key.endswith(".context_length") and isinstance(value, int) and value > 0:
+                return value
+        return None
+
     def capabilities(self, model: str) -> list[str] | None:
         if model in self._caps:
             return self._caps[model]
         caps = None
         try:
-            caps = post_json(f"{self.ollama}/api/show", {"model": model}, timeout=30).get("capabilities") or []
+            caps = self.show(model).get("capabilities") or []
         except Exception:
             pass
         self._caps[model] = caps
@@ -778,6 +801,80 @@ def parse_models(raw: str, default_think: str) -> list[tuple[str, str]]:
         override = override.strip()
         out.append((name.strip(), "" if override.lower() == "none" else (override or default_think)))
     return out
+
+
+# Per-judge settings that are not optional. A judge listed here gets these
+# unless the caller passes the flag explicitly, so its quirks cannot be
+# forgotten between runs.
+#
+#   Qwen3.8-27B defaults to xhigh reasoning and spends its whole num_predict
+#   thinking, returning EMPTY content. think=medium is what makes it emit a
+#   verdict at all (ai_code_review.yml, SUMMARY finding 7). It is the only
+#   local judge measured as agreeing with Sonnet: +1.0 on the 13 cases both
+#   graded, 1 ungrounded and 0 omitted verdicts in 54 calls.
+JUDGE_DEFAULTS = {
+    "qwen3.8-27b": {"judge_think": "medium"},
+}
+
+
+def judge_defaults_for(judge: str) -> dict:
+    key = judge.strip().lower()
+    for name, defaults in JUDGE_DEFAULTS.items():
+        if name in key:
+            return defaults
+    return {}
+
+
+# A two-checkpoint case, used only to exercise the judge before any analyst
+# work starts. Everything the judge needs is here: an answer key with one point
+# and one trap, and an analysis that states the point and not the trap.
+SMOKE_CASE = {
+    "id": "SMOKE", "title": "judge smoke test", "analysis_date": "2026-01-01",
+    "request": "Summarise the ticket.",
+    "tickets": [{"key": "BANK-1", "summary": "Login button does nothing",
+                 "type": "Bug", "status": "Open", "reporter": "QA",
+                 "description": ["Clicking Sign in on the web login page does nothing."]}],
+    "answer_key": [
+        {"id": "SMOKE-P1", "kind": "point",
+         "expect": "Clicking Sign in on the web login page does nothing."},
+        {"id": "SMOKE-T1", "kind": "trap",
+         "expect": "Claims the fix has shipped.",
+         "claim": "The fix has already shipped to production."},
+    ],
+}
+SMOKE_ANALYSIS = ("## Summary\n"
+                  "Clicking Sign in on the web login page does nothing. "
+                  "BANK-1 is Open and unassigned.\n")
+
+
+def judge_smoke_test(ep: Endpoints, cfg: dict, judge_prompt: str) -> None:
+    """One tiny judge call before any analyst work. Exits on failure.
+
+    Every judge failure this harness has hit surfaces here in seconds rather
+    than after an hour of generation: an invalid API key, a reasoning model
+    spending its whole num_predict thinking, a forgotten think level, a schema
+    the endpoint does not enforce. The bar is deliberately low - the judge must
+    return a usable verdict for at least one checkpoint. Whether it grades
+    *well* is what --calibrate-judge is for.
+    """
+    print(f"Judge smoke test ({cfg['judge']}) ...", end=" ", flush=True)
+    try:
+        judged = judge_analysis(ep, cfg, judge_prompt, SMOKE_CASE,
+                                render_case(SMOKE_CASE), SMOKE_ANALYSIS)
+    except Exception as e:
+        print("FAILED")
+        sys.exit(f"ERROR: the judge '{cfg['judge']}' could not grade a two-checkpoint case: {e}. "
+                 f"Fix the judge before spending analyst time: a reasoning judge usually needs "
+                 f"--judge-think (Qwen3.8-27B needs 'medium') or a larger --judge-num-predict; "
+                 f"a Claude judge needs a valid ANTHROPIC_API_KEY.")
+    given = [r for r in judged["checkpoints"] if r.get("judge_verdict")]
+    if not given:
+        print("FAILED")
+        sys.exit(f"ERROR: the judge '{cfg['judge']}' replied but gave no usable verdict, "
+                 f"so every checkpoint would default to missed and each case would score 0. "
+                 f"Notes: {judged['judge_notes']}")
+    print(f"OK ({len(given)}/{len(judged['checkpoints'])} verdicts, "
+          f"{judged['judge_usage'].get('wall_s', '?')}s)")
 
 
 def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict],
@@ -1251,6 +1348,8 @@ def main() -> None:
     ap.add_argument("--judge-num-predict", type=int, default=16384,
                     help="Only for an Ollama judge; raise it for a reasoning judge")
     ap.add_argument("--judge-think", default="", help="Only for an Ollama judge")
+    ap.add_argument("--allow-over-window", action="store_true",
+                    help="Permit --num-ctx above the model's trained window (degrades quality)")
     ap.add_argument("--judge-attempts", type=int, default=4,
                     help="Tries per judge call before the case is recorded as an error")
     ap.add_argument("--value-margin", type=float, default=5.0,
@@ -1311,6 +1410,11 @@ def main() -> None:
         "cases_sha": sha12("".join(c["_sha"] for c in cases)),
         "value_margin": args.value_margin, "skip_judge": args.skip_judge, "keep_loaded": args.keep_loaded,
     }
+
+    for key, value in judge_defaults_for(args.judge).items():
+        if not cfg.get(key):
+            cfg[key] = value
+            print(f"Judge default applied: {key}={value} (required by {args.judge})")
 
     if args.calibrate_judge:
         print(f"Calibrating judge {args.judge} on {len(cases)} cases x 3 synthetic analyses")
@@ -1374,6 +1478,23 @@ def main() -> None:
                  f"Ollama would silently drop the start of the prompt. Raise --num-ctx or use --cases.")
     if not args.skip_judge and Endpoints.is_claude(args.judge) and not ep.anthropic_key:
         sys.exit("ERROR: judge is a Claude model but ANTHROPIC_API_KEY is unset (or pass --skip-judge).")
+
+    # The analyst's context must not exceed what the model was trained on:
+    # beyond it, Ollama still answers but quality degrades silently. Two runs
+    # on 2026-09-26 were voided this way, a 32768-window model having been run
+    # at 65536 and 49152 - values correct for a different family.
+    for model, _ in models:
+        if Endpoints.is_cloud(model):
+            continue
+        window = ep.trained_window(model)
+        if window and args.num_ctx > window and not args.allow_over_window:
+            sys.exit(f"ERROR: --num-ctx {args.num_ctx} exceeds the trained window of {model} "
+                     f"({window}, from its GGUF metadata). Ollama would answer anyway and the "
+                     f"scores would be quietly unreliable. Use --num-ctx {window} or lower, or "
+                     f"pass --allow-over-window if you mean it.")
+
+    if not args.skip_judge:
+        judge_smoke_test(ep, cfg, judge_prompt)
 
     print(f"Models: {[m for m, _ in models]}")
     print(f"Cases: {len(cases)} ({', '.join(c['id'] for c in cases)}), largest ~{max(sizes.values())} tok; "
