@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inform Marcus Reid that the issue is not fully resolved and that further investigation is needed.",
+      "reason": "The analysis clearly states the issue is not fully resolved and advises against confirming a fix to the customer."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "despite the issue being marked as \"Done\" and \"Fixed.\" The root cause was identified as an incorrect validation regex in the EmailService. However, retesting on staging revealed that the email provider is now rejecting these addresses",
+      "reason": "The analysis mentions the Done/Fixed status and that retesting on staging showed the issue persists, but omits Tom Becker's name, the 2026-09-10 date, and the specific 3.1.4 version tested."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the email provider is now rejecting these addresses, indicating a potential issue with the SMTP server.",
+      "reason": "The analysis identifies the SMTP rejection but does not include the specific error code '550 5.1.3 Invalid recipient address' from the SMTP log."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "retesting on staging revealed that the email provider is now rejecting these addresses, indicating a potential issue with the SMTP server.",
+      "reason": "The analysis presents the provider rejection as a stated fact rather than as Tom's unconfirmed observation ('looks like'), and does not explicitly frame it as a different cause from the regex fix in PR #201."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that nobody reopened the ticket or raised a follow-up, nor does it note the ownership gap for the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Contact the email provider to understand why they are rejecting plus-addressed emails. ... Inform Marcus Reid that the issue is not fully resolved and that further investigation is needed. ... Update the ticket status to reflect the ongoing issue and any new actions taken.",
+      "reason": "The analysis suggests investigating the provider rejection and giving the customer a holding response, but does not explicitly recommend reopening BANK-377 or raising a linked bug, nor does it assign a specific owner."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is not fully resolved and advises against confirming a fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the ticket has been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The exact reason for the SMTP server's rejection is unclear, and there are no logs or further details provided.",
+      "reason": "The ticket explicitly includes the SMTP log entry 'Rejected: 550 5.1.3 Invalid recipient address', so claiming there are no logs or further details contradicts the ticket."
+    },
+    {
+      "quote": "The SMTP server's rejection of plus-addressed emails was not anticipated during testing.",
+      "reason": "The tickets contain no statement about what was or was not anticipated during testing; this is an unsupported assertion presented as fact."
+    },
+    {
+      "quote": "the SMTP server's behavior has changed",
+      "reason": "The tickets do not state that the SMTP server's behavior changed; they only report that the provider is now rejecting the address. 'Has changed' implies prior working behavior that is not established."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 77.61
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "Inform Marcus Reid that the issue is not fully resolved and that further investigation is needed.",
+        "reason": "The analysis clearly states the issue is not fully resolved and advises against confirming a fix to the customer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "despite the issue being marked as \"Done\" and \"Fixed.\" The root cause was identified as an incorrect validation regex in the EmailService. However, retesting on staging revealed that the email provider is now rejecting these addresses",
+        "reason": "The analysis mentions the Done/Fixed status and that retesting on staging showed the issue persists, but omits Tom Becker's name, the 2026-09-10 date, and the specific 3.1.4 version tested.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "the email provider is now rejecting these addresses, indicating a potential issue with the SMTP server.",
+        "reason": "The analysis identifies the SMTP rejection but does not include the specific error code '550 5.1.3 Invalid recipient address' from the SMTP log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "retesting on staging revealed that the email provider is now rejecting these addresses, indicating a potential issue with the SMTP server.",
+        "reason": "The analysis presents the provider rejection as a stated fact rather than as Tom's unconfirmed observation ('looks like'), and does not explicitly frame it as a different cause from the regex fix in PR #201.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "",
+        "reason": "The analysis never mentions that nobody reopened the ticket or raised a follow-up, nor does it note the ownership gap for the remaining problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Contact the email provider to understand why they are rejecting plus-addressed emails. ... Inform Marcus Reid that the issue is not fully resolved and that further investigation is needed. ... Update the ticket status to reflect the ongoing issue and any new actions taken.",
+        "reason": "The analysis suggests investigating the provider rejection and giving the customer a holding response, but does not explicitly recommend reopening BANK-377 or raising a linked bug, nor does it assign a specific owner.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is not fully resolved and advises against confirming a fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the ticket has been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The exact reason for the SMTP server's rejection is unclear, and there are no logs or further details provided.",
+        "reason": "The ticket explicitly includes the SMTP log entry 'Rejected: 550 5.1.3 Invalid recipient address', so claiming there are no logs or further details contradicts the ticket."
+      },
+      {
+        "quote": "The SMTP server's rejection of plus-addressed emails was not anticipated during testing.",
+        "reason": "The tickets contain no statement about what was or was not anticipated during testing; this is an unsupported assertion presented as fact."
+      },
+      {
+        "quote": "the SMTP server's behavior has changed",
+        "reason": "The tickets do not state that the SMTP server's behavior changed; they only report that the provider is now rejecting the address. 'Has changed' implies prior working behavior that is not established."
+      }
+    ]
+  }
+}

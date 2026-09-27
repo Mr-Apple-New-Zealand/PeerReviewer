@@ -20,28 +20,50 @@ step with it.
 
 ## Current standing
 
-Two runs have been measured on the full eighteen cases with the judge of record.
-Everything earlier is superseded — see below.
+Three runs have been measured on the full eighteen cases with the judge of
+record. Everything earlier is superseded — see below.
 
 | Model | Quality | C01–C13 | C14–C18 | Coverage | Traps hit | Unsupported | Resident GB |
 |---|---|---|---|---|---|---|---|
 | Qwen2.5-VL-72B-Instruct:Q4_K_S | 45.6 (45–47) | 58.7 | 11.7 | 48% | 8/162 | 15 | 56.3 |
+| Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 24.5 (23–25) | 33.4 | 1.3 | 31% | 17/162 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 14.4 (12–18) | 19.5 | 1.1 | 26% | 20/162 | 100 | 4.1 |
 
-Both judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
-num_predict 8192. Judge grounding was clean on both: 0 and 1 ungrounded, 0 omitted.
+All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
+num_predict 8192. Judge grounding was clean throughout: 0, 1 and 1 ungrounded,
+0 omitted.
 
 The 72B run (harness `980b243`) records `judge_num_predict` 16384 rather than the
 40960 `JUDGE_DEFAULTS` specifies, because at that commit the table could not
-override an argparse default; fixed in `826515e`, and the 3B run shows 40960. The
-72B had no judge failures, so its scores stand.
+override an argparse default; fixed in `826515e`. It had no judge failures, so its
+scores stand.
 
-**The 3B is a floor measurement, and the gap is wider than Quality shows.** At 4.1 GB
-it is fourteenth the memory of the 72B for a third of the score, but look at the two
-right-hand columns rather than the first: it asserts **100 unsupported claims against
-the 72B's 15** — about 1.9 per analysis against 0.3 — and trips 20 traps against 8. It
-is not merely finding less; it is asserting more that the tickets do not support, which
-is the worse failure for a ticket analyst. On C14–C18 it scores 1.1, effectively zero.
+### What the three points show
+
+**Quality scales with size, and so does trustworthiness — in the same direction.**
+Unsupported claims per analysis fall monotonically as the model grows, and traps
+tripped fall with them:
+
+| Model | GB | C01–C13 | Unsupported per analysis | Traps |
+|---|---|---|---|---|
+| 3B | 4.1 | 19.5 | 1.85 | 20 |
+| 7B | 7.1 | 33.4 | 0.72 | 17 |
+| 72B | 56.3 | 58.7 | 0.28 | 8 |
+
+That is the useful finding so far: the small models are not merely less thorough,
+they assert more that the tickets do not support. A 3B makes an unsupported claim
+roughly twice per analysis; the 72B once every four. For a job whose output a
+human acts on, that matters more than the score.
+
+**The telemetry cases do not improve until the very top.** C14–C18 sit at 1.1 and
+1.3 for the 3B and 7B — indistinguishable from zero — and only reach 11.7 at 72B.
+Reading logs and Sentry exports is not a skill that degrades gracefully with size;
+below some threshold it is simply absent.
+
+**Memory buys a lot at the bottom and little in the middle.** 4.1 GB to 7.1 GB adds
+14 points of C01–C13 for 3 GB. 7.1 GB to 56.3 GB adds 25 points for 49 GB. Nothing
+between 7 GB and 56 GB has been measured yet, and that gap is where the useful
+answer probably lives — the Qwen3-VL 8B and 32B builds are the ones to run next.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The 72B — the strongest model

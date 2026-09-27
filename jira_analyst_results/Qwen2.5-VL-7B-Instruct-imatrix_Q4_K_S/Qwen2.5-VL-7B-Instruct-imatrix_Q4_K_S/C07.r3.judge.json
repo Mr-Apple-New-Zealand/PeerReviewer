@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 09:30 config deploy time or the 09:31 impact start; the timeline begins at 09:47."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fired due to TransferErrorRate > 20%.\n- **09:52:** Incident declared by Sam Okafor, with a transfer error rate of 64%.",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31: Sam Okafor initiates rollback of the OPS-81 config deploy.\n- **10:42:** Rollback complete, with the transfer error rate back under 1%.\n- **10:50:** Incident resolved by Sam Okafor.",
+      "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to Detect:\n- **Time:** From monitoring alert at 09:47 to incident declaration at 09:52, which is 5 minutes.",
+      "reason": "The analysis calculates 5 minutes (alert to declaration) instead of the expected 16 minutes (impact start 09:31 to alert 09:47), and never references 09:31."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to Recover:\n- **Time:** From rollback initiation at 10:31 to the transfer error rate back under 1%, which is 11 minutes. Total time to recover is 11 minutes after the rollback was initiated.",
+      "reason": "The analysis gives 11 minutes (10:31 to 10:42), which is not any of the acceptable answers (71 min from impact, 55 min from detection, or 79 min to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause of the incident was a misalignment between the JWT signing key used by the Auth service and the one expected by the Transactions API, due to a config deploy (OPS-81) that rotated the JWT signing key without updating the Transactions API.",
+      "reason": "The core mechanism (OPS-81 rotated the key without updating the Transactions API) is stated, but the specific 401 error 'IDX10503: Signature validation failed' is missing."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-Incident Review: Conduct a review meeting with Sam Okafor scheduled for 2026-09-16 to analyze the incident further and identify improvements in future incident management processes.",
+      "reason": "The analysis states a review is scheduled for 2026-09-16, conveying the same information as 'booked for 2026-09-16.'"
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions Priya's database suggestion but explicitly notes Sam confirmed the database is healthy; it does not name the database as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (5 min: 09:47\u219209:52; 11 min: 10:31\u219210:42) are supported by valid timestamp pairs in the ticket, even though they don't match the expected definitions."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 89.91
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the 09:30 config deploy time or the 09:31 impact start; the timeline begins at 09:47.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fired due to TransferErrorRate > 20%.\n- **09:52:** Incident declared by Sam Okafor, with a transfer error rate of 64%.",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Sam Okafor initiates rollback of the OPS-81 config deploy.\n- **10:42:** Rollback complete, with the transfer error rate back under 1%.\n- **10:50:** Incident resolved by Sam Okafor.",
+        "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect:\n- **Time:** From monitoring alert at 09:47 to incident declaration at 09:52, which is 5 minutes.",
+        "reason": "The analysis calculates 5 minutes (alert to declaration) instead of the expected 16 minutes (impact start 09:31 to alert 09:47), and never references 09:31.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover:\n- **Time:** From rollback initiation at 10:31 to the transfer error rate back under 1%, which is 11 minutes. Total time to recover is 11 minutes after the rollback was initiated.",
+        "reason": "The analysis gives 11 minutes (10:31 to 10:42), which is not any of the acceptable answers (71 min from impact, 55 min from detection, or 79 min to resolution).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the incident was a misalignment between the JWT signing key used by the Auth service and the one expected by the Transactions API, due to a config deploy (OPS-81) that rotated the JWT signing key without updating the Transactions API.",
+        "reason": "The core mechanism (OPS-81 rotated the key without updating the Transactions API) is stated, but the specific 401 error 'IDX10503: Signature validation failed' is missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-Incident Review: Conduct a review meeting with Sam Okafor scheduled for 2026-09-16 to analyze the incident further and identify improvements in future incident management processes.",
+        "reason": "The analysis states a review is scheduled for 2026-09-16, conveying the same information as 'booked for 2026-09-16.'",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions Priya's database suggestion but explicitly notes Sam confirmed the database is healthy; it does not name the database as a cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (5 min: 09:47\u219209:52; 11 min: 10:31\u219210:42) are supported by valid timestamp pairs in the ticket, even though they don't match the expected definitions.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

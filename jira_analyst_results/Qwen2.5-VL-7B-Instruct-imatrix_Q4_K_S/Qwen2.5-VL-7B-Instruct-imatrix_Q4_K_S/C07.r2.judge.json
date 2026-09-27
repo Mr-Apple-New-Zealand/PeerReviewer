@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31: Errors start appearing on dashboards.",
+      "reason": "The analysis states impact started at 09:31 but never states that the OPS-81 config deploy occurred at 09:30; it only mentions OPS-81 in the context of the rollback."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:47: Monitoring alert fires due to TransferErrorRate > 20%.",
+      "reason": "The alert at 09:47 is present, but the incident declaration at 09:52 is absent from the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:31: Sam Okafor initiates rollback of the OPS-81 config deploy.\n- **10:42:** Transfer error rate drops back under 1% after the rollback.",
+      "reason": "Rollback start (10:31) and recovery (10:42) are present, but the resolution at 10:50 is missing from the timeline."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time from start of errors: 15 minutes (from 09:31 to 09:47).",
+      "reason": "The correct interval from 09:31 to 09:47 is 16 minutes, not 15; the calculation is wrong."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time from detection to resolution: 1 hour and 12 minutes (from 09:47 to 10:42).",
+      "reason": "09:47 to 10:42 is 55 minutes, not 72; the calculation is wrong and the label 'to resolution' is inaccurate since 10:42 is recovery, not resolution."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause of the incident was the misalignment between the Auth service's new JWT signing key and the Transactions API's validation key. This led to 401 errors in the Transactions API, resulting in increased transfer error rates and customer support calls.",
+      "reason": "The mechanism and error code are present, but the root cause statement does not explicitly identify config deploy OPS-81 as the action that rotated the key; OPS-81 is only mentioned in the fix/rollback context."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-Incident Review (PIR): Conduct a PIR on 2026-09-16 to document the incident details, root cause, and lessons learned.",
+      "reason": "The PIR date of 2026-09-16 is correctly stated, though it is framed as a suggestion rather than an already-booked event."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the slow queries only to note they were 'not directly linked to the issue resolution' and does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Time from alert firing: 1 minute (from 09:47 to 09:48).",
+      "reason": "The timestamp 09:48 does not appear anywhere in the ticket, so no pair of ticket timestamps supports a 1-minute detection time; additionally, 15 minutes (09:31\u219209:47) and 72 minutes (09:47\u219210:42) are both incorrect calculations."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 158.41
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31: Errors start appearing on dashboards.",
+        "reason": "The analysis states impact started at 09:31 but never states that the OPS-81 config deploy occurred at 09:30; it only mentions OPS-81 in the context of the rollback.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fires due to TransferErrorRate > 20%.",
+        "reason": "The alert at 09:47 is present, but the incident declaration at 09:52 is absent from the timeline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Sam Okafor initiates rollback of the OPS-81 config deploy.\n- **10:42:** Transfer error rate drops back under 1% after the rollback.",
+        "reason": "Rollback start (10:31) and recovery (10:42) are present, but the resolution at 10:50 is missing from the timeline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time from start of errors: 15 minutes (from 09:31 to 09:47).",
+        "reason": "The correct interval from 09:31 to 09:47 is 16 minutes, not 15; the calculation is wrong.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time from detection to resolution: 1 hour and 12 minutes (from 09:47 to 10:42).",
+        "reason": "09:47 to 10:42 is 55 minutes, not 72; the calculation is wrong and the label 'to resolution' is inaccurate since 10:42 is recovery, not resolution.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the incident was the misalignment between the Auth service's new JWT signing key and the Transactions API's validation key. This led to 401 errors in the Transactions API, resulting in increased transfer error rates and customer support calls.",
+        "reason": "The mechanism and error code are present, but the root cause statement does not explicitly identify config deploy OPS-81 as the action that rotated the key; OPS-81 is only mentioned in the fix/rollback context.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-Incident Review (PIR): Conduct a PIR on 2026-09-16 to document the incident details, root cause, and lessons learned.",
+        "reason": "The PIR date of 2026-09-16 is correctly stated, though it is framed as a suggestion rather than an already-booked event.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the slow queries only to note they were 'not directly linked to the issue resolution' and does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "Time from alert firing: 1 minute (from 09:47 to 09:48).",
+        "reason": "The timestamp 09:48 does not appear anywhere in the ticket, so no pair of ticket timestamps supports a 1-minute detection time; additionally, 15 minutes (09:31\u219209:47) and 72 minutes (09:47\u219210:42) are both incorrect calculations.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

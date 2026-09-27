@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A customer attempting a transfer from their cheque account to savings on mobile web experienced a \"Request timed out (ERR_TXN_504)\" error, leading them to retry the transaction. This resulted in the cheque account being debited twice and the savings account being credited once, instead of the expected single debit and credit.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome after retrying following the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Affects Versions: 3.1.4\n- **Fix Versions:** 3.2.0",
+      "reason": "The analysis correctly identifies versions 3.1.4 and 3.2.0 but omits the specific release date of 2026-09-24 mentioned in the ticket."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The current issue is being addressed by PR #218, which aims to wrap the debit and credit in a single transaction and add Idempotency-Key header support.",
+      "reason": "The analysis identifies both root-cause elements (no idempotency key, debit/credit not in a single transaction) by describing what the PR fixes, conveying the same information Priya stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Status:** In Progress\n- **Owner:** Priya Nair\n- **Blocking Factors:** The current issue is being addressed by PR #218, which aims to wrap the debit and credit in a single transaction and add Idempotency-Key header support. The PR is awaiting code review.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus should raise this with Finance Ops to address the manual reversals required for the three affected customers.",
+      "reason": "The analysis mentions three affected customers, manual reversals, and Marcus raising the issue with Finance Ops, matching the ticket's content."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid: Raise the manual reversal request with Finance Ops.",
+      "reason": "By listing the reversal as a suggested next action / to-do item, the analysis implies it has not yet been completed, consistent with the ticket not confirming it was done."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code Review: Ensure PR #218 passes code review and is merged into 3.1.4.\n2. **Testing:** Conduct thorough testing of the updated code in staging and production environments to ensure no regressions occur.\n3. **Release Planning:** Schedule a release for 3.2.0, ensuring all related changes are included.\n4. **Customer Communication:** Inform affected customers about the issue and the resolution plan. Marcus should raise this with Finance Ops to address the manual reversals required for the three affected customers.",
+      "reason": "Both next actions (review/merge PR #218 and confirm customer reversals with Finance Ops) are identified, though the version target is incorrectly stated as 3.1.4."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the PR is 'awaiting code review' and frames merging as a future action; it does not claim the PR has been merged or the fix deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim desktop web is affected; it says it is 'unclear' whether the issue occurs there, which is not the same as asserting it does."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Ensure PR #218 passes code review and is merged into 3.1.4.",
+      "reason": "The ticket specifies the fix version as 3.2.0 (release 2026-09-24), not 3.1.4; 3.1.4 is the affected version, not the target for the fix."
+    },
+    {
+      "quote": "It's unclear if the issue occurs in other environments (e.g., desktop web).",
+      "reason": "The ticket explicitly states that Tom Becker confirmed the bug does NOT reproduce on desktop web (desktop disables the submit button and has no Retry button), so the analysis's claim of uncertainty contradicts the ticket's information."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 83.29
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A customer attempting a transfer from their cheque account to savings on mobile web experienced a \"Request timed out (ERR_TXN_504)\" error, leading them to retry the transaction. This resulted in the cheque account being debited twice and the savings account being credited once, instead of the expected single debit and credit.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome after retrying following the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects Versions: 3.1.4\n- **Fix Versions:** 3.2.0",
+        "reason": "The analysis correctly identifies versions 3.1.4 and 3.2.0 but omits the specific release date of 2026-09-24 mentioned in the ticket.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The current issue is being addressed by PR #218, which aims to wrap the debit and credit in a single transaction and add Idempotency-Key header support.",
+        "reason": "The analysis identifies both root-cause elements (no idempotency key, debit/credit not in a single transaction) by describing what the PR fixes, conveying the same information Priya stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "**Status:** In Progress\n- **Owner:** Priya Nair\n- **Blocking Factors:** The current issue is being addressed by PR #218, which aims to wrap the debit and credit in a single transaction and add Idempotency-Key header support. The PR is awaiting code review.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Marcus should raise this with Finance Ops to address the manual reversals required for the three affected customers.",
+        "reason": "The analysis mentions three affected customers, manual reversals, and Marcus raising the issue with Finance Ops, matching the ticket's content.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid: Raise the manual reversal request with Finance Ops.",
+        "reason": "By listing the reversal as a suggested next action / to-do item, the analysis implies it has not yet been completed, consistent with the ticket not confirming it was done.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Code Review: Ensure PR #218 passes code review and is merged into 3.1.4.\n2. **Testing:** Conduct thorough testing of the updated code in staging and production environments to ensure no regressions occur.\n3. **Release Planning:** Schedule a release for 3.2.0, ensuring all related changes are included.\n4. **Customer Communication:** Inform affected customers about the issue and the resolution plan. Marcus should raise this with Finance Ops to address the manual reversals required for the three affected customers.",
+        "reason": "Both next actions (review/merge PR #218 and confirm customer reversals with Finance Ops) are identified, though the version target is incorrectly stated as 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis states the PR is 'awaiting code review' and frames merging as a future action; it does not claim the PR has been merged or the fix deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not claim desktop web is affected; it says it is 'unclear' whether the issue occurs there, which is not the same as asserting it does.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Ensure PR #218 passes code review and is merged into 3.1.4.",
+        "reason": "The ticket specifies the fix version as 3.2.0 (release 2026-09-24), not 3.1.4; 3.1.4 is the affected version, not the target for the fix."
+      },
+      {
+        "quote": "It's unclear if the issue occurs in other environments (e.g., desktop web).",
+        "reason": "The ticket explicitly states that Tom Becker confirmed the bug does NOT reproduce on desktop web (desktop disables the submit button and has no Retry button), so the analysis's claim of uncertainty contradicts the ticket's information."
+      }
+    ]
+  }
+}

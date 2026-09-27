@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows multiple failed attempts to send payment receipt emails due to SMTP authentication issues, specifically a `535` error code indicating \"Authentication unsuccessful.\"",
+      "reason": "The analysis identifies the 535 SMTP auth failure but omits the full server response text ('5.7.139 Authentication unsuccessful, basic authentication is disabled'), the SmtpException class, and the EmailSender/OutboxDispatcher code locations."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "These points support the reporter's explanation that the service is failing due to key storage and encryption issues.",
+      "reason": "The analysis explicitly endorses the reporter's explanation rather than rejecting it, which is the opposite of what the key expects."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog, the specific pending counts (1412 to 2089), or the rate of growth."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Restart the Pod: If necessary, restart the pod to see if the issue persists.",
+      "reason": "The analysis recommends another restart rather than noting that the pod was already restarted at 18:02 and the same 535 errors continued through 18:38."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The exact cause of the authentication failure (e.g., incorrect credentials, disabled basic authentication) is not detailed in the log.",
+      "reason": "The analysis lists 'disabled basic authentication' as a vague possibility but does not present it as an inference from the log's server response, does not name the svc-notify account, and does not conclude the fix is a credential/auth-method change rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review the SMTP server configuration and ensure that basic authentication is enabled.",
+      "reason": "The analysis vaguely touches on investigating SMTP auth but misses confirming with the mail tenant owner, naming the specific account, adding backoff/dead-letter to the dispatcher, and retrieving the pre-18:02 container log."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21, nor does it note that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "These points support the reporter's explanation that the service is failing due to key storage and encryption issues.",
+      "reason": "The analysis explicitly endorses the reporter's claim that DataProtection key storage and the missing XML encryptor are causing the notification failures."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Restart the Pod: If necessary, restart the pod to see if the issue persists.",
+      "reason": "The analysis recommends restarting the pod as a potential remedy, despite the log showing the pod was already restarted at 18:02 with no improvement."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error that is present in the log and does not invent other SMTP errors or reasons."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The log from the notifications pod indicates that the service is storing its data protection keys in a directory that may not be persisted outside of the container, and there is no XML encryptor configured, leading to failed SMTP authentication attempts.",
+      "reason": "The log shows the DataProtection warnings and the SMTP 535 errors as separate, unrelated events; there is no causal link in the log between key storage and SMTP authentication failure. This causal claim is not supported by the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 108.62
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows multiple failed attempts to send payment receipt emails due to SMTP authentication issues, specifically a `535` error code indicating \"Authentication unsuccessful.\"",
+        "reason": "The analysis identifies the 535 SMTP auth failure but omits the full server response text ('5.7.139 Authentication unsuccessful, basic authentication is disabled'), the SmtpException class, and the EmailSender/OutboxDispatcher code locations.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "These points support the reporter's explanation that the service is failing due to key storage and encryption issues.",
+        "reason": "The analysis explicitly endorses the reporter's explanation rather than rejecting it, which is the opposite of what the key expects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog, the specific pending counts (1412 to 2089), or the rate of growth.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Restart the Pod: If necessary, restart the pod to see if the issue persists.",
+        "reason": "The analysis recommends another restart rather than noting that the pod was already restarted at 18:02 and the same 535 errors continued through 18:38.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "The exact cause of the authentication failure (e.g., incorrect credentials, disabled basic authentication) is not detailed in the log.",
+        "reason": "The analysis lists 'disabled basic authentication' as a vague possibility but does not present it as an inference from the log's server response, does not name the svc-notify account, and does not conclude the fix is a credential/auth-method change rather than a code change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Review the SMTP server configuration and ensure that basic authentication is enabled.",
+        "reason": "The analysis vaguely touches on investigating SMTP auth but misses confirming with the mail tenant owner, naming the specific account, adding backoff/dead-letter to the dispatcher, and retrieving the pre-18:02 container log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21, nor does it note that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "These points support the reporter's explanation that the service is failing due to key storage and encryption issues.",
+        "reason": "The analysis explicitly endorses the reporter's claim that DataProtection key storage and the missing XML encryptor are causing the notification failures.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "Restart the Pod: If necessary, restart the pod to see if the issue persists.",
+        "reason": "The analysis recommends restarting the pod as a potential remedy, despite the log showing the pod was already restarted at 18:02 with no improvement.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error that is present in the log and does not invent other SMTP errors or reasons.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The log from the notifications pod indicates that the service is storing its data protection keys in a directory that may not be persisted outside of the container, and there is no XML encryptor configured, leading to failed SMTP authentication attempts.",
+        "reason": "The log shows the DataProtection warnings and the SMTP 535 errors as separate, unrelated events; there is no causal link in the log between key storage and SMTP authentication failure. This causal claim is not supported by the ticket data."
+      }
+    ]
+  }
+}

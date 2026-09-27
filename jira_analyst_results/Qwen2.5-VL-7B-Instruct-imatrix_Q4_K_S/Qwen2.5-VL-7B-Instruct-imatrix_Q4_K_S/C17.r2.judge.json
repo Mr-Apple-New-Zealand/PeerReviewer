@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the two-phase breadcrumb timeline, the ~4-hour gap, the 200s before it, or the 401s after it."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error message `TypeError: Cannot read properties of undefined (reading 'sort')` suggests that there is an attempt to call `.sort()` on an object that does not exist or is null. This might be happening due to a missing or improperly initialized array in the code.",
+      "reason": "The analysis treats the .sort-on-undefined as the defect itself rather than identifying the 401 cascade as the root cause and the missing 401 handling as the underlying fault."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the cascade nature of the errors."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh call, its timing, its 200 status, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Investigate if there are any browser-specific issues or environment configurations that might be causing this behavior, especially in the production environment where it seems to occur more frequently.",
+      "reason": "The analysis does not identify the UAT host discrepancy or the Sentry environment misconfiguration; it treats the event as a production issue."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurred on the `/settlements/run/8214` transaction, which is likely related to a specific business process or API call.",
+      "reason": "The analysis does not note the discrepancy between the stale transaction name and the actual /payments/batch/actions URL."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or the minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**Release:** None",
+      "reason": "The analysis lists Release: None as a field value but does not draw the conclusion that the event cannot be tied to a build or that this is why source maps could not be matched."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention response_body_size 0 on the 401s, the inability to determine why the token was rejected, or the inability to distinguish expiry from revocation."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh; it instead speculates about a missing or improperly initialized array."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the 780 KB response, the Referer, the '401 OK' statusText wording, or the ordinary browser/OS as non-faults; it instead suggests investigating browser-specific issues."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or the polyfills frames being marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. **Assign the Ticket:** Assign the ticket to a developer who can investigate the issue further. 2. **Gather Reproducible Steps:** Request the assignee to gather more detailed steps to reproduce the issue",
+      "reason": "The analysis's next actions are generic (assign, gather steps, review event) and do not include handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or noting the null guard is insufficient."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This might be happening due to a missing or improperly initialized array in the code.",
+      "reason": "The analysis presents the missing null check / improperly initialized array as the likely cause rather than as a defensive gap over the real 401-handling problem."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "especially in the production environment where it seems to occur more frequently",
+      "reason": "The analysis treats the error as a production issue without flagging that all URLs point to the UAT host bank-uat.example.com."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurred on the `/settlements/run/8214` transaction, which is likely related to a specific business process or API call.",
+      "reason": "The analysis states the error occurred on /settlements/run/8214, which is the stale transaction name, without noting it does not correspond to the actual screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests investigating browser-specific issues but does not definitively blame the browser, OS, 780 KB response, or network as the cause."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during the gap or state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "it seems to occur more frequently in production environments",
+      "reason": "The ticket and Sentry event contain no data comparing frequency across environments; the ticket only says the screen 'sometimes goes blank' and 'seems to happen to people who have had the tab open a while.' There is no basis for claiming it occurs 'more frequently in production.'"
+    },
+    {
+      "quote": "the frequent occurrence in production suggests that this might be related to a specific user action or a change in the environment that triggers the error",
+      "reason": "The ticket does not establish 'frequent occurrence in production'; it says the issue 'sometimes' happens. The claim of frequency in a specific environment is not supported by any data in the ticket or event."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 153.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the two-phase breadcrumb timeline, the ~4-hour gap, the 200s before it, or the 401s after it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error message `TypeError: Cannot read properties of undefined (reading 'sort')` suggests that there is an attempt to call `.sort()` on an object that does not exist or is null. This might be happening due to a missing or improperly initialized array in the code.",
+        "reason": "The analysis treats the .sort-on-undefined as the defect itself rather than identifying the 401 cascade as the root cause and the missing 401 handling as the underlying fault.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the cascade nature of the errors.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh call, its timing, its 200 status, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Investigate if there are any browser-specific issues or environment configurations that might be causing this behavior, especially in the production environment where it seems to occur more frequently.",
+        "reason": "The analysis does not identify the UAT host discrepancy or the Sentry environment misconfiguration; it treats the event as a production issue.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "The error occurred on the `/settlements/run/8214` transaction, which is likely related to a specific business process or API call.",
+        "reason": "The analysis does not note the discrepancy between the stale transaction name and the actual /payments/batch/actions URL.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "",
+        "reason": "The analysis does not mention missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or the minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "**Release:** None",
+        "reason": "The analysis lists Release: None as a field value but does not draw the conclusion that the event cannot be tied to a build or that this is why source maps could not be matched.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not mention response_body_size 0 on the 401s, the inability to determine why the token was rejected, or the inability to distinguish expiry from revocation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh; it instead speculates about a missing or improperly initialized array.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the 780 KB response, the Referer, the '401 OK' statusText wording, or the ordinary browser/OS as non-faults; it instead suggests investigating browser-specific issues.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or the polyfills frames being marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "1. **Assign the Ticket:** Assign the ticket to a developer who can investigate the issue further. 2. **Gather Reproducible Steps:** Request the assignee to gather more detailed steps to reproduce the issue",
+        "reason": "The analysis's next actions are generic (assign, gather steps, review event) and do not include handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or noting the null guard is insufficient.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "This might be happening due to a missing or improperly initialized array in the code.",
+        "reason": "The analysis presents the missing null check / improperly initialized array as the likely cause rather than as a defensive gap over the real 401-handling problem.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "especially in the production environment where it seems to occur more frequently",
+        "reason": "The analysis treats the error as a production issue without flagging that all URLs point to the UAT host bank-uat.example.com.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "The error occurred on the `/settlements/run/8214` transaction, which is likely related to a specific business process or API call.",
+        "reason": "The analysis states the error occurred on /settlements/run/8214, which is the stale transaction name, without noting it does not correspond to the actual screen.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis suggests investigating browser-specific issues but does not definitively blame the browser, OS, 780 KB response, or network as the cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during the gap or state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "it seems to occur more frequently in production environments",
+        "reason": "The ticket and Sentry event contain no data comparing frequency across environments; the ticket only says the screen 'sometimes goes blank' and 'seems to happen to people who have had the tab open a while.' There is no basis for claiming it occurs 'more frequently in production.'"
+      },
+      {
+        "quote": "the frequent occurrence in production suggests that this might be related to a specific user action or a change in the environment that triggers the error",
+        "reason": "The ticket does not establish 'frequent occurrence in production'; it says the issue 'sometimes' happens. The claim of frequency in a specific environment is not supported by any data in the ticket or event."
+      }
+    ]
+  }
+}

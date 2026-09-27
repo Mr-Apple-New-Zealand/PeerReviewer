@@ -1,0 +1,255 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The average request times for `GetStatementLineQuery` were around 280ms, with some requests taking up to 310ms. ... The average request times for `GetStatementLineQuery` increased dramatically, with some requests taking over 40000ms.",
+      "reason": "Gives the before range approximately correctly but only says 'over 40000ms' for the after window, missing the full 34\u201373 second range and the starting point around 34 seconds."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never quantifies the slowdown as a multiple (e.g., ~110\u00d7 or ~240\u00d7); it only says 'increased dramatically.'"
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only gives a single 'over 40000ms' figure."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+      "reason": "The analysis incorrectly states GetAccountSummaryQuery increased to 36000 ms; the after-log values are 3011\u20133402 ms, essentially unchanged, so the analysis fails to identify it as stable and does not contradict Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned, so the analysis does not establish that the regression is specific to the statement line query rather than a general service slowdown."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The logs show that a migration was applied post-release. However, it is unclear if this migration is related to the performance issue.",
+      "reason": "Mentions a migration was applied but does not name it (20260914_2100_ReindexStatementLines), does not give the timestamp, and does not explicitly state that this contradicts Tom Becker's claim that nothing in 4.7.0 touched statements."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate Migration Impact: Determine if the applied migration is related to the performance issue by reviewing the migration details and its impact on the Statements API.",
+      "reason": "Suggests investigating the migration but does not name it, does not identify it as the most likely place to look, and does not explicitly note that the logs only show coincidence rather than causation."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "ThreadPool starvation was detected post-release, indicating potential resource contention.",
+      "reason": "Mentions thread pool starvation but does not frame it as a consequence of requests piling up behind the slow query, does not give the specific details (31 items, 4200 ms), and does not note the timing correlation with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the limitations of the comparison (short ~5-minute windows, different days, small sample sizes, no data in between, indicative rather than measured)."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate Migration Impact: Analyze the details of the migration applied post-release to understand its impact on the Statements API. ... Assign Task: Assign the task of investigating the regression and defining acceptance criteria to Tom Becker.",
+      "reason": "Mentions investigating the migration and assigning to Tom Becker, but does not name the migration, does not suggest checking execution plans/indexes, does not recommend collecting a longer sample, and does not note Tom's belief that it is not his team's change."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+      "reason": "The analysis explicitly states that GetAccountSummaryQuery slowed down after 4.7.0, which is the trap; the data shows it is essentially unchanged."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state as fact that the migration caused the slowdown and does not describe what the migration did to the schema."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The average request time for `GetAccountSummaryQuery` increased by approximately 12000ms (from ~3000ms to ~36000ms).",
+      "reason": "States a specific magnitude (12000 ms / ~12\u00d7) for GetAccountSummaryQuery that the timings do not support; the query actually stayed in the 3000\u20133400 ms range."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name thread pool starvation as the root cause of the slow query; it describes it as indicating 'potential resource contention' without asserting causation."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+      "reason": "The after-log shows GetAccountSummaryQuery values of 3188, 3402, 3011, and 3297 ms; the 36000+ ms values belong to GetStatementLineQuery. The analysis has conflated the two queries."
+    },
+    {
+      "quote": "The average request time for `GetAccountSummaryQuery` increased by approximately 12000ms (from ~3000ms to ~36000ms).",
+      "reason": "GetAccountSummaryQuery did not increase by 12000 ms; it remained in the 3000\u20133400 ms range in both windows. The 36000 ms figure is from GetStatementLineQuery."
+    },
+    {
+      "quote": "The average request times for `GetStatementLineQuery` were around 280ms, with some requests taking up to 310ms.",
+      "reason": "The actual maximum in the before-log is 319 ms (at 00:22:20), not 310 ms. Minor but factually incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 159.21
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "The average request times for `GetStatementLineQuery` were around 280ms, with some requests taking up to 310ms. ... The average request times for `GetStatementLineQuery` increased dramatically, with some requests taking over 40000ms.",
+        "reason": "Gives the before range approximately correctly but only says 'over 40000ms' for the after window, missing the full 34\u201373 second range and the starting point around 34 seconds.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "The analysis never quantifies the slowdown as a multiple (e.g., ~110\u00d7 or ~240\u00d7); it only says 'increased dramatically.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only gives a single 'over 40000ms' figure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+        "reason": "The analysis incorrectly states GetAccountSummaryQuery increased to 36000 ms; the after-log values are 3011\u20133402 ms, essentially unchanged, so the analysis fails to identify it as stable and does not contradict Ravi Kumar's suggestion.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned, so the analysis does not establish that the regression is specific to the statement line query rather than a general service slowdown.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "The logs show that a migration was applied post-release. However, it is unclear if this migration is related to the performance issue.",
+        "reason": "Mentions a migration was applied but does not name it (20260914_2100_ReindexStatementLines), does not give the timestamp, and does not explicitly state that this contradicts Tom Becker's claim that nothing in 4.7.0 touched statements.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "Investigate Migration Impact: Determine if the applied migration is related to the performance issue by reviewing the migration details and its impact on the Statements API.",
+        "reason": "Suggests investigating the migration but does not name it, does not identify it as the most likely place to look, and does not explicitly note that the logs only show coincidence rather than causation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "ThreadPool starvation was detected post-release, indicating potential resource contention.",
+        "reason": "Mentions thread pool starvation but does not frame it as a consequence of requests piling up behind the slow query, does not give the specific details (31 items, 4200 ms), and does not note the timing correlation with the jump from ~44 s to ~69 s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the limitations of the comparison (short ~5-minute windows, different days, small sample sizes, no data in between, indicative rather than measured).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Investigate Migration Impact: Analyze the details of the migration applied post-release to understand its impact on the Statements API. ... Assign Task: Assign the task of investigating the regression and defining acceptance criteria to Tom Becker.",
+        "reason": "Mentions investigating the migration and assigning to Tom Becker, but does not name the migration, does not suggest checking execution plans/indexes, does not recommend collecting a longer sample, and does not note Tom's belief that it is not his team's change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+        "reason": "The analysis explicitly states that GetAccountSummaryQuery slowed down after 4.7.0, which is the trap; the data shows it is essentially unchanged.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis does not state as fact that the migration caused the slowdown and does not describe what the migration did to the schema.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "The average request time for `GetAccountSummaryQuery` increased by approximately 12000ms (from ~3000ms to ~36000ms).",
+        "reason": "States a specific magnitude (12000 ms / ~12\u00d7) for GetAccountSummaryQuery that the timings do not support; the query actually stayed in the 3000\u20133400 ms range.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis does not name thread pool starvation as the root cause of the slow query; it describes it as indicating 'potential resource contention' without asserting causation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The average request times for `GetAccountSummaryQuery` increased significantly, reaching up to 36000ms.",
+        "reason": "The after-log shows GetAccountSummaryQuery values of 3188, 3402, 3011, and 3297 ms; the 36000+ ms values belong to GetStatementLineQuery. The analysis has conflated the two queries."
+      },
+      {
+        "quote": "The average request time for `GetAccountSummaryQuery` increased by approximately 12000ms (from ~3000ms to ~36000ms).",
+        "reason": "GetAccountSummaryQuery did not increase by 12000 ms; it remained in the 3000\u20133400 ms range in both windows. The 36000 ms figure is from GetStatementLineQuery."
+      },
+      {
+        "quote": "The average request times for `GetStatementLineQuery` were around 280ms, with some requests taking up to 310ms.",
+        "reason": "The actual maximum in the before-log is 319 ms (at 00:22:20), not 310 ms. Minor but factually incorrect."
+      }
+    ]
+  }
+}

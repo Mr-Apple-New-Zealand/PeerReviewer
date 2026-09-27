@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 are duplicates as they describe the same issue with the web dashboard balance not updating after a transfer.",
+      "reason": "The analysis clearly identifies both tickets as duplicates reporting the same web dashboard balance staleness issue on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Close BANK-425: It is a duplicate of BANK-440 and can be closed as it is already being tracked by BANK-440.",
+      "reason": "The analysis recommends closing one and keeping the other, but does not mention that BANK-425 contains Hana Sato's root-cause analysis, nor does it mention linking the tickets or preserving the analysis."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is a separate issue where the push notification shows the pre-transfer balance, which is unrelated to the dashboard balance update problem.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate and as a separate push-notification issue, but does not mention the specific cause (TransferRequested event) or that it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review BANK-419: Ensure that the caching of balance on the dashboard has been implemented correctly and does not interfere with the issue described in BANK-440.",
+      "reason": "The analysis vaguely connects caching to the issue but does not identify the 15-minute BalanceCache in local storage as the specific cause, nor does it state the fix of clearing the cache when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review BANK-419: Ensure that the caching of balance on the dashboard has been implemented correctly and does not interfere with the issue described in BANK-440.",
+      "reason": "The analysis hints at a connection between BANK-419 and the bug but frames it as a review action rather than an inference that BANK-419 likely introduced the regression, and does not recommend linking the tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Assignee: Unassigned\n  - Reporter: Tom Becker",
+      "reason": "The analysis explicitly lists both BANK-440 and BANK-425 as having Assignee: Unassigned in the Current State section."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a separate issue unrelated to the dashboard balance problem, not a duplicate."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the balance API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Affects versions: 3.1.4 (BANK-440, BANK-425, BANK-419).",
+      "reason": "BANK-419's ticket states 'Affects versions: None' and 'Fix versions: 3.1.4'; the analysis incorrectly lists 3.1.4 as the Affects version for BANK-419, conflating Fix versions with Affects versions."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 78.83
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 are duplicates as they describe the same issue with the web dashboard balance not updating after a transfer.",
+        "reason": "The analysis clearly identifies both tickets as duplicates reporting the same web dashboard balance staleness issue on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-425: It is a duplicate of BANK-440 and can be closed as it is already being tracked by BANK-440.",
+        "reason": "The analysis recommends closing one and keeping the other, but does not mention that BANK-425 contains Hana Sato's root-cause analysis, nor does it mention linking the tickets or preserving the analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is a separate issue where the push notification shows the pre-transfer balance, which is unrelated to the dashboard balance update problem.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate and as a separate push-notification issue, but does not mention the specific cause (TransferRequested event) or that it is in progress with Ravi Kumar.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Review BANK-419: Ensure that the caching of balance on the dashboard has been implemented correctly and does not interfere with the issue described in BANK-440.",
+        "reason": "The analysis vaguely connects caching to the issue but does not identify the 15-minute BalanceCache in local storage as the specific cause, nor does it state the fix of clearing the cache when a transfer succeeds.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Review BANK-419: Ensure that the caching of balance on the dashboard has been implemented correctly and does not interfere with the issue described in BANK-440.",
+        "reason": "The analysis hints at a connection between BANK-419 and the bug but frames it as a review action rather than an inference that BANK-419 likely introduced the regression, and does not recommend linking the tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Assignee: Unassigned\n  - Reporter: Tom Becker",
+        "reason": "The analysis explicitly lists both BANK-440 and BANK-425 as having Assignee: Unassigned in the Current State section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a separate issue unrelated to the dashboard balance problem, not a duplicate.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the balance API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Affects versions: 3.1.4 (BANK-440, BANK-425, BANK-419).",
+        "reason": "BANK-419's ticket states 'Affects versions: None' and 'Fix versions: 3.1.4'; the analysis incorrectly lists 3.1.4 as the Affects version for BANK-419, conflating Fix versions with Affects versions."
+      }
+    ]
+  }
+}

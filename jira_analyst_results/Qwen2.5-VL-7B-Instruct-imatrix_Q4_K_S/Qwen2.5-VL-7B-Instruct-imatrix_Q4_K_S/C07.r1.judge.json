@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not state the deploy was at 09:30 or that impact started at 09:31; in fact it incorrectly claims the ticket does not specify these times."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The incident was detected at 09:47 when the monitoring alert fired due to TransferErrorRate > 20%.",
+      "reason": "The 09:47 alert is clearly stated, but the 09:52 incident declaration is only present as a creation timestamp in metadata, not explicitly tied to the declaration in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The rollback of the config deploy OPS-81 was completed by 10:42, reducing the transfer error rate back under 1%.",
+      "reason": "The 10:42 recovery is stated and 10:50 appears in metadata, but the rollback start at 10:31 is missing from the timeline."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to Detect: The incident was detected at 09:47 when the monitoring alert fired due to TransferErrorRate > 20%.",
+      "reason": "The analysis states the detection timestamp but never calculates the 16-minute duration or references the 09:31 impact start."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to Recover: The rollback of the config deploy OPS-81 was completed by 10:42, reducing the transfer error rate back under 1%.",
+      "reason": "The analysis mentions the 10:42 recovery time but does not calculate any duration in minutes (71, 55, or 79)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause of the incident was the mismatch between the JWT signing key used in the config deploy OPS-81 and the key that the Transactions API validates against. This led to 401 errors (\"IDX10503: Signature validation failed\") and a high transfer error rate.",
+      "reason": "All key elements are present: OPS-81, JWT signing key, Transactions API validation, 401, and the specific error code IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-Incident Review: Conduct a post-incident review with Sam Okafor scheduled for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any specific minute-duration for time to detect or time to recover that would be unsupported."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The ticket does not specify the exact time of the config deploy OPS-81 or the time when the error rate spiked.",
+      "reason": "The ticket explicitly states 'The config deploy at 09:30 (OPS-81)' and 'errors starting at around 09:31,' directly contradicting this claim."
+    },
+    {
+      "quote": "The ticket lacks specific details on the impact of the 401 errors, such as the number of failed transfers or the duration of the issue.",
+      "reason": "The ticket provides clear timestamps establishing the duration (09:31 to 10:42) and the error rate (64% at peak, back under 1% at recovery), so claiming the duration is missing is incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 87.11
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "",
+        "reason": "The analysis does not state the deploy was at 09:30 or that impact started at 09:31; in fact it incorrectly claims the ticket does not specify these times.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "The incident was detected at 09:47 when the monitoring alert fired due to TransferErrorRate > 20%.",
+        "reason": "The 09:47 alert is clearly stated, but the 09:52 incident declaration is only present as a creation timestamp in metadata, not explicitly tied to the declaration in the timeline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "The rollback of the config deploy OPS-81 was completed by 10:42, reducing the transfer error rate back under 1%.",
+        "reason": "The 10:42 recovery is stated and 10:50 appears in metadata, but the rollback start at 10:31 is missing from the timeline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect: The incident was detected at 09:47 when the monitoring alert fired due to TransferErrorRate > 20%.",
+        "reason": "The analysis states the detection timestamp but never calculates the 16-minute duration or references the 09:31 impact start.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover: The rollback of the config deploy OPS-81 was completed by 10:42, reducing the transfer error rate back under 1%.",
+        "reason": "The analysis mentions the 10:42 recovery time but does not calculate any duration in minutes (71, 55, or 79).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the incident was the mismatch between the JWT signing key used in the config deploy OPS-81 and the key that the Transactions API validates against. This led to 401 errors (\"IDX10503: Signature validation failed\") and a high transfer error rate.",
+        "reason": "All key elements are present: OPS-81, JWT signing key, Transactions API validation, 401, and the specific error code IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-Incident Review: Conduct a post-incident review with Sam Okafor scheduled for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The analysis does not state any specific minute-duration for time to detect or time to recover that would be unsupported.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The ticket does not specify the exact time of the config deploy OPS-81 or the time when the error rate spiked.",
+        "reason": "The ticket explicitly states 'The config deploy at 09:30 (OPS-81)' and 'errors starting at around 09:31,' directly contradicting this claim."
+      },
+      {
+        "quote": "The ticket lacks specific details on the impact of the 401 errors, such as the number of failed transfers or the duration of the issue.",
+        "reason": "The ticket provides clear timestamps establishing the duration (09:31 to 10:42) and the error rate (64% at peak, back under 1% at recovery), so claiming the duration is missing is incorrect."
+      }
+    ]
+  }
+}

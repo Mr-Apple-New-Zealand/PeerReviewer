@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A customer attempting a transfer from their cheque account to savings on mobile web experienced a \"Request timed out (ERR_TXN_504)\" error, leading them to retry the transaction. The retry resulted in the cheque account being debited twice, while the savings account was credited once.",
+      "reason": "The analysis clearly states the retry after ERR_TXN_504 causes a double debit and single credit."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects Versions: 3.1.4\n- **Fix Version:** 3.2.0",
+      "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and the release date (2026-09-24) in the next actions section."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states the root cause (missing idempotency key and debit/credit not in a single DB transaction); in fact it incorrectly claims the ticket does not specify the cause."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Status:** In Progress\n- **Owner:** Priya Nair\n- **Blocking:** PR #218 is open but awaiting code review.",
+      "reason": "All three elements (In Progress, Priya Nair, PR #218 waiting on code review) are clearly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers, targeting the 3.2.0 release on 2026-09-24.",
+      "reason": "The analysis mentions the manual reversal by Finance and Marcus being asked to raise it, but does not specify that three customers are affected."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers",
+      "reason": "The analysis implies the reversal has not yet been done by listing it as a next action, but does not explicitly state that the ticket does not confirm the request has been raised or customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Code Review:** Ensure PR #218 is reviewed and merged as soon as possible to resolve the issue.\n2. **Communication with Finance Ops:** Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers",
+      "reason": "Both next actions (PR review/merge and Finance Ops confirmation) are clearly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim desktop web is affected; it does not mention desktop at all."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The ticket does not specify the exact cause of the timeout or whether the issue is specific to the mobile web interface.",
+      "reason": "The ticket explicitly states the cause in Priya's comment (no idempotency key on retry; debit and credit not in a single DB transaction) and Tom Becker's comment confirms it does NOT reproduce on desktop web, so the issue is specific to mobile web."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 65.26
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A customer attempting a transfer from their cheque account to savings on mobile web experienced a \"Request timed out (ERR_TXN_504)\" error, leading them to retry the transaction. The retry resulted in the cheque account being debited twice, while the savings account was credited once.",
+        "reason": "The analysis clearly states the retry after ERR_TXN_504 causes a double debit and single credit.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects Versions: 3.1.4\n- **Fix Version:** 3.2.0",
+        "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and the release date (2026-09-24) in the next actions section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "",
+        "reason": "The analysis never states the root cause (missing idempotency key and debit/credit not in a single DB transaction); in fact it incorrectly claims the ticket does not specify the cause.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "**Status:** In Progress\n- **Owner:** Priya Nair\n- **Blocking:** PR #218 is open but awaiting code review.",
+        "reason": "All three elements (In Progress, Priya Nair, PR #218 waiting on code review) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers, targeting the 3.2.0 release on 2026-09-24.",
+        "reason": "The analysis mentions the manual reversal by Finance and Marcus being asked to raise it, but does not specify that three customers are affected.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers",
+        "reason": "The analysis implies the reversal has not yet been done by listing it as a next action, but does not explicitly state that the ticket does not confirm the request has been raised or customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "1. **Code Review:** Ensure PR #218 is reviewed and merged as soon as possible to resolve the issue.\n2. **Communication with Finance Ops:** Marcus should follow up with Finance Ops regarding the manual reversal of duplicate debits for affected customers",
+        "reason": "Both next actions (PR review/merge and Finance Ops confirmation) are clearly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged or deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not claim desktop web is affected; it does not mention desktop at all.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The ticket does not specify the exact cause of the timeout or whether the issue is specific to the mobile web interface.",
+        "reason": "The ticket explicitly states the cause in Priya's comment (no idempotency key on retry; debit and credit not in a single DB transaction) and Tom Becker's comment confirms it does NOT reproduce on desktop web, so the issue is specific to mobile web."
+      }
+    ]
+  }
+}
