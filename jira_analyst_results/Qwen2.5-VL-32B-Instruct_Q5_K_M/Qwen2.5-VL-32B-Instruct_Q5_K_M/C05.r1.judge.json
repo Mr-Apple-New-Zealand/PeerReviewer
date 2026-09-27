@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440 because both describe the same issue (stale balance on the web dashboard) and share the same underlying cause (caching in local storage).",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance staying stale after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Mark as duplicate of BANK-425. Both tickets describe the same issue (stale balance on the web dashboard) and share the same root cause (caching in local storage). Link BANK-440 to BANK-425 and close BANK-440 as a duplicate.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with the tickets linked."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate of BANK-440. While both involve balance display issues after a transfer, they affect different components (web dashboard vs. mobile notifications) and have distinct root causes.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted event), and mentions Ravi Kumar is working on it."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause is identified: the `BalanceCache` in local storage is not invalidated after a transfer. The fix involves clearing the cache when a transfer succeeds, as suggested by Hana Sato's comment.",
+      "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The caching implementation is the root cause of the stale balance issue reported in both tickets.",
+      "reason": "The analysis states the causal link between BANK-419 and the bug as established fact rather than as a likely regression, and does not explicitly recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never explicitly states that both duplicate tickets (BANK-440 and BANK-425) are unassigned; it only implies BANK-425 needs assignment by recommending someone be assigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so it does not fall into the trap."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the API returns the correct balance, matching the ticket, and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 80.74
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440 because both describe the same issue (stale balance on the web dashboard) and share the same underlying cause (caching in local storage).",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance staying stale after a transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Mark as duplicate of BANK-425. Both tickets describe the same issue (stale balance on the web dashboard) and share the same root cause (caching in local storage). Link BANK-440 to BANK-425 and close BANK-440 as a duplicate.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with the tickets linked.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate of BANK-440. While both involve balance display issues after a transfer, they affect different components (web dashboard vs. mobile notifications) and have distinct root causes.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted event), and mentions Ravi Kumar is working on it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "The root cause is identified: the `BalanceCache` in local storage is not invalidated after a transfer. The fix involves clearing the cache when a transfer succeeds, as suggested by Hana Sato's comment.",
+        "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "The caching implementation is the root cause of the stale balance issue reported in both tickets.",
+        "reason": "The analysis states the causal link between BANK-419 and the bug as established fact rather than as a likely regression, and does not explicitly recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never explicitly states that both duplicate tickets (BANK-440 and BANK-425) are unassigned; it only implies BANK-425 needs assignment by recommending someone be assigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so it does not fall into the trap.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the API returns the correct balance, matching the ticket, and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

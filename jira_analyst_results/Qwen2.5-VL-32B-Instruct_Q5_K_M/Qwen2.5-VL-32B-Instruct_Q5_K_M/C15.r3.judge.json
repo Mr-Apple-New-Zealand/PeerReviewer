@@ -1,0 +1,241 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Repeated `SmtpException` errors with status code 535 indicate that the SMTP server requires authentication, but the client is either not authenticated or using an incorrect method.",
+      "reason": "Identifies the SMTP auth failure with code 535 as the cause, but omits the specific server response text '5.7.139 Authentication unsuccessful, basic authentication is disabled' and does not mention EmailSender/OutboxDispatcher as the source."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus Reid identifies the key storage issue as a potential cause but does not explicitly link it to the SMTP error. The log shows repeated `SmtpException` errors with status code 535, which indicates an authentication failure rather than a key storage issue.",
+      "reason": "Touches on the disconnect between key storage and SMTP failure but does not firmly state the reporter's explanation is unsupported, does not call the warnings routine ASP.NET Core startup warnings, and still recommends fixing key storage as a next action."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "some items are stuck at the head of the queue without backoff or dead-letter handling",
+      "reason": "Mentions item 991204 stuck at head of queue, no backoff, no dead-letter, but omits the 5-second retry interval, the five-attempt threshold, and the explicit blocking effect on subsequent messages."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The outbox dispatcher shows a growing number of pending messages (`1412`, `1508`, etc.)",
+      "reason": "Acknowledges the growing backlog but only cites 1412 and 1508, omits the final value of 2089, the rate (~100 per six minutes), and the explicit consequence that customers will keep missing receipts until auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address whether another restart would help, nor does it note that the pod was already restarted at 18:02 and the same 535 errors continue through 18:38:02."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate the SMTP configuration to determine why authentication is failing (e.g., incorrect credentials, missing TLS settings).",
+      "reason": "Mentions checking svc-notify@example.com credentials but does not draw the specific inference that 'basic authentication is disabled' suggests the provider turned off basic auth, making the fix a change of auth method rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Implement a dead-letter queue or backoff mechanism for failed deliveries to prevent message accumulation.",
+      "reason": "Covers adding backoff/dead-letter and checking svc-notify credentials, but omits confirming with the mail tenant owner that basic auth was disabled and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, or the healthy check at 18:21:09, nor does it state they are unrelated to the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the key storage warning 'does not directly explain the current problem' and identifies SMTP auth as the primary issue; it does not endorse the reporter's explanation as the cause of the failures."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis restates the 14:00 timeframe from the ticket description but does not claim the log shows what happened at 14:00 or that it covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any SMTP error, code, or reason not present in the log (no rate limiting, TLS failure, or mailbox-full claim)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The ticket is blocked by the need for Platform team intervention to fix the key storage issue and resolve the SMTP authentication failure.",
+      "reason": "The ticket status is 'In Progress' with no 'Blocked' status or blocking field; the analysis invents a blocked state."
+    },
+    {
+      "quote": "Owner: Marcus Reid (same as assignee)",
+      "reason": "The ticket has no 'Owner' field; it lists Assignee and Reporter, both Marcus Reid, but no separate owner role exists."
+    },
+    {
+      "quote": "Acceptance Criteria: Payment receipt emails are successfully delivered to customers without errors.",
+      "reason": "The ticket contains no acceptance criteria field; this is fabricated."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 127.72
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "Repeated `SmtpException` errors with status code 535 indicate that the SMTP server requires authentication, but the client is either not authenticated or using an incorrect method.",
+        "reason": "Identifies the SMTP auth failure with code 535 as the cause, but omits the specific server response text '5.7.139 Authentication unsuccessful, basic authentication is disabled' and does not mention EmailSender/OutboxDispatcher as the source.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Marcus Reid identifies the key storage issue as a potential cause but does not explicitly link it to the SMTP error. The log shows repeated `SmtpException` errors with status code 535, which indicates an authentication failure rather than a key storage issue.",
+        "reason": "Touches on the disconnect between key storage and SMTP failure but does not firmly state the reporter's explanation is unsupported, does not call the warnings routine ASP.NET Core startup warnings, and still recommends fixing key storage as a next action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "some items are stuck at the head of the queue without backoff or dead-letter handling",
+        "reason": "Mentions item 991204 stuck at head of queue, no backoff, no dead-letter, but omits the 5-second retry interval, the five-attempt threshold, and the explicit blocking effect on subsequent messages.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "The outbox dispatcher shows a growing number of pending messages (`1412`, `1508`, etc.)",
+        "reason": "Acknowledges the growing backlog but only cites 1412 and 1508, omits the final value of 2089, the rate (~100 per six minutes), and the explicit consequence that customers will keep missing receipts until auth is fixed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis never notes that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "",
+        "reason": "The analysis does not address whether another restart would help, nor does it note that the pod was already restarted at 18:02 and the same 535 errors continue through 18:38:02.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "Investigate the SMTP configuration to determine why authentication is failing (e.g., incorrect credentials, missing TLS settings).",
+        "reason": "Mentions checking svc-notify@example.com credentials but does not draw the specific inference that 'basic authentication is disabled' suggests the provider turned off basic auth, making the fix a change of auth method rather than a code change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Implement a dead-letter queue or backoff mechanism for failed deliveries to prevent message accumulation.",
+        "reason": "Covers adding backoff/dead-letter and checking svc-notify credentials, but omits confirming with the mail tenant owner that basic auth was disabled and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, or the healthy check at 18:21:09, nor does it state they are unrelated to the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the key storage warning 'does not directly explain the current problem' and identifies SMTP auth as the primary issue; it does not endorse the reporter's explanation as the cause of the failures.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis restates the 14:00 timeframe from the ticket description but does not claim the log shows what happened at 14:00 or that it covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not state any SMTP error, code, or reason not present in the log (no rate limiting, TLS failure, or mailbox-full claim).",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The ticket is blocked by the need for Platform team intervention to fix the key storage issue and resolve the SMTP authentication failure.",
+        "reason": "The ticket status is 'In Progress' with no 'Blocked' status or blocking field; the analysis invents a blocked state."
+      },
+      {
+        "quote": "Owner: Marcus Reid (same as assignee)",
+        "reason": "The ticket has no 'Owner' field; it lists Assignee and Reporter, both Marcus Reid, but no separate owner role exists."
+      },
+      {
+        "quote": "Acceptance Criteria: Payment receipt emails are successfully delivered to customers without errors.",
+        "reason": "The ticket contains no acceptance criteria field; this is fabricated."
+      }
+    ]
+  }
+}

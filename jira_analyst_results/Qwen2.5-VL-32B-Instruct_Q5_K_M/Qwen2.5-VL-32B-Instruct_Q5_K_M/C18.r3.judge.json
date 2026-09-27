@@ -1,0 +1,283 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Group 1: Authentication/Authorization Issues:\n     - `BANKUI-3C8`: HttpErrorResponse (401 errors) from `/api/settlements/Run/GetAllRunBookingsForCustomerOrder`.\n     - `BANKUI-4A2`: TypeError (reading 'rows') with breadcrumbs indicating 401 responses.\n     - `BANKUI-4B3`: TypeError (reading 'length') with breadcrumbs indicating 401 responses.",
+      "reason": "The analysis groups only 3C8, 4A2, and 4B3 as the 401 cluster, placing 4A1 and 4A9 in a separate 'Batch Actions' group, so it does not identify all five issues as sharing one cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed across issues, nor does it use 44 as the best single estimate for the cluster's reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6: 63 events, 58 users.",
+      "reason": "The analysis lists the numbers but never states that 58 is the highest user count in the list or that 5D6 is the top item by user impact despite being nearly the quietest by events."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the specific timing (6.5 minutes after 4.7.0 deploy), the 404 on the requested bundle, or the mechanism of open sessions requesting old hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0: SecurityError from a Chrome extension.\n     - **Inference**: This is not our defect; it is caused by a third-party extension interacting with the app.",
+      "reason": "The analysis correctly identifies 2F0 as a single-user browser extension issue (4,812 events, 1 user), not an application defect, and recommends closing/filtering it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not call out event count as a misleading ranking; in fact it uses the high event count of 3C8 as a primary reason for prioritizing it."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-1A7: RangeError (Maximum call stack size exceeded) in `/payments/batch/actions/allocation-reports` (resolved in `4.6.0` but still occurring).",
+      "reason": "The analysis notes the issue is 'still occurring' despite being marked resolved, but does not explicitly state it has regressed, reference the post-4.7.0 last-seen date, or recommend reopening it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Missing source maps: Function names are minified, making root cause analysis harder.",
+      "reason": "The analysis mentions source maps are missing and names are minified but does not explicitly state that no issue can be traced to a specific component from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, so total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inference: These issues likely stem from unauthorized API calls, possibly due to token expiration or misconfiguration.",
+      "reason": "The inference is labelled and directionally correct (token/session expiration), but it only covers 3 of the 4 undefined-property issues and does not note that confirming would require a full event rather than this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis recommends 3C8 first and 4A1 second, rather than 5D6 first (most users) and the 401 cluster second (one fix closes five issues); it also does not frame reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags 2F0 as not a defect and recommends closing it; it does not place it near the top of the priority list or treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Authentication/Authorization: `BANKUI-3C8`, `BANKUI-4A2`, `BANKUI-4B3`.\n   - Batch Actions and Allocation Reports: `BANKUI-4A1`, `BANKUI-4A9`, `BANKUI-1A7`.",
+      "reason": "The analysis splits the four undefined-property issues into two groups with different causes (authentication vs. batch actions/data handling), giving them separate causes and separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists user counts individually and never adds them together to produce a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis notes 1A7 is 'still occurring' despite being marked resolved, which contradicts the 'fixed/needs no action' framing; it does not state it is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issues as authentication/authorization problems possibly due to token expiration, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places 5D6 in its own 'Chunk Load Errors' group and 1A7 in 'Batch Actions and Allocation Reports,' neither of which is the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The attached JSON file provides details on eight unresolved issues, including error types, event counts, and user impact.",
+      "reason": "BANKUI-1A7 has status 'resolved' in the JSON, so there are seven unresolved issues, not eight."
+    },
+    {
+      "quote": "Affects Versions: Releases `4.6.0` and `4.7.0`.",
+      "reason": "The ticket explicitly states 'Affects versions: None'; the releases listed in the JSON are deployment history, not the ticket's affects-versions field."
+    },
+    {
+      "quote": "No clear priority or acceptance criteria in the ticket description.",
+      "reason": "The ticket clearly states 'Priority: Medium' and includes a specific request in the description, so a priority is present."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 159.2
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Group 1: Authentication/Authorization Issues:\n     - `BANKUI-3C8`: HttpErrorResponse (401 errors) from `/api/settlements/Run/GetAllRunBookingsForCustomerOrder`.\n     - `BANKUI-4A2`: TypeError (reading 'rows') with breadcrumbs indicating 401 responses.\n     - `BANKUI-4B3`: TypeError (reading 'length') with breadcrumbs indicating 401 responses.",
+        "reason": "The analysis groups only 3C8, 4A2, and 4B3 as the 401 cluster, placing 4A1 and 4A9 in a separate 'Batch Actions' group, so it does not identify all five issues as sharing one cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed across issues, nor does it use 44 as the best single estimate for the cluster's reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6: 63 events, 58 users.",
+        "reason": "The analysis lists the numbers but never states that 58 is the highest user count in the list or that 5D6 is the top item by user impact despite being nearly the quietest by events.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the specific timing (6.5 minutes after 4.7.0 deploy), the 404 on the requested bundle, or the mechanism of open sessions requesting old hashed bundles.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0: SecurityError from a Chrome extension.\n     - **Inference**: This is not our defect; it is caused by a third-party extension interacting with the app.",
+        "reason": "The analysis correctly identifies 2F0 as a single-user browser extension issue (4,812 events, 1 user), not an application defect, and recommends closing/filtering it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "",
+        "reason": "The analysis does not call out event count as a misleading ranking; in fact it uses the high event count of 3C8 as a primary reason for prioritizing it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7: RangeError (Maximum call stack size exceeded) in `/payments/batch/actions/allocation-reports` (resolved in `4.6.0` but still occurring).",
+        "reason": "The analysis notes the issue is 'still occurring' despite being marked resolved, but does not explicitly state it has regressed, reference the post-4.7.0 last-seen date, or recommend reopening it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Missing source maps: Function names are minified, making root cause analysis harder.",
+        "reason": "The analysis mentions source maps are missing and names are minified but does not explicitly state that no issue can be traced to a specific component from this export alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, so total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Inference: These issues likely stem from unauthorized API calls, possibly due to token expiration or misconfiguration.",
+        "reason": "The inference is labelled and directionally correct (token/session expiration), but it only covers 3 of the 4 undefined-property issues and does not note that confirming would require a full event rather than this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "",
+        "reason": "The analysis recommends 3C8 first and 4A1 second, rather than 5D6 first (most users) and the 401 cluster second (one fix closes five issues); it also does not frame reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly flags 2F0 as not a defect and recommends closing it; it does not place it near the top of the priority list or treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "Authentication/Authorization: `BANKUI-3C8`, `BANKUI-4A2`, `BANKUI-4B3`.\n   - Batch Actions and Allocation Reports: `BANKUI-4A1`, `BANKUI-4A9`, `BANKUI-1A7`.",
+        "reason": "The analysis splits the four undefined-property issues into two groups with different causes (authentication vs. batch actions/data handling), giving them separate causes and separate fixes.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis lists user counts individually and never adds them together to produce a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis notes 1A7 is 'still occurring' despite being marked resolved, which contradicts the 'fixed/needs no action' framing; it does not state it is fixed or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issues as authentication/authorization problems possibly due to token expiration, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis places 5D6 in its own 'Chunk Load Errors' group and 1A7 in 'Batch Actions and Allocation Reports,' neither of which is the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The attached JSON file provides details on eight unresolved issues, including error types, event counts, and user impact.",
+        "reason": "BANKUI-1A7 has status 'resolved' in the JSON, so there are seven unresolved issues, not eight."
+      },
+      {
+        "quote": "Affects Versions: Releases `4.6.0` and `4.7.0`.",
+        "reason": "The ticket explicitly states 'Affects versions: None'; the releases listed in the JSON are deployment history, not the ticket's affects-versions field."
+      },
+      {
+        "quote": "No clear priority or acceptance criteria in the ticket description.",
+        "reason": "The ticket clearly states 'Priority: Medium' and includes a specific request in the description, so a priority is present."
+      }
+    ]
+  }
+}

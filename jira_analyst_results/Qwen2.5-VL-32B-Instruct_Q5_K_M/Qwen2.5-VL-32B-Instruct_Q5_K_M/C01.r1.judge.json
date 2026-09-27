@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue occurs when a customer retries a timed-out transfer on mobile web, resulting in the source account being debited twice while the destination account is credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This bug impacts customers using version 3.1.4 and has been reproduced in staging with specific latency conditions.",
+      "reason": "The analysis states the affected version (3.1.4) and later confirms the fix target (3.2.0, release 2026-09-24)."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The current implementation lacks an idempotency key mechanism, allowing retries to be treated as new transfers.\n   - This could lead to further duplicate debits if the issue is not resolved before the release.\n\n2. **Atomicity Issue:**\n   - Debit and credit operations are not atomic, leading to inconsistent states when one part of the transaction fails (e.g., credit timeout).",
+      "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Status:** In Progress\n- **Assignee:** Priya Nair\n- **Blocking Factors:**\n  - Code review for PR #218 is pending.",
+      "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Three customers have already been affected, requiring manual reversal by Finance Ops.",
+      "reason": "The analysis mentions three customers and manual reversal by Finance Ops but does not note that Marcus Reid was specifically asked to raise this with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm with Finance Ops that the three affected customers' accounts have been manually corrected.",
+      "reason": "The analysis implies the reversal is unconfirmed by listing it as a next action to 'confirm,' but does not explicitly state that the ticket does not confirm the reversal has been raised or completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Ensure PR #218 is reviewed promptly to unblock progress on the fix.\n   - Assign a reviewer with expertise in transactions and idempotency to expedite the review.\n\n2. **Manual Reversal Coordination:**\n   - Confirm with Finance Ops that the three affected customers' accounts have been manually corrected.",
+      "reason": "Both next actions (get PR #218 reviewed/merged and confirm reversals with Finance Ops) are clearly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is pending/awaiting code review and never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug only reproduces on mobile web and that desktop web behaves differently, matching the ticket's QA finding."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 62.06
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "The issue occurs when a customer retries a timed-out transfer on mobile web, resulting in the source account being debited twice while the destination account is credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "This bug impacts customers using version 3.1.4 and has been reproduced in staging with specific latency conditions.",
+        "reason": "The analysis states the affected version (3.1.4) and later confirms the fix target (3.2.0, release 2026-09-24).",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The current implementation lacks an idempotency key mechanism, allowing retries to be treated as new transfers.\n   - This could lead to further duplicate debits if the issue is not resolved before the release.\n\n2. **Atomicity Issue:**\n   - Debit and credit operations are not atomic, leading to inconsistent states when one part of the transaction fails (e.g., credit timeout).",
+        "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "**Status:** In Progress\n- **Assignee:** Priya Nair\n- **Blocking Factors:**\n  - Code review for PR #218 is pending.",
+        "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Three customers have already been affected, requiring manual reversal by Finance Ops.",
+        "reason": "The analysis mentions three customers and manual reversal by Finance Ops but does not note that Marcus Reid was specifically asked to raise this with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Confirm with Finance Ops that the three affected customers' accounts have been manually corrected.",
+        "reason": "The analysis implies the reversal is unconfirmed by listing it as a next action to 'confirm,' but does not explicitly state that the ticket does not confirm the reversal has been raised or completed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Ensure PR #218 is reviewed promptly to unblock progress on the fix.\n   - Assign a reviewer with expertise in transactions and idempotency to expedite the review.\n\n2. **Manual Reversal Coordination:**\n   - Confirm with Finance Ops that the three affected customers' accounts have been manually corrected.",
+        "reason": "Both next actions (get PR #218 reviewed/merged and confirm reversals with Finance Ops) are clearly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is pending/awaiting code review and never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the bug only reproduces on mobile web and that desktop web behaves differently, matching the ticket's QA finding.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Yes, **BANK-425** appears to be a duplicate of BANK-440. Both tickets describe the same problem: the balance on the web dashboard does not update after a transfer and requires logging out and back in or refreshing the page to show the correct value.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance not updating after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-440 as a duplicate of BANK-425.\n- Assign BANK-425 to Hana Sato for resolution.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, which is the natural direction."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is unrelated to the caching issue but involves a similar root cause (incorrect balance data being used).",
+      "reason": "The analysis correctly states MOB-88 is not a duplicate and is in progress with Ravi Kumar, but does not clearly articulate the specific different cause (message built from TransferRequested event before debit is applied)."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Hana Sato identified the caching issue in local storage and suggested clearing the cache after a successful transfer.",
+      "reason": "The analysis mentions caching in local storage and clearing it after a transfer, but omits the specific 15-minute BalanceCache detail and the fact that nothing invalidates the cache after a transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419, which introduced the caching mechanism in local storage for the web dashboard, is directly related to BANK-440 and BANK-425. The caching implementation appears to be the root cause of the stale balance issue.",
+      "reason": "The analysis connects BANK-419 to the bug and uses 'appears to be' for the root cause, but states the relationship as fact ('is directly related') rather than as a regression inference, and does not recommend linking the tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-440**\n  - **Status:** Open\n  - **Assignee:** Unassigned\n  - **Blocking:** None explicitly stated, but the root cause is likely related to caching as per BANK-425.\n  \n- **BANK-425**\n  - **Status:** Open\n  - **Assignee:** Unassigned",
+      "reason": "Both duplicate tickets are explicitly listed as Unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is unrelated to the caching issue and does not call it a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'the API returns the correct new balance immediately' and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "the balance on the web dashboard does not update after a transfer and requires logging out and back in or refreshing the page to show the correct value",
+      "reason": "BANK-425 explicitly states 'Refreshing the page does not help,' so the analysis's implication that refreshing the page resolves the issue contradicts the ticket."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 88.49
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Yes, **BANK-425** appears to be a duplicate of BANK-440. Both tickets describe the same problem: the balance on the web dashboard does not update after a transfer and requires logging out and back in or refreshing the page to show the correct value.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance not updating after a transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-440 as a duplicate of BANK-425.\n- Assign BANK-425 to Hana Sato for resolution.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, which is the natural direction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is unrelated to the caching issue but involves a similar root cause (incorrect balance data being used).",
+        "reason": "The analysis correctly states MOB-88 is not a duplicate and is in progress with Ravi Kumar, but does not clearly articulate the specific different cause (message built from TransferRequested event before debit is applied).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato identified the caching issue in local storage and suggested clearing the cache after a successful transfer.",
+        "reason": "The analysis mentions caching in local storage and clearing it after a transfer, but omits the specific 15-minute BalanceCache detail and the fact that nothing invalidates the cache after a transfer.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419, which introduced the caching mechanism in local storage for the web dashboard, is directly related to BANK-440 and BANK-425. The caching implementation appears to be the root cause of the stale balance issue.",
+        "reason": "The analysis connects BANK-419 to the bug and uses 'appears to be' for the root cause, but states the relationship as fact ('is directly related') rather than as a regression inference, and does not recommend linking the tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "**BANK-440**\n  - **Status:** Open\n  - **Assignee:** Unassigned\n  - **Blocking:** None explicitly stated, but the root cause is likely related to caching as per BANK-425.\n  \n- **BANK-425**\n  - **Status:** Open\n  - **Assignee:** Unassigned",
+        "reason": "Both duplicate tickets are explicitly listed as Unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is unrelated to the caching issue and does not call it a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'the API returns the correct new balance immediately' and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "the balance on the web dashboard does not update after a transfer and requires logging out and back in or refreshing the page to show the correct value",
+        "reason": "BANK-425 explicitly states 'Refreshing the page does not help,' so the analysis's implication that refreshing the page resolves the issue contradicts the ticket."
+      }
+    ]
+  }
+}

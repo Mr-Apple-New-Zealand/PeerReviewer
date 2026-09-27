@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The first visible symptoms were observed around 09:31 NZST when errors started appearing.",
+      "reason": "The analysis states impact started at 09:31 but never explicitly states that the OPS-81 config deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Incident Declaration: Time: 2026-09-11 09:47 NZST - Sam Okafor declared the incident, noting a transfer error rate of 64%.",
+      "reason": "The analysis attributes 09:47 to the incident declaration, but the ticket shows the alert fired at 09:47 and the declaration was at 09:52; the 09:52 declaration time is absent."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Rollback Initiated: Time: 2026-09-11 10:31 NZST - Sam Okafor began rolling back the configuration deploy (OPS-81). 7. Recovery Complete: Time: 2026-09-11 10:42 NZST - The rollback was completed, and the transfer error rate dropped below 1%. 8. Incident Resolved: Time: 2026-09-11 10:50 NZST",
+      "reason": "All three timestamps (rollback 10:31, recovery below 1% at 10:42, resolution at 10:50) are correctly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Detection Time: From the start of errors (09:31 NZST) to incident declaration (09:47 NZST). TTD: 16 minutes",
+      "reason": "The 16-minute TTD from 09:31 to 09:47 is correctly calculated and stated, though 09:47 is mislabelled as 'declaration' rather than 'alert'."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Recovery Time: From incident declaration (09:47 NZST) to the error rate dropping below 1% (10:42 NZST). TTR: 55 minutes",
+      "reason": "55 minutes from 09:47 to 10:42 is stated with the start point identified, matching the acceptable 'from detection' option in the key."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Auth service started issuing tokens signed with a new key after the configuration deploy (OPS-81). However, the Transactions API continued to validate tokens against the old key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+      "reason": "All required elements are present: OPS-81, JWT key rotation for Auth, Transactions API still validating against old key, 401 errors, and the exact error code IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Sam Okafor resolved the ticket, noting the root cause and scheduling a post-incident review for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports the database/slow-query hypothesis as Priya Nair's suggestion in the timeline and does not name it as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min TTD, 55 min TTR) are supported by pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Monitoring alerts indicated an increase in transfer errors, with the error rate exceeding 20%.",
+      "reason": "The ticket states the monitoring alert fired at 09:47, not 09:31; the 09:31 timestamp is when errors first appeared on the dashboard, not when the alert fired."
+    },
+    {
+      "quote": "Sam Okafor declared the incident, noting a transfer error rate of 64%.",
+      "reason": "The ticket shows the incident was declared at 09:52 (Sam's comment), not at 09:47; 09:47 is the alert time, so the declaration is misattributed to the wrong timestamp."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 170.53
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The first visible symptoms were observed around 09:31 NZST when errors started appearing.",
+        "reason": "The analysis states impact started at 09:31 but never explicitly states that the OPS-81 config deploy occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Incident Declaration: Time: 2026-09-11 09:47 NZST - Sam Okafor declared the incident, noting a transfer error rate of 64%.",
+        "reason": "The analysis attributes 09:47 to the incident declaration, but the ticket shows the alert fired at 09:47 and the declaration was at 09:52; the 09:52 declaration time is absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Rollback Initiated: Time: 2026-09-11 10:31 NZST - Sam Okafor began rolling back the configuration deploy (OPS-81). 7. Recovery Complete: Time: 2026-09-11 10:42 NZST - The rollback was completed, and the transfer error rate dropped below 1%. 8. Incident Resolved: Time: 2026-09-11 10:50 NZST",
+        "reason": "All three timestamps (rollback 10:31, recovery below 1% at 10:42, resolution at 10:50) are correctly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Detection Time: From the start of errors (09:31 NZST) to incident declaration (09:47 NZST). TTD: 16 minutes",
+        "reason": "The 16-minute TTD from 09:31 to 09:47 is correctly calculated and stated, though 09:47 is mislabelled as 'declaration' rather than 'alert'.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Recovery Time: From incident declaration (09:47 NZST) to the error rate dropping below 1% (10:42 NZST). TTR: 55 minutes",
+        "reason": "55 minutes from 09:47 to 10:42 is stated with the start point identified, matching the acceptable 'from detection' option in the key.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The Auth service started issuing tokens signed with a new key after the configuration deploy (OPS-81). However, the Transactions API continued to validate tokens against the old key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+        "reason": "All required elements are present: OPS-81, JWT key rotation for Auth, Transactions API still validating against old key, 401 errors, and the exact error code IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Sam Okafor resolved the ticket, noting the root cause and scheduling a post-incident review for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis reports the database/slow-query hypothesis as Priya Nair's suggestion in the timeline and does not name it as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min TTD, 55 min TTR) are supported by pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Monitoring alerts indicated an increase in transfer errors, with the error rate exceeding 20%.",
+        "reason": "The ticket states the monitoring alert fired at 09:47, not 09:31; the 09:31 timestamp is when errors first appeared on the dashboard, not when the alert fired."
+      },
+      {
+        "quote": "Sam Okafor declared the incident, noting a transfer error rate of 64%.",
+        "reason": "The ticket shows the incident was declared at 09:52 (Sam's comment), not at 09:47; 09:47 is the alert time, so the declaration is misattributed to the wrong timestamp."
+      }
+    ]
+  }
+}

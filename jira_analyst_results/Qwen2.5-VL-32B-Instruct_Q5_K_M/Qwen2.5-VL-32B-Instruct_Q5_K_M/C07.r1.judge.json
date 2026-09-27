@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 NZST: Configuration deploy (OPS-81) rotates the JWT signing key for the Auth service. ... 09:31 NZST: The first errors are observed in dashboards (inferred from Sam Okafor's comment).",
+      "reason": "Both the 09:30 deploy and the ~09:31 impact start are clearly stated."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 NZST: Monitoring alert fires, indicating a TransferErrorRate > 20%. Incident declared by Sam Okafor at 09:52 NZST.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 NZST: Rollback of the OPS-81 configuration deploy begins. 10:42 NZST: Transfer error rate drops below 1%. ... 10:50 NZST: Incident is resolved by Sam Okafor.",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Detect (TTD) From the incident trigger at 09:30 to detection at 09:52: 22 minutes.",
+      "reason": "The analysis calculates TTD as 22 minutes (09:30\u219209:52) rather than the expected 16 minutes (09:31\u219209:47 alert), using the wrong end point (declaration instead of alert) and a slightly different start."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Recover (TTR) From the incident trigger at 09:30 to recovery at 10:42: 72 minutes.",
+      "reason": "The analysis states 72 minutes from 09:30 to 10:42; the expected is 71 minutes from 09:31 (impact start) to 10:42, so the start point is off by one minute (deploy time vs. first observed error)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The configuration deploy (OPS-81) rotated the JWT signing key for the Auth service. This change was not propagated to the Transactions API, which continued to validate tokens against the old key.",
+      "reason": "The mechanism is correct but the specific 401 status and error code 'IDX10503: Signature validation failed' are absent."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A post-incident review is scheduled for 2026-09-16 to address process gaps.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never names the database or slow queries as a cause or contributing factor."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated TTD (22 min, 09:30\u219209:52) and TTR (72 min, 09:30\u219210:42) are both supported by pairs of timestamps that appear in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Incident Timeline: Triggered at 09:30, detected at 09:52, resolved at 10:42.",
+      "reason": "The ticket states the incident was resolved at 10:50 (Sam Okafor's comment: 'Resolving.'), not at 10:42. 10:42 is when the error rate dropped below 1%, which is recovery, not resolution. The analysis itself correctly states '10:50 NZST: Incident is resolved by Sam Okafor' earlier, making this a self-contradictory factual error."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 104.74
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:30 NZST: Configuration deploy (OPS-81) rotates the JWT signing key for the Auth service. ... 09:31 NZST: The first errors are observed in dashboards (inferred from Sam Okafor's comment).",
+        "reason": "Both the 09:30 deploy and the ~09:31 impact start are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 NZST: Monitoring alert fires, indicating a TransferErrorRate > 20%. Incident declared by Sam Okafor at 09:52 NZST.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 NZST: Rollback of the OPS-81 configuration deploy begins. 10:42 NZST: Transfer error rate drops below 1%. ... 10:50 NZST: Incident is resolved by Sam Okafor.",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect (TTD) From the incident trigger at 09:30 to detection at 09:52: 22 minutes.",
+        "reason": "The analysis calculates TTD as 22 minutes (09:30\u219209:52) rather than the expected 16 minutes (09:31\u219209:47 alert), using the wrong end point (declaration instead of alert) and a slightly different start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover (TTR) From the incident trigger at 09:30 to recovery at 10:42: 72 minutes.",
+        "reason": "The analysis states 72 minutes from 09:30 to 10:42; the expected is 71 minutes from 09:31 (impact start) to 10:42, so the start point is off by one minute (deploy time vs. first observed error).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The configuration deploy (OPS-81) rotated the JWT signing key for the Auth service. This change was not propagated to the Transactions API, which continued to validate tokens against the old key.",
+        "reason": "The mechanism is correct but the specific 401 status and error code 'IDX10503: Signature validation failed' are absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "A post-incident review is scheduled for 2026-09-16 to address process gaps.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis never names the database or slow queries as a cause or contributing factor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The stated TTD (22 min, 09:30\u219209:52) and TTR (72 min, 09:30\u219210:42) are both supported by pairs of timestamps that appear in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Incident Timeline: Triggered at 09:30, detected at 09:52, resolved at 10:42.",
+        "reason": "The ticket states the incident was resolved at 10:50 (Sam Okafor's comment: 'Resolving.'), not at 10:42. 10:42 is when the error rate dropped below 1%, which is recovery, not resolution. The analysis itself correctly states '10:50 NZST: Incident is resolved by Sam Okafor' earlier, making this a self-contradictory factual error."
+      }
+    ]
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "403 Forbidden errors from the `masterfile-api` service when calling the `branchlocation/get` and `branchlocation/GetAll` endpoints.",
+      "reason": "Identifies the 403 on both endpoints and calls it the primary issue, but does not state it appears four times, does not name AddPaymentRoutingRuleSecondaryCommand and BulkUpdateSecondaryBranchesCommand as the aborted commands, and hedges the connection to the user-reported save failure with 'may be related\u2026further investigation is needed.'"
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SQL conversion errors (`Error Number:245`) during `SearchPaymentRoutingRuleQuery`.",
+      "reason": "Identifies the error number and the query, but does not state the count (five times) nor quote the specific masked error message."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never acknowledges that the value and data type are masked as ****** in the log, nor states that the offending column/value/type cannot be identified from this file."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Execution timeouts for `GetMonitorJobsQuery`, indicating potential performance issues or database contention.",
+      "reason": "Identifies the timeouts on GetMonitorJobsQuery but gives no count, no time window, no recovery point, and does not characterise it as a bounded episode rather than a permanent failure."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery consistently exceeds the threshold of 10,000ms, impacting system responsiveness.",
+      "reason": "Identifies the threshold breach but does not give the count (14 times), the rising trend from ~35 s to ~73 s, or note that it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the connection string with the password logged at DBG level, nor flags it as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not categorise the DataProtection, XML encryptor, address-override, or HTTPS-port warnings as routine and non-causal."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Likely indicate an access or configuration issue with Dapr or the `masterfile-api`.",
+      "reason": "Presented as a likelihood and points at Dapr/masterfile-api configuration, but does not explain why it is not a payments-code fault (calls never reach a handler, fail consistently on both methods)."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Address the `masterfile-api` 403 errors first, as they are likely a critical dependency issue. Tackle the SQL conversion errors next, as they may affect multiple queries and users. Monitor and optimize long-running queries like `GetStatementLineQuery` to improve overall system performance.",
+      "reason": "Gives the correct relative order (403s \u2192 SQL 245 \u2192 GetStatementLineQuery) but omits the credential-in-log item as a parallel security action."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state elapsed times, durations, or an ordered sequence as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The log does not explicitly show a failure related to saving a secondary branch, despite users reporting this issue.",
+      "reason": "The log clearly shows AddPaymentRoutingRuleSecondaryCommand failing with a 403 Forbidden at 19:13:31 and 19:09:00, which is exactly the save operation the users reported; the claim that the log does not show this is contradicted by the ticket attachment."
+    },
+    {
+      "quote": "It is unclear whether the `AddPaymentRoutingRuleSecondaryCommand` failures are directly linked to the user-reported problem or if they are separate issues.",
+      "reason": "The log shows the 403 error occurring on AddPaymentRoutingRuleSecondaryCommand (the command that saves a secondary branch), making the link direct and unambiguous; presenting it as unclear misrepresents what the log demonstrates."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 130.18
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "403 Forbidden errors from the `masterfile-api` service when calling the `branchlocation/get` and `branchlocation/GetAll` endpoints.",
+        "reason": "Identifies the 403 on both endpoints and calls it the primary issue, but does not state it appears four times, does not name AddPaymentRoutingRuleSecondaryCommand and BulkUpdateSecondaryBranchesCommand as the aborted commands, and hedges the connection to the user-reported save failure with 'may be related\u2026further investigation is needed.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "SQL conversion errors (`Error Number:245`) during `SearchPaymentRoutingRuleQuery`.",
+        "reason": "Identifies the error number and the query, but does not state the count (five times) nor quote the specific masked error message.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis never acknowledges that the value and data type are masked as ****** in the log, nor states that the offending column/value/type cannot be identified from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Execution timeouts for `GetMonitorJobsQuery`, indicating potential performance issues or database contention.",
+        "reason": "Identifies the timeouts on GetMonitorJobsQuery but gives no count, no time window, no recovery point, and does not characterise it as a bounded episode rather than a permanent failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "GetStatementLineQuery consistently exceeds the threshold of 10,000ms, impacting system responsiveness.",
+        "reason": "Identifies the threshold breach but does not give the count (14 times), the rising trend from ~35 s to ~73 s, or note that it is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis never mentions the connection string with the password logged at DBG level, nor flags it as a credential exposure requiring rotation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The analysis does not categorise the DataProtection, XML encryptor, address-override, or HTTPS-port warnings as routine and non-causal.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Likely indicate an access or configuration issue with Dapr or the `masterfile-api`.",
+        "reason": "Presented as a likelihood and points at Dapr/masterfile-api configuration, but does not explain why it is not a payments-code fault (calls never reach a handler, fail consistently on both methods).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "Address the `masterfile-api` 403 errors first, as they are likely a critical dependency issue. Tackle the SQL conversion errors next, as they may affect multiple queries and users. Monitor and optimize long-running queries like `GetStatementLineQuery` to improve overall system performance.",
+        "reason": "Gives the correct relative order (403s \u2192 SQL 245 \u2192 GetStatementLineQuery) but omits the credential-in-log item as a parallel security action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state elapsed times, durations, or an ordered sequence as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The log does not explicitly show a failure related to saving a secondary branch, despite users reporting this issue.",
+        "reason": "The log clearly shows AddPaymentRoutingRuleSecondaryCommand failing with a 403 Forbidden at 19:13:31 and 19:09:00, which is exactly the save operation the users reported; the claim that the log does not show this is contradicted by the ticket attachment."
+      },
+      {
+        "quote": "It is unclear whether the `AddPaymentRoutingRuleSecondaryCommand` failures are directly linked to the user-reported problem or if they are separate issues.",
+        "reason": "The log shows the 403 error occurring on AddPaymentRoutingRuleSecondaryCommand (the command that saves a secondary branch), making the link direct and unambiguous; presenting it as unclear misrepresents what the log demonstrates."
+      }
+    ]
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue occurs when a customer retries a timed-out transaction on the mobile web interface, resulting in the source account being debited twice while the destination account is credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This problem affects customers using version 3.1.4 and has been reproduced in staging with specific latency conditions.",
+      "reason": "The analysis states the affected version (3.1.4) and separately notes the fix version 3.2.0 targeted for 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue arises due to two main problems: 1. **Lack of Idempotency**: The Retry button submits a new request without an idempotency key, causing the server to treat it as a new transfer. 2. **Non-Atomic Operations**: The debit and credit are not part of a single database transaction, allowing the debit to commit even if the credit fails.",
+      "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly identified as per Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factors**:\n  - Code review for PR #218 is pending.",
+      "reason": "The analysis states the status, assignee, and that PR #218 is awaiting code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Reverse the duplicate debits for the three affected customers manually as per Aroha Walker's comment.",
+      "reason": "The analysis mentions three customers and the manual reversal by Finance Ops, but does not mention that Marcus Reid was specifically asked to raise this with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Manual reversal of duplicate debits for affected customers is required (Finance Ops).",
+      "reason": "By listing the reversal as a blocking factor and a suggested next action, the analysis conveys that the ticket does not confirm the reversal has been completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Expedite code review for PR #218 to ensure the fix is merged and tested before the 3.2.0 release.",
+      "reason": "The analysis lists both getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is pending code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly notes that the issue does not reproduce on desktop web, consistent with Tom Becker's confirmation."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The priority was escalated to High due to customer impact, as indicated by Aroha Walker's comment.",
+      "reason": "The priority change from Medium to High appears in the ticket's History section as a field change by Aroha Walker, not in a comment; Aroha Walker's actual comment is about Finance reversal, not about the priority escalation rationale."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 80.96
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "The issue occurs when a customer retries a timed-out transaction on the mobile web interface, resulting in the source account being debited twice while the destination account is credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "This problem affects customers using version 3.1.4 and has been reproduced in staging with specific latency conditions.",
+        "reason": "The analysis states the affected version (3.1.4) and separately notes the fix version 3.2.0 targeted for 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The issue arises due to two main problems: 1. **Lack of Idempotency**: The Retry button submits a new request without an idempotency key, causing the server to treat it as a new transfer. 2. **Non-Atomic Operations**: The debit and credit are not part of a single database transaction, allowing the debit to commit even if the credit fails.",
+        "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly identified as per Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factors**:\n  - Code review for PR #218 is pending.",
+        "reason": "The analysis states the status, assignee, and that PR #218 is awaiting code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Reverse the duplicate debits for the three affected customers manually as per Aroha Walker's comment.",
+        "reason": "The analysis mentions three customers and the manual reversal by Finance Ops, but does not mention that Marcus Reid was specifically asked to raise this with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Manual reversal of duplicate debits for affected customers is required (Finance Ops).",
+        "reason": "By listing the reversal as a blocking factor and a suggested next action, the analysis conveys that the ticket does not confirm the reversal has been completed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Expedite code review for PR #218 to ensure the fix is merged and tested before the 3.2.0 release.",
+        "reason": "The analysis lists both getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is pending code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly notes that the issue does not reproduce on desktop web, consistent with Tom Becker's confirmation.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The priority was escalated to High due to customer impact, as indicated by Aroha Walker's comment.",
+        "reason": "The priority change from Medium to High appears in the ticket's History section as a field change by Aroha Walker, not in a comment; Aroha Walker's actual comment is about Finance reversal, not about the priority escalation rationale."
+      }
+    ]
+  }
+}

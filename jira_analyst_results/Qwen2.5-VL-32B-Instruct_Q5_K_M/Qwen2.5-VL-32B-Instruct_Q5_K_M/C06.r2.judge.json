@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "end-to-end testing is blocked by OPS-77, which involves installing Northwind's CA certificates into the staging trust store.",
+      "reason": "The analysis clearly states the blocking relationship, the reason (CA certs in staging trust store), and that OPS-77 is waiting for Northwind's CA bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "OPS-77 is currently blocked by a lack of response from Northwind Payments regarding the CA bundle.",
+      "reason": "The analysis mentions OPS-77 is waiting for Northwind but omits the due date (2026-09-10), the overdue status as of 2026-09-15, the specific last-update date (2026-09-11), and the partner-manager escalation."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The 3.2.0 release is scheduled for 2026-09-24, but Ravi Kumar estimates that once the certificates are available, it will take about two days to complete testing and any necessary fixes.",
+      "reason": "The analysis states the release date, the sprint end date (2026-09-22), and the two-day testing estimate, covering all required elements."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-405 will likely not make the 3.2.0 release unless the CA certificates are obtained and installed by Northwind Payments very soon.",
+      "reason": "The analysis presents the risk as uncertain (\"likely not,\" \"may not\") but does not explicitly note that nothing in the tickets commits Northwind to a delivery date, which is a key part of the inference."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The implementation is behind a feature flag (`MTLS_PARTNER`), but end-to-end testing is blocked by OPS-77",
+      "reason": "The analysis mentions the MTLS_PARTNER feature flag but does not state that the code is complete and merged, nor that the flag is off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This feature must be completed and tested by 1 October 2026, as required by Northwind Payments.",
+      "reason": "The analysis mentions both staging and production trust stores in the OPS-77 description and the 1 October hard deadline imposed by Northwind, conveying the external deadline beyond the release."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Escalate with Northwind Payments to obtain the CA bundle as soon as possible. Consider reaching out to Northwind's support or legal team if necessary.",
+      "reason": "The analysis suggests escalation but does not name the partner manager as the escalation path, does not request a firm delivery date, and the contingency is to defer to a later release rather than ship 3.2.0 with the flag off."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently describes them as still pending."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any specific date by which Northwind has committed to deliver the bundle."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No explicit version information for the affected or fix versions.",
+      "reason": "The ticket explicitly lists \"Affects versions: None\" and \"Fix versions: 3.2.0,\" so claiming there is no version information is factually incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 93.29
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "end-to-end testing is blocked by OPS-77, which involves installing Northwind's CA certificates into the staging trust store.",
+        "reason": "The analysis clearly states the blocking relationship, the reason (CA certs in staging trust store), and that OPS-77 is waiting for Northwind's CA bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "OPS-77 is currently blocked by a lack of response from Northwind Payments regarding the CA bundle.",
+        "reason": "The analysis mentions OPS-77 is waiting for Northwind but omits the due date (2026-09-10), the overdue status as of 2026-09-15, the specific last-update date (2026-09-11), and the partner-manager escalation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "The 3.2.0 release is scheduled for 2026-09-24, but Ravi Kumar estimates that once the certificates are available, it will take about two days to complete testing and any necessary fixes.",
+        "reason": "The analysis states the release date, the sprint end date (2026-09-22), and the two-day testing estimate, covering all required elements.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "BANK-405 will likely not make the 3.2.0 release unless the CA certificates are obtained and installed by Northwind Payments very soon.",
+        "reason": "The analysis presents the risk as uncertain (\"likely not,\" \"may not\") but does not explicitly note that nothing in the tickets commits Northwind to a delivery date, which is a key part of the inference.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "The implementation is behind a feature flag (`MTLS_PARTNER`), but end-to-end testing is blocked by OPS-77",
+        "reason": "The analysis mentions the MTLS_PARTNER feature flag but does not state that the code is complete and merged, nor that the flag is off by default.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "This feature must be completed and tested by 1 October 2026, as required by Northwind Payments.",
+        "reason": "The analysis mentions both staging and production trust stores in the OPS-77 description and the 1 October hard deadline imposed by Northwind, conveying the external deadline beyond the release.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Escalate with Northwind Payments to obtain the CA bundle as soon as possible. Consider reaching out to Northwind's support or legal team if necessary.",
+        "reason": "The analysis suggests escalation but does not name the partner manager as the escalation path, does not request a firm delivery date, and the contingency is to defer to a later release rather than ship 3.2.0 with the flag off.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently describes them as still pending.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis does not state any specific date by which Northwind has committed to deliver the bundle.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No explicit version information for the affected or fix versions.",
+        "reason": "The ticket explicitly lists \"Affects versions: None\" and \"Fix versions: 3.2.0,\" so claiming there is no version information is factually incorrect."
+      }
+    ]
+  }
+}

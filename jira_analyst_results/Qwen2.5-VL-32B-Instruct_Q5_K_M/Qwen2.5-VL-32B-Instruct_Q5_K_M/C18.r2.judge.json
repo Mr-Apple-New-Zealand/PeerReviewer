@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Issues `BANKUI-4A1`, `BANKUI-4A2`, and `BANKUI-4A9` share similar error types (`TypeError: Cannot read properties of undefined`) and seem related to the same root cause.",
+      "reason": "The analysis groups only three of the five issues (missing BANKUI-4B3 and BANKUI-3C8) and attributes the grouping to similar error types rather than identifying the 401 responses as the shared cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed, nor does it cite 44 users on BANKUI-3C8 as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that BANKUI-5D6 affects 58 users (the most of any issue) or that it is the top item by user impact despite low event count; it merely labels it a deployment issue to investigate separately."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This issue is likely related to a deployment or CDN problem, as the requested bundle returns a 404 error.",
+      "reason": "The analysis identifies the 404 and deployment connection but omits the specific timing (6.5 minutes after 4.7.0 deploy) and the mechanism of open sessions requesting old hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is not our defect; it appears to be caused by a browser extension (`chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`) and affects only one user. It can be deprioritized.",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine, not an application defect, and recommends deprioritizing it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This issue has the highest event count (5,140) and affects 44 users. It is likely a critical authentication or authorization problem that needs immediate attention.",
+      "reason": "The analysis uses event count as its primary ranking criterion rather than explaining that the two largest counts (5,140 and 4,812) are a logger and a single-user extension, making event count misleading here."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Issue `BANKUI-1A7` is resolved in release 4.6.0, so it can be excluded from consideration.",
+      "reason": "The analysis treats BANKUI-1A7 as simply resolved and excluded, without noting it was last seen on 2026-09-11 (after the 4.7.0 deploy) and has regressed."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "As noted in the comments, source maps are not uploaded for this project. Uploading them would significantly improve the ability to debug and resolve these issues.",
+      "reason": "The analysis conveys that source maps are not uploaded and that this prevents tracing issues to specific components, though it does not give examples of minified names."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, so total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate why `/api/settlements/Run/GetAllRunBookingsForCustomerOrder` is returning 401 errors consistently. This could be a configuration issue or a regression in authentication logic.",
+      "reason": "The analysis touches on authentication issues but does not make the specific inference that sessions are expiring without the app handling the rejection, nor does it note the pattern of 401s preceding the TypeError issues on different endpoints as evidence."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. `BANKUI-3C8` (\"HttpErrorResponse: Http failure response: 401 OK\")\n2. `BANKUI-4A1` (\"TypeError: Cannot read properties of undefined (reading 'sort')\")",
+      "reason": "The analysis prioritizes BANKUI-3C8 and BANKUI-4A1 instead of BANKUI-5D6 first (most users) and the 401 cluster second (one fix closes five issues); it also misses reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly deprioritizes BANKUI-2F0 and identifies it as a browser extension issue, not treating its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the TypeError issues together and says they share a root cause, not treating them as separate defects with separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Issue `BANKUI-1A7` is resolved in release 4.6.0, so it can be excluded from consideration.",
+      "reason": "The analysis states BANKUI-1A7 is resolved and needs no action, ignoring that it was last seen after the 4.7.0 deploy and has regressed."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as an authentication/authorization problem or configuration issue, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps BANKUI-5D6 as a separate deployment/CDN issue and BANKUI-1A7 as resolved, not grouping either with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "It is likely a critical authentication or authorization problem that needs immediate attention.",
+      "reason": "While labeled with 'likely,' the analysis presents BANKUI-3C8 as the top priority based on event count, which the data contradicts (it is a console logger recording a symptom, not the root cause itself). However, since it uses 'likely' this is a labeled inference and is excluded per the rules."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 146.02
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Issues `BANKUI-4A1`, `BANKUI-4A2`, and `BANKUI-4A9` share similar error types (`TypeError: Cannot read properties of undefined`) and seem related to the same root cause.",
+        "reason": "The analysis groups only three of the five issues (missing BANKUI-4B3 and BANKUI-3C8) and attributes the grouping to similar error types rather than identifying the 401 responses as the shared cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed, nor does it cite 44 users on BANKUI-3C8 as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis does not note that BANKUI-5D6 affects 58 users (the most of any issue) or that it is the top item by user impact despite low event count; it merely labels it a deployment issue to investigate separately.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "This issue is likely related to a deployment or CDN problem, as the requested bundle returns a 404 error.",
+        "reason": "The analysis identifies the 404 and deployment connection but omits the specific timing (6.5 minutes after 4.7.0 deploy) and the mechanism of open sessions requesting old hashed bundles.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "This is not our defect; it appears to be caused by a browser extension (`chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`) and affects only one user. It can be deprioritized.",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine, not an application defect, and recommends deprioritizing it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "This issue has the highest event count (5,140) and affects 44 users. It is likely a critical authentication or authorization problem that needs immediate attention.",
+        "reason": "The analysis uses event count as its primary ranking criterion rather than explaining that the two largest counts (5,140 and 4,812) are a logger and a single-user extension, making event count misleading here.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "Issue `BANKUI-1A7` is resolved in release 4.6.0, so it can be excluded from consideration.",
+        "reason": "The analysis treats BANKUI-1A7 as simply resolved and excluded, without noting it was last seen on 2026-09-11 (after the 4.7.0 deploy) and has regressed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "As noted in the comments, source maps are not uploaded for this project. Uploading them would significantly improve the ability to debug and resolve these issues.",
+        "reason": "The analysis conveys that source maps are not uploaded and that this prevents tracing issues to specific components, though it does not give examples of minified names.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, so total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Investigate why `/api/settlements/Run/GetAllRunBookingsForCustomerOrder` is returning 401 errors consistently. This could be a configuration issue or a regression in authentication logic.",
+        "reason": "The analysis touches on authentication issues but does not make the specific inference that sessions are expiring without the app handling the rejection, nor does it note the pattern of 401s preceding the TypeError issues on different endpoints as evidence.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. `BANKUI-3C8` (\"HttpErrorResponse: Http failure response: 401 OK\")\n2. `BANKUI-4A1` (\"TypeError: Cannot read properties of undefined (reading 'sort')\")",
+        "reason": "The analysis prioritizes BANKUI-3C8 and BANKUI-4A1 instead of BANKUI-5D6 first (most users) and the 401 cluster second (one fix closes five issues); it also misses reopening BANKUI-1A7.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly deprioritizes BANKUI-2F0 and identifies it as a browser extension issue, not treating its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the TypeError issues together and says they share a root cause, not treating them as separate defects with separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "Issue `BANKUI-1A7` is resolved in release 4.6.0, so it can be excluded from consideration.",
+        "reason": "The analysis states BANKUI-1A7 is resolved and needs no action, ignoring that it was last seen after the 4.7.0 deploy and has regressed.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as an authentication/authorization problem or configuration issue, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps BANKUI-5D6 as a separate deployment/CDN issue and BANKUI-1A7 as resolved, not grouping either with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "It is likely a critical authentication or authorization problem that needs immediate attention.",
+        "reason": "While labeled with 'likely,' the analysis presents BANKUI-3C8 as the top priority based on event count, which the data contradicts (it is a console logger recording a symptom, not the root cause itself). However, since it uses 'likely' this is a labeled inference and is excluded per the rules."
+      }
+    ]
+  }
+}

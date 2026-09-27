@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "These issues are likely related to unauthorized API calls, as indicated by the `401` responses in their breadcrumb summaries.",
+      "reason": "The analysis groups four of the five issues (3C8, 4A2, 4A9, 4B3) under a shared 401 cause but omits BANKUI-4A1 entirely from the cluster."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that distinct-user counts cannot be summed, nor does it cite 44 users on BANKUI-3C8 as the best single estimate of cluster reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This issue affects `58` users and is isolated from the authentication problems. It could be a deployment or CDN-related issue that needs resolution.",
+      "reason": "The analysis mentions 58 users but does not state that this is the highest user count in the list or contrast it with the low event count (63) to make the point about user-impact ranking."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 6.5-minute gap after the 4.7.0 deploy, the 404 on the requested bundle, or the mechanism of open sessions requesting replaced hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a browser extension-related issue and not directly our defect, as it involves a third-party extension.",
+      "reason": "The analysis correctly identifies it as a browser extension and not a defect, but omits the supporting specifics: 4,812 events, single user, chrome-extension in both culprit and top frame, and no application breadcrumbs."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not state that event count is a misleading ranking; in fact it uses the 5,140 event count as a primary justification for prioritising BANKUI-3C8."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that BANKUI-1A7 was last seen on 2026-09-11 after the 4.7.0 deploy, nor does it flag a regression or recommend reopening; it treats the issue as resolved and excluded."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The lack of source maps makes it harder to identify precise code locations for issues.",
+      "reason": "The analysis mentions the source-map gap but does not note that every lastFrame is a minified name (e.g. ie.project, N.setRows) or that no issue can be traced to a component from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or state that total affected users cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The authentication issues (`BANKUI-3C8`, `BANKUI-4A2`, `BANKUI-4A9`, `BANKUI-4B3`) are likely linked, as they all involve `401` responses from API calls. Resolving `BANKUI-3C8` could potentially mitigate these related issues.",
+      "reason": "The inference is presented as 'likely' (satisfying the inference condition) but the specific mechanism\u2014sessions expiring without the app handling the rejection\u2014and the caveat that confirming would require a full event are absent; also BANKUI-4A1 is omitted."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis reverses the priority order (3C8 first, 5D6 second) and does not recommend reopening BANKUI-1A7 or filtering BANKUI-2F0 as alongside actions that need no sprint capacity."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags BANKUI-2F0 as a non-defect and does not place it near the top of the priority list or treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the undefined-property issues under a single 'Authentication/Authorization' cause rather than treating them as separate defects with separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues or reports a summed total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Issue `BANKUI-1A7` is resolved in release `4.6.0`, so it can be excluded from the sprint.",
+      "reason": "The analysis states BANKUI-1A7 is resolved and needs no action, directly contradicting the expected finding that it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issues as authentication/authorization problems, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly separates BANKUI-5D6 ('unrelated to the authentication problems') and BANKUI-1A7 ('Resolved Issue') from the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The attached JSON file provides details on eight unresolved issues, including their frequency, user impact, and root causes.",
+      "reason": "The JSON contains eight issues total, but BANKUI-1A7 has status 'resolved'; only seven are unresolved. The analysis incorrectly states all eight are unresolved."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 188.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "These issues are likely related to unauthorized API calls, as indicated by the `401` responses in their breadcrumb summaries.",
+        "reason": "The analysis groups four of the five issues (3C8, 4A2, 4A9, 4B3) under a shared 401 cause but omits BANKUI-4A1 entirely from the cluster.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never states that distinct-user counts cannot be summed, nor does it cite 44 users on BANKUI-3C8 as the best single estimate of cluster reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "This issue affects `58` users and is isolated from the authentication problems. It could be a deployment or CDN-related issue that needs resolution.",
+        "reason": "The analysis mentions 58 users but does not state that this is the highest user count in the list or contrast it with the low event count (63) to make the point about user-impact ranking.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the 6.5-minute gap after the 4.7.0 deploy, the 404 on the requested bundle, or the mechanism of open sessions requesting replaced hashed bundles.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "This is a browser extension-related issue and not directly our defect, as it involves a third-party extension.",
+        "reason": "The analysis correctly identifies it as a browser extension and not a defect, but omits the supporting specifics: 4,812 events, single user, chrome-extension in both culprit and top frame, and no application breadcrumbs.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "",
+        "reason": "The analysis does not state that event count is a misleading ranking; in fact it uses the 5,140 event count as a primary justification for prioritising BANKUI-3C8.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "The analysis does not note that BANKUI-1A7 was last seen on 2026-09-11 after the 4.7.0 deploy, nor does it flag a regression or recommend reopening; it treats the issue as resolved and excluded.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "The lack of source maps makes it harder to identify precise code locations for issues.",
+        "reason": "The analysis mentions the source-map gap but does not note that every lastFrame is a minified name (e.g. ie.project, N.setRows) or that no issue can be traced to a component from this export alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or state that total affected users cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "The authentication issues (`BANKUI-3C8`, `BANKUI-4A2`, `BANKUI-4A9`, `BANKUI-4B3`) are likely linked, as they all involve `401` responses from API calls. Resolving `BANKUI-3C8` could potentially mitigate these related issues.",
+        "reason": "The inference is presented as 'likely' (satisfying the inference condition) but the specific mechanism\u2014sessions expiring without the app handling the rejection\u2014and the caveat that confirming would require a full event are absent; also BANKUI-4A1 is omitted.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "",
+        "reason": "The analysis reverses the priority order (3C8 first, 5D6 second) and does not recommend reopening BANKUI-1A7 or filtering BANKUI-2F0 as alongside actions that need no sprint capacity.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis flags BANKUI-2F0 as a non-defect and does not place it near the top of the priority list or treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the undefined-property issues under a single 'Authentication/Authorization' cause rather than treating them as separate defects with separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues or reports a summed total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "Issue `BANKUI-1A7` is resolved in release `4.6.0`, so it can be excluded from the sprint.",
+        "reason": "The analysis states BANKUI-1A7 is resolved and needs no action, directly contradicting the expected finding that it has regressed and should be reopened.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issues as authentication/authorization problems, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis explicitly separates BANKUI-5D6 ('unrelated to the authentication problems') and BANKUI-1A7 ('Resolved Issue') from the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The attached JSON file provides details on eight unresolved issues, including their frequency, user impact, and root causes.",
+        "reason": "The JSON contains eight issues total, but BANKUI-1A7 has status 'resolved'; only seven are unresolved. The analysis incorrectly states all eight are unresolved."
+      }
+    ]
+  }
+}

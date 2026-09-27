@@ -1,0 +1,299 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The session appeared to be active for a while, as indicated by the timestamp gaps in the breadcrumbs.",
+      "reason": "The analysis mentions timestamp gaps and 401 errors but does not identify the two halves, the specific times (03:13:33 / 07:23:12), the ~4 h 10 min duration, or the ~14,979-second gap."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Session Management: The application may not be handling session expiration gracefully, leading to undefined data structures. Null Checks: The front-end code is not adequately checking for null or undefined values before attempting operations like .sort().",
+      "reason": "It touches on 401 handling but presents the null check as a co-equal defect rather than framing the TypeError as a symptom of the missing 401 redirect/guard, and does not mention the absence of a redirect to sign-in."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or the idea that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not reference the single token-refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "It's uncertain whether the issue occurs in production or another environment, as Tom Becker notes in the comment.",
+      "reason": "The analysis leaves the environment as uncertain rather than identifying that the URL is bank-uat.example.com (UAT) while the environment tag says Production, i.e., a misconfiguration."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the stale-transaction problem."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null or the consequence for build identification and source-map matching."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Several 401 Unauthorized errors were logged for API calls, suggesting that the user's session may have expired or become invalid.",
+      "reason": "It presents the idea as a possibility (good for inference) but does not lay out the specific evidence chain: successful refresh before the gap, the four-hour idle period, and immediate 401s after."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Add checks for undefined values in the relevant code paths to prevent similar issues.",
+      "reason": "The suggested actions do not include handling 401 centrally with a redirect to sign-in, fixing the Sentry environment, setting release/dist and uploading source maps, or correcting the stale transaction name; instead it suggests adding null checks as a fix."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Null Checks: The front-end code is not adequately checking for null or undefined values before attempting operations like .sort().",
+      "reason": "The analysis presents the missing null check as a defect and a fix rather than as a defensive measure over the real 401-handling problem."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not assert the error occurred in production; it leaves the environment as uncertain."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies the screen as /payments/batch/actions and does not claim the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific source file, component class, method, or line number in application code as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as possible token expiration or invalidation, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 149.16
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "The session appeared to be active for a while, as indicated by the timestamp gaps in the breadcrumbs.",
+        "reason": "The analysis mentions timestamp gaps and 401 errors but does not identify the two halves, the specific times (03:13:33 / 07:23:12), the ~4 h 10 min duration, or the ~14,979-second gap.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Session Management: The application may not be handling session expiration gracefully, leading to undefined data structures. Null Checks: The front-end code is not adequately checking for null or undefined values before attempting operations like .sort().",
+        "reason": "It touches on 401 handling but presents the null check as a co-equal defect rather than framing the TypeError as a symptom of the missing 401 redirect/guard, and does not mention the absence of a redirect to sign-in.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or the idea that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not reference the single token-refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "It's uncertain whether the issue occurs in production or another environment, as Tom Becker notes in the comment.",
+        "reason": "The analysis leaves the environment as uncertain rather than identifying that the URL is bank-uat.example.com (UAT) while the environment tag says Production, i.e., a misconfiguration.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not mention the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the stale-transaction problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null or the consequence for build identification and source-map matching.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or a server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "Several 401 Unauthorized errors were logged for API calls, suggesting that the user's session may have expired or become invalid.",
+        "reason": "It presents the idea as a possibility (good for inference) but does not lay out the specific evidence chain: successful refresh before the gap, the four-hour idle period, and immediate 401s after.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Add checks for undefined values in the relevant code paths to prevent similar issues.",
+        "reason": "The suggested actions do not include handling 401 centrally with a redirect to sign-in, fixing the Sentry environment, setting release/dist and uploading source maps, or correcting the stale transaction name; instead it suggests adding null checks as a fix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "Null Checks: The front-end code is not adequately checking for null or undefined values before attempting operations like .sort().",
+        "reason": "The analysis presents the missing null check as a defect and a fix rather than as a defensive measure over the real 401-handling problem.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis does not assert the error occurred in production; it leaves the environment as uncertain.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis correctly identifies the screen as /payments/batch/actions and does not claim the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name a specific source file, component class, method, or line number in application code as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as possible token expiration or invalidation, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The issue began around 09:31 when errors started appearing in the system.",
+      "reason": "The analysis states impact started at 09:31 but never gives the 09:30 timestamp for the OPS-81 config deploy."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A monitoring alert was triggered at 09:47, indicating a TransferErrorRate > 20%. 2. **Incident Declaration (09:52 NZST)**: Sam Okafor declared the incident at 09:52",
+      "reason": "Both the 09:47 alert and 09:52 declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Sam Okafor started rolling back the OPS-81 config deploy. 7. **Recovery Complete (10:42 NZST)**: The rollback was completed, and the transfer error rate dropped below 1% at 10:42. 8. **Incident Resolved (10:50 NZST)**: Sam Okafor resolved the ticket",
+      "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The incident was detected within **16 minutes**. The errors started at 09:31. A monitoring alert was triggered at 09:47 (16 minutes after the issue began).",
+      "reason": "16 minutes from 09:31 to 09:47 is correctly stated with both endpoints."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The incident was recovered in **58 minutes**. The incident was declared at 09:52. Recovery was confirmed at 10:42.",
+      "reason": "The stated endpoints (09:52 to 10:42) yield 50 minutes, not 58; the acceptable start points (09:31 impact or 09:47 alert) are not used, and the arithmetic is incorrect."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy OPS-81 rotated the JWT signing key for the Auth service, but the Transactions API continued to validate tokens against the old key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+      "reason": "All key elements are present: OPS-81, JWT signing key rotation, Auth service, Transactions API validating against old key, 401, and the error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports Priya's suggestion and explicitly notes Sam ruled out the database, without naming it as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 16-minute detection time is supported (09:31\u219209:47); the 58-minute recovery figure does correspond to a valid pair (09:52\u219210:50), so no unsupported interval is asserted."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The incident was recovered in **58 minutes**. The incident was declared at 09:52. Recovery was confirmed at 10:42.",
+      "reason": "The stated endpoints 09:52 to 10:42 span 50 minutes, not 58; the number 58 actually corresponds to 09:52\u219210:50, so the calculation is internally inconsistent with the endpoints given."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 102.51
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The issue began around 09:31 when errors started appearing in the system.",
+        "reason": "The analysis states impact started at 09:31 but never gives the 09:30 timestamp for the OPS-81 config deploy.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "A monitoring alert was triggered at 09:47, indicating a TransferErrorRate > 20%. 2. **Incident Declaration (09:52 NZST)**: Sam Okafor declared the incident at 09:52",
+        "reason": "Both the 09:47 alert and 09:52 declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Sam Okafor started rolling back the OPS-81 config deploy. 7. **Recovery Complete (10:42 NZST)**: The rollback was completed, and the transfer error rate dropped below 1% at 10:42. 8. **Incident Resolved (10:50 NZST)**: Sam Okafor resolved the ticket",
+        "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "The incident was detected within **16 minutes**. The errors started at 09:31. A monitoring alert was triggered at 09:47 (16 minutes after the issue began).",
+        "reason": "16 minutes from 09:31 to 09:47 is correctly stated with both endpoints.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "The incident was recovered in **58 minutes**. The incident was declared at 09:52. Recovery was confirmed at 10:42.",
+        "reason": "The stated endpoints (09:52 to 10:42) yield 50 minutes, not 58; the acceptable start points (09:31 impact or 09:47 alert) are not used, and the arithmetic is incorrect.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The config deploy OPS-81 rotated the JWT signing key for the Auth service, but the Transactions API continued to validate tokens against the old key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+        "reason": "All key elements are present: OPS-81, JWT signing key rotation, Auth service, Transactions API validating against old key, 401, and the error code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis never mentions a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis reports Priya's suggestion and explicitly notes Sam ruled out the database, without naming it as a cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The 16-minute detection time is supported (09:31\u219209:47); the 58-minute recovery figure does correspond to a valid pair (09:52\u219210:50), so no unsupported interval is asserted.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The incident was recovered in **58 minutes**. The incident was declared at 09:52. Recovery was confirmed at 10:42.",
+        "reason": "The stated endpoints 09:52 to 10:42 span 50 minutes, not 58; the number 58 actually corresponds to 09:52\u219210:50, so the calculation is internally inconsistent with the endpoints given."
+      }
+    ]
+  }
+}
