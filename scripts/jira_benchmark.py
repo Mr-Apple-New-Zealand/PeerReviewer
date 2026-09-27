@@ -807,13 +807,17 @@ def parse_models(raw: str, default_think: str) -> list[tuple[str, str]]:
 # unless the caller passes the flag explicitly, so its quirks cannot be
 # forgotten between runs.
 #
-#   Qwen3.8-27B defaults to xhigh reasoning and spends its whole num_predict
-#   thinking, returning EMPTY content. think=medium is what makes it emit a
-#   verdict at all (ai_code_review.yml, SUMMARY finding 7). It is the only
-#   local judge measured as agreeing with Sonnet: +1.0 on the 13 cases both
-#   graded, 1 ungrounded and 0 omitted verdicts in 54 calls.
+#   Qwen3.8-27B is the default judge. It defaults to xhigh reasoning and
+#   spends its whole num_predict thinking, returning EMPTY content;
+#   think=medium is what makes it emit a verdict at all (ai_code_review.yml,
+#   SUMMARY finding 7). num_predict 40960 is the value its validated run
+#   used - it reasons even at medium. That run is the only local judge
+#   measured as agreeing with Sonnet: +1.0 on the 13 cases both graded,
+#   1 ungrounded and 0 omitted verdicts in 54 calls, and no retries needed.
+DEFAULT_JUDGE = "Qwen3.8-27B-imatrix:Q4_K_S"
+
 JUDGE_DEFAULTS = {
-    "qwen3.8-27b": {"judge_think": "medium"},
+    "qwen3.8-27b": {"judge_think": "medium", "judge_num_predict": 40960},
 }
 
 
@@ -1338,7 +1342,8 @@ def main() -> None:
     ap.add_argument("--system-prompt", default="file", choices=("file", "modelfile"),
                     help="'file' sends jira_benchmark/analyst_system_prompt.md to every model (default); "
                          "'modelfile' sends none, so each model's own SYSTEM applies")
-    ap.add_argument("--judge", default="claude-sonnet-5")
+    ap.add_argument("--judge", default=DEFAULT_JUDGE,
+                    help="Blank uses the default; any Ollama tag or a claude-* model works")
     ap.add_argument("--judge-effort", default="high")
     ap.add_argument("--judge-num-ctx", type=int, default=65536, help="Only for an Ollama judge")
     # A reasoning judge spends this budget on thinking before it writes any

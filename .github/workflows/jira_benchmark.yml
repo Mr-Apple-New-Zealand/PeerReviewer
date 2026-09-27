@@ -7,7 +7,7 @@ name: Jira Analyst Benchmark
 #
 # Visible in the Actions run list so the model and settings of a past run can
 # be read off without opening it.
-run-name: "Jira analyst ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.results_dir) || inputs.model }} | ctx ${{ inputs.num_ctx || '32768' }} | predict ${{ inputs.num_predict || '4096' }} | repeats ${{ inputs.repeats || '1' }} | judge ${{ inputs.judge || 'claude-sonnet-5' }}"
+run-name: "Jira analyst ${{ inputs.mode == 'calibrate-judge' && '(judge calibration)' || inputs.mode == 'rejudge' && format('(re-judge {0})', inputs.results_dir) || inputs.model }} | ctx ${{ inputs.num_ctx || '32768' }} | predict ${{ inputs.num_predict || '4096' }} | repeats ${{ inputs.repeats || '1' }} | judge ${{ inputs.judge || 'Qwen3.8-27B (default)' }}"
 
 on:
   workflow_dispatch:
@@ -50,36 +50,11 @@ on:
         type: string
       judge:
         description: >
-          Judge model. Blank = claude-sonnet-5. Also takes any Ollama tag on the
-          on-prem server, or a hosted one ending ':cloud' (e.g. MiniMax-M3:cloud),
-          which needs OLLAMA_API_KEY. Changing the judge makes a run incomparable
-          with runs graded by a different one.
-        required: false
-        type: string
-      judge_effort:
-        description: "Anthropic judge only: low/medium/high/xhigh/max. Blank = high."
-        required: false
-        type: string
-      judge_num_predict:
-        description: >
-          Ollama judge only. Blank = 16384. A reasoning judge spends this on
-          thinking before it writes any JSON, and returns empty content if it
-          runs out. Raise it if judging fails with parse errors.
-        required: false
-        type: string
-      judge_attempts:
-        description: >
-          Tries per judge call before the case is recorded as an error.
-          Blank = 4. An Ollama judge whose schema is not enforced fails
-          stochastically, so a retry usually clears it. If 4 is not enough the
-          judge is unreliable, not under-retried.
-        required: false
-        type: string
-      judge_think:
-        description: >
-          Ollama judge only. Blank = leave the model's default. Set 'false' to
-          suppress a reasoning judge's thinking block so the whole budget goes
-          to the verdict JSON.
+          Leave blank. Defaults to Qwen3.8-27B-imatrix:Q4_K_S, whose required
+          settings (think=medium, num_predict 40960) the harness applies itself.
+          Override only to grade with a different judge - 'claude-sonnet-5' is
+          the reference, and any Ollama tag or ':cloud' tag also works. Scores
+          from different judges are not comparable with each other.
         required: false
         type: string
 
@@ -119,15 +94,12 @@ jobs:
           NUM_PREDICT: ${{ inputs.num_predict || '4096' }}
           TEMPERATURE: ${{ inputs.temperature || '0.3' }}
           REPEATS: ${{ inputs.repeats || '1' }}
-          JUDGE: ${{ inputs.judge || 'claude-sonnet-5' }}
-          JUDGE_EFFORT: ${{ inputs.judge_effort || 'high' }}
-          JUDGE_NUM_PREDICT: ${{ inputs.judge_num_predict }}
-          JUDGE_THINK: ${{ inputs.judge_think }}
-          JUDGE_ATTEMPTS: ${{ inputs.judge_attempts }}
+          JUDGE: ${{ inputs.judge }}
           RESULTS_DIR: ${{ inputs.results_dir }}
           RUN_NUMBER: ${{ github.run_number }}
         run: |
-          # A ':cloud' judge is served by hosted Ollama and needs a Bearer key.
+          # A ':cloud' judge, if one is passed, is served by hosted Ollama and
+          # needs a Bearer key.
           # The script only finds that out at its first judge call, which is
           # after every analysis has already been generated, so check up front
           # rather than burn a full run and grade nothing.
@@ -141,12 +113,9 @@ jobs:
           esac
 
           args=(--num-ctx "$NUM_CTX" --num-predict "$NUM_PREDICT" --temperature "$TEMPERATURE"
-                --repeats "$REPEATS" --judge "$JUDGE" --judge-effort "$JUDGE_EFFORT"
-                --out jira_benchmark_results)
+                --repeats "$REPEATS" --out jira_benchmark_results)
+          if [ -n "$JUDGE" ]; then args+=(--judge "$JUDGE"); fi
           if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
-          if [ -n "$JUDGE_NUM_PREDICT" ]; then args+=(--judge-num-predict "$JUDGE_NUM_PREDICT"); fi
-          if [ -n "$JUDGE_THINK" ]; then args+=(--judge-think "$JUDGE_THINK"); fi
-          if [ -n "$JUDGE_ATTEMPTS" ]; then args+=(--judge-attempts "$JUDGE_ATTEMPTS"); fi
           label="$MODE"
           case "$MODE" in
             benchmark)
@@ -161,7 +130,7 @@ jobs:
               # Name the artifact after the judge, so calibrations of different
               # judges do not all land under the same label.
               args+=(--calibrate-judge)
-              label="calibrate-$JUDGE" ;;
+              label="calibrate-${JUDGE:-default}" ;;
             rejudge)
               if [ ! -f "$RESULTS_DIR/results.json" ]; then
                 echo "::error::results_dir '$RESULTS_DIR' has no results.json. Commit the results folder first."
