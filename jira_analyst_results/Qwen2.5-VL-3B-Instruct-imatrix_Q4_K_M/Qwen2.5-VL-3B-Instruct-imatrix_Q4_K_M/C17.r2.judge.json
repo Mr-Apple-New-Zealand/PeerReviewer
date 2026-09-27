@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two-phase timeline, the ~4-hour gap, or the shift from 200s to 401s in the breadcrumbs."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The exact cause of the error is unclear, as it involves a 'Cannot read properties of undefined' error.",
+      "reason": "The analysis does not identify the 401 responses as the cause, does not explain the TypeError as a symptom of missing data, and does not name the lack of 401 handling as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the idea that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh request, its timing, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Production environment on bank-uat.example.com.",
+      "reason": "The analysis lists both the Production tag and the UAT URL but does not flag the contradiction, identify the misconfiguration, or answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the stale-transaction problem."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Update the Sentry event with more detailed information about the error, such as the exact line of code where the error occurs.",
+      "reason": "The analysis implies the stack lacks detail but does not explain why: no mention of js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention release and dist being null or the inability to tie the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the 401 responses having zero body size or the inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the token expired during the idle period and no silent refresh ran; instead it attributes the error to user interaction with sorting."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the '401 OK' statusText wording, or any of the other red herrings."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or why the polyfills frames being marked in_app is misleading."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Investigate Angular Sorting Functionality: Check if there is a known issue with Angular's sorting functionality that could be causing this error.",
+      "reason": "The suggested actions do not include handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or noting that a null guard would only hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Verify if the data being passed to the screen is correctly formatted and not null or undefined before sorting.",
+      "reason": "The analysis presents adding a null/undefined check before sorting as the fix to investigate, rather than as a defensive band-aid over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Production environment on bank-uat.example.com.",
+      "reason": "The analysis states the error is in the 'Production environment' without flagging that the URL is the UAT host and the environment tag is misconfigured."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly refers to the 'batch actions screen' and does not attribute the error to /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists the browser and OS as context but does not blame them, the 780 KB response, or network speed for the error."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during a gap or claim failures ran continuously across a time span."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The error occurs when users interact with the batch actions screen, specifically when they attempt to sort or manipulate data within the screen.",
+      "reason": "The ticket explicitly states 'We do not have a reproduction' and says it 'seems to happen to people who have had the tab open a while.' The analysis invents a specific user-trigger (sorting/manipulating data) that is not supported by the ticket."
+    },
+    {
+      "quote": "Steps to Reproduce: Users open the batch actions screen and try to sort or manipulate data within it. The screen becomes blank, requiring a reload.",
+      "reason": "The ticket states 'We do not have a reproduction.' Presenting invented steps as known reproduction steps contradicts the ticket's explicit statement."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 141.62
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two-phase timeline, the ~4-hour gap, or the shift from 200s to 401s in the breadcrumbs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The exact cause of the error is unclear, as it involves a 'Cannot read properties of undefined' error.",
+        "reason": "The analysis does not identify the 401 responses as the cause, does not explain the TypeError as a symptom of missing data, and does not name the lack of 401 handling as the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the idea that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh request, its timing, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Production environment on bank-uat.example.com.",
+        "reason": "The analysis lists both the Production tag and the UAT URL but does not flag the contradiction, identify the misconfiguration, or answer Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not mention the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the stale-transaction problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Update the Sentry event with more detailed information about the error, such as the exact line of code where the error occurs.",
+        "reason": "The analysis implies the stack lacks detail but does not explain why: no mention of js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention release and dist being null or the inability to tie the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss the 401 responses having zero body size or the inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the token expired during the idle period and no silent refresh ran; instead it attributes the error to user interaction with sorting.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the '401 OK' statusText wording, or any of the other red herrings.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or why the polyfills frames being marked in_app is misleading.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Investigate Angular Sorting Functionality: Check if there is a known issue with Angular's sorting functionality that could be causing this error.",
+        "reason": "The suggested actions do not include handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or noting that a null guard would only hide the symptom.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "Verify if the data being passed to the screen is correctly formatted and not null or undefined before sorting.",
+        "reason": "The analysis presents adding a null/undefined check before sorting as the fix to investigate, rather than as a defensive band-aid over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "Production environment on bank-uat.example.com.",
+        "reason": "The analysis states the error is in the 'Production environment' without flagging that the URL is the UAT host and the environment tag is misconfigured.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis correctly refers to the 'batch actions screen' and does not attribute the error to /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis lists the browser and OS as context but does not blame them, the 780 KB response, or network speed for the error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during a gap or claim failures ran continuously across a time span.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The error occurs when users interact with the batch actions screen, specifically when they attempt to sort or manipulate data within the screen.",
+        "reason": "The ticket explicitly states 'We do not have a reproduction' and says it 'seems to happen to people who have had the tab open a while.' The analysis invents a specific user-trigger (sorting/manipulating data) that is not supported by the ticket."
+      },
+      {
+        "quote": "Steps to Reproduce: Users open the batch actions screen and try to sort or manipulate data within it. The screen becomes blank, requiring a reload.",
+        "reason": "The ticket states 'We do not have a reproduction.' Presenting invented steps as known reproduction steps contradicts the ticket's explicit statement."
+      }
+    ]
+  }
+}

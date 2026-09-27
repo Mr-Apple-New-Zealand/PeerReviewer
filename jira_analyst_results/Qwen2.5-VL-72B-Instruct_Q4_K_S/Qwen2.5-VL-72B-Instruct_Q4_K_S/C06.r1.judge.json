@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The task is blocked by OPS-77, which involves installing Northwind Payments' CA certificates in the trust stores. ... Waiting for OPS-77 to complete, which is currently \"Waiting for vendor\" due to delayed CA bundle delivery from Northwind. ... BANK-405 depends on OPS-77, which in turn depends on Northwind providing the CA bundle.",
+      "reason": "The analysis conveys the blocking relationship, the need for CA certificates, and that OPS-77 is waiting on Northwind, though it doesn't explicitly tie the end-to-end test to the staging trust store."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10), which has already passed without resolution.",
+      "reason": "It mentions the 2026-09-10 due date and that it has passed, but contains a material error (claiming the release date is earlier than the due date when it is later) and omits the 2026-09-11 update detail about Northwind not replying and the partner manager escalation."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10), which has already passed without resolution.",
+      "reason": "The release date 2026-09-24 is stated, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "communicate the risk of missing the 3.2.0 release due to the dependency on OPS-77. ... assess the impact of a potential delay in BANK-405 on the 3.2.0 release schedule and plan contingency measures",
+      "reason": "The analysis frames the release as at risk and suggests contingency planning, but does not explicitly state the one-week window or that nothing in the tickets commits Northwind to a date, making the inference less specific than expected."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that the code is complete, merged, or behind the MTLS_PARTNER feature flag (off by default)."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "installing Northwind Payments' CA certificates in the trust stores",
+      "reason": "The plural 'trust stores' implies both staging and production, but the critical 1 October 2026 hard external deadline is entirely absent from the analysis."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan should follow up with the partner manager for an update on Northwind's response and consider alternative ways to obtain the CA bundle if necessary. ... plan contingency measures, such as extending the release date or prioritizing other tasks.",
+      "reason": "The escalation through the partner manager is covered, but the specific contingency of shipping 3.2.0 with the MTLS_PARTNER flag off is not mentioned; instead it suggests extending the release date."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states OPS-77 is 'Waiting for vendor' and 'has already passed without resolution'; it does not claim certificates were received or OPS-77 is done."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any specific date by which Northwind has committed to deliver the bundle."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10)",
+      "reason": "This is factually incorrect: 2026-09-24 is later than 2026-09-10, not earlier. The tickets show the release is scheduled for 2026-09-24 and OPS-77's due date is 2026-09-10, so the release date is after the due date."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 86.33
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "The task is blocked by OPS-77, which involves installing Northwind Payments' CA certificates in the trust stores. ... Waiting for OPS-77 to complete, which is currently \"Waiting for vendor\" due to delayed CA bundle delivery from Northwind. ... BANK-405 depends on OPS-77, which in turn depends on Northwind providing the CA bundle.",
+        "reason": "The analysis conveys the blocking relationship, the need for CA certificates, and that OPS-77 is waiting on Northwind, though it doesn't explicitly tie the end-to-end test to the staging trust store.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10), which has already passed without resolution.",
+        "reason": "It mentions the 2026-09-10 due date and that it has passed, but contains a material error (claiming the release date is earlier than the due date when it is later) and omits the 2026-09-11 update detail about Northwind not replying and the partner manager escalation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10), which has already passed without resolution.",
+        "reason": "The release date 2026-09-24 is stated, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "communicate the risk of missing the 3.2.0 release due to the dependency on OPS-77. ... assess the impact of a potential delay in BANK-405 on the 3.2.0 release schedule and plan contingency measures",
+        "reason": "The analysis frames the release as at risk and suggests contingency planning, but does not explicitly state the one-week window or that nothing in the tickets commits Northwind to a date, making the inference less specific than expected.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "",
+        "reason": "The analysis never mentions that the code is complete, merged, or behind the MTLS_PARTNER feature flag (off by default).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "installing Northwind Payments' CA certificates in the trust stores",
+        "reason": "The plural 'trust stores' implies both staging and production, but the critical 1 October 2026 hard external deadline is entirely absent from the analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan should follow up with the partner manager for an update on Northwind's response and consider alternative ways to obtain the CA bundle if necessary. ... plan contingency measures, such as extending the release date or prioritizing other tasks.",
+        "reason": "The escalation through the partner manager is covered, but the specific contingency of shipping 3.2.0 with the MTLS_PARTNER flag off is not mentioned; instead it suggests extending the release date.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis correctly states OPS-77 is 'Waiting for vendor' and 'has already passed without resolution'; it does not claim certificates were received or OPS-77 is done.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis does not state any specific date by which Northwind has committed to deliver the bundle.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The release date (2026-09-24) is earlier than the due date for OPS-77 (2026-09-10)",
+        "reason": "This is factually incorrect: 2026-09-24 is later than 2026-09-10, not earlier. The tickets show the release is scheduled for 2026-09-24 and OPS-77's due date is 2026-09-10, so the release date is after the due date."
+      }
+    ]
+  }
+}

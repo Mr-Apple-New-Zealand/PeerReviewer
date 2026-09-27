@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 both describe the same issue where the balance on the web dashboard remains stale after a transfer.",
+      "reason": "The analysis clearly identifies BANK-425 and BANK-440 as describing the same web dashboard stale-balance issue, conveying the duplicate relationship."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Close BANK-440** as a duplicate of BANK-425.\n2. **Close BANK-425** as a duplicate of BANK-440.",
+      "reason": "The analysis recommends closing both tickets as duplicates of each other, which is self-contradictory and does not identify which one to keep or reference BANK-425's existing root-cause analysis."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is about a push notification showing the pre-transfer balance, which is unrelated to the dashboard balance update issue.",
+      "reason": "The analysis does note MOB-88 is a different issue, but contradicts itself by later calling MOB-88 a duplicate of BANK-440, and does not mention the specific cause (TransferRequested event) or that it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the 15-minute BalanceCache in local storage as the root cause or the fix of clearing it on transfer success."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis explicitly states BANK-419 is 'not directly related to the balance update issue,' which is the opposite of the expected inference that it introduced the regression."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, Unresolved, Medium Priority, Unassigned, Created 2026-09-13, Updated 2026-09-13.\n- **BANK-425**: Open, Unresolved, Medium Priority, Unassigned, Created 2026-09-05, Updated 2026-09-06.",
+      "reason": "The analysis clearly states both BANK-440 and BANK-425 are Unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANK-425 and MOB-88 are duplicates of BANK-440.",
+      "reason": "The analysis explicitly asserts MOB-88 is a duplicate of BANK-440, which is false."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'the API is functioning correctly' and does not claim the balance API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "BANK-419 is a task to reduce API calls by caching the balance response, which is not directly related to the balance update issue.",
+      "reason": "The tickets show BANK-419 added the 15-minute BalanceCache in 3.1.4, and BANK-425's comment identifies that exact cache as the root cause of the stale-balance bug, making BANK-419 directly related."
+    },
+    {
+      "quote": "Close MOB-88 as it is unrelated to the balance update issue.",
+      "reason": "MOB-88 is a valid, in-progress bug with a distinct root cause (TransferRequested event) assigned to Ravi Kumar; the tickets give no basis for closing it, and it is not a duplicate of BANK-440."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 88.09
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 both describe the same issue where the balance on the web dashboard remains stale after a transfer.",
+        "reason": "The analysis clearly identifies BANK-425 and BANK-440 as describing the same web dashboard stale-balance issue, conveying the duplicate relationship.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "1. **Close BANK-440** as a duplicate of BANK-425.\n2. **Close BANK-425** as a duplicate of BANK-440.",
+        "reason": "The analysis recommends closing both tickets as duplicates of each other, which is self-contradictory and does not identify which one to keep or reference BANK-425's existing root-cause analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is about a push notification showing the pre-transfer balance, which is unrelated to the dashboard balance update issue.",
+        "reason": "The analysis does note MOB-88 is a different issue, but contradicts itself by later calling MOB-88 a duplicate of BANK-440, and does not mention the specific cause (TransferRequested event) or that it is in progress with Ravi Kumar.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "",
+        "reason": "The analysis never identifies the 15-minute BalanceCache in local storage as the root cause or the fix of clearing it on transfer success.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis explicitly states BANK-419 is 'not directly related to the balance update issue,' which is the opposite of the expected inference that it introduced the regression.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, Unresolved, Medium Priority, Unassigned, Created 2026-09-13, Updated 2026-09-13.\n- **BANK-425**: Open, Unresolved, Medium Priority, Unassigned, Created 2026-09-05, Updated 2026-09-06.",
+        "reason": "The analysis clearly states both BANK-440 and BANK-425 are Unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "BANK-425 and MOB-88 are duplicates of BANK-440.",
+        "reason": "The analysis explicitly asserts MOB-88 is a duplicate of BANK-440, which is false.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'the API is functioning correctly' and does not claim the balance API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "BANK-419 is a task to reduce API calls by caching the balance response, which is not directly related to the balance update issue.",
+        "reason": "The tickets show BANK-419 added the 15-minute BalanceCache in 3.1.4, and BANK-425's comment identifies that exact cache as the root cause of the stale-balance bug, making BANK-419 directly related."
+      },
+      {
+        "quote": "Close MOB-88 as it is unrelated to the balance update issue.",
+        "reason": "MOB-88 is a valid, in-progress bug with a distinct root cause (TransferRequested event) assigned to Ravi Kumar; the tickets give no basis for closing it, and it is not a duplicate of BANK-440."
+      }
+    ]
+  }
+}

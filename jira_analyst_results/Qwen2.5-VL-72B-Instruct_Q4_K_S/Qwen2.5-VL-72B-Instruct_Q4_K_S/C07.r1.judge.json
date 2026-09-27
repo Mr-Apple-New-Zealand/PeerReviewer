@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:24: Sam Okafor identifies the problem as JWT signature validation failures caused by a config deploy (OPS-81) that rotated the signing key without updating the Transactions API.",
+      "reason": "The analysis states impact started at 09:31 and names OPS-81 as the cause, but never states the deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fires due to TransferErrorRate exceeding 20%.\n- **09:52:** Sam Okafor declares the incident and notes the transfer error rate at 64%.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31: Sam Okafor initiates rollback of OPS-81.\n- **10:42:** Transfer error rate drops back under 1% after rollback completion.\n- **10:50:** Incident is resolved and root cause documented.",
+      "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "From the start of errors at 09:31 to the alert firing at 09:47, the detection time is 16 minutes.",
+      "reason": "Correctly states 16 minutes with the right start and end points."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "From the alert firing at 09:47 to the error rate dropping under 1% at 10:42, the recovery time is 55 minutes.",
+      "reason": "55 minutes from detection (09:47 to 10:42) with the start point explicitly stated, which is acceptable per the key."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause was the JWT signing key being rotated in the config deploy OPS-81 without updating the Transactions API to validate against the new key. This mismatch led to signature validation failures and transfer errors.",
+      "reason": "The core cause is correct, but the analysis omits the specific error code 'IDX10503: Signature validation failed', the 401 status, and does not name the Auth service as the component whose key was rotated."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow-query mention is attributed to Priya Nair's suggestion in the timeline and is not asserted as the cause; the root cause section clearly identifies the JWT key rotation."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min detect, 55 min recover) are supported by pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 69.47
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "10:24: Sam Okafor identifies the problem as JWT signature validation failures caused by a config deploy (OPS-81) that rotated the signing key without updating the Transactions API.",
+        "reason": "The analysis states impact started at 09:31 and names OPS-81 as the cause, but never states the deploy occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fires due to TransferErrorRate exceeding 20%.\n- **09:52:** Sam Okafor declares the incident and notes the transfer error rate at 64%.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Sam Okafor initiates rollback of OPS-81.\n- **10:42:** Transfer error rate drops back under 1% after rollback completion.\n- **10:50:** Incident is resolved and root cause documented.",
+        "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "From the start of errors at 09:31 to the alert firing at 09:47, the detection time is 16 minutes.",
+        "reason": "Correctly states 16 minutes with the right start and end points.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "From the alert firing at 09:47 to the error rate dropping under 1% at 10:42, the recovery time is 55 minutes.",
+        "reason": "55 minutes from detection (09:47 to 10:42) with the start point explicitly stated, which is acceptable per the key.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause was the JWT signing key being rotated in the config deploy OPS-81 without updating the Transactions API to validate against the new key. This mismatch led to signature validation failures and transfer errors.",
+        "reason": "The core cause is correct, but the analysis omits the specific error code 'IDX10503: Signature validation failed', the 401 status, and does not name the Auth service as the component whose key was rotated.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database/slow-query mention is attributed to Priya Nair's suggestion in the timeline and is not asserted as the cause; the root cause section clearly identifies the JWT key rotation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min detect, 55 min recover) are supported by pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

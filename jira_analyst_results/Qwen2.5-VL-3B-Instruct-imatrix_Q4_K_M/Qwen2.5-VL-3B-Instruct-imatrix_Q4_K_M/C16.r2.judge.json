@@ -1,0 +1,255 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never provides the specific baseline (~300 ms) or post-release (34\u201373 s) timings for GetStatementLineQuery."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No magnitude of slowdown (hundredfold, 110\u00d7, 240\u00d7) is stated anywhere in the analysis."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s)."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The performance of the `GetAccountSummaryQuery` and `GetStatementLineQuery` has degraded significantly, leading to longer execution times and potential timeouts.",
+      "reason": "The analysis incorrectly groups GetAccountSummaryQuery as degraded rather than noting it is effectively unchanged (~3 s in both windows), and does not contradict Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned, so the point that the regression is specific to the line query is absent."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The migration 20260914_2100_ReindexStatementLines and Tom Becker's claim are never referenced."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The ReindexStatementLines migration is never mentioned, so no inference about it being the likely place to look is made."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The ThreadPool starvation warning is never mentioned, so no inference about it being a consequence rather than a cause is made."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the small sample size, different days, or gap between windows that make the comparison indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The suggested next actions are generic (review release notes, contact DevOps, stress test) and do not mention checking execution plans/indexes against the migration or collecting longer samples; Tom Becker's belief is not stated."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The performance of the `GetAccountSummaryQuery` and `GetStatementLineQuery` has degraded significantly, leading to longer execution times and potential timeouts.",
+      "reason": "The analysis states GetAccountSummaryQuery degraded, but the logs show it was ~3 s in both windows, so it did not slow down."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration is never mentioned, so no causal claim or schema description is made."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No specific magnitude (ten times, twice, etc.) is stated; only the vague phrase 'degraded significantly' appears."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "ThreadPool starvation is never mentioned, so it is not named as a root cause."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No trend or measurements over the days between the two windows are described."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Affects versions from 4.6.3 to 4.7.0.",
+      "reason": "The ticket lists only 4.7.0 as the affected version; the before log shows 4.6.3 was the working baseline, so stating 4.6.3 is affected contradicts the ticket."
+    },
+    {
+      "quote": "The issue must be resolved by the next sprint.",
+      "reason": "The ticket has Sprint: None and Due date: None; no such deadline or sprint assignment exists."
+    },
+    {
+      "quote": "The performance of the statements page must be restored to a baseline level before the release of version 4.7.0.",
+      "reason": "No such acceptance criterion or requirement appears anywhere in the ticket; it is invented."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 86.5
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "",
+        "reason": "The analysis never provides the specific baseline (~300 ms) or post-release (34\u201373 s) timings for GetStatementLineQuery.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "No magnitude of slowdown (hundredfold, 110\u00d7, 240\u00d7) is stated anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "The performance of the `GetAccountSummaryQuery` and `GetStatementLineQuery` has degraded significantly, leading to longer execution times and potential timeouts.",
+        "reason": "The analysis incorrectly groups GetAccountSummaryQuery as degraded rather than noting it is effectively unchanged (~3 s in both windows), and does not contradict Ravi Kumar's suggestion.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned, so the point that the regression is specific to the line query is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "",
+        "reason": "The migration 20260914_2100_ReindexStatementLines and Tom Becker's claim are never referenced.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "",
+        "reason": "The ReindexStatementLines migration is never mentioned, so no inference about it being the likely place to look is made.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "",
+        "reason": "The ThreadPool starvation warning is never mentioned, so no inference about it being a consequence rather than a cause is made.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not note the small sample size, different days, or gap between windows that make the comparison indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "",
+        "reason": "The suggested next actions are generic (review release notes, contact DevOps, stress test) and do not mention checking execution plans/indexes against the migration or collecting longer samples; Tom Becker's belief is not stated.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "The performance of the `GetAccountSummaryQuery` and `GetStatementLineQuery` has degraded significantly, leading to longer execution times and potential timeouts.",
+        "reason": "The analysis states GetAccountSummaryQuery degraded, but the logs show it was ~3 s in both windows, so it did not slow down.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The migration is never mentioned, so no causal claim or schema description is made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "No specific magnitude (ten times, twice, etc.) is stated; only the vague phrase 'degraded significantly' appears.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "ThreadPool starvation is never mentioned, so it is not named as a root cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "No trend or measurements over the days between the two windows are described.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Affects versions from 4.6.3 to 4.7.0.",
+        "reason": "The ticket lists only 4.7.0 as the affected version; the before log shows 4.6.3 was the working baseline, so stating 4.6.3 is affected contradicts the ticket."
+      },
+      {
+        "quote": "The issue must be resolved by the next sprint.",
+        "reason": "The ticket has Sprint: None and Due date: None; no such deadline or sprint assignment exists."
+      },
+      {
+        "quote": "The performance of the statements page must be restored to a baseline level before the release of version 4.7.0.",
+        "reason": "No such acceptance criterion or requirement appears anywhere in the ticket; it is invented."
+      }
+    ]
+  }
+}

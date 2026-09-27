@@ -1,0 +1,239 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Before release, average completion time was approximately 295ms. After release, multiple instances exceeded 30 seconds, with some taking over a minute.",
+      "reason": "The before range is close (\u2248300 ms) and the after range is roughly right (30+ s to over a minute) but the specific bounds of 34\u201373 s are not given."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No fold or multiplier (\u2248110\u00d7, \u2248240\u00d7) is stated anywhere in the analysis."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s)."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetAccountSummaryQuery performance: Remained relatively consistent, indicating that this query's performance issue may predate the release.",
+      "reason": "Conveys that the query is unchanged and slow in both windows, but does not explicitly state that this contradicts Ravi Kumar's suggestion to start there."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned in the analysis."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker believes 4.7.0 did not touch the statements component, while Ravi Kumar suggests the account summary query may be responsible.",
+      "reason": "Both Tom's claim and the migration are mentioned separately, but the analysis never explicitly states that the migration in the log contradicts Tom's assertion."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and assess its impact on performance.",
+      "reason": "Suggests looking at the migration and notes the logs don't prove causation, but does not frame it as the most likely place to look or explain that it touches the table the slow query reads."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "ThreadPool starvation: Post-release logs indicate thread pool starvation with work items queued and no threads available for a period of 4200ms, suggesting resource contention.",
+      "reason": "Mentions the event and the 4200 ms figure but does not infer that it is a consequence of the slow query rather than an independent cause, nor does it connect it to the timing jump."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the limited sample size, the different days, the gap between windows, or that the comparison is indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker: Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and assess its impact on performance.",
+      "reason": "Names Tom Becker as owner and suggests investigating the migration, but omits checking execution plans/indexes and collecting a longer sample from both versions."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery remained consistent and does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration is mentioned only as something to investigate; no schema changes are described and causation is not stated as fact."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No specific multiplier is given; the language ('significantly degraded', 'far exceeding') is consistent with the ~100\u00d7+ reality."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Thread pool starvation is listed under 'What Changed' alongside the query degradation but is not named as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No measurements or trends over the days between the two windows are described."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "There is no clear evidence that the statements component was altered in 4.7.0.",
+      "reason": "The after log explicitly records 'Applied 1 pending migration: 20260914_2100_ReindexStatementLines' at 2026-09-14 21:05:36 when 4.7.0 started, which is direct evidence that a statements-related change was deployed with the release."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 179.04
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "Before release, average completion time was approximately 295ms. After release, multiple instances exceeded 30 seconds, with some taking over a minute.",
+        "reason": "The before range is close (\u2248300 ms) and the after range is roughly right (30+ s to over a minute) but the specific bounds of 34\u201373 s are not given.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "No fold or multiplier (\u2248110\u00d7, \u2248240\u00d7) is stated anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery performance: Remained relatively consistent, indicating that this query's performance issue may predate the release.",
+        "reason": "Conveys that the query is unchanged and slow in both windows, but does not explicitly state that this contradicts Ravi Kumar's suggestion to start there.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "Tom Becker believes 4.7.0 did not touch the statements component, while Ravi Kumar suggests the account summary query may be responsible.",
+        "reason": "Both Tom's claim and the migration are mentioned separately, but the analysis never explicitly states that the migration in the log contradicts Tom's assertion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and assess its impact on performance.",
+        "reason": "Suggests looking at the migration and notes the logs don't prove causation, but does not frame it as the most likely place to look or explain that it touches the table the slow query reads.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "ThreadPool starvation: Post-release logs indicate thread pool starvation with work items queued and no threads available for a period of 4200ms, suggesting resource contention.",
+        "reason": "Mentions the event and the 4200 ms figure but does not infer that it is a consequence of the slow query rather than an independent cause, nor does it connect it to the timing jump.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not note the limited sample size, the different days, the gap between windows, or that the comparison is indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Tom Becker: Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and assess its impact on performance.",
+        "reason": "Names Tom Becker as owner and suggests investigating the migration, but omits checking execution plans/indexes and collecting a longer sample from both versions.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery remained consistent and does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The migration is mentioned only as something to investigate; no schema changes are described and causation is not stated as fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "No specific multiplier is given; the language ('significantly degraded', 'far exceeding') is consistent with the ~100\u00d7+ reality.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "Thread pool starvation is listed under 'What Changed' alongside the query degradation but is not named as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "No measurements or trends over the days between the two windows are described.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "There is no clear evidence that the statements component was altered in 4.7.0.",
+        "reason": "The after log explicitly records 'Applied 1 pending migration: 20260914_2100_ReindexStatementLines' at 2026-09-14 21:05:36 when 4.7.0 started, which is direct evidence that a statements-related change was deployed with the release."
+      }
+    ]
+  }
+}

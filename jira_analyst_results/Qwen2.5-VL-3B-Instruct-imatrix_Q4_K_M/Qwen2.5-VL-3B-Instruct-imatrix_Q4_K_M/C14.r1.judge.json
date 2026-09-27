@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 403 (Forbidden).",
+      "reason": "The analysis lists the 403 error as one of three error messages but does not identify it as the most serious fault, does not name Dapr or masterfile-api, does not specify the two endpoints, does not state it appears four times, does not name the affected commands, and does not connect it to the user-reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Conversion failed when converting the ****** value '******' to data type ******.",
+      "reason": "The analysis quotes the error text but does not attribute it to SearchPaymentRoutingRuleQueryHandler, does not mention SQL error 245, and does not state it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the value and data type are masked as ****** or that the offending column/value/type cannot be identified from this log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetMonitorJobsQueryHandler, SQL execution timeouts, the eight occurrences, the time window, or the bounded-episode nature."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Application validation errors have occured.",
+      "reason": "The analysis lists the validation error text but does not identify it as UpdatePaymentRoutingRuleCommand, does not say it occurs twice, and does not note the logging gap that individual validation messages are never logged."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetStatementLineQuery, the 10000ms threshold, the fourteen breaches, or the rising trend from ~35s to ~73s."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string with password logged at DBG level or flag it as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not classify the startup warnings (DataProtection, XML encryptor, address override, HTTPS port) as routine and not the cause of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the 403s are likely a Dapr access-control or invocation-policy configuration issue between payments-api and masterfile-api rather than a fault in the payments code."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis provides no priority ordering of the issues and does not recommend fixing the 403s first, then SQL 245 and GetStatementLineQuery, with the credential handled in parallel."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 conversion error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any elapsed times, durations, or ordered sequences as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it hedges with 'could be related to database access, API calls, or specific routing rule configurations.'"
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No detailed error message or stack trace is provided in the log.",
+      "reason": "The log clearly contains full stack traces for the 403 Dapr exception, the SQL 245 conversion error, the execution timeout, and the validation exception (before trimming). Stating that no detailed error message or stack trace is provided is contradicted by the attached file."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 103.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 403 (Forbidden).",
+        "reason": "The analysis lists the 403 error as one of three error messages but does not identify it as the most serious fault, does not name Dapr or masterfile-api, does not specify the two endpoints, does not state it appears four times, does not name the affected commands, and does not connect it to the user-reported save failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Conversion failed when converting the ****** value '******' to data type ******.",
+        "reason": "The analysis quotes the error text but does not attribute it to SearchPaymentRoutingRuleQueryHandler, does not mention SQL error 245, and does not state it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis does not note that the value and data type are masked as ****** or that the offending column/value/type cannot be identified from this log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "",
+        "reason": "The analysis does not mention GetMonitorJobsQueryHandler, SQL execution timeouts, the eight occurrences, the time window, or the bounded-episode nature.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "Application validation errors have occured.",
+        "reason": "The analysis lists the validation error text but does not identify it as UpdatePaymentRoutingRuleCommand, does not say it occurs twice, and does not note the logging gap that individual validation messages are never logged.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "The analysis does not mention GetStatementLineQuery, the 10000ms threshold, the fourteen breaches, or the rising trend from ~35s to ~73s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string with password logged at DBG level or flag it as a credential exposure requiring rotation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The analysis does not classify the startup warnings (DataProtection, XML encryptor, address override, HTTPS port) as routine and not the cause of the failures.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the 403s are likely a Dapr access-control or invocation-policy configuration issue between payments-api and masterfile-api rather than a fault in the payments code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "",
+        "reason": "The analysis provides no priority ordering of the issues and does not recommend fixing the 403s first, then SQL 245 and GetStatementLineQuery, with the credential handled in parallel.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 conversion error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state any elapsed times, durations, or ordered sequences as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it hedges with 'could be related to database access, API calls, or specific routing rule configurations.'",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No detailed error message or stack trace is provided in the log.",
+        "reason": "The log clearly contains full stack traces for the 403 Dapr exception, the SQL 245 conversion error, the execution timeout, and the validation exception (before trimming). Stating that no detailed error message or stack trace is provided is contradicted by the attached file."
+      }
+    ]
+  }
+}

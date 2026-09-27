@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31 NZST: Errors start appearing in dashboards.",
+      "reason": "The analysis states impact started at 09:31 but never explicitly gives the 09:30 timestamp for the OPS-81 config deploy."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 NZST: Monitoring alert fires due to TransferErrorRate exceeding 20%. - **09:52 NZST**: Sam Okafor declares the incident and notes a transfer error rate of 64%.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 NZST: Sam Okafor initiates rollback of the OPS-81 config deploy. - **10:42 NZST**: Transfer error rate returns to under 1% after rollback completion. - **10:50 NZST**: Sam Okafor resolves the incident",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to Detect: From the start of errors at 09:31 to the monitoring alert at 09:47, the time to detect is 16 minutes.",
+      "reason": "The 16-minute detection time with correct start and end timestamps is explicitly stated."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to Recover: From the monitoring alert at 09:47 to the error rate returning to under 1% at 10:42, the time to recover is 55 minutes.",
+      "reason": "55 minutes from detection (09:47 to 10:42) with the start point stated is explicitly acceptable per the key."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause of the incident was the rotation of the JWT signing key in config deploy OPS-81 without updating the Transactions API to validate against the new key. This mismatch led to failed transfers due to signature validation errors.",
+      "reason": "The analysis captures the key rotation and the Transactions API mismatch but omits the specific error code 'IDX10503: Signature validation failed' and does not mention the Auth service as the source of the key rotation."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:50 NZST: Sam Okafor resolves the incident and schedules a post-incident review for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow-query mention is attributed to Priya Nair as a suggestion in the timeline, not asserted as the cause; the root cause section correctly attributes the issue to the JWT key rotation."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min detect, 55 min recover) are supported by pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 72.61
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31 NZST: Errors start appearing in dashboards.",
+        "reason": "The analysis states impact started at 09:31 but never explicitly gives the 09:30 timestamp for the OPS-81 config deploy.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 NZST: Monitoring alert fires due to TransferErrorRate exceeding 20%. - **09:52 NZST**: Sam Okafor declares the incident and notes a transfer error rate of 64%.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 NZST: Sam Okafor initiates rollback of the OPS-81 config deploy. - **10:42 NZST**: Transfer error rate returns to under 1% after rollback completion. - **10:50 NZST**: Sam Okafor resolves the incident",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect: From the start of errors at 09:31 to the monitoring alert at 09:47, the time to detect is 16 minutes.",
+        "reason": "The 16-minute detection time with correct start and end timestamps is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover: From the monitoring alert at 09:47 to the error rate returning to under 1% at 10:42, the time to recover is 55 minutes.",
+        "reason": "55 minutes from detection (09:47 to 10:42) with the start point stated is explicitly acceptable per the key.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the incident was the rotation of the JWT signing key in config deploy OPS-81 without updating the Transactions API to validate against the new key. This mismatch led to failed transfers due to signature validation errors.",
+        "reason": "The analysis captures the key rotation and the Transactions API mismatch but omits the specific error code 'IDX10503: Signature validation failed' and does not mention the Auth service as the source of the key rotation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "10:50 NZST: Sam Okafor resolves the incident and schedules a post-incident review for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database/slow-query mention is attributed to Priya Nair as a suggestion in the timeline, not asserted as the cause; the root cause section correctly attributes the issue to the JWT key rotation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min detect, 55 min recover) are supported by pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

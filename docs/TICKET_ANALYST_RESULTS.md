@@ -20,18 +20,28 @@ step with it.
 
 ## Current standing
 
-One run has been measured on the full eighteen cases with the judge of record.
+Two runs have been measured on the full eighteen cases with the judge of record.
 Everything earlier is superseded — see below.
 
-| Model | Quality | C01–C13 | C14–C18 | Coverage | Traps hit | Ungrounded | Resident GB |
+| Model | Quality | C01–C13 | C14–C18 | Coverage | Traps hit | Unsupported | Resident GB |
 |---|---|---|---|---|---|---|---|
-| Qwen2.5-VL-72B-Instruct:Q4_K_S | 45.6 (45–47) | 58.7 | 11.7 | 48% | 8/162 | 0 | 56.3 |
+| Qwen2.5-VL-72B-Instruct:Q4_K_S | 45.6 (45–47) | 58.7 | 11.7 | 48% | 8/162 | 15 | 56.3 |
+| Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 14.4 (12–18) | 19.5 | 1.1 | 26% | 20/162 | 100 | 4.1 |
 
-Judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
-num_predict 8192, harness `980b243`. Its recorded `judge_num_predict` is 16384
-rather than the 40960 `JUDGE_DEFAULTS` specifies: at that commit the table could
-not override an argparse default, fixed in `826515e`. The run had no judge
-failures, so the scores stand.
+Both judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
+num_predict 8192. Judge grounding was clean on both: 0 and 1 ungrounded, 0 omitted.
+
+The 72B run (harness `980b243`) records `judge_num_predict` 16384 rather than the
+40960 `JUDGE_DEFAULTS` specifies, because at that commit the table could not
+override an argparse default; fixed in `826515e`, and the 3B run shows 40960. The
+72B had no judge failures, so its scores stand.
+
+**The 3B is a floor measurement, and the gap is wider than Quality shows.** At 4.1 GB
+it is fourteenth the memory of the 72B for a third of the score, but look at the two
+right-hand columns rather than the first: it asserts **100 unsupported claims against
+the 72B's 15** — about 1.9 per analysis against 0.3 — and trips 20 traps against 8. It
+is not merely finding less; it is asserting more that the tickets do not support, which
+is the worse failure for a ticket analyst. On C14–C18 it scores 1.1, effectively zero.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The 72B — the strongest model
@@ -127,7 +137,7 @@ result folders are no longer committed.
 | Qwen2.5-VL-72B-Instruct:Q4_K_S | 60.0 | 13 | Sonnet | Pre-C14; re-measured above |
 | Qwen2.5-VL-32B-Instruct:Q5_K_M | 59.6 | 13 | Sonnet | Pre-C14 |
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 30.9 | 13 | Sonnet | Pre-C14 |
-| Qwen2.5-VL smallest build | 16.0 | 18 | Sonnet | Filed under a model name that does not exist |
+| Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 16.0 | 18 | Sonnet | Was filed under a model name that does not exist (`...-2B-...`); re-measured above |
 | Falcon-H1-Tiny-90M-Instruct | 3.2 | 10 | Sonnet | Pre-C14, fewer cases |
 | Qwen3-VL-32B-Thinking:Q5_K_M | 64.8 | 18 | Qwen3-Coder-30B | Judge produced 39 ungrounded verdicts |
 | Qwen3-VL-32B-Instruct-imatrix | — | 18 | — | Judging failed twice; also Q3_K_M weights under a Q4_K_M tag |

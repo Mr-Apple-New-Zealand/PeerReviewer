@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Authentication Failures: BANKUI-3C8 and related issues with 401 responses in breadcrumbs may share a root cause related to authentication tokens or API access.",
+      "reason": "The analysis vaguely references 3C8 and 'related issues with 401 responses' but never explicitly names all five issues (4A1, 4A2, 4A9, 4B3, 3C8) as sharing one cause, and incorrectly groups 5D6 with the undefined-property issues under a separate 'Minified Function Names' heading."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the non-additivity of user counts or identifies 44 (BANKUI-3C8) as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions BANKUI-5D6's 58 users or 63 events, nor identifies it as the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the timing of BANKUI-5D6's firstSeen relative to the 4.7.0 deploy, nor the 404 bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0: This issue appears to be caused by a browser extension and not an app defect. It should be flagged as external and possibly communicated to users or extension developers.",
+      "reason": "The analysis correctly identifies it as a browser extension issue, not an app defect, and recommends flagging it as external (i.e., filtering rather than fixing)."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "First Priority: BANKUI-3C8 (\"HttpErrorResponse: Http failure response: 401 OK\") due to its high event count (5140) and impact on multiple users (44). This suggests a widespread authentication issue that should be addressed urgently.",
+      "reason": "The analysis uses event count as the primary ranking criterion, placing 3C8 (5,140) and 2F0 (4,812) as the top two priorities, which is exactly the misleading approach the checkpoint says to avoid."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-1A7 at all, so it neither notes the regression nor recommends reopening it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Without source maps, function names are minified, making it harder to pinpoint exact causes.",
+      "reason": "The analysis mentions missing source maps and minified names but does not give specific examples (ie.project, N.setRows) or state definitively that none of the issues can be traced to a component from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in 5D6 overlap with the 44 in the 401 cluster or the inability to determine total affected users."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-3C8 and related issues with 401 responses in breadcrumbs may share a root cause related to authentication tokens or API access.",
+      "reason": "The analysis presents the 401 cluster as a possible shared cause using 'may,' satisfying the inference requirement, but it is vague ('authentication tokens or API access') and does not note that the 401s span different endpoints or that confirming would require a full event."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "First Priority: BANKUI-3C8 (\"HttpErrorResponse: Http failure response: 401 OK\") due to its high event count (5140) and impact on multiple users (44). ... Second Priority: BANKUI-2F0 (\"SecurityError: Blocked a frame with origin...\") because it also has a high event count (4812) but affects only one user.",
+      "reason": "The analysis picks 3C8 and 2F0 as the two sprint items, rather than 5D6 first and the 401 cluster second; it does not mention reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Second Priority: BANKUI-2F0 (\"SecurityError: Blocked a frame with origin...\") because it also has a high event count (4812) but affects only one user.",
+      "reason": "The analysis places BANKUI-2F0 as the second-priority sprint item and explicitly justifies it with its event count, treating that count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the issues into clusters rather than treating them as eight separate defects, and does not assign separate causes or fixes to the four undefined-property issues."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add distinct-user counts across issues or report a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-1A7 at all, so it does not state that it is fixed, resolved, or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as an 'authentication issue,' not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups 5D6 under 'Minified Function Names' with the undefined-property issues, not with the 401 cluster; 1A7 is not mentioned at all."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This suggests a widespread authentication issue that should be addressed urgently.",
+      "reason": "The analysis states this as a conclusion, but the tickets only show 401 responses in breadcrumbs; they do not confirm a 'widespread authentication issue' as a fact. However, this is arguably an inference from the data. Since it is stated without hedging language, it is a mild overstatement, but the underlying 401 data does support an authentication-related interpretation. I will not list this as it is a reasonable reading of the data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 145.25
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Authentication Failures: BANKUI-3C8 and related issues with 401 responses in breadcrumbs may share a root cause related to authentication tokens or API access.",
+        "reason": "The analysis vaguely references 3C8 and 'related issues with 401 responses' but never explicitly names all five issues (4A1, 4A2, 4A9, 4B3, 3C8) as sharing one cause, and incorrectly groups 5D6 with the undefined-property issues under a separate 'Minified Function Names' heading.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never discusses the non-additivity of user counts or identifies 44 (BANKUI-3C8) as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis never mentions BANKUI-5D6's 58 users or 63 events, nor identifies it as the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the timing of BANKUI-5D6's firstSeen relative to the 4.7.0 deploy, nor the 404 bundle signature.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0: This issue appears to be caused by a browser extension and not an app defect. It should be flagged as external and possibly communicated to users or extension developers.",
+        "reason": "The analysis correctly identifies it as a browser extension issue, not an app defect, and recommends flagging it as external (i.e., filtering rather than fixing).",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "First Priority: BANKUI-3C8 (\"HttpErrorResponse: Http failure response: 401 OK\") due to its high event count (5140) and impact on multiple users (44). This suggests a widespread authentication issue that should be addressed urgently.",
+        "reason": "The analysis uses event count as the primary ranking criterion, placing 3C8 (5,140) and 2F0 (4,812) as the top two priorities, which is exactly the misleading approach the checkpoint says to avoid.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-1A7 at all, so it neither notes the regression nor recommends reopening it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Without source maps, function names are minified, making it harder to pinpoint exact causes.",
+        "reason": "The analysis mentions missing source maps and minified names but does not give specific examples (ie.project, N.setRows) or state definitively that none of the issues can be traced to a component from this export alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in 5D6 overlap with the 44 in the 401 cluster or the inability to determine total affected users.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "BANKUI-3C8 and related issues with 401 responses in breadcrumbs may share a root cause related to authentication tokens or API access.",
+        "reason": "The analysis presents the 401 cluster as a possible shared cause using 'may,' satisfying the inference requirement, but it is vague ('authentication tokens or API access') and does not note that the 401s span different endpoints or that confirming would require a full event.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "First Priority: BANKUI-3C8 (\"HttpErrorResponse: Http failure response: 401 OK\") due to its high event count (5140) and impact on multiple users (44). ... Second Priority: BANKUI-2F0 (\"SecurityError: Blocked a frame with origin...\") because it also has a high event count (4812) but affects only one user.",
+        "reason": "The analysis picks 3C8 and 2F0 as the two sprint items, rather than 5D6 first and the 401 cluster second; it does not mention reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "Second Priority: BANKUI-2F0 (\"SecurityError: Blocked a frame with origin...\") because it also has a high event count (4812) but affects only one user.",
+        "reason": "The analysis places BANKUI-2F0 as the second-priority sprint item and explicitly justifies it with its event count, treating that count as evidence of impact.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the issues into clusters rather than treating them as eight separate defects, and does not assign separate causes or fixes to the four undefined-property issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add distinct-user counts across issues or report a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-1A7 at all, so it does not state that it is fixed, resolved, or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as an 'authentication issue,' not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis groups 5D6 under 'Minified Function Names' with the undefined-property issues, not with the 401 cluster; 1A7 is not mentioned at all.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This suggests a widespread authentication issue that should be addressed urgently.",
+        "reason": "The analysis states this as a conclusion, but the tickets only show 401 responses in breadcrumbs; they do not confirm a 'widespread authentication issue' as a fact. However, this is arguably an inference from the data. Since it is stated without hedging language, it is a mild overstatement, but the underlying 401 data does support an authentication-related interpretation. I will not list this as it is a reasonable reading of the data."
+      }
+    ]
+  }
+}

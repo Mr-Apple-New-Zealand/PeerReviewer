@@ -1,0 +1,173 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANK-425: Similar issue but on the home screen, not the dashboard.",
+      "reason": "The analysis explicitly distinguishes BANK-425 from BANK-440 and states 'The tickets are not duplicates,' failing to identify them as duplicates of the same web balance-staleness bug on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The tickets are not duplicates but are related to different aspects of the balance update issue.",
+      "reason": "The analysis never recommends keeping one ticket and closing the other as a duplicate; it treats them as separate issues to address independently."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88: Notification shows pre-transfer balance, unrelated to dashboard update.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted event), and mentions Ravi Kumar as the assignee."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 15-minute BalanceCache in local storage, its lack of invalidation after a transfer, or the fix of clearing it on successful transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Hana Sato (BANK-419): Implement caching of the balance response in local storage for 15 minutes. Ensure this is done in version 3.1.4 and ship it accordingly.",
+      "reason": "The analysis does not infer that BANK-419 introduced the bug as a regression; instead it incorrectly treats BANK-419 as a pending task to implement, missing the causal link entirely."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify BANK-425 and BANK-440 as a duplicate pair, so it never states that both are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the tickets are not duplicates and describes MOB-88 as unrelated to the dashboard update issue."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states that the API returns the correct new balance, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Owner: Tom Becker",
+      "reason": "Tom Becker is the Reporter of BANK-440, not an 'Owner'; the ticket has no Owner field."
+    },
+    {
+      "quote": "Blocked by: The issue of the balance not updating after a transfer.",
+      "reason": "There is no 'Blocked by' field in the ticket; this is invented."
+    },
+    {
+      "quote": "Hana Sato (BANK-419): Implement caching of the balance response in local storage for 15 minutes. Ensure this is done in version 3.1.4 and ship it accordingly.",
+      "reason": "BANK-419 is already Done (Status: Done, Resolution: Done) and Hana Sato's comment confirms it was shipped in 3.1.4; suggesting it still needs implementation contradicts the ticket."
+    },
+    {
+      "quote": "Hana Sato (MOB-88): Investigate why the 'Transfer complete' push notification shows the pre-transfer balance.",
+      "reason": "MOB-88 is assigned to Ravi Kumar, not Hana Sato; the analysis incorrectly assigns Hana Sato to this ticket."
+    },
+    {
+      "quote": "Web (Affects versions: 3.1.4)",
+      "reason": "BANK-440's component is 'Transactions', not 'Web'; 'Web' is the component of BANK-425 and BANK-419."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 93.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425: Similar issue but on the home screen, not the dashboard.",
+        "reason": "The analysis explicitly distinguishes BANK-425 from BANK-440 and states 'The tickets are not duplicates,' failing to identify them as duplicates of the same web balance-staleness bug on 3.1.4.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "The tickets are not duplicates but are related to different aspects of the balance update issue.",
+        "reason": "The analysis never recommends keeping one ticket and closing the other as a duplicate; it treats them as separate issues to address independently.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: Notification shows pre-transfer balance, unrelated to dashboard update.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted event), and mentions Ravi Kumar as the assignee.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the 15-minute BalanceCache in local storage, its lack of invalidation after a transfer, or the fix of clearing it on successful transfer.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Hana Sato (BANK-419): Implement caching of the balance response in local storage for 15 minutes. Ensure this is done in version 3.1.4 and ship it accordingly.",
+        "reason": "The analysis does not infer that BANK-419 introduced the bug as a regression; instead it incorrectly treats BANK-419 as a pending task to implement, missing the causal link entirely.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis does not identify BANK-425 and BANK-440 as a duplicate pair, so it never states that both are unassigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the tickets are not duplicates and describes MOB-88 as unrelated to the dashboard update issue.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states that the API returns the correct new balance, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Owner: Tom Becker",
+        "reason": "Tom Becker is the Reporter of BANK-440, not an 'Owner'; the ticket has no Owner field."
+      },
+      {
+        "quote": "Blocked by: The issue of the balance not updating after a transfer.",
+        "reason": "There is no 'Blocked by' field in the ticket; this is invented."
+      },
+      {
+        "quote": "Hana Sato (BANK-419): Implement caching of the balance response in local storage for 15 minutes. Ensure this is done in version 3.1.4 and ship it accordingly.",
+        "reason": "BANK-419 is already Done (Status: Done, Resolution: Done) and Hana Sato's comment confirms it was shipped in 3.1.4; suggesting it still needs implementation contradicts the ticket."
+      },
+      {
+        "quote": "Hana Sato (MOB-88): Investigate why the 'Transfer complete' push notification shows the pre-transfer balance.",
+        "reason": "MOB-88 is assigned to Ravi Kumar, not Hana Sato; the analysis incorrectly assigns Hana Sato to this ticket."
+      },
+      {
+        "quote": "Web (Affects versions: 3.1.4)",
+        "reason": "BANK-440's component is 'Transactions', not 'Web'; 'Web' is the component of BANK-425 and BANK-419."
+      }
+    ]
+  }
+}

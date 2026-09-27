@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 describe similar issues where the balance displayed on a web interface does not update immediately after a transfer, suggesting they may be duplicates or closely related.",
+      "reason": "The analysis identifies both tickets as describing the same web balance-stale-after-transfer issue on 3.1.4 and calls them duplicates/same underlying issue."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Mark as a duplicate of BANK-425 if confirmed that they are the same issue.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause fix) and closing BANK-440 as a duplicate, satisfying the 'keep one, close the other' requirement with the analysis preserved."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88: In Progress, Assigned to Ravi Kumar, not directly related but involves balance display issues in notifications.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, in progress with Ravi Kumar, and a different issue, but does not specify the actual different cause (message built from TransferRequested event before debit is applied)."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Assign to Hana Sato for resolution based on her suggested fix (clear BalanceCache after a successful transfer).",
+      "reason": "The analysis identifies the BalanceCache as the root cause and the fix as clearing it after a successful transfer, matching the expected cause-and-fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419: Done, Closed, introduced caching which is likely the root cause of BANK-440 and BANK-425.",
+      "reason": "The analysis presents the regression link as an inference ('likely') and notes the dependency, but does not explicitly recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, Unassigned, no blocking factors noted.\n- **BANK-425**: Open, Unassigned, potentially blocked by lack of cache invalidation mechanism.",
+      "reason": "Both duplicate tickets are explicitly listed as Unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'not directly related' and involves 'a different component and issue,' never calling it a duplicate."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API returns a wrong or stale value; it attributes the problem to frontend caching."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "BANK-419: Done, Closed, introduced caching which is likely the root cause of BANK-440 and BANK-425.",
+      "reason": "The ticket states Status: Done and Resolution: Done; 'Closed' is a distinct Jira status not present in the ticket, making this a minor factual inaccuracy."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 89.53
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 describe similar issues where the balance displayed on a web interface does not update immediately after a transfer, suggesting they may be duplicates or closely related.",
+        "reason": "The analysis identifies both tickets as describing the same web balance-stale-after-transfer issue on 3.1.4 and calls them duplicates/same underlying issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Mark as a duplicate of BANK-425 if confirmed that they are the same issue.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause fix) and closing BANK-440 as a duplicate, satisfying the 'keep one, close the other' requirement with the analysis preserved.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: In Progress, Assigned to Ravi Kumar, not directly related but involves balance display issues in notifications.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, in progress with Ravi Kumar, and a different issue, but does not specify the actual different cause (message built from TransferRequested event before debit is applied).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Assign to Hana Sato for resolution based on her suggested fix (clear BalanceCache after a successful transfer).",
+        "reason": "The analysis identifies the BalanceCache as the root cause and the fix as clearing it after a successful transfer, matching the expected cause-and-fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419: Done, Closed, introduced caching which is likely the root cause of BANK-440 and BANK-425.",
+        "reason": "The analysis presents the regression link as an inference ('likely') and notes the dependency, but does not explicitly recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, Unassigned, no blocking factors noted.\n- **BANK-425**: Open, Unassigned, potentially blocked by lack of cache invalidation mechanism.",
+        "reason": "Both duplicate tickets are explicitly listed as Unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'not directly related' and involves 'a different component and issue,' never calling it a duplicate.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis never claims the balance API returns a wrong or stale value; it attributes the problem to frontend caching.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "BANK-419: Done, Closed, introduced caching which is likely the root cause of BANK-440 and BANK-425.",
+        "reason": "The ticket states Status: Done and Resolution: Done; 'Closed' is a distinct Jira status not present in the ticket, making this a minor factual inaccuracy."
+      }
+    ]
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A customer experienced a transfer retry after a timeout, resulting in two debits to the source account and one credit to the destination account.",
+      "reason": "The analysis clearly states the core bug: retry after timeout causes two debits and one credit."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0",
+      "reason": "The analysis correctly identifies 3.1.4 as the affected version, 3.2.0 as the fix version, and September 24, 2026 as the release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The PR #218 should wrap the debit and credit in a single transaction and add Idempotency-Key header support to the transfer endpoint.",
+      "reason": "The analysis describes the fix (single transaction + idempotency key) but frames it as an acceptance criterion for the PR rather than explicitly stating the root cause as identified by Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Status: In Progress\n- **Assignee:** Priya Nair",
+      "reason": "Status and assignee are correct, and PR #218 is mentioned, but the analysis does not state that PR #218 is specifically waiting on code review; it only says Priya should 'continue working on' it."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid should raise the issue with Finance Ops to reverse the duplicate debits for the three affected customers manually, as per the ticket history.",
+      "reason": "All elements are present: three customers, manual reversal by Finance, and Marcus Reid asked to raise with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus Reid should raise the issue with Finance Ops to reverse the duplicate debits for the three affected customers manually, as per the ticket history.",
+      "reason": "The 'should' framing implies the action hasn't been completed, but the analysis never explicitly states that the ticket does not confirm the reversal has been raised or that customers have been refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Priya Nair should continue working on the PR #218 to wrap the debit and credit in a single transaction and add Idempotency-Key header support.",
+      "reason": "The Finance Ops action is covered, but the PR #218 next step is framed as 'continue working on' rather than specifically 'get reviewed and merged,' which is what the ticket indicates is pending."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim PR #218 has been merged or that the fix is deployed/released; it says the fix is 'still in development.'"
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim desktop web is affected; it merely notes the platform behavior is 'not fully understood,' which does not assert desktop is impacted."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Owner: Marcus Reid",
+      "reason": "The ticket lists Marcus Reid as the Reporter, not as an 'Owner.' There is no 'Owner' field in the ticket, and the Assignee is Priya Nair."
+    },
+    {
+      "quote": "Blocked by: The need for a fix in the 3.2.0 release, which is due to be released on September 24, 2026.",
+      "reason": "The ticket status is 'In Progress,' not 'Blocked.' The 3.2.0 release is the target, not a blocking dependency. No 'Blocked by' field exists in the ticket."
+    },
+    {
+      "quote": "The exact behavior of the retry button and its handling by different platforms (mobile vs desktop web) is not fully understood.",
+      "reason": "The ticket explicitly states (Tom Becker's comment) that the bug does NOT reproduce on desktop web because desktop disables the submit button and has no Retry button. The behavior is clearly documented, not 'not fully understood.'"
+    },
+    {
+      "quote": "There is no detailed information on how the issue was initially reported or the specific customer details involved.",
+      "reason": "The ticket does state that three customers reported via support calls on 5, 6, and 8 September, providing some detail on how the issue was reported."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 85.95
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A customer experienced a transfer retry after a timeout, resulting in two debits to the source account and one credit to the destination account.",
+        "reason": "The analysis clearly states the core bug: retry after timeout causes two debits and one credit.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0",
+        "reason": "The analysis correctly identifies 3.1.4 as the affected version, 3.2.0 as the fix version, and September 24, 2026 as the release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The PR #218 should wrap the debit and credit in a single transaction and add Idempotency-Key header support to the transfer endpoint.",
+        "reason": "The analysis describes the fix (single transaction + idempotency key) but frames it as an acceptance criterion for the PR rather than explicitly stating the root cause as identified by Priya's reproduction.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee:** Priya Nair",
+        "reason": "Status and assignee are correct, and PR #218 is mentioned, but the analysis does not state that PR #218 is specifically waiting on code review; it only says Priya should 'continue working on' it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Marcus Reid should raise the issue with Finance Ops to reverse the duplicate debits for the three affected customers manually, as per the ticket history.",
+        "reason": "All elements are present: three customers, manual reversal by Finance, and Marcus Reid asked to raise with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid should raise the issue with Finance Ops to reverse the duplicate debits for the three affected customers manually, as per the ticket history.",
+        "reason": "The 'should' framing implies the action hasn't been completed, but the analysis never explicitly states that the ticket does not confirm the reversal has been raised or that customers have been refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair should continue working on the PR #218 to wrap the debit and credit in a single transaction and add Idempotency-Key header support.",
+        "reason": "The Finance Ops action is covered, but the PR #218 next step is framed as 'continue working on' rather than specifically 'get reviewed and merged,' which is what the ticket indicates is pending.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis does not claim PR #218 has been merged or that the fix is deployed/released; it says the fix is 'still in development.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not claim desktop web is affected; it merely notes the platform behavior is 'not fully understood,' which does not assert desktop is impacted.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Owner: Marcus Reid",
+        "reason": "The ticket lists Marcus Reid as the Reporter, not as an 'Owner.' There is no 'Owner' field in the ticket, and the Assignee is Priya Nair."
+      },
+      {
+        "quote": "Blocked by: The need for a fix in the 3.2.0 release, which is due to be released on September 24, 2026.",
+        "reason": "The ticket status is 'In Progress,' not 'Blocked.' The 3.2.0 release is the target, not a blocking dependency. No 'Blocked by' field exists in the ticket."
+      },
+      {
+        "quote": "The exact behavior of the retry button and its handling by different platforms (mobile vs desktop web) is not fully understood.",
+        "reason": "The ticket explicitly states (Tom Becker's comment) that the bug does NOT reproduce on desktop web because desktop disables the submit button and has no Retry button. The behavior is clearly documented, not 'not fully understood.'"
+      },
+      {
+        "quote": "There is no detailed information on how the issue was initially reported or the specific customer details involved.",
+        "reason": "The ticket does state that three customers reported via support calls on 5, 6, and 8 September, providing some detail on how the issue was reported."
+      }
+    ]
+  }
+}

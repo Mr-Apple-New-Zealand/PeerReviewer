@@ -1,0 +1,299 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two-phase structure of the breadcrumbs, the specific timestamps, the ~4-hour-10-minute gap, or the transition from all-200 to all-401."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The error suggests that somewhere in the code, there's an assumption that an array will always be defined before calling `.sort` on it. When this assumption fails (i.e., the array is `undefined`), a TypeError is thrown. This could happen if data expected from an API call isn't returned as anticipated or is lost due to authentication issues.",
+      "reason": "It loosely connects 401 to undefined data but frames the root cause as a missing null check rather than the app's failure to handle 401 (no redirect, no guard), and never states the TypeError is a symptom rather than the fault."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the four earlier sentry.event breadcrumbs ('rows' \u00d72, 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The Sentry event shows it occurred in \"Production,\" but the URL suggests a UAT environment.",
+      "reason": "It identifies the Production-vs-UAT discrepancy but frames it as 'ambiguity' rather than concluding the Sentry environment is misconfigured, that it pollutes production alerting, or that it answers Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the implication for Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the missing source maps, the three js_no_source errors, the failed scraping_attempts, symbolicated_in_app being false, or the minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or the consequence for build identification and source-map matching."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not present a labelled inference that the token expired during the idle period based on the pre-gap refresh, the gap duration, and the immediate 401s; it only vaguely says data 'could be lost due to authentication issues.'"
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flag, the polyfills frames being marked in_app, or the in_app_frame_mix metadata."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Developers should review the code where `.sort` is called on potentially undefined arrays, as suggested by Tom Becker's comment (BANK-495).",
+      "reason": "The suggested actions are generic (confirm environment, reproduce, review .sort code) and omit all specific fixes: central 401 handling, Sentry environment correction, release/dist/source-map setup, transaction name fix, and the warning that a null guard would only hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error suggests that somewhere in the code, there's an assumption that an array will always be defined before calling `.sort` on it. When this assumption fails (i.e., the array is `undefined`), a TypeError is thrown.",
+      "reason": "The analysis presents the missing null check as the root cause and the suggested fix (review where .sort is called), rather than identifying the lack of 401 handling as the real defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the UAT URL and calls the environment ambiguous rather than asserting it is a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis refers to the 'batch actions screen' and never states the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific source file, component, method, or line number in application code."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as 'authentication issues' without calling them an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during the gap or claim failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 162.57
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two-phase structure of the breadcrumbs, the specific timestamps, the ~4-hour-10-minute gap, or the transition from all-200 to all-401.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error suggests that somewhere in the code, there's an assumption that an array will always be defined before calling `.sort` on it. When this assumption fails (i.e., the array is `undefined`), a TypeError is thrown. This could happen if data expected from an API call isn't returned as anticipated or is lost due to authentication issues.",
+        "reason": "It loosely connects 401 to undefined data but frames the root cause as a missing null check rather than the app's failure to handle 401 (no redirect, no guard), and never states the TypeError is a symptom rather than the fault.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the four earlier sentry.event breadcrumbs ('rows' \u00d72, 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the single token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "The Sentry event shows it occurred in \"Production,\" but the URL suggests a UAT environment.",
+        "reason": "It identifies the Production-vs-UAT discrepancy but frames it as 'ambiguity' rather than concluding the Sentry environment is misconfigured, that it pollutes production alerting, or that it answers Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 while the actual URL is /payments/batch/actions, nor the implication for Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the missing source maps, the three js_no_source errors, the failed scraping_attempts, symbolicated_in_app being false, or the minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or the consequence for build identification and source-map matching.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not present a labelled inference that the token expired during the idle period based on the pre-gap refresh, the gap duration, and the immediate 401s; it only vaguely says data 'could be lost due to authentication issues.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flag, the polyfills frames being marked in_app, or the in_app_frame_mix metadata.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Developers should review the code where `.sort` is called on potentially undefined arrays, as suggested by Tom Becker's comment (BANK-495).",
+        "reason": "The suggested actions are generic (confirm environment, reproduce, review .sort code) and omit all specific fixes: central 401 handling, Sentry environment correction, release/dist/source-map setup, transaction name fix, and the warning that a null guard would only hide the symptom.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The error suggests that somewhere in the code, there's an assumption that an array will always be defined before calling `.sort` on it. When this assumption fails (i.e., the array is `undefined`), a TypeError is thrown.",
+        "reason": "The analysis presents the missing null check as the root cause and the suggested fix (review where .sort is called), rather than identifying the lack of 401 handling as the real defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis explicitly flags the UAT URL and calls the environment ambiguous rather than asserting it is a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis refers to the 'batch actions screen' and never states the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name any specific source file, component, method, or line number in application code.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as 'authentication issues' without calling them an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during the gap or claim failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

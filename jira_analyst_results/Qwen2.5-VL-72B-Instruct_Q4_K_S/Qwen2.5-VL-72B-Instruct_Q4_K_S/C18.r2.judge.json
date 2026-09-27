@@ -1,0 +1,257 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "These four issues (`BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, `BANKUI-4B3`) likely stem from similar data handling or API response issues. They should be investigated together to identify common patterns.",
+      "reason": "Groups the four TypeError issues but excludes BANKUI-3C8 from the cluster and does not identify the 401 responses as the shared causal mechanism."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed or that 44 is the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions BANKUI-5D6 only as a possible deployment/CDN issue without noting its 58 users, 63 events, or that it is the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not reference the 21:11:36 first-seen time, the 4.7.0 deploy at 21:05:00, the 404 on the bundle, or the open-sessions mechanism."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SecurityError (`BANKUI-2F0`): This issue is caused by a browser extension and not an application defect. It should be documented but not prioritized for code changes.",
+      "reason": "Correctly identifies it as a browser extension and not an app defect, but omits the 4,812 events, single user, chrome-extension script details, and lack of app breadcrumbs."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "With 5140 events and affecting 44 users, this is the most impactful issue. It suggests widespread authentication or API access problems that should be addressed first.",
+      "reason": "The analysis uses event count as the primary ranking criterion and elevates BANKUI-3C8 to top priority, directly contradicting the point that event count is misleading here."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-1A7 is never mentioned in the analysis; no observation about its regression or need to reopen is made."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Without source maps, function names are minified, making it harder to pinpoint exact causes.",
+      "reason": "Acknowledges the source-map gap but does not state that no issue can be traced to a specific component from this export alone, nor gives examples of minified names."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or that total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The HttpErrorResponse and TypeError issues likely share underlying causes related to API responses and data handling, respectively.",
+      "reason": "The inference is too vague; it does not identify 401 responses preceding each TypeError on different endpoints as evidence of unhandled session expiration, nor does it note that a full event would be needed to confirm."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "HttpErrorResponse (`BANKUI-3C8`): With 5140 events and affecting 44 users, this is the most impactful issue. It suggests widespread authentication or API access problems that should be addressed first.",
+      "reason": "The analysis picks BANKUI-3C8 as first priority instead of BANKUI-5D6, does not frame the 401 cluster as five issues closed by one HTTP-layer fix, and does not mention reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly demotes BANKUI-2F0 to a non-defect to be documented, not prioritized."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeError issues together under a common cause and does not assign them separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No user counts are summed across issues anywhere in the analysis."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-1A7 is not mentioned at all, so it is neither declared fixed nor dismissed."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401 issue is described as 'authentication or API access problems,' not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 is treated as a separate deployment/CDN issue and BANKUI-1A7 is not mentioned; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 132.19
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "These four issues (`BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, `BANKUI-4B3`) likely stem from similar data handling or API response issues. They should be investigated together to identify common patterns.",
+        "reason": "Groups the four TypeError issues but excludes BANKUI-3C8 from the cluster and does not identify the 401 responses as the shared causal mechanism.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed or that 44 is the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis mentions BANKUI-5D6 only as a possible deployment/CDN issue without noting its 58 users, 63 events, or that it is the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not reference the 21:11:36 first-seen time, the 4.7.0 deploy at 21:05:00, the 404 on the bundle, or the open-sessions mechanism.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "SecurityError (`BANKUI-2F0`): This issue is caused by a browser extension and not an application defect. It should be documented but not prioritized for code changes.",
+        "reason": "Correctly identifies it as a browser extension and not an app defect, but omits the 4,812 events, single user, chrome-extension script details, and lack of app breadcrumbs.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "With 5140 events and affecting 44 users, this is the most impactful issue. It suggests widespread authentication or API access problems that should be addressed first.",
+        "reason": "The analysis uses event count as the primary ranking criterion and elevates BANKUI-3C8 to top priority, directly contradicting the point that event count is misleading here.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "BANKUI-1A7 is never mentioned in the analysis; no observation about its regression or need to reopen is made.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Without source maps, function names are minified, making it harder to pinpoint exact causes.",
+        "reason": "Acknowledges the source-map gap but does not state that no issue can be traced to a specific component from this export alone, nor gives examples of minified names.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or that total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "The HttpErrorResponse and TypeError issues likely share underlying causes related to API responses and data handling, respectively.",
+        "reason": "The inference is too vague; it does not identify 401 responses preceding each TypeError on different endpoints as evidence of unhandled session expiration, nor does it note that a full event would be needed to confirm.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "HttpErrorResponse (`BANKUI-3C8`): With 5140 events and affecting 44 users, this is the most impactful issue. It suggests widespread authentication or API access problems that should be addressed first.",
+        "reason": "The analysis picks BANKUI-3C8 as first priority instead of BANKUI-5D6, does not frame the 401 cluster as five issues closed by one HTTP-layer fix, and does not mention reopening BANKUI-1A7.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly demotes BANKUI-2F0 to a non-defect to be documented, not prioritized.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeError issues together under a common cause and does not assign them separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "No user counts are summed across issues anywhere in the analysis.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "BANKUI-1A7 is not mentioned at all, so it is neither declared fixed nor dismissed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The 401 issue is described as 'authentication or API access problems,' not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "BANKUI-5D6 is treated as a separate deployment/CDN issue and BANKUI-1A7 is not mentioned; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

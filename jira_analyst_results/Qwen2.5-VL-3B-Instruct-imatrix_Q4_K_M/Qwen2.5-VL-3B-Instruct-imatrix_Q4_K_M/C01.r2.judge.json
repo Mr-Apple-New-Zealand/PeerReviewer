@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A customer experienced a transfer retry after timeout, resulting in two debits to the source account instead of one, and one credit to the target account.",
+      "reason": "The analysis clearly states the double-debit, single-credit outcome of retrying after the timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0\n\n- **Acceptance Criteria:**\n  - The issue should be resolved in the 3.2.0 release on 2026-09-24.",
+      "reason": "The analysis correctly identifies version 3.1.4 as affected, 3.2.0 as the fix version, and 2026-09-24 as the release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the root cause (the lack of idempotency in the retry mechanism) and potential workarounds are not explicitly stated.",
+      "reason": "The analysis names the idempotency issue but contradicts itself by saying the root cause is 'not explicitly stated,' and only implies the missing single-transaction issue through the fix description rather than stating it as a root cause."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Status:** In Progress\n- **Assignee:** Priya Nair",
+      "reason": "The analysis states the status is In Progress, the assignee is Priya Nair, and separately notes 'The PR #218 is pending code review.'"
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Ensure that Finance Ops manually reverses the duplicate debits for the three affected customers.\n   - **Responsible:** Aroha Walker",
+      "reason": "The analysis mentions three customers and the manual reversal by Finance, but attributes the action to Aroha Walker rather than noting that Marcus Reid was specifically asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not explicitly state that the ticket does not confirm the Finance reversal request has been raised or that the customers have been refunded; it only lists the reversal as a next action without noting the absence of confirmation."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Review and merge PR #218 to wrap the debit and credit in a single transaction and add idempotency key support.",
+      "reason": "The analysis lists getting PR #218 reviewed and merged, and ensuring Finance Ops reverses the duplicate debits, covering both next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is 'pending code review' and lists merging as a future action; it does not claim the PR has been merged or the fix deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention desktop web at all, so it does not claim desktop is affected."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Owner:** Marcus Reid",
+      "reason": "The ticket lists Marcus Reid as the Reporter, not as an 'Owner'; there is no Owner field in the ticket."
+    },
+    {
+      "quote": "No specific technical details or error logs are provided that could help in identifying the root cause.",
+      "reason": "The ticket includes a detailed log excerpt with timestamps, transaction IDs (8841, 8842), account numbers, and the ERR_TXN_504 error, directly contradicting this claim."
+    },
+    {
+      "quote": "the root cause (the lack of idempotency in the retry mechanism) and potential workarounds are not explicitly stated.",
+      "reason": "Priya's comment in the ticket explicitly states both root causes: no idempotency key on retry and debit/credit not in a single database transaction, so the claim that they are 'not explicitly stated' is factually wrong."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 93.23
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A customer experienced a transfer retry after timeout, resulting in two debits to the source account instead of one, and one credit to the target account.",
+        "reason": "The analysis clearly states the double-debit, single-credit outcome of retrying after the timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0\n\n- **Acceptance Criteria:**\n  - The issue should be resolved in the 3.2.0 release on 2026-09-24.",
+        "reason": "The analysis correctly identifies version 3.1.4 as affected, 3.2.0 as the fix version, and 2026-09-24 as the release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "the root cause (the lack of idempotency in the retry mechanism) and potential workarounds are not explicitly stated.",
+        "reason": "The analysis names the idempotency issue but contradicts itself by saying the root cause is 'not explicitly stated,' and only implies the missing single-transaction issue through the fix description rather than stating it as a root cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "**Status:** In Progress\n- **Assignee:** Priya Nair",
+        "reason": "The analysis states the status is In Progress, the assignee is Priya Nair, and separately notes 'The PR #218 is pending code review.'",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Ensure that Finance Ops manually reverses the duplicate debits for the three affected customers.\n   - **Responsible:** Aroha Walker",
+        "reason": "The analysis mentions three customers and the manual reversal by Finance, but attributes the action to Aroha Walker rather than noting that Marcus Reid was specifically asked to raise it with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "",
+        "reason": "The analysis does not explicitly state that the ticket does not confirm the Finance reversal request has been raised or that the customers have been refunded; it only lists the reversal as a next action without noting the absence of confirmation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Review and merge PR #218 to wrap the debit and credit in a single transaction and add idempotency key support.",
+        "reason": "The analysis lists getting PR #218 reviewed and merged, and ensuring Finance Ops reverses the duplicate debits, covering both next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is 'pending code review' and lists merging as a future action; it does not claim the PR has been merged or the fix deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not mention desktop web at all, so it does not claim desktop is affected.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Owner:** Marcus Reid",
+        "reason": "The ticket lists Marcus Reid as the Reporter, not as an 'Owner'; there is no Owner field in the ticket."
+      },
+      {
+        "quote": "No specific technical details or error logs are provided that could help in identifying the root cause.",
+        "reason": "The ticket includes a detailed log excerpt with timestamps, transaction IDs (8841, 8842), account numbers, and the ERR_TXN_504 error, directly contradicting this claim."
+      },
+      {
+        "quote": "the root cause (the lack of idempotency in the retry mechanism) and potential workarounds are not explicitly stated.",
+        "reason": "Priya's comment in the ticket explicitly states both root causes: no idempotency key on retry and debit/credit not in a single database transaction, so the claim that they are 'not explicitly stated' is factually wrong."
+      }
+    ]
+  }
+}

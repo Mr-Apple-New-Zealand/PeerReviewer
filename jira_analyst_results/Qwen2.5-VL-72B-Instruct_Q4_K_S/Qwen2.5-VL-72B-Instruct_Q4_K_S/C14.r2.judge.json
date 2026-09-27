@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "HTTP 403 Forbidden Errors: The Payments API cannot access certain endpoints on the masterfile-api due to permission issues. This affects commands like `AddPaymentRoutingRuleSecondaryCommand` and `BulkUpdateSecondaryBranchesCommand`.",
+      "reason": "Identifies the 403, masterfile-api, and both commands, but omits the specific endpoints, the count of four occurrences, and does not explicitly rank it as the most serious fault or state it is exactly the save users reported failing."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SQL Conversion Failures: There are multiple instances where SQL queries fail due to conversion errors, indicating data type mismatches or invalid data being passed.",
+      "reason": "Mentions SQL conversion failures vaguely but does not name SearchPaymentRoutingRuleQueryHandler, error 245, the specific error message, or the count of five."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never acknowledges that the value and data type are masked as ****** in the log, nor that the offending column/value/type cannot be identified from this file."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Execution Timeouts: Queries related to monitoring jobs (`GetMonitorJobsQuery`) are timing out, suggesting performance issues with the database or network.",
+      "reason": "Identifies GetMonitorJobsQuery timeouts but gives no count (eight), no time window (22:26:37\u201322:29:08), no mention of recovery from 22:36:47, and does not characterise it as a bounded episode."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, the two failures, or the logging gap of missing individual validation messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "GetStatementLineQuery and its fourteen threshold breaches (35 s to 73 s, still rising) are never mentioned."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The credential exposure (connection string with password at DBG level) is not identified at all."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The single pod restart (shutting down at 02:50:11, restarting at 02:50:14) is not mentioned."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Warnings About Data Protection Keys: The warnings about keys not being persisted outside the container are informational and do not directly impact the current issue.",
+      "reason": "Covers only the DataProtection key warning as routine; the other three startup warnings (No XML encryptor, Overriding address, Failed to determine https port) are not mentioned."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Informational Messages: Most INF level logs about successful requests and routine operations can be ignored unless they provide context for the errors.",
+      "reason": "A blanket statement about INF logs; none of the four specific items (Service Permissions messages, ObjectMapper licence lines, TaskCanceledException at 21:11:02, 404 for pending payment 88213) are named."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that timestamps are time-of-day only with no date, are out of order, or that stack traces were trimmed, making elapsed times and sequence undeterminable."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "HTTP 403 Forbidden: Check permissions and access controls for the masterfile-api endpoints. Coordinate with the database team if necessary.",
+      "reason": "Touches on permissions/access controls but presents it as a recommendation rather than an inference, provides no reasoning (calls never reach a handler, consistent on both methods), and incorrectly involves the database team."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No priority order is given; the 403s are not ranked first, the SQL 245 and GetStatementLineQuery are not sequenced second, and the credential issue is absent entirely."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the DataProtection warnings 'do not directly impact the current issue' and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No elapsed times, durations, or ordered sequences across the file are stated as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The NATS subject names are not mentioned or treated as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No claim of crash-looping or repeated restarts is made."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it lists multiple distinct issues."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 161.28
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "HTTP 403 Forbidden Errors: The Payments API cannot access certain endpoints on the masterfile-api due to permission issues. This affects commands like `AddPaymentRoutingRuleSecondaryCommand` and `BulkUpdateSecondaryBranchesCommand`.",
+        "reason": "Identifies the 403, masterfile-api, and both commands, but omits the specific endpoints, the count of four occurrences, and does not explicitly rank it as the most serious fault or state it is exactly the save users reported failing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "SQL Conversion Failures: There are multiple instances where SQL queries fail due to conversion errors, indicating data type mismatches or invalid data being passed.",
+        "reason": "Mentions SQL conversion failures vaguely but does not name SearchPaymentRoutingRuleQueryHandler, error 245, the specific error message, or the count of five.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis never acknowledges that the value and data type are masked as ****** in the log, nor that the offending column/value/type cannot be identified from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Execution Timeouts: Queries related to monitoring jobs (`GetMonitorJobsQuery`) are timing out, suggesting performance issues with the database or network.",
+        "reason": "Identifies GetMonitorJobsQuery timeouts but gives no count (eight), no time window (22:26:37\u201322:29:08), no mention of recovery from 22:36:47, and does not characterise it as a bounded episode.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, the two failures, or the logging gap of missing individual validation messages.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "GetStatementLineQuery and its fourteen threshold breaches (35 s to 73 s, still rising) are never mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The credential exposure (connection string with password at DBG level) is not identified at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The single pod restart (shutting down at 02:50:11, restarting at 02:50:14) is not mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Warnings About Data Protection Keys: The warnings about keys not being persisted outside the container are informational and do not directly impact the current issue.",
+        "reason": "Covers only the DataProtection key warning as routine; the other three startup warnings (No XML encryptor, Overriding address, Failed to determine https port) are not mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Informational Messages: Most INF level logs about successful requests and routine operations can be ignored unless they provide context for the errors.",
+        "reason": "A blanket statement about INF logs; none of the four specific items (Service Permissions messages, ObjectMapper licence lines, TaskCanceledException at 21:11:02, 404 for pending payment 88213) are named.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that timestamps are time-of-day only with no date, are out of order, or that stack traces were trimmed, making elapsed times and sequence undeterminable.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "HTTP 403 Forbidden: Check permissions and access controls for the masterfile-api endpoints. Coordinate with the database team if necessary.",
+        "reason": "Touches on permissions/access controls but presents it as a recommendation rather than an inference, provides no reasoning (calls never reach a handler, consistent on both methods), and incorrectly involves the database team.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "",
+        "reason": "No priority order is given; the 403s are not ranked first, the SQL 245 and GetStatementLineQuery are not sequenced second, and the credential issue is absent entirely.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the DataProtection warnings 'do not directly impact the current issue' and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "No elapsed times, durations, or ordered sequences across the file are stated as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The NATS subject names are not mentioned or treated as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "No claim of crash-looping or repeated restarts is made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it lists multiple distinct issues.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

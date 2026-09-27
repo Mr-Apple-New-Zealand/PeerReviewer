@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy at 09:30 (OPS-81) rotated the JWT signing key for the Auth service, but the Transactions API still validates against the old key.",
+      "reason": "The analysis states OPS-81 was at 09:30 and separately notes 'Dashboards show errors starting around 09:31,' covering both required facts."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time: 09:47 (Monitoring alert fired)\n- **Description:** Transfer error rate > 20%.\n\n**Initial Investigation:**\n- **Time:** 09:52 (Incident declared)",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time: 10:31\n- **Description:** Sam Okafor initiates a rollback of the OPS-81 config deploy.\n\n**Recovery:**\n- **Time:** 10:42\n- **Description:** The transfer error rate returns to under 1% after the rollback is complete.",
+      "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the incident resolution at 10:50 is not mentioned anywhere in the analysis."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Detect: 09:47 (Monitoring alert fired)",
+      "reason": "The analysis only restates the alert time rather than calculating a duration (16 minutes) or referencing the 09:31 impact start as the detection baseline."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Recover: 10:31 (Rollback initiated) - 10:42 (Rollback complete)",
+      "reason": "The analysis measures recovery from rollback initiation (10:31) to 10:42 (11 minutes) rather than from impact start (09:31) or detection (09:47), and does not state a duration in minutes."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause was the rotation of the JWT signing key for the Auth service without updating the key that the Transactions API validates against.",
+      "reason": "The core mechanism is correct, but the specific error code 'IDX10503: Signature validation failed' is absent; the analysis only says 'signature validation failure' and '401s'."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root Cause Review:\n- **Time:** 2026-09-16\n- **Description:** A post-incident review is scheduled for this date.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports Priya's database suspicion and then explicitly notes Sam confirmed the database is healthy, without naming it as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The only durations implied (09:47 alert, 10:31\u201310:42 recovery window) are supported by timestamp pairs present in the ticket; no unsupported duration is stated."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 106.12
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The config deploy at 09:30 (OPS-81) rotated the JWT signing key for the Auth service, but the Transactions API still validates against the old key.",
+        "reason": "The analysis states OPS-81 was at 09:30 and separately notes 'Dashboards show errors starting around 09:31,' covering both required facts.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Time: 09:47 (Monitoring alert fired)\n- **Description:** Transfer error rate > 20%.\n\n**Initial Investigation:**\n- **Time:** 09:52 (Incident declared)",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Time: 10:31\n- **Description:** Sam Okafor initiates a rollback of the OPS-81 config deploy.\n\n**Recovery:**\n- **Time:** 10:42\n- **Description:** The transfer error rate returns to under 1% after the rollback is complete.",
+        "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the incident resolution at 10:50 is not mentioned anywhere in the analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect: 09:47 (Monitoring alert fired)",
+        "reason": "The analysis only restates the alert time rather than calculating a duration (16 minutes) or referencing the 09:31 impact start as the detection baseline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover: 10:31 (Rollback initiated) - 10:42 (Rollback complete)",
+        "reason": "The analysis measures recovery from rollback initiation (10:31) to 10:42 (11 minutes) rather than from impact start (09:31) or detection (09:47), and does not state a duration in minutes.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause was the rotation of the JWT signing key for the Auth service without updating the key that the Transactions API validates against.",
+        "reason": "The core mechanism is correct, but the specific error code 'IDX10503: Signature validation failed' is absent; the analysis only says 'signature validation failure' and '401s'.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Root Cause Review:\n- **Time:** 2026-09-16\n- **Description:** A post-incident review is scheduled for this date.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis reports Priya's database suspicion and then explicitly notes Sam confirmed the database is healthy, without naming it as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The only durations implied (09:47 alert, 10:31\u201310:42 recovery window) are supported by timestamp pairs present in the ticket; no unsupported duration is stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 describe similar issues where the balance displayed on the web dashboard does not update after a transfer, suggesting they may be duplicates.",
+      "reason": "The analysis clearly identifies both tickets as reporting the same web dashboard balance staleness after a transfer on 3.1.4 and concludes they are duplicates."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "If confirmed as a duplicate, close BANK-440 and link it to BANK-425 as a duplicate.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, matching the key's preferred direction."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is related but distinct, as it concerns push notifications showing incorrect balances.",
+      "reason": "The analysis states MOB-88 is distinct (not a duplicate), identifies it as a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted), and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Hana Sato's comment in BANK-425 suggests a dependency on clearing the BalanceCache after a successful transfer, which might also resolve BANK-440.",
+      "reason": "The analysis identifies the BalanceCache as the cause and clearing it after a successful transfer as the fix, though it omits the 15-minute duration and local storage detail."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions BANK-419 only in the current-state list and never draws the inference that it introduced the bug as a regression or recommends linking it."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, Unassigned.\n- **BANK-425**: Open, Unassigned.",
+      "reason": "The analysis explicitly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'related but distinct' and does not call it a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "BANK-440 and BANK-425 affect the web component in version 3.1.4.",
+      "reason": "BANK-440's component is listed as 'Transactions', not 'Web'; only BANK-425 has the 'Web' component."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 73.6
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 describe similar issues where the balance displayed on the web dashboard does not update after a transfer, suggesting they may be duplicates.",
+        "reason": "The analysis clearly identifies both tickets as reporting the same web dashboard balance staleness after a transfer on 3.1.4 and concludes they are duplicates.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "If confirmed as a duplicate, close BANK-440 and link it to BANK-425 as a duplicate.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, matching the key's preferred direction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is related but distinct, as it concerns push notifications showing incorrect balances.",
+        "reason": "The analysis states MOB-88 is distinct (not a duplicate), identifies it as a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted), and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato's comment in BANK-425 suggests a dependency on clearing the BalanceCache after a successful transfer, which might also resolve BANK-440.",
+        "reason": "The analysis identifies the BalanceCache as the cause and clearing it after a successful transfer as the fix, though it omits the 15-minute duration and local storage detail.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis mentions BANK-419 only in the current-state list and never draws the inference that it introduced the bug as a regression or recommends linking it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, Unassigned.\n- **BANK-425**: Open, Unassigned.",
+        "reason": "The analysis explicitly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'related but distinct' and does not call it a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis never claims the balance API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "BANK-440 and BANK-425 affect the web component in version 3.1.4.",
+        "reason": "BANK-440's component is listed as 'Transactions', not 'Web'; only BANK-425 has the 'Web' component."
+      }
+    ]
+  }
+}

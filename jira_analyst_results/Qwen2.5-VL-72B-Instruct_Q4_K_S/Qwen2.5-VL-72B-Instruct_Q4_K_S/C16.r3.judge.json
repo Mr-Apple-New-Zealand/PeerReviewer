@@ -1,0 +1,229 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Before: Completed in approximately 300ms (range 281ms - 319ms). After: Significantly increased, with multiple requests exceeding the threshold of 10000ms, up to 72974ms.",
+      "reason": "The before range is correct and the upper bound of the after range is given, but the lower bound of the after range (~34 s) is not stated; it only says 'exceeding the threshold of 10000ms.'"
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never quantifies the slowdown as a fold increase (e.g., ~110\u00d7 or ~240\u00d7); it only says 'drastically declined' and 'significantly increased.'"
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only gives a single upper bound."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Before: Completed in approximately 3000ms (range 2987ms - 3341ms). After: Remained relatively consistent at around 3000ms (range 3011ms - 3402ms).",
+      "reason": "The ranges and the conclusion that it is not the regression are present, but the analysis does not explicitly state that this contradicts Ravi Kumar's suggestion to start there."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned in the analysis, so the point that the regression is specific to the statement line query and not a general service slowdown is absent."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "no analysis of the impact of the ReindexStatementLines migration",
+      "reason": "The analysis mentions the migration and Tom's claim separately but never draws the explicit contradiction that the migration was applied at 21:05:36 when 4.7.0 started, directly contradicting Tom's statement."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not suggest the ReindexStatementLines migration is the most likely place to look; it only notes that no analysis of its impact has been done."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "ThreadPool starvation: Detected after the release, indicating a potential bottleneck in thread management.",
+      "reason": "The analysis mentions the thread-pool starvation but does not frame it as a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the comparison rests on short (~5\u20136 min) windows on different days with only a handful of samples, making the regression size indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker should review the changes in 4.7.0 for any indirect impacts on statements, despite no direct changes being made.",
+      "reason": "The analysis gives generic next actions (review changes, analyze GetAccountSummaryQuery) but does not mention checking execution plans/indexes against the migration or collecting a longer sample from both versions."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery performance remained similar and is not the primary cause, so it does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state as fact that the migration caused the slowdown, nor does it describe any schema changes the migration made."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state a specific unsupported magnitude such as 'ten times' or 'twice as slow.'"
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions thread-pool starvation as a detected event but does not name it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 130.56
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "Before: Completed in approximately 300ms (range 281ms - 319ms). After: Significantly increased, with multiple requests exceeding the threshold of 10000ms, up to 72974ms.",
+        "reason": "The before range is correct and the upper bound of the after range is given, but the lower bound of the after range (~34 s) is not stated; it only says 'exceeding the threshold of 10000ms.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "The analysis never quantifies the slowdown as a fold increase (e.g., ~110\u00d7 or ~240\u00d7); it only says 'drastically declined' and 'significantly increased.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only gives a single upper bound.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "Before: Completed in approximately 3000ms (range 2987ms - 3341ms). After: Remained relatively consistent at around 3000ms (range 3011ms - 3402ms).",
+        "reason": "The ranges and the conclusion that it is not the regression are present, but the analysis does not explicitly state that this contradicts Ravi Kumar's suggestion to start there.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned in the analysis, so the point that the regression is specific to the statement line query and not a general service slowdown is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "no analysis of the impact of the ReindexStatementLines migration",
+        "reason": "The analysis mentions the migration and Tom's claim separately but never draws the explicit contradiction that the migration was applied at 21:05:36 when 4.7.0 started, directly contradicting Tom's statement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "",
+        "reason": "The analysis does not suggest the ReindexStatementLines migration is the most likely place to look; it only notes that no analysis of its impact has been done.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "ThreadPool starvation: Detected after the release, indicating a potential bottleneck in thread management.",
+        "reason": "The analysis mentions the thread-pool starvation but does not frame it as a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44 s to ~69 s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not note that the comparison rests on short (~5\u20136 min) windows on different days with only a handful of samples, making the regression size indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Tom Becker should review the changes in 4.7.0 for any indirect impacts on statements, despite no direct changes being made.",
+        "reason": "The analysis gives generic next actions (review changes, analyze GetAccountSummaryQuery) but does not mention checking execution plans/indexes against the migration or collecting a longer sample from both versions.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery performance remained similar and is not the primary cause, so it does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis does not state as fact that the migration caused the slowdown, nor does it describe any schema changes the migration made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis does not state a specific unsupported magnitude such as 'ten times' or 'twice as slow.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis mentions thread-pool starvation as a detected event but does not name it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

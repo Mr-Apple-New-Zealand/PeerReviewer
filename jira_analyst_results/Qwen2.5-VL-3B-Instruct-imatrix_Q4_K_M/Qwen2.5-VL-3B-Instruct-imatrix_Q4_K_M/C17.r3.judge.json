@@ -1,0 +1,309 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two-phase breadcrumb pattern, the ~4-hour gap, or the shift from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The underlying defect may be related to how arrays are handled in the batch actions screen, but this is not explicitly stated.",
+      "reason": "The analysis frames the missing null check on .sort as the defect rather than identifying the 401 responses and lack of 401 handling as the root cause."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'rows', 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh request or the absence of a refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the discrepancy between the 'Production' environment tag and the bank-uat.example.com URLs."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the stale transaction/culprit (/settlements/run/8214) versus the actual URL (/payments/batch/actions)."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurs in the `XMLHttpRequest.Y` function within the polyfills.js file.",
+      "reason": "The analysis reports a minified stack frame as the location rather than explaining that source maps are missing, scraping failed, and the stack cannot identify the actual component."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null, preventing build identification and source-map matching."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that 401 responses have zero body size, making it impossible to determine why the token was rejected."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "It seems to happen to users who have had the tab open for a while, indicating it might be related to how the screen handles user interactions over time.",
+      "reason": "The analysis vaguely alludes to tab-open duration but does not infer token expiry during idle as the mechanism, nor does it connect the pre-gap refresh, the gap, and the post-gap 401s."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' wording)."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention in_app flags or in_app_frame_mix, nor explain that the flag is not evidence of application-code fault."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Investigate the Error: Use the Sentry event to identify the exact line of code causing the error and understand why `.sort` is being called on an undefined array.",
+      "reason": "The suggested actions are generic and do not include handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or warning that a null guard would hide the problem."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The underlying defect may be related to how arrays are handled in the batch actions screen, but this is not explicitly stated.",
+      "reason": "The analysis frames the missing null check before .sort as the underlying defect to fix, rather than identifying it as a symptom of unhandled 401 responses."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state the error is in production or treat it as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis refers to the 'batch actions screen' and does not claim the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports minified stack-trace names (XMLHttpRequest.Y, polyfills.js) but does not name an actual application source file, component, or method as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network, browser, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe activity during a gap or continuous failures across one."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The error occurs when the user navigates to the batch actions screen and attempts to sort an array that is not defined.",
+      "reason": "The ticket explicitly states 'We do not have a reproduction.' Presenting a specific user action (navigating and attempting a sort) as a reproduction step is not supported by the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 132.68
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two-phase breadcrumb pattern, the ~4-hour gap, or the shift from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The underlying defect may be related to how arrays are handled in the batch actions screen, but this is not explicitly stated.",
+        "reason": "The analysis frames the missing null check on .sort as the defect rather than identifying the 401 responses and lack of 401 handling as the root cause.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows', 'rows', 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh request or the absence of a refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "",
+        "reason": "The analysis does not note the discrepancy between the 'Production' environment tag and the bank-uat.example.com URLs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not mention the stale transaction/culprit (/settlements/run/8214) versus the actual URL (/payments/batch/actions).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The error occurs in the `XMLHttpRequest.Y` function within the polyfills.js file.",
+        "reason": "The analysis reports a minified stack frame as the location rather than explaining that source maps are missing, scraping failed, and the stack cannot identify the actual component.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null, preventing build identification and source-map matching.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that 401 responses have zero body size, making it impossible to determine why the token was rejected.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "It seems to happen to users who have had the tab open for a while, indicating it might be related to how the screen handles user interactions over time.",
+        "reason": "The analysis vaguely alludes to tab-open duration but does not infer token expiry during idle as the mechanism, nor does it connect the pre-gap refresh, the gap, and the post-gap 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' wording).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention in_app flags or in_app_frame_mix, nor explain that the flag is not evidence of application-code fault.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Investigate the Error: Use the Sentry event to identify the exact line of code causing the error and understand why `.sort` is being called on an undefined array.",
+        "reason": "The suggested actions are generic and do not include handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or warning that a null guard would hide the problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The underlying defect may be related to how arrays are handled in the batch actions screen, but this is not explicitly stated.",
+        "reason": "The analysis frames the missing null check before .sort as the underlying defect to fix, rather than identifying it as a symptom of unhandled 401 responses.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis does not state the error is in production or treat it as a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis refers to the 'batch actions screen' and does not claim the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis reports minified stack-trace names (XMLHttpRequest.Y, polyfills.js) but does not name an actual application source file, component, or method as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network, browser, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe activity during a gap or continuous failures across one.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The error occurs when the user navigates to the batch actions screen and attempts to sort an array that is not defined.",
+        "reason": "The ticket explicitly states 'We do not have a reproduction.' Presenting a specific user action (navigating and attempting a sort) as a reproduction step is not supported by the ticket data."
+      }
+    ]
+  }
+}

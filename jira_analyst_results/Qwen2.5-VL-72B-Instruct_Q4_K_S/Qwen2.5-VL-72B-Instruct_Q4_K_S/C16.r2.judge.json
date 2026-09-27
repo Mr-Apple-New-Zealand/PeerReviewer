@@ -1,0 +1,239 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Before release (4.6.3): Average response time was around 290ms (ranging from 281ms to 319ms). After release (4.7.0): Average response time increased dramatically to over 35 seconds (ranging from 35,171ms to 72,974ms)",
+      "reason": "The analysis correctly states the before range (281\u2013319 ms) and the after range (35,171\u201372,974 ms), matching the expected ~300 ms to ~34\u201373 s."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis says the increase was 'dramatic' but never quantifies the fold increase (\u2248110\u00d7 at the start, \u2248240\u00d7 at the worst reading)."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "ranging from 35,171ms to 72,974ms",
+      "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Before release: Average response time was around 3200ms (ranging from 2987ms to 3402ms). After release: Response times remained similar, averaging around 3200ms (ranging from 3011ms to 3402ms).",
+      "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged, but the before range is misstated (2987\u20133402 ms instead of 2987\u20133341 ms) and it does not explicitly contradict Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand (1840 ms before, 1902 ms after) is never mentioned, so the point that the regression is specific to the line query and not a general slowdown is absent."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A migration was applied during the release, which could have impacted the performance.",
+      "reason": "The analysis notes the migration was applied with the release but does not explicitly frame it as contradicting Tom Becker's claim that nothing in 4.7.0 touched statements."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and its potential impact on performance.",
+      "reason": "The analysis identifies the migration as the place to look and hedges with 'could have' / 'potential impact,' but does not explicitly state that the logs only show coincidence, not causation."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "ThreadPool starvation was detected after the release, indicating potential thread management issues.",
+      "reason": "The analysis mentions the thread-pool warning but does not frame it as a consequence of requests piling up behind the slow query, nor does it note the timing correlation with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the comparison rests on two short (~5-min) windows on different days with only a handful of samples, making the magnitude indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker: Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and its potential impact on performance.",
+      "reason": "The analysis assigns investigation of the migration to Tom Becker but does not recommend checking execution plans/indexes or collecting a longer sample from both versions, and does not state that Tom currently believes it is not his team's change."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery 'remained relatively consistent' and does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses hedged language ('could have impacted,' 'potential impact') and does not describe what the migration did to the schema."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis provides the actual millisecond figures and the word 'dramatically' but does not state an unsupported multiplier like 10\u00d7 or 2\u00d7."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions thread-pool starvation as a detected issue but does not name it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Before release: Average response time was around 3200ms (ranging from 2987ms to 3402ms).",
+      "reason": "The before-log values for GetAccountSummaryQuery are 3102, 3341, 2987, and 3255 ms, giving a range of 2987\u20133341 ms. The 3402 ms figure appears only in the after log, so including it in the before range is a factual error."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 154.98
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "Before release (4.6.3): Average response time was around 290ms (ranging from 281ms to 319ms). After release (4.7.0): Average response time increased dramatically to over 35 seconds (ranging from 35,171ms to 72,974ms)",
+        "reason": "The analysis correctly states the before range (281\u2013319 ms) and the after range (35,171\u201372,974 ms), matching the expected ~300 ms to ~34\u201373 s.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "The analysis says the increase was 'dramatic' but never quantifies the fold increase (\u2248110\u00d7 at the start, \u2248240\u00d7 at the worst reading).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "ranging from 35,171ms to 72,974ms",
+        "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with timestamps.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "Before release: Average response time was around 3200ms (ranging from 2987ms to 3402ms). After release: Response times remained similar, averaging around 3200ms (ranging from 3011ms to 3402ms).",
+        "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged, but the before range is misstated (2987\u20133402 ms instead of 2987\u20133341 ms) and it does not explicitly contradict Ravi Kumar's suggestion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand (1840 ms before, 1902 ms after) is never mentioned, so the point that the regression is specific to the line query and not a general slowdown is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "A migration was applied during the release, which could have impacted the performance.",
+        "reason": "The analysis notes the migration was applied with the release but does not explicitly frame it as contradicting Tom Becker's claim that nothing in 4.7.0 touched statements.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and its potential impact on performance.",
+        "reason": "The analysis identifies the migration as the place to look and hedges with 'could have' / 'potential impact,' but does not explicitly state that the logs only show coincidence, not causation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "ThreadPool starvation was detected after the release, indicating potential thread management issues.",
+        "reason": "The analysis mentions the thread-pool warning but does not frame it as a consequence of requests piling up behind the slow query, nor does it note the timing correlation with the jump from ~44 s to ~69 s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not note that the comparison rests on two short (~5-min) windows on different days with only a handful of samples, making the magnitude indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Tom Becker: Investigate the migration applied in 4.7.0 (20260914_2100_ReindexStatementLines) and its potential impact on performance.",
+        "reason": "The analysis assigns investigation of the migration to Tom Becker but does not recommend checking execution plans/indexes or collecting a longer sample from both versions, and does not state that Tom currently believes it is not his team's change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery 'remained relatively consistent' and does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis uses hedged language ('could have impacted,' 'potential impact') and does not describe what the migration did to the schema.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis provides the actual millisecond figures and the word 'dramatically' but does not state an unsupported multiplier like 10\u00d7 or 2\u00d7.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis mentions thread-pool starvation as a detected issue but does not name it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Before release: Average response time was around 3200ms (ranging from 2987ms to 3402ms).",
+        "reason": "The before-log values for GetAccountSummaryQuery are 3102, 3341, 2987, and 3255 ms, giving a range of 2987\u20133341 ms. The 3402 ms figure appears only in the after log, so including it in the before range is a factual error."
+      }
+    ]
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the SMTP 535 authentication failure, the SmtpException, or the server response '5.7.139 Authentication unsuccessful, basic authentication is disabled'; it attributes the failure entirely to key storage."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The log file shows that the service is storing its data protection keys in a directory that is not persisted, leading to the failure of sending payment receipt emails.",
+      "reason": "The analysis endorses the reporter's explanation rather than rejecting it, and does not identify the DataProtection warnings as routine startup messages unrelated to SMTP delivery."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, or the blocking of outbox item 991204 at the head of the queue."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog (1412 to 2089) or the rate of accumulation."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41 and cannot confirm the 14:00 start described by the contact centre."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address whether another restart would help or note that the 535 errors continued after the 18:02 restart."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the mail provider disabled basic authentication for svc-notify@example.com or that the fix is a change of authentication method."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The suggested next actions focus on fixing key storage, reviewing logs, testing, documenting, and following up; none of the expected actions (confirming auth change with mail tenant, adding backoff/dead-letter, retrieving pre-18:02 log) are mentioned."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor clarify that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Customers are not receiving payment receipt emails due to an issue with key storage in the notifications pod. The service is storing its data protection keys in a directory that is not persisted, and there is no XML encryptor configured.",
+      "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any SMTP error, code, or reason not present in the log."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Customers are not receiving payment receipt emails due to an issue with key storage in the notifications pod.",
+      "reason": "The log shows the actual failure is SMTP authentication (status 535, 'basic authentication is disabled'); the DataProtection key-storage warning is a routine ASP.NET Core startup message with no causal link to the SMTP errors in the log."
+    },
+    {
+      "quote": "The log file shows that the service is storing its data protection keys in a directory that is not persisted, leading to the failure of sending payment receipt emails.",
+      "reason": "The log does contain the key-storage warning, but it does not show that warning 'leading to' the email failures; the ERR lines are all SMTP 535 authentication rejections from EmailSender/OutboxDispatcher, unrelated to key persistence."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.51
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the SMTP 535 authentication failure, the SmtpException, or the server response '5.7.139 Authentication unsuccessful, basic authentication is disabled'; it attributes the failure entirely to key storage.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The log file shows that the service is storing its data protection keys in a directory that is not persisted, leading to the failure of sending payment receipt emails.",
+        "reason": "The analysis endorses the reporter's explanation rather than rejecting it, and does not identify the DataProtection warnings as routine startup messages unrelated to SMTP delivery.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, or the blocking of outbox item 991204 at the head of the queue.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog (1412 to 2089) or the rate of accumulation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41 and cannot confirm the 14:00 start described by the contact centre.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "",
+        "reason": "The analysis does not address whether another restart would help or note that the 535 errors continued after the 18:02 restart.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the mail provider disabled basic authentication for svc-notify@example.com or that the fix is a change of authentication method.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "",
+        "reason": "The suggested next actions focus on fixing key storage, reviewing logs, testing, documenting, and following up; none of the expected actions (confirming auth change with mail tenant, adding backoff/dead-letter, retrieving pre-18:02 log) are mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor clarify that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "Customers are not receiving payment receipt emails due to an issue with key storage in the notifications pod. The service is storing its data protection keys in a directory that is not persisted, and there is no XML encryptor configured.",
+        "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not state any SMTP error, code, or reason not present in the log.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Customers are not receiving payment receipt emails due to an issue with key storage in the notifications pod.",
+        "reason": "The log shows the actual failure is SMTP authentication (status 535, 'basic authentication is disabled'); the DataProtection key-storage warning is a routine ASP.NET Core startup message with no causal link to the SMTP errors in the log."
+      },
+      {
+        "quote": "The log file shows that the service is storing its data protection keys in a directory that is not persisted, leading to the failure of sending payment receipt emails.",
+        "reason": "The log does contain the key-storage warning, but it does not show that warning 'leading to' the email failures; the ERR lines are all SMTP 535 authentication rejections from EmailSender/OutboxDispatcher, unrelated to key persistence."
+      }
+    ]
+  }
+}

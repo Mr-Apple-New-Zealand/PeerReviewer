@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the SMTP authentication failure, status code 535, the SmtpException, the server response text, or the EmailSender/OutboxDispatcher code path; it attributes the failure entirely to data protection keys."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does the opposite of what is expected: it endorses the reporter's DataProtection/XML-encryptor explanation as the cause rather than stating it is unsupported by the log."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not reference the growing outbox backlog, the specific pending counts (1412\u21922089), or the rate of accumulation."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Restarting the pod did not resolve the issue, indicating that the problem is likely related to the configuration rather than a temporary issue with the pod itself.",
+      "reason": "The analysis acknowledges the restart didn't help but does not cite the specific evidence that 535 rejections continued after the 18:02 restart through to 18:38:02."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions 'basic authentication is disabled,' the svc-notify@example.com account, or suggests the fix is a change of authentication method rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The suggested next actions (fix key storage, configure XML encryptor, test, document) do not include confirming with the mail tenant, changing the authentication method, adding backoff/dead-letter, or retrieving the pre-18:02 log."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, the health check at 18:21:09, or clarify that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Customers are not receiving payment receipt emails due to a configuration issue where data protection keys are stored in a directory that is not persisted and no XML encryptor is configured, leading to failed email deliveries.",
+      "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at or around 14:00, nor does it claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis notes the restart did not resolve the issue but does not recommend restarting the pod as a fix or likely remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any SMTP error, code, or reason not present in the log."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 92.24
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the SMTP authentication failure, status code 535, the SmtpException, the server response text, or the EmailSender/OutboxDispatcher code path; it attributes the failure entirely to data protection keys.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "",
+        "reason": "The analysis does the opposite of what is expected: it endorses the reporter's DataProtection/XML-encryptor explanation as the cause rather than stating it is unsupported by the log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not reference the growing outbox backlog, the specific pending counts (1412\u21922089), or the rate of accumulation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Restarting the pod did not resolve the issue, indicating that the problem is likely related to the configuration rather than a temporary issue with the pod itself.",
+        "reason": "The analysis acknowledges the restart didn't help but does not cite the specific evidence that 535 rejections continued after the 18:02 restart through to 18:38:02.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "",
+        "reason": "The analysis never mentions 'basic authentication is disabled,' the svc-notify@example.com account, or suggests the fix is a change of authentication method rather than a code change.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "",
+        "reason": "The suggested next actions (fix key storage, configure XML encryptor, test, document) do not include confirming with the mail tenant, changing the authentication method, adding backoff/dead-letter, or retrieving the pre-18:02 log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, the health check at 18:21:09, or clarify that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "Customers are not receiving payment receipt emails due to a configuration issue where data protection keys are stored in a directory that is not persisted and no XML encryptor is configured, leading to failed email deliveries.",
+        "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at or around 14:00, nor does it claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis notes the restart did not resolve the issue but does not recommend restarting the pod as a fix or likely remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame the NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not state any SMTP error, code, or reason not present in the log.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

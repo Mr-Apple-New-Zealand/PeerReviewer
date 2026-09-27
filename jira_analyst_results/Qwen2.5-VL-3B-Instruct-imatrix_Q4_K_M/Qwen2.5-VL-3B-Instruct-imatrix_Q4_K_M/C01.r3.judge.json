@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "resulting in two debits to the cheque account and one credit to the savings account",
+      "reason": "The analysis clearly states the double debit and single credit outcome, and the retry trigger is included in the reproduction steps."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0\n\n- **Acceptance Criteria:**\n  - The issue should be resolved in the 3.2.0 release on 2026-09-24.",
+      "reason": "Both the affected version (3.1.4), fix version (3.2.0), and release date (2026-09-24) are explicitly stated."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The exact cause of the issue is not fully understood, as it involves a combination of API latency and retry behavior.",
+      "reason": "The analysis says the cause is 'not fully understood' and only vaguely references idempotency keys and a single transaction in the fix description, rather than clearly stating Priya's two-part root cause (no idempotency key on retry + debit/credit not in one DB transaction)."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Continue investigating the root cause of the issue and prepare the PR #218 to wrap the debit and credit in a single transaction.",
+      "reason": "Status and assignee are correct, but the analysis says to 'prepare' PR #218, implying it does not yet exist, whereas the ticket states it is already open and waiting on code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Coordinate with Finance Ops to reverse the duplicate debits for the affected customers manually before the 3.2.0 release.",
+      "reason": "The analysis mentions manual reversal via Finance Ops but does not specify that three customers are affected or that Marcus Reid was specifically asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not explicitly note that the ticket does not confirm the Finance reversal request has been raised or that the customers have been refunded; it simply lists the reversal as a next action without flagging the uncertainty."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review the PR and ensure it addresses the root cause of the issue, including handling retries and idempotency keys.\n5. **Priya Nair:** Schedule a meeting with the team to discuss the findings and plan for the 3.2.0 release.",
+      "reason": "The analysis mentions reviewing the PR and coordinating with Finance Ops, but mischaracterizes the PR as needing to be 'prepared' rather than already open and awaiting review/merge, and adds an unsupported meeting action."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim PR #218 has been merged or that the fix is deployed/released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the issue does not reproduce on desktop web, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Owner: Marcus Reid",
+      "reason": "The ticket lists Marcus Reid as the Reporter, not the Owner; no 'Owner' field exists in the ticket."
+    },
+    {
+      "quote": "This ticket is a duplicate of BANK-412, which also describes a similar issue with a timeout error.",
+      "reason": "The ticket IS BANK-412; it cannot be a duplicate of itself. No other ticket is referenced in the export."
+    },
+    {
+      "quote": "Marcus Reid (Assignee): Ensure that the fix is tested on both mobile web and desktop web to confirm it resolves the issue.",
+      "reason": "Marcus Reid is the Reporter, not the Assignee. The Assignee is Priya Nair."
+    },
+    {
+      "quote": "prepare the PR #218 to wrap the debit and credit in a single transaction",
+      "reason": "The ticket states PR #218 is already open and waiting on code review; it does not need to be 'prepared.'"
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 106.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "resulting in two debits to the cheque account and one credit to the savings account",
+        "reason": "The analysis clearly states the double debit and single credit outcome, and the retry trigger is included in the reproduction steps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4\n  - Fix versions: 3.2.0\n\n- **Acceptance Criteria:**\n  - The issue should be resolved in the 3.2.0 release on 2026-09-24.",
+        "reason": "Both the affected version (3.1.4), fix version (3.2.0), and release date (2026-09-24) are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The exact cause of the issue is not fully understood, as it involves a combination of API latency and retry behavior.",
+        "reason": "The analysis says the cause is 'not fully understood' and only vaguely references idempotency keys and a single transaction in the fix description, rather than clearly stating Priya's two-part root cause (no idempotency key on retry + debit/credit not in one DB transaction).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Continue investigating the root cause of the issue and prepare the PR #218 to wrap the debit and credit in a single transaction.",
+        "reason": "Status and assignee are correct, but the analysis says to 'prepare' PR #218, implying it does not yet exist, whereas the ticket states it is already open and waiting on code review.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Coordinate with Finance Ops to reverse the duplicate debits for the affected customers manually before the 3.2.0 release.",
+        "reason": "The analysis mentions manual reversal via Finance Ops but does not specify that three customers are affected or that Marcus Reid was specifically asked to raise it with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "",
+        "reason": "The analysis does not explicitly note that the ticket does not confirm the Finance reversal request has been raised or that the customers have been refunded; it simply lists the reversal as a next action without flagging the uncertainty.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Review the PR and ensure it addresses the root cause of the issue, including handling retries and idempotency keys.\n5. **Priya Nair:** Schedule a meeting with the team to discuss the findings and plan for the 3.2.0 release.",
+        "reason": "The analysis mentions reviewing the PR and coordinating with Finance Ops, but mischaracterizes the PR as needing to be 'prepared' rather than already open and awaiting review/merge, and adds an unsupported meeting action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis does not claim PR #218 has been merged or that the fix is deployed/released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the issue does not reproduce on desktop web, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Owner: Marcus Reid",
+        "reason": "The ticket lists Marcus Reid as the Reporter, not the Owner; no 'Owner' field exists in the ticket."
+      },
+      {
+        "quote": "This ticket is a duplicate of BANK-412, which also describes a similar issue with a timeout error.",
+        "reason": "The ticket IS BANK-412; it cannot be a duplicate of itself. No other ticket is referenced in the export."
+      },
+      {
+        "quote": "Marcus Reid (Assignee): Ensure that the fix is tested on both mobile web and desktop web to confirm it resolves the issue.",
+        "reason": "Marcus Reid is the Reporter, not the Assignee. The Assignee is Priya Nair."
+      },
+      {
+        "quote": "prepare the PR #218 to wrap the debit and credit in a single transaction",
+        "reason": "The ticket states PR #218 is already open and waiting on code review; it does not need to be 'prepared.'"
+      }
+    ]
+  }
+}

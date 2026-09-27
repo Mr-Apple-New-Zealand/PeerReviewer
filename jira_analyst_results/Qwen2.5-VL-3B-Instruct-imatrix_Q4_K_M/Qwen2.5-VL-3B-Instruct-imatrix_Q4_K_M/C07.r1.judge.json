@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 09:30 deploy time or the 09:31 impact start; the timeline begins at 09:47."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Incident Declaration: 09:47 NZST\n  - All transfer errors reported with a rate >20%.\n  \n- **Initial Diagnosis:** 09:52 NZST",
+      "reason": "Both timestamps appear but are mislabelled: 09:47 is the alert (not the declaration) and 09:52 is the declaration (not the diagnosis)."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Resolution: 10:42 NZST\n  - The issue was resolved by rolling back the OPS-81 config deploy.",
+      "reason": "Only 10:42 is mentioned (and mislabelled as resolution); the rollback start at 10:31 and the formal resolution at 10:50 are absent."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "From incident declaration at 09:47 NZST to initial diagnosis at 09:52 NZST, it took 5 minutes.",
+      "reason": "The analysis calculates 5 minutes (09:47\u219209:52) instead of the correct 16 minutes (09:31\u219209:47)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "From the initial diagnosis at 09:52 NZST to the rollback complete at 10:42 NZST, it took 3 hours and 50 minutes.",
+      "reason": "The start point (09:52) is not an acceptable reference, and the arithmetic is wrong (09:52\u219210:42 is 50 minutes, not 3 h 50 min)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause was a config deploy (OPS-81) that rotated the JWT signing key for the Auth service without updating the key the Transactions API validates against.",
+      "reason": "The core mechanism is stated and 401/signature-validation-failure is mentioned in the timeline, but the specific error code IDX10503 is absent."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root Cause Review: 2026-09-16",
+      "reason": "The analysis states a review is scheduled for 2026-09-16, matching the ticket."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions the database or slow queries as a cause or contributing factor."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "From the initial diagnosis at 09:52 NZST to the rollback complete at 10:42 NZST, it took 3 hours and 50 minutes.",
+      "reason": "No pair of timestamps in the ticket yields 3 hours and 50 minutes; 09:52\u219210:42 is 50 minutes."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Incident Declaration: 09:47 NZST",
+      "reason": "The ticket states the alert fired at 09:47 and the incident was declared at 09:52 (Sam's comment: 'Incident declared'). Labelling 09:47 as the declaration contradicts the ticket."
+    },
+    {
+      "quote": "Initial Diagnosis: 09:52 NZST",
+      "reason": "At 09:52 Sam declared the incident and reported the error rate; the actual diagnosis (identifying the JWT key rotation) occurred at 10:24. The ticket gives no basis for calling 09:52 a diagnosis."
+    },
+    {
+      "quote": "Resolution: 10:42 NZST",
+      "reason": "The ticket states the incident was resolved at 10:50 ('Resolving. Root cause:\u2026'). 10:42 is when the error rate dropped below 1 %, not the resolution time."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 108.84
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the 09:30 deploy time or the 09:31 impact start; the timeline begins at 09:47.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Incident Declaration: 09:47 NZST\n  - All transfer errors reported with a rate >20%.\n  \n- **Initial Diagnosis:** 09:52 NZST",
+        "reason": "Both timestamps appear but are mislabelled: 09:47 is the alert (not the declaration) and 09:52 is the declaration (not the diagnosis).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Resolution: 10:42 NZST\n  - The issue was resolved by rolling back the OPS-81 config deploy.",
+        "reason": "Only 10:42 is mentioned (and mislabelled as resolution); the rollback start at 10:31 and the formal resolution at 10:50 are absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "From incident declaration at 09:47 NZST to initial diagnosis at 09:52 NZST, it took 5 minutes.",
+        "reason": "The analysis calculates 5 minutes (09:47\u219209:52) instead of the correct 16 minutes (09:31\u219209:47).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "From the initial diagnosis at 09:52 NZST to the rollback complete at 10:42 NZST, it took 3 hours and 50 minutes.",
+        "reason": "The start point (09:52) is not an acceptable reference, and the arithmetic is wrong (09:52\u219210:42 is 50 minutes, not 3 h 50 min).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause was a config deploy (OPS-81) that rotated the JWT signing key for the Auth service without updating the key the Transactions API validates against.",
+        "reason": "The core mechanism is stated and 401/signature-validation-failure is mentioned in the timeline, but the specific error code IDX10503 is absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Root Cause Review: 2026-09-16",
+        "reason": "The analysis states a review is scheduled for 2026-09-16, matching the ticket.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis never mentions the database or slow queries as a cause or contributing factor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "From the initial diagnosis at 09:52 NZST to the rollback complete at 10:42 NZST, it took 3 hours and 50 minutes.",
+        "reason": "No pair of timestamps in the ticket yields 3 hours and 50 minutes; 09:52\u219210:42 is 50 minutes.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Incident Declaration: 09:47 NZST",
+        "reason": "The ticket states the alert fired at 09:47 and the incident was declared at 09:52 (Sam's comment: 'Incident declared'). Labelling 09:47 as the declaration contradicts the ticket."
+      },
+      {
+        "quote": "Initial Diagnosis: 09:52 NZST",
+        "reason": "At 09:52 Sam declared the incident and reported the error rate; the actual diagnosis (identifying the JWT key rotation) occurred at 10:24. The ticket gives no basis for calling 09:52 a diagnosis."
+      },
+      {
+        "quote": "Resolution: 10:42 NZST",
+        "reason": "The ticket states the incident was resolved at 10:50 ('Resolving. Root cause:\u2026'). 10:42 is when the error rate dropped below 1 %, not the resolution time."
+      }
+    ]
+  }
+}

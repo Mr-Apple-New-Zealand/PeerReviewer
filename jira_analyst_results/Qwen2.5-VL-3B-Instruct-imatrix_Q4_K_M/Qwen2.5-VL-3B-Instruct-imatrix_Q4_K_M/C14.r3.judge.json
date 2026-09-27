@@ -1,0 +1,311 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 403 Forbidden from masterfile-api, Dapr, the specific endpoints, the four occurrences, or the connection to AddPaymentRoutingRuleSecondaryCommand/BulkUpdateSecondaryBranchesCommand and the user-reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Conversion Failures: Conversion failed when converting values to data types.",
+      "reason": "It acknowledges conversion failures exist but does not name SearchPaymentRoutingRuleQueryHandler, does not cite error 245, does not give the count of five, and does not quote the masked message."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the value and data type are masked as ****** or that the offending column/value/type cannot be identified from this log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetMonitorJobsQueryHandler, the eight timeouts, the 22:26:37\u201322:29:08 window, or that it is a bounded episode that resolved; it incorrectly associates timeouts with GetStatementLineQuery."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis vaguely mentions 'updating payment routing rules' errors but does not name ApplicationValidationException, the count of two, or identify the logging gap of missing individual validation messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions GetStatementLineQuery but mislabels it as 'Execution Timeout Expired' rather than long-running threshold breaches, and does not give the count of fourteen, the 10000ms threshold, or the rising trend from ~35s to ~73s."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string with password logged at DBG level or the credential exposure risk."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists the DataProtection and XML encryptor warnings under 'Permission Errors' but does not state they are routine for a containerised ASP.NET Core service and not the cause of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not draw the inference that the 403s are likely an access-control or Dapr configuration problem between payments-api and masterfile-api rather than a fault in payments code."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis provides no priority ordering of the issues; it lists generic next steps without ranking the 403s first, then SQL 245 and GetStatementLineQuery, with credential handling in parallel."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not explicitly name the DataProtection key or XML encryptor warnings as the cause of the 403s, SQL errors, or failed saves."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 conversion error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any elapsed time, duration, or ordered sequence across the file as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject name or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Timeouts: Execution Timeout Expired errors during long-running requests like GetStatementLineQuery.",
+      "reason": "The Execution Timeout Expired errors (Error Number:-2) are from GetMonitorJobsQueryHandler, not GetStatementLineQuery. GetStatementLineQuery produces 'Long-running request' threshold warnings (35\u201372 s), which are a different issue. The analysis conflates two distinct log entries."
+    },
+    {
+      "quote": "The log does not provide specific error messages or stack traces, making it difficult to pinpoint exact causes of the errors.",
+      "reason": "The log clearly contains full stack traces for the 403 Dapr errors, the SQL 245 conversion errors, and the execution timeout errors. Only repeated identical traces were trimmed, not the first occurrence of each."
+    },
+    {
+      "quote": "Permission Errors: Storing keys in a directory that may not be persisted outside of the container, no XML encryptor configured for key persistence.",
+      "reason": "These log entries are data-protection key storage warnings, not permission errors. The log does not describe them as permission issues; the analysis mischaracterises their nature."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 130.71
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the 403 Forbidden from masterfile-api, Dapr, the specific endpoints, the four occurrences, or the connection to AddPaymentRoutingRuleSecondaryCommand/BulkUpdateSecondaryBranchesCommand and the user-reported save failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Conversion Failures: Conversion failed when converting values to data types.",
+        "reason": "It acknowledges conversion failures exist but does not name SearchPaymentRoutingRuleQueryHandler, does not cite error 245, does not give the count of five, and does not quote the masked message.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis does not note that the value and data type are masked as ****** or that the offending column/value/type cannot be identified from this log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "",
+        "reason": "The analysis does not mention GetMonitorJobsQueryHandler, the eight timeouts, the 22:26:37\u201322:29:08 window, or that it is a bounded episode that resolved; it incorrectly associates timeouts with GetStatementLineQuery.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis vaguely mentions 'updating payment routing rules' errors but does not name ApplicationValidationException, the count of two, or identify the logging gap of missing individual validation messages.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "The analysis mentions GetStatementLineQuery but mislabels it as 'Execution Timeout Expired' rather than long-running threshold breaches, and does not give the count of fourteen, the 10000ms threshold, or the rising trend from ~35s to ~73s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string with password logged at DBG level or the credential exposure risk.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The analysis lists the DataProtection and XML encryptor warnings under 'Permission Errors' but does not state they are routine for a containerised ASP.NET Core service and not the cause of the failures.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not mention that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "",
+        "reason": "The analysis does not draw the inference that the 403s are likely an access-control or Dapr configuration problem between payments-api and masterfile-api rather than a fault in payments code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "",
+        "reason": "The analysis provides no priority ordering of the issues; it lists generic next steps without ranking the 403s first, then SQL 245 and GetStatementLineQuery, with credential handling in parallel.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not explicitly name the DataProtection key or XML encryptor warnings as the cause of the 403s, SQL errors, or failed saves.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 conversion error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state any elapsed time, duration, or ordered sequence across the file as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject name or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Timeouts: Execution Timeout Expired errors during long-running requests like GetStatementLineQuery.",
+        "reason": "The Execution Timeout Expired errors (Error Number:-2) are from GetMonitorJobsQueryHandler, not GetStatementLineQuery. GetStatementLineQuery produces 'Long-running request' threshold warnings (35\u201372 s), which are a different issue. The analysis conflates two distinct log entries."
+      },
+      {
+        "quote": "The log does not provide specific error messages or stack traces, making it difficult to pinpoint exact causes of the errors.",
+        "reason": "The log clearly contains full stack traces for the 403 Dapr errors, the SQL 245 conversion errors, and the execution timeout errors. Only repeated identical traces were trimmed, not the first occurrence of each."
+      },
+      {
+        "quote": "Permission Errors: Storing keys in a directory that may not be persisted outside of the container, no XML encryptor configured for key persistence.",
+        "reason": "These log entries are data-protection key storage warnings, not permission errors. The log does not describe them as permission issues; the analysis mischaracterises their nature."
+      }
+    ]
+  }
+}
