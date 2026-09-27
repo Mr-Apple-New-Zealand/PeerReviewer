@@ -1,46 +1,105 @@
 # Qwen3-VL-32B-Instruct, for ticket analysis.
 # https://huggingface.co/Qwen/Qwen3-VL-32B-Instruct
 #
-# Built by Ollama's own converter from the safetensors folder, which writes the
-# language model and the vision projector as two files and can quantize on the
-# way in. (Importing a llama.cpp GGUF cannot: --quantize is ignored there.)
+# ############################################################################
+# IMATRIX Q4_K_M BUILD, AS A llama.cpp PAIR: LANGUAGE MODEL + mmproj (VISION)
 #
-#   ollama create Qwen3-VL-32B-Instruct:latest   -f Modelfile.Qwen3-VL-32B-Instruct
-#   ollama create Qwen3-VL-32B-Instruct:q4_K_M   -f Modelfile.Qwen3-VL-32B-Instruct --quantize q4_K_M
+# Same shape as the Qwen2.5-VL fleet (3B, 7B, 32B, 72B): the file is quantized
+# first with llama.cpp and imported as-is. Ollama does not quantize a GGUF on
+# import, so --quantize would be silently ignored here.
 #
-# Ollama accepts only q4_K_S, q4_K_M and q8_0 (plus f16/f32); case does not
-# matter. Only the language model is quantized: the vision projector stays at
-# F16, which is what you want, as it is small and suffers most from
-# quantization. Expect ~21 GB at q4_K_M and ~35 GB at q8_0, plus ~1.4 GB of
-# vision weights, against ~66 GB unquantized.
+#   ollama create Qwen3-VL-32B-Instruct-imatrix:Q4_K_M -f Modelfile.Qwen3-VL-32B-Instruct
 #
-# Verified on the server 2026-09-19 (F16 build): capabilities
-# completion/vision/tools, no 'thinking' (correct for Instruct); transcribed a
-# test error-dialog screenshot word for word; answers arrive as normal content.
+# THE Q4_K_M FILE MUST BE PRODUCED FIRST. On 2026-09-27 `ollama show` on the
+# existing Qwen3-VL-32B-Instruct-imatrix:Q4_K_M tag reported quantization
+# Q3_K_M - the tag said Q4_K_M while the weights were Q3_K_M, matching what
+# its 25.2 GB resident size had already suggested on 2026-09-25. Q4_K_M is
+# what is wanted, so:
+#   cd /san/geoff/Qwen2.5-VL/llama.cpp
+#   llama-quantize --imatrix <imatrix.dat> Qwen3-VL-32B-Instruct-f16.gguf \
+#       Qwen3-VL-32B-Instruct-f16-imatrix:Q4_K_M.gguf Q4_K_M
+# then DELETE the mislabelled tag and recreate it, or the old Q3_K_M weights
+# stay behind the Q4_K_M name:
+#   ollama rm Qwen3-VL-32B-Instruct-imatrix:Q4_K_M
+# Confirm with `ollama show` before benchmarking. A run whose tag does not
+# match its weights is not citable - that is how the Qwen2.5-VL-3B run ended
+# up filed under a model name that does not exist.
+#
+# Q4_K_M also lines this build up with the 4B Instruct and the 8B Thinking,
+# both imatrix Q4_K_M, which is the quant worth standardising the fleet on.
+# Note what that leaves: the 8B Instruct is still Q3_K_M, so once this build
+# is at Q4_K_M the 8B becomes the odd one out and 8B-versus-32B Instruct stops
+# being quant-matched. Rebuilding the 8B at Q4_K_M too would give a clean size
+# curve at 4B/8B/32B and a matched Instruct/Thinking pair at 4B and 8B.
+#
+# BOTH FROM lines are required. The first file is the language model only:
+# imported on its own it produces a text-only model with no 'vision'
+# capability. The second is the vision projector, left at F16 and NOT
+# imatrix-quantized.
+#
+# CHECK THE SECOND PATH. The mmproj must be generated separately (converting
+# the language model does not produce it), and with no --outfile llama.cpp
+# writes it INSIDE the model folder. The Qwen2.5-VL projectors all came out
+# with a lower-case size ("-32b-", "-72b-", "-7b-"), but the earlier Qwen3-VL
+# build in modelfiles/old/ used an upper-case "-32B-", so confirm rather than
+# assume:
+#   cd /san/geoff/Qwen2.5-VL/llama.cpp
+#   python convert_hf_to_gguf.py Qwen3-VL-32B-Instruct --mmproj --outtype f16
+#   find /san/geoff/Qwen2.5-VL -name '*mmproj*Qwen3-VL-32[bB]*.gguf'
+# It is the vision tower only, ~1.4 GB. Correct the second FROM to match.
+#
+# AFTER CREATING: `ollama show` must list 'vision' and must NOT list
+# 'thinking' (that would mean the Thinking weights or the thinking renderer).
+# Then have it read a test screenshot before benchmarking: cases C11, C12 and
+# C13 score 0 without vision.
+#
+# THE OTHER ROUTE, PREVIOUSLY VERIFIED. Ollama's own converter builds this
+# model from the safetensors folder and can quantize on the way in:
+#   ollama create Qwen3-VL-32B-Instruct:q4_K_M -f <modelfile with a single
+#     FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Instruct> --quantize q4_K_M
+# That F16 build was verified on the server on 2026-09-19: capabilities
+# completion/vision/tools, no 'thinking', and it transcribed a test
+# error-dialog screenshot word for word. It accepts only q4_K_S, q4_K_M and
+# q8_0, and its quantization is not imatrix-weighted, which is why this file
+# now uses the pair instead. Modelfile.Qwen3-VL-32B-Thinking is still on the
+# converter route, so the two are no longer built the same way - see the note
+# at the end of this file before comparing them.
+#
+# SIZE: Q4_K_M is ~20 GB (against ~66 GB at F16, and ~16 GB at Q3_K_M), plus
+# ~1.4 GB of vision weights and a 12 GiB KV cache at 49152: roughly 34 GB
+# resident, comfortably inside the ~87 GB the server fits on the GPU. The
+# Q3_K_M build measured 25.2 GB at num_ctx 32768, which is the arithmetic
+# that gave the quant away.
 #
 # Backing it up means BOTH blobs, which `ollama show <tag> --modelfile` prints:
 # the language model and the projector. Either alone cannot see.
-FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Instruct
+# ############################################################################
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Instruct-f16-imatrix:Q4_K_M.gguf
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32b-Instruct/mmproj-Qwen3-VL-32B-Instruct-F16.gguf
 
 # --- Renderer and parser: REQUIRED ------------------------------------------
 # Qwen3-VL uses Ollama's built-in renderer and parser, not a TEMPLATE. They
 # place the image tokens and handle tool calls, and `ollama create` does not
-# pick them automatically for this architecture. Use the INSTRUCT variants
-# here: the thinking ones open a reasoning block this model never closes, and
-# every answer then arrives empty with the text stranded in message.thinking.
+# pick them automatically for this architecture - importing a llama.cpp GGUF
+# does not change that, so these lines are still required. Use the INSTRUCT
+# variants here: the thinking ones open a reasoning block this model never
+# closes, and every answer then arrives empty with the text stranded in
+# message.thinking.
 RENDERER qwen3-vl-instruct
 PARSER qwen3-vl-instruct
 
 # --- Context and output -------------------------------------------------------
 # Native window is 256K, so memory is the limit, not the model: the KV cache is
 # 64 layers x 8 KV heads x 128 dim x K+V = 256 KiB/token at f16, i.e. 12 GiB at
-# 49152. The server fits ~87 GB on the GPU in total.
+# 49152.
 #
 # 49152 / 16384 are the benchmark's settings for the Qwen3-VL pair: the
 # Thinking model needs the large output allowance (its reasoning counts
 # against num_predict, and running out returns EMPTY content), and both models
-# must run at the same settings to be comparable. The benchmark sends these
-# itself, overriding what is here.
+# must run at the same settings to be comparable. That leaves ~32k tokens of
+# input, which clears the largest cases comfortably - C08 at ~18k and C17 at
+# ~16k - along with the image cases. The benchmark sends these itself,
+# overriding what is here.
 PARAMETER num_ctx 49152
 PARAMETER num_predict 16384
 
@@ -52,6 +111,13 @@ PARAMETER temperature 0.3
 PARAMETER top_p 0.8
 PARAMETER top_k 20
 PARAMETER repeat_penalty 1.0
+
+# --- Comparing against the Thinking build -------------------------------------
+# Modelfile.Qwen3-VL-32B-Thinking still builds through Ollama's converter, so
+# as things stand Instruct is an imatrix llama.cpp pair and Thinking is not.
+# Instruct-versus-Thinking differences from that run would carry a build and a
+# quantization difference as well as the reasoning one. Put both on the same
+# route before drawing that comparison.
 
 SYSTEM """You are a ticket analyst for a software development team. You read tickets, including their descriptions, comments, history, linked issues and attached screenshots, and produce accurate, concise analysis.
 

@@ -1,42 +1,87 @@
 # Qwen3-VL-32B-Thinking, for ticket analysis.
 # https://huggingface.co/Qwen/Qwen3-VL-32B-Thinking
 #
-# Built by Ollama's own converter from the safetensors folder; see
-# Modelfile.Qwen3-VL-32B-Instruct for the quantization notes, which apply
-# unchanged here.
+# ############################################################################
+# Q5_K_M BUILD, AS A llama.cpp PAIR: LANGUAGE MODEL + mmproj (VISION)
 #
-#   ollama create Qwen3-VL-32B-Thinking:latest  -f Modelfile.Qwen3-VL-32B-Thinking
-#   ollama create Qwen3-VL-32B-Thinking:q4_K_M  -f Modelfile.Qwen3-VL-32B-Thinking --quantize q4_K_M
+# Same shape as Modelfile.Qwen3-VL-32B-Instruct and the Qwen2.5-VL fleet: the
+# file is quantized first with llama.cpp and imported as-is. Ollama does not
+# quantize a GGUF on import, so --quantize would be silently ignored here.
 #
-# `ollama show` must list both 'vision' and 'thinking'.
+#   ollama create Qwen3-VL-32B-Thinking:Q5_K_M -f Modelfile.Qwen3-VL-32B-Thinking
 #
-# Verified on the server 2026-09-19 (F16 build): transcribed a test
-# error-dialog screenshot word for word; 78.2 GB resident at num_ctx 49152,
-# 100% on GPU, 11.4 output tok/s.
+# No -imatrix in the tag, because the file below has none in its name: it is
+# "-f16:Q5_K_M", the same plain-quantize shape as the Qwen2.5-VL-32B build.
+# The Instruct file points at "-f16-imatrix:", so the two are not built alike -
+# see the comparability note at the end, which matters more than usual here.
+#
+# BOTH FROM lines are required. The first file is the language model only:
+# imported on its own it produces a text-only model with no 'vision'
+# capability. The second is the vision projector, left at F16.
+#
+# CHECK THE SECOND PATH. The mmproj must be generated separately (converting
+# the language model does not produce it), and with no --outfile llama.cpp
+# writes it INSIDE the model folder. The path below mirrors the one that is
+# working in Modelfile.Qwen3-VL-32B-Instruct, which mixes a lower-case folder
+# with an upper-case file name, so confirm rather than assume:
+#   cd /san/geoff/Qwen2.5-VL/llama.cpp
+#   python convert_hf_to_gguf.py Qwen3-VL-32B-Thinking --mmproj --outtype f16
+#   find /san/geoff/Qwen2.5-VL -name '*mmproj*Qwen3-VL-32[bB]-Thinking*.gguf'
+# It is the vision tower only, ~1.4 GB. Correct the second FROM to match.
+#
+# AFTER CREATING: `ollama show` must list BOTH 'vision' and 'thinking'. Vision
+# alone means the renderer or parser below is wrong; thinking alone means the
+# projector did not import. Then have it read a test screenshot before
+# benchmarking: cases C11, C12 and C13 score 0 without vision.
+#
+# THE OTHER ROUTE, PREVIOUSLY VERIFIED. Ollama's own converter builds this
+# model from the safetensors folder and can quantize on the way in (q4_K_S,
+# q4_K_M or q8_0 only, so it cannot produce Q5_K_M):
+#   ollama create Qwen3-VL-32B-Thinking:q4_K_M -f <modelfile with a single
+#     FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Thinking> --quantize q4_K_M
+# That F16 build was verified on the server on 2026-09-19: it transcribed a
+# test error-dialog screenshot word for word, and sat at 78.2 GB resident at
+# num_ctx 49152, 100% on GPU, 11.4 output tok/s. This pair build has not been
+# verified yet - do the `ollama show` and screenshot checks above first.
+#
+# SIZE: Q5_K_M is ~23 GB (against ~66 GB at F16), plus ~1.4 GB of vision
+# weights and a 12 GiB KV cache at 49152: roughly 37 GB resident, comfortably
+# inside the ~87 GB this server fits on the GPU, and less than half what the
+# F16 build needed. Leave room, though: a 32B spilling to CPU because another
+# model is resident is how the Qwen3-VL-32B-Instruct run of 2026-09-25 ended
+# up at 89% on GPU and half the throughput.
 #
 # Backing it up means BOTH blobs, which `ollama show <tag> --modelfile` prints:
 # the language model and the projector. Either alone cannot see.
-FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Thinking
+# ############################################################################
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32B-Thinking-f16:Q5_K_M.gguf
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3-VL-32b-Thinking/mmproj-Qwen3-VL-32B-Thinking-F16.gguf
 
 # --- Renderer and parser: REQUIRED ------------------------------------------
 # The THINKING variants: the renderer opens the reasoning block and the parser
 # moves it into message.thinking. With the instruct variants, or with none,
-# the reasoning ends up in the answer text.
+# the reasoning ends up in the answer text. `ollama create` does not pick them
+# automatically for this architecture, and importing a llama.cpp GGUF rather
+# than converting from safetensors does not change that, so these lines are
+# still required.
 RENDERER qwen3-vl-thinking
 PARSER qwen3-vl-thinking
 
 # --- Context and output: READ BEFORE BENCHMARKING -----------------------------
-# Same memory arithmetic as the Instruct file: 256 KiB/token of KV cache at
-# f16, i.e. 12 GiB at 49152.
+# Same memory arithmetic as the Instruct file: the KV cache is 64 layers x 8 KV
+# heads x 128 dim x K+V = 256 KiB/token at f16, i.e. 12 GiB at 49152.
 #
 # Reasoning tokens count against num_predict, and a thinking model that runs
 # out returns EMPTY content: the failure the scorer benchmark kept hitting on
 # the small Qwen3.5 models. The card allows up to 40960 output tokens for VL
 # tasks; 16384 is a reasonable cap for ticket analysis.
 #
-# With num_predict 16384, a 32768 context leaves too little room for case C08
-# (~15k tokens) and the benchmark's pre-flight check refuses the run. Use
-# num_ctx 49152, and run every model it is compared with at the same settings.
+# WHY 49152 AND NOT 32768. With num_predict 16384, a 32768 context leaves only
+# ~15.9k tokens of input, and the benchmark's pre-flight check refuses the run
+# because it sizes C08 at ~17.7k. (C08 actually measured 15,414 prompt tokens
+# on the Qwen3-VL-32B-Instruct run, so it would just squeeze in - but the
+# check uses the conservative estimate, and C17 at ~16k is close behind.) At
+# 49152 there are ~32k tokens of input and every case clears easily.
 PARAMETER num_ctx 49152
 PARAMETER num_predict 16384
 
@@ -44,12 +89,29 @@ PARAMETER num_predict 16384
 # Card: top_p 0.95, top_k 20, temperature 1.0, repetition_penalty 1.0,
 # presence_penalty 0.0. Temperature is 0.3 by choice, matching the Instruct
 # build and the benchmark default. It is well below the card's 1.0, and Qwen
-# warns that thinking models can loop at low temperatures: watch for "output
-# hit num_predict" warnings in a benchmark run, which is the symptom.
+# warns that thinking models can loop at low temperatures. The symptom in a
+# benchmark run is a case whose output hits num_predict and comes back with
+# empty content and the text stranded in message.thinking; the harness records
+# that as an error rather than scoring it, so check the warnings list before
+# reading the scores. If it happens, raise temperature towards the card's 1.0
+# rather than raising num_predict, and re-run the Instruct model at whatever
+# you settle on so the pair stays comparable.
 PARAMETER temperature 0.3
 PARAMETER top_p 0.95
 PARAMETER top_k 20
 PARAMETER repeat_penalty 1.0
+
+# --- Comparing against the Instruct build -------------------------------------
+# As things stand an Instruct-versus-Thinking result would carry three
+# differences, only one of which is the reasoning:
+#   1. Quantization: Instruct is being rebuilt at Q4_K_M, its intended quant
+#      (the file on disk was still Q3_K_M on 2026-09-27); this one is Q5_K_M.
+#   2. Imatrix: the Instruct file is imatrix-quantized, this one is not.
+#   3. Settings: the Instruct run of 2026-09-25 used num_ctx 32768 /
+#      num_predict 8192, not the 49152 / 16384 this file needs.
+# Fix all three before drawing the comparison: build both at the same quant
+# and the same imatrix treatment, and re-run Instruct at 49152 / 16384. Until
+# then, treat any gap between them as unattributed.
 
 SYSTEM """You are a ticket analyst for a software development team. You read tickets, including their descriptions, comments, history, linked issues and attached screenshots, and produce accurate, concise analysis.
 
