@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No \u2014 you cannot tell the customer this is fixed.**",
+      "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The ticket was marked \"Done\" and \"Fixed\" by the assignee (Priya Nair), but **the fix did not resolve the issue in practice**. The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+      "reason": "The analysis conveys that the ticket is Done/Fixed but the issue persists, and mentions the test address and error, but omits Tom Becker's name, the 2026-09-10 date, the 3.1.4 version, and the staging environment."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+      "reason": "The analysis clearly states the specific SMTP error code and message from the log."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "indicating the fix in PR #201 only addressed the internal validation \u2014 not the actual delivery failure.",
+      "reason": "The analysis presents the provider rejection as established fact rather than as Tom's unconfirmed observation ('looks like'), failing the inference condition."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Update ticket status to \"Reopened\" or \"In Progress\" until delivery is confirmed.",
+      "reason": "The suggestion to reopen implies the ticket hasn't been reopened, but the analysis never explicitly states that nobody reopened it or raised a follow-up, and it assigns ownership to Priya Nair rather than noting no one owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Priya Nair** should retest with a provider that supports plus addresses (or confirm if the provider's policy is the root cause). 2. **Marcus Reid** should contact the customer and explain: > \"We've fixed the internal validation, but the email provider is rejecting plus-addressed emails. We're investigating whether we can work around this or if the provider needs to support it.\" 3. **Update ticket status** to \"Reopened\" or \"In Progress\" until delivery is confirmed.",
+      "reason": "The analysis covers reopening the ticket, assigning an owner to investigate the provider rejection, and providing a holding response to the customer."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests reopening the ticket as a next step but does not claim it has already been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Acceptance criteria**: Password reset email must be delivered successfully for plus-addressed emails.",
+      "reason": "The ticket contains no 'Acceptance criteria' field or any such statement; this is an invented detail presented as a formal ticket attribute."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 79.24
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "**No \u2014 you cannot tell the customer this is fixed.**",
+        "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket was marked \"Done\" and \"Fixed\" by the assignee (Priya Nair), but **the fix did not resolve the issue in practice**. The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+        "reason": "The analysis conveys that the ticket is Done/Fixed but the issue persists, and mentions the test address and error, but omits Tom Becker's name, the 2026-09-10 date, the 3.1.4 version, and the staging environment.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+        "reason": "The analysis clearly states the specific SMTP error code and message from the log.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "indicating the fix in PR #201 only addressed the internal validation \u2014 not the actual delivery failure.",
+        "reason": "The analysis presents the provider rejection as established fact rather than as Tom's unconfirmed observation ('looks like'), failing the inference condition.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "Update ticket status to \"Reopened\" or \"In Progress\" until delivery is confirmed.",
+        "reason": "The suggestion to reopen implies the ticket hasn't been reopened, but the analysis never explicitly states that nobody reopened it or raised a follow-up, and it assigns ownership to Priya Nair rather than noting no one owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "1. **Priya Nair** should retest with a provider that supports plus addresses (or confirm if the provider's policy is the root cause). 2. **Marcus Reid** should contact the customer and explain: > \"We've fixed the internal validation, but the email provider is rejecting plus-addressed emails. We're investigating whether we can work around this or if the provider needs to support it.\" 3. **Update ticket status** to \"Reopened\" or \"In Progress\" until delivery is confirmed.",
+        "reason": "The analysis covers reopening the ticket, assigning an owner to investigate the provider rejection, and providing a holding response to the customer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis suggests reopening the ticket as a next step but does not claim it has already been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Acceptance criteria**: Password reset email must be delivered successfully for plus-addressed emails.",
+        "reason": "The ticket contains no 'Acceptance criteria' field or any such statement; this is an invented detail presented as a formal ticket attribute."
+      }
+    ]
+  }
+}

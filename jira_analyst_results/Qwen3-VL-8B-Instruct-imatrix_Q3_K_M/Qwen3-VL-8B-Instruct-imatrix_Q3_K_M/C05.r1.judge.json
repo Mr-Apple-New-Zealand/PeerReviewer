@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is identical in symptom (balance stale after transfer) and is explicitly linked to the same root cause: a 15-minute cache (BalanceCache) that isn't invalidated after a transfer.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both describing the web dashboard/home screen balance staying stale after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Merge or close BANK-425 as duplicate of BANK-440 \u2014 since it's the same bug with the same root cause and fix.",
+      "reason": "The analysis recommends closing one as a duplicate of the other, and the root-cause analysis from BANK-425's comments is preserved in the Key Details section."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is a separate bug (notification shows old balance), but it's related to the same transfer flow and may be a side effect of the same caching issue.",
+      "reason": "The analysis correctly identifies MOB-88 as separate and in progress with Ravi Kumar, but misattributes its cause to the caching issue rather than the TransferRequested event being used before the debit is applied."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root Cause: BalanceCache (15-min local storage) is not invalidated after a transfer.\n- **Fix:** Invalidate cache on TransferCompleted event.",
+      "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer, and the fix is to clear/invalidate it when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is a completed task that introduced the cache \u2014 which now causes the problem in BANK-440/BANK-425.",
+      "reason": "The analysis states the regression as established fact rather than as a likely/possible inference, and does not explicitly recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No clear owner for BANK-440/BANK-425 \u2014 both are unassigned.",
+      "reason": "The analysis explicitly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly calls MOB-88 'a separate bug' and does not claim it is a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'API returns correct new balance immediately,' consistent with the ticket, and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "MOB-88 (notification bug) depends on the same fix \u2014 invalidating cache on TransferCompleted.",
+      "reason": "The tickets state MOB-88's fix is switching the notification service from the TransferRequested event to the TransferCompleted event (Ravi Kumar's comment), not invalidating the BalanceCache. These are different fixes for different causes."
+    },
+    {
+      "quote": "Update MOB-88 to reference the same fix \u2014 since it's a side effect of the same cache issue.",
+      "reason": "The tickets show MOB-88 has a distinct root cause (message built from TransferRequested event before debit is applied), not a side effect of the BalanceCache. This is stated as fact rather than as a possibility."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 104.69
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is identical in symptom (balance stale after transfer) and is explicitly linked to the same root cause: a 15-minute cache (BalanceCache) that isn't invalidated after a transfer.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both describing the web dashboard/home screen balance staying stale after a transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Merge or close BANK-425 as duplicate of BANK-440 \u2014 since it's the same bug with the same root cause and fix.",
+        "reason": "The analysis recommends closing one as a duplicate of the other, and the root-cause analysis from BANK-425's comments is preserved in the Key Details section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is a separate bug (notification shows old balance), but it's related to the same transfer flow and may be a side effect of the same caching issue.",
+        "reason": "The analysis correctly identifies MOB-88 as separate and in progress with Ravi Kumar, but misattributes its cause to the caching issue rather than the TransferRequested event being used before the debit is applied.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Root Cause: BalanceCache (15-min local storage) is not invalidated after a transfer.\n- **Fix:** Invalidate cache on TransferCompleted event.",
+        "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer, and the fix is to clear/invalidate it when a transfer succeeds.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is a completed task that introduced the cache \u2014 which now causes the problem in BANK-440/BANK-425.",
+        "reason": "The analysis states the regression as established fact rather than as a likely/possible inference, and does not explicitly recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "No clear owner for BANK-440/BANK-425 \u2014 both are unassigned.",
+        "reason": "The analysis explicitly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly calls MOB-88 'a separate bug' and does not claim it is a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'API returns correct new balance immediately,' consistent with the ticket, and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "MOB-88 (notification bug) depends on the same fix \u2014 invalidating cache on TransferCompleted.",
+        "reason": "The tickets state MOB-88's fix is switching the notification service from the TransferRequested event to the TransferCompleted event (Ravi Kumar's comment), not invalidating the BalanceCache. These are different fixes for different causes."
+      },
+      {
+        "quote": "Update MOB-88 to reference the same fix \u2014 since it's a side effect of the same cache issue.",
+        "reason": "The tickets show MOB-88 has a distinct root cause (message built from TransferRequested event before debit is applied), not a side effect of the BalanceCache. This is stated as fact rather than as a possibility."
+      }
+    ]
+  }
+}

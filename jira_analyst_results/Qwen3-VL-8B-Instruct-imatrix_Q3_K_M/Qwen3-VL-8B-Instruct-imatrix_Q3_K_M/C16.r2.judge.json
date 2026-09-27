@@ -1,0 +1,247 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetStatementLineQuery: 281\u2013319ms (fast and consistent)\n- GetAccountSummaryQuery: 3102\u20133341ms (slow but stable)\n- No timeouts or warnings \u2014 all requests completed within 1000ms threshold.\n\n\u2705 **After (4.7.0, 2026-09-15):**\n- `GetStatementLineQuery`: 35\u201372 seconds (multiple warnings >10s threshold)",
+      "reason": "The analysis correctly states the before range (281\u2013319 ms) and the after range (35\u201372 s), which closely matches the expected ~300 ms to ~34\u201373 s."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| `GetStatementLineQuery` avg     | ~300ms                 | ~35\u201372s (avg ~40s)       | **+100x slower**   |\n| `GetStatementLineQuery` max     | 319ms                  | 72s (72,000ms)           | **+240x slower**   |",
+      "reason": "The analysis quantifies the slowdown as roughly 100\u00d7 (avg) and 240\u00d7 (max), matching the expected hundredfold-or-more magnitude."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery: 35\u201372 seconds (multiple warnings >10s threshold)",
+      "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with the specific timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The `GetAccountSummaryQuery` performance is similar \u2014 only the `GetStatementLineQuery` is affected.",
+      "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and not the regression, but does not explicitly state that this contradicts Ravi Kumar's suggestion to start there."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand (1840 ms before, 1902 ms after) is never mentioned in the analysis."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No code changes to statements module \u2014 as per Tom Becker \u2014 but the migration likely affected underlying data or concurrency model.",
+      "reason": "The analysis mentions the migration was applied but does not explicitly frame it as contradicting Tom Becker's claim that nothing in 4.7.0 touched statements; it actually endorses his claim while noting the migration."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a **critical regression** caused by the `20260914_2100_ReindexStatementLines` migration, which triggered thread pool starvation and caused `GetStatementLineQuery` to timeout.",
+      "reason": "The analysis hedges with 'likely' in some places but the conclusion states the migration 'caused' the regression as established fact rather than as a coincidence the logs only show."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Thread pool exhaustion \u2014 0 available threads for 4.2s, leading to queued work items and cascading timeouts.",
+      "reason": "The analysis frames thread pool starvation as a cause of cascading timeouts rather than as a consequence of requests piling up behind the slow query, and does not note the temporal alignment with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Reproducibility \u2014 Logs are from a single 5-minute window \u2014 not enough to confirm if it's a one-off or systemic issue.",
+      "reason": "The analysis notes the short window limitation but does not articulate that there are two windows on different days with nothing in between, only a handful of samples, making the regression indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker: Review `20260914_2100_ReindexStatementLines` migration \u2014 does it lock tables? Use too many threads? Trigger background jobs?",
+      "reason": "The analysis suggests reviewing the migration and adding monitoring but does not specifically recommend checking the execution plan and indexes for the statement line query or collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The `GetAccountSummaryQuery` also became slower but remains within acceptable limits.",
+      "reason": "The analysis states GetAccountSummaryQuery 'became slower' after 4.7.0, but the data shows it is effectively unchanged (2987\u20133341 ms before, 3011\u20133402 ms after)."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This is a **critical regression** caused by the `20260914_2100_ReindexStatementLines` migration, which triggered thread pool starvation and caused `GetStatementLineQuery` to timeout.",
+      "reason": "The conclusion states as established fact that the migration caused the slowdown, rather than noting the logs only show temporal coincidence."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states ~100\u00d7 and ~240\u00d7, which are supported by the timings; it does not claim a ten-fold or two-fold slowdown."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Key blocker: **Thread pool starvation** detected in logs, suggesting infrastructure or concurrency issues post-migration.",
+      "reason": "The analysis positions thread pool starvation as a 'key blocker' and as something 'leading to cascading timeouts,' framing it as a cause rather than a symptom of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No timeouts or warnings \u2014 all requests completed within 1000ms threshold.",
+      "reason": "The before log shows GetAccountSummaryQuery completing in 3102 ms, 3341 ms, 2987 ms, and 3255 ms, all well above 1000 ms; the claim that all requests completed within 1000 ms is contradicted by the attached log."
+    },
+    {
+      "quote": "~35\u201372s (avg ~40s)",
+      "reason": "The 14 GetStatementLineQuery readings in the after log sum to 724,623 ms, giving an average of approximately 51,759 ms (~52 s), not ~40 s; the stated average is a miscalculation."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 238.85
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery: 281\u2013319ms (fast and consistent)\n- GetAccountSummaryQuery: 3102\u20133341ms (slow but stable)\n- No timeouts or warnings \u2014 all requests completed within 1000ms threshold.\n\n\u2705 **After (4.7.0, 2026-09-15):**\n- `GetStatementLineQuery`: 35\u201372 seconds (multiple warnings >10s threshold)",
+        "reason": "The analysis correctly states the before range (281\u2013319 ms) and the after range (35\u201372 s), which closely matches the expected ~300 ms to ~34\u201373 s.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "| `GetStatementLineQuery` avg     | ~300ms                 | ~35\u201372s (avg ~40s)       | **+100x slower**   |\n| `GetStatementLineQuery` max     | 319ms                  | 72s (72,000ms)           | **+240x slower**   |",
+        "reason": "The analysis quantifies the slowdown as roughly 100\u00d7 (avg) and 240\u00d7 (max), matching the expected hundredfold-or-more magnitude.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "GetStatementLineQuery: 35\u201372 seconds (multiple warnings >10s threshold)",
+        "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with the specific timestamps.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "The `GetAccountSummaryQuery` performance is similar \u2014 only the `GetStatementLineQuery` is affected.",
+        "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and not the regression, but does not explicitly state that this contradicts Ravi Kumar's suggestion to start there.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand (1840 ms before, 1902 ms after) is never mentioned in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "No code changes to statements module \u2014 as per Tom Becker \u2014 but the migration likely affected underlying data or concurrency model.",
+        "reason": "The analysis mentions the migration was applied but does not explicitly frame it as contradicting Tom Becker's claim that nothing in 4.7.0 touched statements; it actually endorses his claim while noting the migration.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "This is a **critical regression** caused by the `20260914_2100_ReindexStatementLines` migration, which triggered thread pool starvation and caused `GetStatementLineQuery` to timeout.",
+        "reason": "The analysis hedges with 'likely' in some places but the conclusion states the migration 'caused' the regression as established fact rather than as a coincidence the logs only show.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "Thread pool exhaustion \u2014 0 available threads for 4.2s, leading to queued work items and cascading timeouts.",
+        "reason": "The analysis frames thread pool starvation as a cause of cascading timeouts rather than as a consequence of requests piling up behind the slow query, and does not note the temporal alignment with the jump from ~44 s to ~69 s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "Reproducibility \u2014 Logs are from a single 5-minute window \u2014 not enough to confirm if it's a one-off or systemic issue.",
+        "reason": "The analysis notes the short window limitation but does not articulate that there are two windows on different days with nothing in between, only a handful of samples, making the regression indicative rather than measured.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Tom Becker: Review `20260914_2100_ReindexStatementLines` migration \u2014 does it lock tables? Use too many threads? Trigger background jobs?",
+        "reason": "The analysis suggests reviewing the migration and adding monitoring but does not specifically recommend checking the execution plan and indexes for the statement line query or collecting a longer sample from both versions before concluding.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "The `GetAccountSummaryQuery` also became slower but remains within acceptable limits.",
+        "reason": "The analysis states GetAccountSummaryQuery 'became slower' after 4.7.0, but the data shows it is effectively unchanged (2987\u20133341 ms before, 3011\u20133402 ms after).",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "This is a **critical regression** caused by the `20260914_2100_ReindexStatementLines` migration, which triggered thread pool starvation and caused `GetStatementLineQuery` to timeout.",
+        "reason": "The conclusion states as established fact that the migration caused the slowdown, rather than noting the logs only show temporal coincidence.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis states ~100\u00d7 and ~240\u00d7, which are supported by the timings; it does not claim a ten-fold or two-fold slowdown.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "Key blocker: **Thread pool starvation** detected in logs, suggesting infrastructure or concurrency issues post-migration.",
+        "reason": "The analysis positions thread pool starvation as a 'key blocker' and as something 'leading to cascading timeouts,' framing it as a cause rather than a symptom of the slow query.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No timeouts or warnings \u2014 all requests completed within 1000ms threshold.",
+        "reason": "The before log shows GetAccountSummaryQuery completing in 3102 ms, 3341 ms, 2987 ms, and 3255 ms, all well above 1000 ms; the claim that all requests completed within 1000 ms is contradicted by the attached log."
+      },
+      {
+        "quote": "~35\u201372s (avg ~40s)",
+        "reason": "The 14 GetStatementLineQuery readings in the after log sum to 724,623 ms, giving an average of approximately 51,759 ms (~52 s), not ~40 s; the stated average is a miscalculation."
+      }
+    ]
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer retry after a timeout (ERR_TXN_504) causes the source account to be debited twice while the destination is credited once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected Versions: 3.1.4\n- **Fix Version**: 3.2.0",
+      "reason": "The analysis names 3.1.4 as affected, 3.2.0 as fix version, and states the release target is 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Retry POSTs a new transfer without idempotency key \u2192 server treats as new request.\n  - Debit/credit not in same transaction \u2192 first debit commits, second debit occurs after timeout.",
+      "reason": "Both root-cause elements (no idempotency key on retry, debit/credit not in a single DB transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Resolution**: Unresolved\n- **Due Date**: None (but release target is 2026-09-24)\n- **PR #218** is open and awaiting code review to fix the issue.",
+      "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance Ops must manually reverse 3 duplicate debits (already flagged).",
+      "reason": "The analysis mentions three customers and manual reversal by Finance, but omits that Marcus Reid was specifically asked to raise it with Finance Ops, and instead attributes the coordination to Aroha Walker in the next-actions section."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance Ops must manually reverse 3 duplicate debits (already flagged).",
+      "reason": "The analysis does not explicitly note that the ticket does not confirm the reversal request has been raised or customers refunded; the phrase 'already flagged' ambiguously implies the request was made."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Complete code review for PR #218.\n   - Add test cases for retry flow with timeout.\n   - Confirm idempotency key implementation with backend team.\n2. **Aroha Walker**:\n   - Coordinate with Finance Ops to reverse 3 duplicate debits.",
+      "reason": "Both next actions (get PR #218 reviewed/merged, confirm customer reversals with Finance Ops) are present."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is open and awaiting code review; it never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states desktop web is not affected ('no issue there'), consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No test coverage for retry flow with timeout.",
+      "reason": "The ticket export contains no information about test coverage; this is an unsupported assertion."
+    },
+    {
+      "quote": "No screenshots or logs from customer reports \u2014 only support call logs provided.",
+      "reason": "The ticket does not state that no screenshots or logs were provided; it includes a system log excerpt and references support calls, but never says customer-provided artifacts are absent."
+    },
+    {
+      "quote": "No duplicate tickets found (ticket is standalone).",
+      "reason": "The export contains only one ticket; the analysis cannot confirm the absence of duplicates in the broader Jira system."
+    },
+    {
+      "quote": "Aroha Walker:\n   - Coordinate with Finance Ops to reverse 3 duplicate debits.",
+      "reason": "The ticket states Aroha Walker asked Marcus Reid to raise the reversal with Finance Ops; the analysis misattributes the action to Aroha Walker."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 108.1
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer retry after a timeout (ERR_TXN_504) causes the source account to be debited twice while the destination is credited once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected Versions: 3.1.4\n- **Fix Version**: 3.2.0",
+        "reason": "The analysis names 3.1.4 as affected, 3.2.0 as fix version, and states the release target is 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Retry POSTs a new transfer without idempotency key \u2192 server treats as new request.\n  - Debit/credit not in same transaction \u2192 first debit commits, second debit occurs after timeout.",
+        "reason": "Both root-cause elements (no idempotency key on retry, debit/credit not in a single DB transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Resolution**: Unresolved\n- **Due Date**: None (but release target is 2026-09-24)\n- **PR #218** is open and awaiting code review to fix the issue.",
+        "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance Ops must manually reverse 3 duplicate debits (already flagged).",
+        "reason": "The analysis mentions three customers and manual reversal by Finance, but omits that Marcus Reid was specifically asked to raise it with Finance Ops, and instead attributes the coordination to Aroha Walker in the next-actions section.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Finance Ops must manually reverse 3 duplicate debits (already flagged).",
+        "reason": "The analysis does not explicitly note that the ticket does not confirm the reversal request has been raised or customers refunded; the phrase 'already flagged' ambiguously implies the request was made.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Complete code review for PR #218.\n   - Add test cases for retry flow with timeout.\n   - Confirm idempotency key implementation with backend team.\n2. **Aroha Walker**:\n   - Coordinate with Finance Ops to reverse 3 duplicate debits.",
+        "reason": "Both next actions (get PR #218 reviewed/merged, confirm customer reversals with Finance Ops) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is open and awaiting code review; it never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states desktop web is not affected ('no issue there'), consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No test coverage for retry flow with timeout.",
+        "reason": "The ticket export contains no information about test coverage; this is an unsupported assertion."
+      },
+      {
+        "quote": "No screenshots or logs from customer reports \u2014 only support call logs provided.",
+        "reason": "The ticket does not state that no screenshots or logs were provided; it includes a system log excerpt and references support calls, but never says customer-provided artifacts are absent."
+      },
+      {
+        "quote": "No duplicate tickets found (ticket is standalone).",
+        "reason": "The export contains only one ticket; the analysis cannot confirm the absence of duplicates in the broader Jira system."
+      },
+      {
+        "quote": "Aroha Walker:\n   - Coordinate with Finance Ops to reverse 3 duplicate debits.",
+        "reason": "The ticket states Aroha Walker asked Marcus Reid to raise the reversal with Finance Ops; the analysis misattributes the action to Aroha Walker."
+      }
+    ]
+  }
+}

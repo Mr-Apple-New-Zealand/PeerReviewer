@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "All other 401-related issues (e.g., `/api/settlements/CustomerOrder/Search`, `/api/payments/PaymentBatch/Actions`) are likely symptoms of the same root cause \u2014 authentication failure.",
+      "reason": "The analysis separates the five issues into two groups (A: 401, B: Angular Runtime Errors) with different stated root causes, rather than clearly stating all five share one cause (401 rejection causing undefined-property failures across four screens plus the logger)."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed, never references the export's note about overlapping users, and never identifies 44 as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis notes 58 users and 63 events for BANKUI-5D6 but labels its impact as 'Low' and never states that 58 is the highest user count in the list or that it is the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Appears after 2026-09-10 deploy \u2014 possibly related to release 4.7.0.",
+      "reason": "The analysis mentions the 404 and the timing relative to the 4.7.0 deploy but gives no specific timestamps, no calculation of the ~6.5-minute gap, and no explanation of the mechanism (open sessions requesting hashed bundles the deploy replaced)."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Not a product defect \u2014 likely a browser extension issue. Should be flagged as \"not our defect\".",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a chrome-extension issue affecting only 1 user, not a product defect, and recommends flagging/closing it rather than fixing it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "past triage was based on event count \u2014 but that led to a low-impact fix",
+      "reason": "The analysis acknowledges event count is misleading in general but then uses 'Highest event count (5,140)' as a primary justification for prioritising BANKUI-3C8, and never characterises 3C8 as a logger recording a symptom or states that neither of the two largest counts is the most valuable thing to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis states BANKUI-1A7 is 'Resolved in release 4.6.0 \u2014 can be ignored' and 'Already fixed \u2014 ignore,' completely missing that it was last seen on 2026-09-11 after the 4.7.0 deploy, indicating a regression that warrants reopening."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "source maps are not uploaded \u2014 so function names are minified. This makes debugging harder \u2014 but we're still able to identify components and endpoints.",
+      "reason": "The analysis mentions source maps are missing and names are minified, but then contradicts the key point by claiming components can still be identified, when the export explicitly states function names are minified and no component can be traced from this data alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor does it state that total affected users cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Likely authentication failure \u2014 possibly due to expired tokens or misconfigured session handling.",
+      "reason": "The analysis presents the 401 cause as a likely inference (satisfying the inference condition) but frames it as a generic 'authentication failure' rather than the specific inference that sessions are expiring without the app handling the rejection, and does not note that confirming this would require a full event rather than this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis recommends BANKUI-3C8 first and BANKUI-4A1 second (not the 401 cluster as a single fix closing five issues), does not put BANKUI-5D6 first despite its 58-user impact, and does not recommend reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-2F0 at 'Low' priority and explicitly labels it 'Not our defect,' not treating its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues together under one root cause ('UI code accessing undefined objects') and does not assign them separate causes or separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports individual user counts per issue and never sums them together."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Already fixed \u2014 ignore.",
+      "reason": "The analysis explicitly states BANKUI-1A7 is 'Already fixed' and 'can be ignored,' asserting it needs no action despite the evidence of regression."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as 'authentication failure' and 'expired tokens or misconfigured session handling,' never as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-5D6 in its own group (C: ChunkLoadError/Infrastructure) and BANKUI-1A7 in its own group (E: Resolved), neither grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "we're still able to identify components and endpoints",
+      "reason": "The export explicitly states that source maps are not uploaded and function names are minified (e.g., ie.project, N.setRows), meaning Angular component names cannot be identified from this data. While URL paths (endpoints) are visible in the culprit field, claiming 'components' can be identified contradicts the export's own note."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 220.67
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "All other 401-related issues (e.g., `/api/settlements/CustomerOrder/Search`, `/api/payments/PaymentBatch/Actions`) are likely symptoms of the same root cause \u2014 authentication failure.",
+        "reason": "The analysis separates the five issues into two groups (A: 401, B: Angular Runtime Errors) with different stated root causes, rather than clearly stating all five share one cause (401 rejection causing undefined-property failures across four screens plus the logger).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed, never references the export's note about overlapping users, and never identifies 44 as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis notes 58 users and 63 events for BANKUI-5D6 but labels its impact as 'Low' and never states that 58 is the highest user count in the list or that it is the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "Appears after 2026-09-10 deploy \u2014 possibly related to release 4.7.0.",
+        "reason": "The analysis mentions the 404 and the timing relative to the 4.7.0 deploy but gives no specific timestamps, no calculation of the ~6.5-minute gap, and no explanation of the mechanism (open sessions requesting hashed bundles the deploy replaced).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "Not a product defect \u2014 likely a browser extension issue. Should be flagged as \"not our defect\".",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a chrome-extension issue affecting only 1 user, not a product defect, and recommends flagging/closing it rather than fixing it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "past triage was based on event count \u2014 but that led to a low-impact fix",
+        "reason": "The analysis acknowledges event count is misleading in general but then uses 'Highest event count (5,140)' as a primary justification for prioritising BANKUI-3C8, and never characterises 3C8 as a logger recording a symptom or states that neither of the two largest counts is the most valuable thing to fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "The analysis states BANKUI-1A7 is 'Resolved in release 4.6.0 \u2014 can be ignored' and 'Already fixed \u2014 ignore,' completely missing that it was last seen on 2026-09-11 after the 4.7.0 deploy, indicating a regression that warrants reopening.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "source maps are not uploaded \u2014 so function names are minified. This makes debugging harder \u2014 but we're still able to identify components and endpoints.",
+        "reason": "The analysis mentions source maps are missing and names are minified, but then contradicts the key point by claiming components can still be identified, when the export explicitly states function names are minified and no component can be traced from this data alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor does it state that total affected users cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Likely authentication failure \u2014 possibly due to expired tokens or misconfigured session handling.",
+        "reason": "The analysis presents the 401 cause as a likely inference (satisfying the inference condition) but frames it as a generic 'authentication failure' rather than the specific inference that sessions are expiring without the app handling the rejection, and does not note that confirming this would require a full event rather than this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "",
+        "reason": "The analysis recommends BANKUI-3C8 first and BANKUI-4A1 second (not the 401 cluster as a single fix closing five issues), does not put BANKUI-5D6 first despite its 58-user impact, and does not recommend reopening BANKUI-1A7.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis places BANKUI-2F0 at 'Low' priority and explicitly labels it 'Not our defect,' not treating its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues together under one root cause ('UI code accessing undefined objects') and does not assign them separate causes or separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis reports individual user counts per issue and never sums them together.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "Already fixed \u2014 ignore.",
+        "reason": "The analysis explicitly states BANKUI-1A7 is 'Already fixed' and 'can be ignored,' asserting it needs no action despite the evidence of regression.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as 'authentication failure' and 'expired tokens or misconfigured session handling,' never as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis places BANKUI-5D6 in its own group (C: ChunkLoadError/Infrastructure) and BANKUI-1A7 in its own group (E: Resolved), neither grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "we're still able to identify components and endpoints",
+        "reason": "The export explicitly states that source maps are not uploaded and function names are minified (e.g., ie.project, N.setRows), meaning Angular component names cannot be identified from this data. While URL paths (endpoints) are visible in the culprit field, claiming 'components' can be identified contradicts the export's own note."
+      }
+    ]
+  }
+}

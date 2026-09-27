@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two halves of the session, the ~4-hour-10-minute gap, the specific timestamps, or the pattern of all-200s before and all-401s after."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The code attempted to call `.sort()` on a variable that was `undefined`, indicating a missing or unpopulated data structure. The error is not caught by a guard, allowing it to propagate and crash the UI.",
+      "reason": "It touches on the 401 connection but frames the defect as a missing data validation/guard rather than the app's failure to handle 401 responses (no redirect to sign-in, no guard on the HTTP layer)."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Look for other tickets or events with similar errors \u2014 e.g., `Cannot read properties of undefined (reading 'rows')` or `Cannot read properties of undefined (reading 'length')` \u2014 which may indicate a broader data handling issue.",
+      "reason": "It mentions two of the four earlier sentry.event breadcrumbs but frames them as 'other tickets or events' rather than entries in the same event's breadcrumbs, omits 'returnProperties', and does not state they should be treated as one defect."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh call, its timestamp, its 200 status, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "A user in Production (Edge 153.0.0 on Windows 10) was using the batch actions screen",
+      "reason": "The analysis takes the Production tag at face value and never flags the discrepancy with the bank-uat.example.com URL or the environment misconfiguration."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 or the discrepancy with the actual /payments/batch/actions URL."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The stack trace points to `ie.project` in `6728.b4f17ce620a8d539.js`, but does not show the exact line or context where the array was expected but not provided.",
+      "reason": "It acknowledges the stack is limited and mentions the minified function name, but does not identify the three js_no_source errors, the three failed scraping_attempts due to DNS resolution failure, or symbolicated_in_app being false."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions release or dist being null or the inability to tie the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the 401 responses have response_body_size 0, that the event does not explain why the token was rejected, or that expiry cannot be distinguished from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "suggesting the user's session expired or token was invalid during the session",
+      "reason": "It presents the idea as inference ('suggesting') but does not connect the specific evidence chain: the successful pre-gap refresh, the four-hour gap, and the immediate 401s after."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "User: New Zealand, likely logged in via MSN (Referer: `ntp.msn.com`)",
+      "reason": "The analysis does not identify the 780 KB response, the Referer, the browser/OS, or the '401 OK' wording as non-faults; it actually misinterprets the Referer as indicating login via MSN."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that all frames including polyfills are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Add a guard to prevent `.sort()` on undefined arrays \u2014 but only after identifying the exact location in `6728.b4f17ce620a8d539.js` where the error occurs.",
+      "reason": "The suggested actions focus on adding a guard and investigating data flow; they do not mention handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the stale transaction, or explaining that a null guard would hide the problem."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The code attempted to call `.sort()` on a variable that was `undefined`, indicating a missing or unpopulated data structure. The error is not caught by a guard, allowing it to propagate and crash the UI.",
+      "reason": "The analysis presents the missing null check before .sort as the root cause and primary fix rather than as a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "A user in Production (Edge 153.0.0 on Windows 10) was using the batch actions screen (`/payments/batch/actions`) when a JavaScript error occurred",
+      "reason": "The analysis states the error happened in Production without flagging that the URL is the UAT host, treating it as a production event."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies the screen as /payments/batch/actions and does not state the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only reports the minified bundle filename and minified function name from the stack trace; it does not name an actual source file, real component name, or line number in application code."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as a session/token expiry issue, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during the gap or state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "likely logged in via MSN (Referer: `ntp.msn.com`)",
+      "reason": "The Referer header ntp.msn.com indicates the page was opened from a browser new-tab page; it does not indicate the user logged in via MSN. The tickets provide no basis for this interpretation."
+    },
+    {
+      "quote": "The error is not in the core framework (e.g., Angular) but in the application's business logic \u2014 likely a data-fetching or state management component that failed to validate data before sorting.",
+      "reason": "The minified, unsymbolicated stack with missing source maps does not allow determining whether the fault is in framework code or application code; the analysis asserts a distinction the data does not support."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 192.83
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two halves of the session, the ~4-hour-10-minute gap, the specific timestamps, or the pattern of all-200s before and all-401s after.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The code attempted to call `.sort()` on a variable that was `undefined`, indicating a missing or unpopulated data structure. The error is not caught by a guard, allowing it to propagate and crash the UI.",
+        "reason": "It touches on the 401 connection but frames the defect as a missing data validation/guard rather than the app's failure to handle 401 responses (no redirect to sign-in, no guard on the HTTP layer).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "Look for other tickets or events with similar errors \u2014 e.g., `Cannot read properties of undefined (reading 'rows')` or `Cannot read properties of undefined (reading 'length')` \u2014 which may indicate a broader data handling issue.",
+        "reason": "It mentions two of the four earlier sentry.event breadcrumbs but frames them as 'other tickets or events' rather than entries in the same event's breadcrumbs, omits 'returnProperties', and does not state they should be treated as one defect.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh call, its timestamp, its 200 status, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "A user in Production (Edge 153.0.0 on Windows 10) was using the batch actions screen",
+        "reason": "The analysis takes the Production tag at face value and never flags the discrepancy with the bank-uat.example.com URL or the environment misconfiguration.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 or the discrepancy with the actual /payments/batch/actions URL.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The stack trace points to `ie.project` in `6728.b4f17ce620a8d539.js`, but does not show the exact line or context where the array was expected but not provided.",
+        "reason": "It acknowledges the stack is limited and mentions the minified function name, but does not identify the three js_no_source errors, the three failed scraping_attempts due to DNS resolution failure, or symbolicated_in_app being false.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions release or dist being null or the inability to tie the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that the 401 responses have response_body_size 0, that the event does not explain why the token was rejected, or that expiry cannot be distinguished from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "suggesting the user's session expired or token was invalid during the session",
+        "reason": "It presents the idea as inference ('suggesting') but does not connect the specific evidence chain: the successful pre-gap refresh, the four-hour gap, and the immediate 401s after.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "User: New Zealand, likely logged in via MSN (Referer: `ntp.msn.com`)",
+        "reason": "The analysis does not identify the 780 KB response, the Referer, the browser/OS, or the '401 OK' wording as non-faults; it actually misinterprets the Referer as indicating login via MSN.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that all frames including polyfills are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Add a guard to prevent `.sort()` on undefined arrays \u2014 but only after identifying the exact location in `6728.b4f17ce620a8d539.js` where the error occurs.",
+        "reason": "The suggested actions focus on adding a guard and investigating data flow; they do not mention handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the stale transaction, or explaining that a null guard would hide the problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The code attempted to call `.sort()` on a variable that was `undefined`, indicating a missing or unpopulated data structure. The error is not caught by a guard, allowing it to propagate and crash the UI.",
+        "reason": "The analysis presents the missing null check before .sort as the root cause and primary fix rather than as a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "A user in Production (Edge 153.0.0 on Windows 10) was using the batch actions screen (`/payments/batch/actions`) when a JavaScript error occurred",
+        "reason": "The analysis states the error happened in Production without flagging that the URL is the UAT host, treating it as a production event.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis correctly identifies the screen as /payments/batch/actions and does not state the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis only reports the minified bundle filename and minified function name from the stack trace; it does not name an actual source file, real component name, or line number in application code.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as a session/token expiry issue, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during the gap or state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "likely logged in via MSN (Referer: `ntp.msn.com`)",
+        "reason": "The Referer header ntp.msn.com indicates the page was opened from a browser new-tab page; it does not indicate the user logged in via MSN. The tickets provide no basis for this interpretation."
+      },
+      {
+        "quote": "The error is not in the core framework (e.g., Angular) but in the application's business logic \u2014 likely a data-fetching or state management component that failed to validate data before sorting.",
+        "reason": "The minified, unsymbolicated stack with missing source maps does not allow determining whether the fault is in framework code or application code; the analysis asserts a distinction the data does not support."
+      }
+    ]
+  }
+}

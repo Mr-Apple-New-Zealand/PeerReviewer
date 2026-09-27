@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated via config deploy **OPS-81** at 09:30. However, the **Transactions API continued validating tokens using the old key**",
+      "reason": "The analysis states OPS-81 at 09:30 and lists Initial Impact at 09:31, matching the expected facts."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Detection Time**: 09:47 (Monitoring alert fired)",
+      "reason": "The alert at 09:47 is stated, but the incident declaration at 09:52 is never mentioned."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Recovery Time**: 10:42 (Error rate back under 1%)\n- **Rollback Completed**: 10:44\n- **Incident Resolution**: 10:50 (Ticket closed)",
+      "reason": "Recovery at 10:42 and resolution at 10:50 are present, but the rollback start at 10:31 is missing (only completion at 10:44 is given)."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Detection Time**: 09:47 (Monitoring alert fired)\n- **Initial Impact**: 09:31 (Dashboard errors first observed)",
+      "reason": "Both timestamps are provided but the analysis never explicitly calculates or states that time to detect is 16 minutes."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Detection to Recovery**: **65 minutes** (09:47 \u2192 10:42)",
+      "reason": "The correct calculation from 09:47 to 10:42 is 55 minutes, not 65; the arithmetic is wrong despite correct endpoints."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated via config deploy **OPS-81** at 09:30. However, the **Transactions API continued validating tokens using the old key**, while Auth service started issuing tokens with the new key. This mismatch caused 401 errors for all transfer requests.",
+      "reason": "All elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation key not updated, 401 errors, and the IDX10503 error code is listed separately."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Post-Incident Review**: Scheduled for 2026-09-16",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never names the database or slow queries as a cause or contributing factor."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "**Detection to Recovery**: **65 minutes** (09:47 \u2192 10:42)",
+      "reason": "No pair of timestamps in the ticket yields 65 minutes; the correct value for 09:47\u219210:42 is 55 minutes, making 65 an unsupported figure."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Incident was resolved within 65 minutes \u2014 fast response, but process gaps remain for preventing recurrence.",
+      "reason": "This repeats the incorrect 65-minute figure; no pair of timestamps in the ticket supports a 65-minute duration (09:47\u219210:42 is 55 min, 09:31\u219210:42 is 71 min, 09:31\u219210:50 is 79 min)."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 105.41
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The JWT signing key was rotated via config deploy **OPS-81** at 09:30. However, the **Transactions API continued validating tokens using the old key**",
+        "reason": "The analysis states OPS-81 at 09:30 and lists Initial Impact at 09:31, matching the expected facts.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "**Detection Time**: 09:47 (Monitoring alert fired)",
+        "reason": "The alert at 09:47 is stated, but the incident declaration at 09:52 is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "**Recovery Time**: 10:42 (Error rate back under 1%)\n- **Rollback Completed**: 10:44\n- **Incident Resolution**: 10:50 (Ticket closed)",
+        "reason": "Recovery at 10:42 and resolution at 10:50 are present, but the rollback start at 10:31 is missing (only completion at 10:44 is given).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**Detection Time**: 09:47 (Monitoring alert fired)\n- **Initial Impact**: 09:31 (Dashboard errors first observed)",
+        "reason": "Both timestamps are provided but the analysis never explicitly calculates or states that time to detect is 16 minutes.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "**Detection to Recovery**: **65 minutes** (09:47 \u2192 10:42)",
+        "reason": "The correct calculation from 09:47 to 10:42 is 55 minutes, not 65; the arithmetic is wrong despite correct endpoints.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated via config deploy **OPS-81** at 09:30. However, the **Transactions API continued validating tokens using the old key**, while Auth service started issuing tokens with the new key. This mismatch caused 401 errors for all transfer requests.",
+        "reason": "All elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation key not updated, 401 errors, and the IDX10503 error code is listed separately.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "**Post-Incident Review**: Scheduled for 2026-09-16",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis never names the database or slow queries as a cause or contributing factor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "**Detection to Recovery**: **65 minutes** (09:47 \u2192 10:42)",
+        "reason": "No pair of timestamps in the ticket yields 65 minutes; the correct value for 09:47\u219210:42 is 55 minutes, making 65 an unsupported figure.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Incident was resolved within 65 minutes \u2014 fast response, but process gaps remain for preventing recurrence.",
+        "reason": "This repeats the incorrect 65-minute figure; no pair of timestamps in the ticket supports a 65-minute duration (09:47\u219210:42 is 55 min, 09:31\u219210:42 is 71 min, 09:31\u219210:50 is 79 min)."
+      }
+    ]
+  }
+}

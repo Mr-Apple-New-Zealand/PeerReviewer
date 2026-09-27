@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer retry after a timeout (ERR_TXN_504) causes the source account to be debited twice while the destination is credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after ERR_TXN_504."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected version: 3.1.4\n- **Fix in PR #218:**",
+      "reason": "The analysis states the affected version is 3.1.4 and the target release is 3.2.0 due 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root causes (from Priya's comment):\n  - Retry POSTs a new transfer without idempotency key \u2192 server treats as new request.\n  - Debit/credit not in same transaction \u2192 first debit commits before credit fails.",
+      "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single DB transaction) are clearly stated and attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **PR #218** is open and awaiting code review to fix the issue.",
+      "reason": "The analysis states the ticket is In Progress, assigned to Priya Nair, and PR #218 is awaiting code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Customer impact: 3 confirmed cases; Finance must manually reverse duplicate debits.",
+      "reason": "The analysis mentions 3 customers and manual reversal by Finance, but misattributes the action to Aroha Walker instead of Marcus Reid, who was specifically asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Finance Ops must be notified to handle 3 manual reversals \u2014 no ticket for that action.",
+      "reason": "The analysis indicates the reversal has not been confirmed as done, listing it as a pending next action with no ticket created."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Priya Nair** \u2014 Push PR #218 for code review.\n2. **Aroha Walker** \u2014 Escalate manual reversal request to Finance Ops (ticket not created).",
+      "reason": "The analysis lists getting PR #218 reviewed and confirming customer reversals with Finance Ops as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states desktop web is not affected, noting it disables retry and prevents the bug."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Aroha Walker \u2014 Escalate manual reversal request to Finance Ops (ticket not created).",
+      "reason": "The ticket shows Aroha Walker asked Marcus Reid to raise the reversal with Finance Ops; the analysis misattributes the action to Aroha Walker herself, and Marcus Reid is never mentioned in the analysis."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 76.5
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer retry after a timeout (ERR_TXN_504) causes the source account to be debited twice while the destination is credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after ERR_TXN_504.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected version: 3.1.4\n- **Fix in PR #218:**",
+        "reason": "The analysis states the affected version is 3.1.4 and the target release is 3.2.0 due 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Root causes (from Priya's comment):\n  - Retry POSTs a new transfer without idempotency key \u2192 server treats as new request.\n  - Debit/credit not in same transaction \u2192 first debit commits before credit fails.",
+        "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single DB transaction) are clearly stated and attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **PR #218** is open and awaiting code review to fix the issue.",
+        "reason": "The analysis states the ticket is In Progress, assigned to Priya Nair, and PR #218 is awaiting code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Customer impact: 3 confirmed cases; Finance must manually reverse duplicate debits.",
+        "reason": "The analysis mentions 3 customers and manual reversal by Finance, but misattributes the action to Aroha Walker instead of Marcus Reid, who was specifically asked to raise it with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Finance Ops must be notified to handle 3 manual reversals \u2014 no ticket for that action.",
+        "reason": "The analysis indicates the reversal has not been confirmed as done, listing it as a pending next action with no ticket created.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "1. **Priya Nair** \u2014 Push PR #218 for code review.\n2. **Aroha Walker** \u2014 Escalate manual reversal request to Finance Ops (ticket not created).",
+        "reason": "The analysis lists getting PR #218 reviewed and confirming customer reversals with Finance Ops as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states desktop web is not affected, noting it disables retry and prevents the bug.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Aroha Walker \u2014 Escalate manual reversal request to Finance Ops (ticket not created).",
+        "reason": "The ticket shows Aroha Walker asked Marcus Reid to raise the reversal with Finance Ops; the analysis misattributes the action to Aroha Walker herself, and Marcus Reid is never mentioned in the analysis."
+      }
+    ]
+  }
+}

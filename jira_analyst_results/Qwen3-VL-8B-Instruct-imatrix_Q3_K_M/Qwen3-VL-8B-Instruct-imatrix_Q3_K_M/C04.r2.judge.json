@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No \u2014 you cannot tell the customer this is fixed.**",
+      "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The ticket was marked \"Done\" and \"Fixed\" by Priya Nair, but **the fix did not resolve the issue in practice**. The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+      "reason": "The analysis conveys that the ticket is Done/Fixed but the issue persists, and references the specific test case, but does not name Tom Becker, give the 2026-09-10 date, or mention 3.1.4 staging."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+      "reason": "The analysis clearly states the new SMTP error code and message."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the problem is **not in the application's validation**, but in **external email provider policies**. The fix in PR #201 only removed the app's internal regex rejection; it didn't address the SMTP rejection.",
+      "reason": "The analysis presents the provider-rejection cause as established fact rather than as Tom's unconfirmed observation ('looks like'), so it fails the inference-hedging requirement."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Owner**: Priya Nair (last update)",
+      "reason": "The analysis implies the ticket hasn't been reopened (by suggesting it should be) and notes Priya as last updater, but never explicitly states that nobody reopened the ticket or that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Update ticket status** to \"Reopened\" or \"In Progress\" \u2014 since the fix is not working. 2. **Add comment** to clarify: \"Fix in PR #201 only removed internal validation \u2014 SMTP provider now rejects plus-addressed emails. Customer must use a different email format (e.g., `user@domain`).\" 3. **Contact customer** and explain",
+      "reason": "The analysis covers reopening and a customer response, but does not explicitly assign an owner to investigate the provider's rejection, and the customer response is a workaround suggestion rather than a holding response."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm a fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests reopening as a next action, implying it has not yet been reopened, and does not claim any follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Blocking**: External SMTP provider policy \u2014 not under team control",
+      "reason": "The tickets contain no information about whether the SMTP provider configuration is or is not under the team's control; this is an unsupported factual assertion."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 89.37
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "**No \u2014 you cannot tell the customer this is fixed.**",
+        "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket was marked \"Done\" and \"Fixed\" by Priya Nair, but **the fix did not resolve the issue in practice**. The email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+        "reason": "The analysis conveys that the ticket is Done/Fixed but the issue persists, and references the specific test case, but does not name Tom Becker, give the 2026-09-10 date, or mention 3.1.4 staging.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "the email provider (SMTP) is now rejecting plus-addressed emails (e.g., `test+qa1@example.com`) with a \"550 5.1.3 Invalid recipient address\" error",
+        "reason": "The analysis clearly states the new SMTP error code and message.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "the problem is **not in the application's validation**, but in **external email provider policies**. The fix in PR #201 only removed the app's internal regex rejection; it didn't address the SMTP rejection.",
+        "reason": "The analysis presents the provider-rejection cause as established fact rather than as Tom's unconfirmed observation ('looks like'), so it fails the inference-hedging requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "**Owner**: Priya Nair (last update)",
+        "reason": "The analysis implies the ticket hasn't been reopened (by suggesting it should be) and notes Priya as last updater, but never explicitly states that nobody reopened the ticket or that no one currently owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "1. **Update ticket status** to \"Reopened\" or \"In Progress\" \u2014 since the fix is not working. 2. **Add comment** to clarify: \"Fix in PR #201 only removed internal validation \u2014 SMTP provider now rejects plus-addressed emails. Customer must use a different email format (e.g., `user@domain`).\" 3. **Contact customer** and explain",
+        "reason": "The analysis covers reopening and a customer response, but does not explicitly assign an owner to investigate the provider's rejection, and the customer response is a workaround suggestion rather than a holding response.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm a fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis suggests reopening as a next action, implying it has not yet been reopened, and does not claim any follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Blocking**: External SMTP provider policy \u2014 not under team control",
+        "reason": "The tickets contain no information about whether the SMTP provider configuration is or is not under the team's control; this is an unsupported factual assertion."
+      }
+    ]
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Primary Issue: 403 Forbidden from `masterfile-api`**\n   - **Command**: `AddPaymentRoutingRuleSecondaryCommand`\n   - **Endpoint**: `branchlocation/get?ID=71&includeDetails=False`\n   - **Repeats**: Also seen in `BulkUpdateSecondaryBranchesCommand` \u2192 `branchlocation/GetAll`\n   - **Impact**: User cannot save secondary branches \u2192 UI spins and fails silently.",
+      "reason": "The analysis identifies the 403 on both endpoints, both commands, and connects it to the user-reported save failure, though it omits the count of four occurrences."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Error**: `Conversion failed when converting the ****** value '******' to data type ******`\n   - **Error Number**: 245 (SQL Server)\n   - **Location**: `SearchPaymentRoutingRuleQueryHandler.cs:line 59`",
+      "reason": "The analysis identifies the handler, error number, and message but does not state that it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The `******` values are redacted \u2014 can't determine what data is malformed or which column/type is failing.",
+      "reason": "The analysis clearly states the masking prevents identification of the offending column, value, and type."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`GetMonitorJobsQuery` timed out repeatedly \u2014 may indicate DB or service overload.",
+      "reason": "The analysis mentions the timeouts but does not give the count (8), the time window (22:26:37\u201322:29:08), the recovery at 22:36:47, or the key insight that it is a bounded episode."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`GetStatementLineQuery` took up to **72,000ms** \u2014 likely unrelated to the \"save\" issue, but indicates performance degradation.",
+      "reason": "The analysis identifies the query and approximate max duration but omits the count (14), the 10000ms threshold, the rising trend from ~35s to ~73s, and that it is still rising at the end."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the connection string, the exposed password, or the credential exposure at all."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the startup warnings (DataProtection, XML encryptor, address override, HTTPS port) as routine and non-causal."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Log is trimmed** \u2014 repeated stack traces removed, but key failures remain.",
+      "reason": "The analysis mentions the trimming but does not note that timestamps are time-of-day only with no date, that they are out of order, or that elapsed times and sequence cannot be established."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Likely Root**: `masterfile-api` is rejecting requests \u2014 possibly due to auth, permissions, or misconfigured route.",
+      "reason": "The analysis presents the 403 as a likely permissions/configuration issue on the masterfile-api side (not a payments code fault), using appropriate hedging language."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Primary Issue: 403 Forbidden from `masterfile-api`**\n2. **Secondary Issue: SQL Conversion Errors**\n3. **Timeouts & Long-running Queries**",
+      "reason": "The analysis establishes a rough priority (403 first, then SQL, then performance) but does not mention the credential exposure as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values are redacted and cannot be determined, without naming any specific column, value, or type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any elapsed times, durations, or ordered sequences as if the timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject names at all."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it correctly attributes the 403s to a Dapr/masterfile-api issue."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Impact: Query fails silently \u2014 likely data corruption or bad cast in DB layer.",
+      "reason": "The log clearly records the conversion error at ERR level with a full stack trace, so the query does not fail silently; the error is logged and visible."
+    },
+    {
+      "quote": "No stack trace for the 403 \u2014 only the Dapr client exception.",
+      "reason": "The log includes a full stack trace for the first 403 occurrence (at 19:13:31) showing the call chain through MasterfileServiceClient, the command handler, ValidationBehaviour, TransactionBehaviour, and the controller; subsequent occurrences are trimmed as identical."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 227.1
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "**Primary Issue: 403 Forbidden from `masterfile-api`**\n   - **Command**: `AddPaymentRoutingRuleSecondaryCommand`\n   - **Endpoint**: `branchlocation/get?ID=71&includeDetails=False`\n   - **Repeats**: Also seen in `BulkUpdateSecondaryBranchesCommand` \u2192 `branchlocation/GetAll`\n   - **Impact**: User cannot save secondary branches \u2192 UI spins and fails silently.",
+        "reason": "The analysis identifies the 403 on both endpoints, both commands, and connects it to the user-reported save failure, though it omits the count of four occurrences.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "**Error**: `Conversion failed when converting the ****** value '******' to data type ******`\n   - **Error Number**: 245 (SQL Server)\n   - **Location**: `SearchPaymentRoutingRuleQueryHandler.cs:line 59`",
+        "reason": "The analysis identifies the handler, error number, and message but does not state that it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The `******` values are redacted \u2014 can't determine what data is malformed or which column/type is failing.",
+        "reason": "The analysis clearly states the masking prevents identification of the offending column, value, and type.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "`GetMonitorJobsQuery` timed out repeatedly \u2014 may indicate DB or service overload.",
+        "reason": "The analysis mentions the timeouts but does not give the count (8), the time window (22:26:37\u201322:29:08), the recovery at 22:36:47, or the key insight that it is a bounded episode.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "`GetStatementLineQuery` took up to **72,000ms** \u2014 likely unrelated to the \"save\" issue, but indicates performance degradation.",
+        "reason": "The analysis identifies the query and approximate max duration but omits the count (14), the 10000ms threshold, the rising trend from ~35s to ~73s, and that it is still rising at the end.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the connection string, the exposed password, or the credential exposure at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The analysis does not address the startup warnings (DataProtection, XML encryptor, address override, HTTPS port) as routine and non-causal.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the Service Permissions messages, ObjectMapper licence lines, TaskCanceledException, or 404 for pending payment 88213 as non-defects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "**Log is trimmed** \u2014 repeated stack traces removed, but key failures remain.",
+        "reason": "The analysis mentions the trimming but does not note that timestamps are time-of-day only with no date, that they are out of order, or that elapsed times and sequence cannot be established.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "**Likely Root**: `masterfile-api` is rejecting requests \u2014 possibly due to auth, permissions, or misconfigured route.",
+        "reason": "The analysis presents the 403 as a likely permissions/configuration issue on the masterfile-api side (not a payments code fault), using appropriate hedging language.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "1. **Primary Issue: 403 Forbidden from `masterfile-api`**\n2. **Secondary Issue: SQL Conversion Errors**\n3. **Timeouts & Long-running Queries**",
+        "reason": "The analysis establishes a rough priority (403 first, then SQL, then performance) but does not mention the credential exposure as a parallel security item.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values are redacted and cannot be determined, without naming any specific column, value, or type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state any elapsed times, durations, or ordered sequences as if the timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject names at all.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it correctly attributes the 403s to a Dapr/masterfile-api issue.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Impact: Query fails silently \u2014 likely data corruption or bad cast in DB layer.",
+        "reason": "The log clearly records the conversion error at ERR level with a full stack trace, so the query does not fail silently; the error is logged and visible."
+      },
+      {
+        "quote": "No stack trace for the 403 \u2014 only the Dapr client exception.",
+        "reason": "The log includes a full stack trace for the first 403 occurrence (at 19:13:31) showing the call chain through MasterfileServiceClient, the command handler, ValidationBehaviour, TransactionBehaviour, and the controller; subsequent occurrences are trimmed as identical."
+      }
+    ]
+  }
+}

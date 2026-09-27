@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy **OPS-81** at 09:30, but the **Transactions API was not updated to validate against the new key**.",
+      "reason": "The analysis states OPS-81 was at 09:30 and the timeline shows impact starting at 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09:47 NZST** \u2013 Alert triggered: TransferErrorRate > 20%.\n- **09:52 NZST** \u2013 Incident declared by Sam Okafor.",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**10:31 NZST** \u2013 Rollback initiated for OPS-81 config deploy.\n- **10:42 NZST** \u2013 Error rate drops below 1%.\n- **10:50 NZST** \u2013 Incident resolved; ticket marked \"Fixed\".",
+      "reason": "All three timestamps (rollback at 10:31, recovery below 1% at 10:42, resolution at 10:50) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**16 minutes** (from 09:31 to 09:47) \u2014 detected via monitoring alert.",
+      "reason": "Correctly states 16 minutes from 09:31 to 09:47."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**45 minutes** (from 09:47 to 10:31 \u2014 rollback initiated; 10:42 \u2014 error rate under control).",
+      "reason": "The analysis uses 10:31 (rollback initiation) as the recovery endpoint rather than 10:42 (error rate below 1%), and miscalculates the interval as 45 minutes instead of 44; none of the acceptable answers (71, 55, or 79 minutes) are given."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy **OPS-81** at 09:30, but the **Transactions API was not updated to validate against the new key**. This caused all transfer requests to return 401s with error \"IDX10503: Signature validation failed\".",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Transactions API not updated, 401, and the specific error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the database investigation but explicitly notes it was 'later ruled out' and attributes the root cause solely to the JWT key rotation."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated times (16 min detect, 45 min recover) correspond to pairs of timestamps present in the ticket (09:31\u219209:47 and 09:47\u219210:31), even though the 45-minute figure is a minor arithmetic error rather than an invented interval."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**45 minutes** (from 09:47 to 10:31 \u2014 rollback initiated; 10:42 \u2014 error rate under control).",
+      "reason": "The interval from 09:47 to 10:31 is 44 minutes, not 45; this is a miscalculation."
+    },
+    {
+      "quote": "The error rate spiked to 64% at 09:47 NZST, detected via monitoring.",
+      "reason": "The ticket states the alert at 09:47 was for TransferErrorRate > 20%; the 64% figure was reported by Sam Okafor at 09:52, not at 09:47."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 114.16
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The JWT signing key was rotated in config deploy **OPS-81** at 09:30, but the **Transactions API was not updated to validate against the new key**.",
+        "reason": "The analysis states OPS-81 was at 09:30 and the timeline shows impact starting at 09:31.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "**09:47 NZST** \u2013 Alert triggered: TransferErrorRate > 20%.\n- **09:52 NZST** \u2013 Incident declared by Sam Okafor.",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "**10:31 NZST** \u2013 Rollback initiated for OPS-81 config deploy.\n- **10:42 NZST** \u2013 Error rate drops below 1%.\n- **10:50 NZST** \u2013 Incident resolved; ticket marked \"Fixed\".",
+        "reason": "All three timestamps (rollback at 10:31, recovery below 1% at 10:42, resolution at 10:50) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**16 minutes** (from 09:31 to 09:47) \u2014 detected via monitoring alert.",
+        "reason": "Correctly states 16 minutes from 09:31 to 09:47.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "**45 minutes** (from 09:47 to 10:31 \u2014 rollback initiated; 10:42 \u2014 error rate under control).",
+        "reason": "The analysis uses 10:31 (rollback initiation) as the recovery endpoint rather than 10:42 (error rate below 1%), and miscalculates the interval as 45 minutes instead of 44; none of the acceptable answers (71, 55, or 79 minutes) are given.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated in config deploy **OPS-81** at 09:30, but the **Transactions API was not updated to validate against the new key**. This caused all transfer requests to return 401s with error \"IDX10503: Signature validation failed\".",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Transactions API not updated, 401, and the specific error code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the database investigation but explicitly notes it was 'later ruled out' and attributes the root cause solely to the JWT key rotation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The stated times (16 min detect, 45 min recover) correspond to pairs of timestamps present in the ticket (09:31\u219209:47 and 09:47\u219210:31), even though the 45-minute figure is a minor arithmetic error rather than an invented interval.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**45 minutes** (from 09:47 to 10:31 \u2014 rollback initiated; 10:42 \u2014 error rate under control).",
+        "reason": "The interval from 09:47 to 10:31 is 44 minutes, not 45; this is a miscalculation."
+      },
+      {
+        "quote": "The error rate spiked to 64% at 09:47 NZST, detected via monitoring.",
+        "reason": "The ticket states the alert at 09:47 was for TransferErrorRate > 20%; the 64% figure was reported by Sam Okafor at 09:52, not at 09:47."
+      }
+    ]
+  }
+}

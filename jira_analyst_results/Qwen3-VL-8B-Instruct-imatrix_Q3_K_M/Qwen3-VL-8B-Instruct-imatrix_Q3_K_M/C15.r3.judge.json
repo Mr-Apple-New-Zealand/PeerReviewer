@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The real issue is **SMTP authentication failure** (535), with repeated failures for `payment-receipt` and `statement-ready` emails.\n  - The SMTP server responds: \"Authentication unsuccessful, basic authentication is disabled.\"",
+      "reason": "The analysis correctly identifies SMTP authentication failure with code 535 and the server response text as the cause of undelivered emails, though it omits the '5.7.139' prefix and the specific class names (SmtpException, EmailSender)."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid's explanation blames \"junk keys\" \u2014 but the log shows no error related to key storage. The key storage warning is a *warning*, not a failure. The real error is SMTP authentication failure.",
+      "reason": "The analysis clearly states the reporter's explanation is unsupported, identifies the key-storage lines as warnings not errors, and disconnects them from the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The outbox dispatcher is stuck retrying failed messages (no backoff or dead-letter queue).",
+      "reason": "The analysis mentions no backoff and no dead-letter queue but does not convey the 5-second retry interval, the specific item 991204 reaching five attempts, or the blocking-at-head-of-queue mechanism."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the growing backlog (1412\u21922089), the time range, or the rate of growth, so the point about customers continuing to miss receipts due to an accumulating queue is absent."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 14:00 start time, the fact that the log begins at 18:02:41, or that the previous container's log was not captured, so the gap between the reported outage start and the log's coverage is unaddressed."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair suggests restarting the pod again \u2014 which was already done at 18:02 with no effect",
+      "reason": "The analysis conveys that the pod was already restarted at 18:02 and it did not resolve the issue, making clear another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The app is likely misconfigured for SMTP credentials.",
+      "reason": "The analysis presents the authentication-method/credentials fix as a likely inference (using 'likely' and question forms) rather than established fact, and points to changing auth method or credentials rather than notification code."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2. **Check SMTP credentials:** Verify the user `svc-notify@example.com` exists, has correct permissions, and the password is correct. Check if the SMTP server requires STARTTLS or TLS/SSL.\n3. **Add backoff or dead-letter queue:** The outbox dispatcher should implement exponential backoff or a dead-letter queue to prevent infinite retries.",
+      "reason": "The analysis covers checking/fixing SMTP auth and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start, so one of the three key next actions is missing."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The app is healthy (health check passes), NATS reconnects, and templates load \u2014 indicating the core app is functional, just the email delivery is broken.",
+      "reason": "The analysis notes the health check passes and NATS reconnects, and explicitly frames them as not being the cause of the failure, which matches the expected point."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's key-storage explanation and identifies SMTP authentication as the real cause."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the prior restart only to note it had no effect; it does not recommend restarting as a fix."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the health check and NATS are not the issue, and does not blame the poll interval for the failures."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not assert rate limiting, a TLS failure, or a mailbox-full response as the cause; it only suggests checking whether the server requires a different TLS mode."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 124.25
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The real issue is **SMTP authentication failure** (535), with repeated failures for `payment-receipt` and `statement-ready` emails.\n  - The SMTP server responds: \"Authentication unsuccessful, basic authentication is disabled.\"",
+        "reason": "The analysis correctly identifies SMTP authentication failure with code 535 and the server response text as the cause of undelivered emails, though it omits the '5.7.139' prefix and the specific class names (SmtpException, EmailSender).",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Marcus Reid's explanation blames \"junk keys\" \u2014 but the log shows no error related to key storage. The key storage warning is a *warning*, not a failure. The real error is SMTP authentication failure.",
+        "reason": "The analysis clearly states the reporter's explanation is unsupported, identifies the key-storage lines as warnings not errors, and disconnects them from the SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "The outbox dispatcher is stuck retrying failed messages (no backoff or dead-letter queue).",
+        "reason": "The analysis mentions no backoff and no dead-letter queue but does not convey the 5-second retry interval, the specific item 991204 reaching five attempts, or the blocking-at-head-of-queue mechanism.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the growing backlog (1412\u21922089), the time range, or the rate of growth, so the point about customers continuing to miss receipts due to an accumulating queue is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not address the 14:00 start time, the fact that the log begins at 18:02:41, or that the previous container's log was not captured, so the gap between the reported outage start and the log's coverage is unaddressed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Priya Nair suggests restarting the pod again \u2014 which was already done at 18:02 with no effect",
+        "reason": "The analysis conveys that the pod was already restarted at 18:02 and it did not resolve the issue, making clear another restart will not help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "The app is likely misconfigured for SMTP credentials.",
+        "reason": "The analysis presents the authentication-method/credentials fix as a likely inference (using 'likely' and question forms) rather than established fact, and points to changing auth method or credentials rather than notification code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "2. **Check SMTP credentials:** Verify the user `svc-notify@example.com` exists, has correct permissions, and the password is correct. Check if the SMTP server requires STARTTLS or TLS/SSL.\n3. **Add backoff or dead-letter queue:** The outbox dispatcher should implement exponential backoff or a dead-letter queue to prevent infinite retries.",
+        "reason": "The analysis covers checking/fixing SMTP auth and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start, so one of the three key next actions is missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "The app is healthy (health check passes), NATS reconnects, and templates load \u2014 indicating the core app is functional, just the email delivery is broken.",
+        "reason": "The analysis notes the health check passes and NATS reconnects, and explicitly frames them as not being the cause of the failure, which matches the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's key-storage explanation and identifies SMTP authentication as the real cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis mentions the prior restart only to note it had no effect; it does not recommend restarting as a fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis explicitly states the health check and NATS are not the issue, and does not blame the poll interval for the failures.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not assert rate limiting, a TLS failure, or a mailbox-full response as the cause; it only suggests checking whether the server requires a different TLS mode.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log shows repeated SMTP failures: `System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.` SMTP status code: `535` \u2014 standard for authentication failure.",
+      "reason": "The analysis clearly identifies the SMTP authentication failure with the correct exception, status code 535, and server response text as the cause of delivery failure, though it does not name EmailSender/OutboxDispatcher as the raising classes."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid's explanation (key storage issue) is **not supported by the log**. The log shows SMTP authentication failure \u2014 a different problem.",
+      "reason": "The analysis explicitly states the reporter's explanation is not supported, identifies the key-storage lines as warnings not errors, and disconnects them from the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No Dead-Letter Queue or Backoff: The log shows messages are stuck in the outbox with no backoff or dead-letter path \u2014 this is a design flaw, not a bug in the app, but a missing feature.",
+      "reason": "The analysis mentions the lack of backoff and dead-letter path but does not convey the specific blocking mechanism: item 991204 at the head of the queue after five attempts, the 5-second fixed retry interval, or that one failing item blocks subsequent ones."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The outbox dispatcher is running and accumulating messages (up to 2089 pending by 18:39).",
+      "reason": "The analysis mentions the growing backlog and the final count of 2089 but omits the starting figure of 1412 at 18:02:48, the approximate rate of ~100 per six minutes, and the explicit consequence that customers will keep missing receipts until auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses the 14:00 gap, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured, so the contact centre's stated start time is unconfirmed."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair has restarted the pod (at 18:02), but it did not resolve the issue \u2014 suggesting the problem is not transient or container-specific.",
+      "reason": "The analysis conveys that the 18:02 restart did not fix the problem, implying another restart will not help, though it does not explicitly trace the 535 errors continuing through 18:38:02."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This suggests either: The credentials are misconfigured. The SMTP server has disabled basic authentication. The app is missing TLS configuration (StartTls=True is set, but that's not sufficient).",
+      "reason": "The analysis presents the disabled-basic-auth explanation as a suggestion ('This suggests either\u2026') and directs the fix toward the SMTP server admin / authentication method rather than notification code, satisfying the inference framing requirement."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Implement backoff and dead-letter queue \u2014 to prevent message accumulation.",
+      "reason": "The analysis covers the SMTP auth fix and the backoff/dead-letter recommendation but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start, which is one of the three required next actions."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The app successfully connects to NATS and health checks pass.",
+      "reason": "The analysis mentions NATS and health checks in passing but does not specifically address the 18:07:12 connection loss, its recovery at 18:07:13 after one attempt, or explicitly state that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unsupported by the log."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "**Restart the pod with correct SMTP credentials** \u2014 if credentials are wrong, this may fix it.",
+      "reason": "The analysis recommends restarting the pod as a potential remedy, which the trap identifies as an unsupported fix given the server-side auth rejection."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state a TLS failure, rate-limiting, or mailbox-full error as the cause; it only suggests investigating TLS as a possibility, which is labelled as a suggestion."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 151.93
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows repeated SMTP failures: `System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.` SMTP status code: `535` \u2014 standard for authentication failure.",
+        "reason": "The analysis clearly identifies the SMTP authentication failure with the correct exception, status code 535, and server response text as the cause of delivery failure, though it does not name EmailSender/OutboxDispatcher as the raising classes.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Marcus Reid's explanation (key storage issue) is **not supported by the log**. The log shows SMTP authentication failure \u2014 a different problem.",
+        "reason": "The analysis explicitly states the reporter's explanation is not supported, identifies the key-storage lines as warnings not errors, and disconnects them from the SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "No Dead-Letter Queue or Backoff: The log shows messages are stuck in the outbox with no backoff or dead-letter path \u2014 this is a design flaw, not a bug in the app, but a missing feature.",
+        "reason": "The analysis mentions the lack of backoff and dead-letter path but does not convey the specific blocking mechanism: item 991204 at the head of the queue after five attempts, the 5-second fixed retry interval, or that one failing item blocks subsequent ones.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "The outbox dispatcher is running and accumulating messages (up to 2089 pending by 18:39).",
+        "reason": "The analysis mentions the growing backlog and the final count of 2089 but omits the starting figure of 1412 at 18:02:48, the approximate rate of ~100 per six minutes, and the explicit consequence that customers will keep missing receipts until auth is fixed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis never addresses the 14:00 gap, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured, so the contact centre's stated start time is unconfirmed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Priya Nair has restarted the pod (at 18:02), but it did not resolve the issue \u2014 suggesting the problem is not transient or container-specific.",
+        "reason": "The analysis conveys that the 18:02 restart did not fix the problem, implying another restart will not help, though it does not explicitly trace the 535 errors continuing through 18:38:02.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "This suggests either: The credentials are misconfigured. The SMTP server has disabled basic authentication. The app is missing TLS configuration (StartTls=True is set, but that's not sufficient).",
+        "reason": "The analysis presents the disabled-basic-auth explanation as a suggestion ('This suggests either\u2026') and directs the fix toward the SMTP server admin / authentication method rather than notification code, satisfying the inference framing requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Implement backoff and dead-letter queue \u2014 to prevent message accumulation.",
+        "reason": "The analysis covers the SMTP auth fix and the backoff/dead-letter recommendation but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start, which is one of the three required next actions.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "The app successfully connects to NATS and health checks pass.",
+        "reason": "The analysis mentions NATS and health checks in passing but does not specifically address the 18:07:12 connection loss, its recovery at 18:07:13 after one attempt, or explicitly state that neither is part of the failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unsupported by the log.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "**Restart the pod with correct SMTP credentials** \u2014 if credentials are wrong, this may fix it.",
+        "reason": "The analysis recommends restarting the pod as a potential remedy, which the trap identifies as an unsupported fix given the server-side auth rejection.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not state a TLS failure, rate-limiting, or mailbox-full error as the cause; it only suggests investigating TLS as a possibility, which is labelled as a suggestion.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

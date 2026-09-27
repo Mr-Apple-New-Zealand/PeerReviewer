@@ -20,67 +20,69 @@ step with it.
 
 ## Current standing
 
-Four runs have been measured on the full eighteen cases with the judge of
+Five runs have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
-| Model | Quant | Quality | C01–C13 | C14–C18 | Traps hit | Unsupported | Resident GB |
-|---|---|---|---|---|---|---|---|
-| **Qwen2.5-VL-32B-Instruct** | Q5_K_M | **49.2 (49–50)** | **60.6** | **19.5** | 7/162 | 37 | 32.5 |
-| Qwen2.5-VL-72B-Instruct | Q4_K_S | 45.6 (45–47) | 58.7 | 11.7 | 8/162 | 15 | 56.3 |
-| Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 24.5 (23–25) | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
-| Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 14.4 (12–18) | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
+| Model | Quant | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsupported | GB |
+|---|---|---|---|---|---|---|---|---|
+| **Qwen3-VL-8B-Instruct-imatrix** | Q3_K_M | **49.7 (48–52)** | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
+| Qwen2.5-VL-32B-Instruct | Q5_K_M | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
+| Qwen2.5-VL-72B-Instruct | Q4_K_S | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
+| Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
+| Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
 
 All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
-num_predict 8192. Judge grounding was clean throughout: 0, 0, 1 and 1 ungrounded,
-0 omitted.
+num_predict 8192. Judge grounding stayed clean: 0–2 ungrounded, 0 omitted
+throughout.
 
-The 72B run (harness `980b243`) records `judge_num_predict` 16384 rather than the
-40960 `JUDGE_DEFAULTS` specifies, because at that commit the table could not
-override an argparse default; fixed in `826515e`. It had no judge failures, so its
-scores stand.
+### Generation beats size, by a wide margin
 
-### The 32B beats the 72B, and the quant is why that is not conclusive
+**A Qwen3-VL 8B at Q3_K_M matches a Qwen2.5-VL 32B at Q5_K_M, using a third of
+the memory and carrying the worst quantization in the fleet.** It also beats the
+72B, which needs six times its memory.
 
-The 32B leads on every quality measure — Quality, both case groups, traps tripped —
-at **58% of the memory**. It is also the first model to make real progress on the
-telemetry cases, at 19.5 against the 72B's 11.7.
+That comparison is loaded against the 8B in every respect except generation:
+3 bits against 5, 9.4 GB against 32.5, 8B parameters against 32B. It still wins on
+coverage and on the telemetry cases. Whatever changed between Qwen2.5-VL and
+Qwen3-VL is worth more than any amount of the size or quantization this benchmark
+has varied.
 
-**But the 32B is Q5_K_M and the 72B is Q4_K_S, so the smaller model carries the
-more generous quantization.** Nothing here separates "a 32B is better at this job
-than a 72B" from "Q5_K_M is better than Q4_K_S". Both readings fit the data. To
-settle it, one of the two needs rebuilding to match the other - the 72B at Q5_K_M
-would be ~70 GB resident at 32768, which the server can hold.
+The corollary is that **this build is under-quantized on purpose and should be
+rebuilt at Q4_K_M** - Q3_K_M was only ever defensible while it was paired with the
+32B at the same quant, and it is now the one build holding the Instruct track back.
+Expect it to go up.
 
-Either way the practical conclusion stands: **the 32B is the model to use**, and
-24 GB of memory bought nothing.
+### The top two are tied, but they are not the same model
 
-### Unsupported claims fall with size, but not smoothly
+49.7 against 49.2, with overlapping ranges, is a tie. The composition is not:
 
-| Model | GB | C01–C13 | Unsupported per analysis | Traps |
-|---|---|---|---|---|
-| 3B | 4.1 | 19.5 | 1.85 | 20 |
-| 7B | 7.1 | 33.4 | 0.72 | 17 |
-| 32B | 32.5 | 60.6 | 0.69 | 7 |
-| 72B | 56.3 | 58.7 | 0.28 | 8 |
+| | Qwen3-VL-8B | Qwen2.5-VL-32B |
+|---|---|---|
+| Coverage | **63%** | 54% |
+| Traps tripped | 19/162 | **7/162** |
+| Unsupported per analysis | 1.24 | **0.69** |
+| C14–C18 | **28.4** | 19.5 |
 
-The direction holds - a 3B asserts something the tickets do not support roughly
-twice per analysis, the 72B once every four - but the 7B and 32B are level at about
-0.7 despite 27 points of quality between them. So unsupported claims track size
-rather than competence: the 32B is far more useful than the 7B while being no more
-careful about what it asserts. Traps tell the cleaner story, falling 20 → 17 → 7.
+The 8B finds substantially more and is wrong more often; the 32B finds less and is
+right about more of it. **Choose on what sits behind the model.** For a pipeline
+with a verification step, take the 8B's recall. For output a human reads and acts
+on directly, take the 32B - a trap tripped is a confident false statement about a
+ticket, and the 8B makes nearly three times as many.
 
-### The telemetry cases only open up above 30 GB
+### The telemetry cases finally move
 
-C14–C18 scores: **1.1, 1.3, 19.5, 11.7** for the 3B, 7B, 32B and 72B. The two small
-models are indistinguishable from zero; the two large ones are merely poor. Reading
-logs and Sentry exports does not degrade gracefully with size - below some threshold
-it is absent, and the threshold sits between 7 GB and 32 GB.
+C14–C18: **1.1, 1.3, 11.7, 19.5, 28.4** for the 3B, 7B, 72B, 32B and Qwen3-VL-8B.
+The best score on log and Sentry analysis now comes from the smallest capable model
+in the field, and it is nearly a third of the way to the ceiling rather than the
+rounding error the small Qwen2.5-VL builds produced. This is where the generational
+difference shows most clearly.
 
-### Memory buys nothing above 32 GB, on this evidence
+### Memory has stopped predicting anything
 
-3 GB (4.1 → 7.1) adds 14 points of C01–C13. The next 25 GB adds 27 points. The 24 GB
-after that **loses** 2 points. The curve flattens and then turns over, though the
-quant difference at the top is the obvious alternative explanation.
+Ordered by memory: 4.1 GB → 14.4, 7.1 GB → 24.5, 9.4 GB → **49.7**, 32.5 GB →
+49.2, 56.3 GB → 45.6. The curve rises steeply to 9 GB and is flat or falling above
+it. On current evidence there is no reason to spend more than about 10 GB on this
+job, provided the model is a recent one.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The 72B — the strongest model

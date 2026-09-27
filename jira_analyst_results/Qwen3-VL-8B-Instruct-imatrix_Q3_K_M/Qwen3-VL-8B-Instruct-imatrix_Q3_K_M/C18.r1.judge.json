@@ -1,0 +1,283 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis separates BANKUI-3C8 into its own '401 Unauthorized Errors' group and the four undefined-property issues into a separate 'Angular Component Errors' group with a different attributed cause ('shared state or data model bug'), never stating all five share one cause (the 401/session rejection)."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "High user impact (combined 100+ users) and repeated across multiple components.",
+      "reason": "The analysis adds user counts together ('combined 100+ users') without noting the export's explicit warning that the same user can appear in more than one issue, and does not identify 44 (BANKUI-3C8) as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "58 users affected, but only 63 events \u2014 likely a routing or build issue.",
+      "reason": "The analysis mentions 58 users and 63 events but does not state that 58 is the highest user count in the list or that by user impact it is the top item; it labels it only 'Medium Impact.'"
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Breadcrumb: Navigation before \u2192 404 on bundle",
+      "reason": "The analysis notes the 404 and vaguely says 'related to deployment' but does not give the specific timing (first seen 21:11:36, ~6.5 min after 4.7.0 deploy at 21:05:00) or explain the mechanism of open sessions requesting replaced hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Not a defect in the app \u2014 caused by a third-party extension. User is likely using a browser extension that conflicts with the app. Low user impact (1 user) and likely not reproducible in production without the extension.",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension issue on one user's machine, notes 4812 events / 1 user, chrome-extension culprit, no app breadcrumbs, and recommends marking it 'Not our defect' rather than fixing it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Priority 1: BANKUI-3C8 \u2014 401 errors (high volume, high user impact)",
+      "reason": "The analysis does not state that event count is a misleading ranking metric; instead it uses 'high volume' as a justification for prioritizing BANKUI-3C8, directly contradicting the point that the two largest counts are not the most valuable things to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Already fixed \u2014 can be closed or archived.",
+      "reason": "The analysis does not notice that BANKUI-1A7 was last seen on 2026-09-11 (after 4.7.0 deployed 2026-09-10), indicating a regression; it treats it as properly resolved and recommends closing it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All have `lastFrame` pointing to minified Angular code \u2014 source maps not uploaded (as noted in comments), making debugging harder.",
+      "reason": "The analysis conveys that source maps are not uploaded, lastFrame values are minified, and this prevents tracing to specific components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that total affected users cannot be determined from the data."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "likely a backend/auth issue, but may be triggered by frontend code (e.g., missing token refresh). Should be investigated with backend team.",
+      "reason": "The analysis presents the auth/session issue as a possibility ('likely', 'may be triggered by') but does not clearly connect the four undefined-property errors to the 401s as the shared cause, nor note that confirming would require a full event rather than this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Priority 1: BANKUI-3C8 \u2014 401 errors (high volume, high user impact)\n- **Priority 2: BANKUI-4A1 or BANKUI-4A2** \u2014 Angular component errors (shared root cause, high user impact)",
+      "reason": "The analysis does not put BANKUI-5D6 first (most users), does not frame the 401 cluster as one fix closing five issues, and does not recommend reopening BANKUI-1A7; it instead prioritizes BANKUI-3C8 and a single Angular error."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly places BANKUI-2F0 under 'Do not work on' and calls it 'Not our defect' with 'Low user impact (1 user),' not treating its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues together under one heading with a shared cause ('shared state or data model bug') and a single investigation action, not treating them as separate defects with separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "High user impact (combined 100+ users) and repeated across multiple components.",
+      "reason": "The analysis adds distinct-user counts across issues ('combined 100+ users'), which the export explicitly warns against because the same user can appear in more than one issue."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Close BANKUI-1A7 \u2014 it's resolved.",
+      "reason": "The analysis explicitly states BANKUI-1A7 is 'Already fixed' and recommends closing it, ignoring the evidence of regression (last seen after 4.7.0 deploy)."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as 'likely a backend/auth issue' and 'systemic auth failure,' not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps BANKUI-5D6 in its own 'ChunkLoadError' group and BANKUI-1A7 in its own 'Resolved Issue' group, neither of which is merged into the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No sprint or priority assigned yet.",
+      "reason": "The ticket clearly shows 'Priority: Medium'; only the sprint is None. Stating no priority is assigned contradicts the ticket data."
+    },
+    {
+      "quote": "All occur in the same module (`/payments/batch/actions` and `/settlements/run`)",
+      "reason": "BANKUI-4A1 is at /settlements/run/8214 while the other three are at /payments/batch/actions/...; these are two different modules, not 'the same module.'"
+    },
+    {
+      "quote": "The ticket says \"work top down by event count\" \u2014 but that led to a low-impact issue last time.",
+      "reason": "The ticket does not say 'work top down by event count' as an instruction or statement; it says 'Last time we worked top down by event count and spent the sprint on something that turned out to affect one person,' describing a past negative experience, not a directive."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 170.17
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "",
+        "reason": "The analysis separates BANKUI-3C8 into its own '401 Unauthorized Errors' group and the four undefined-property issues into a separate 'Angular Component Errors' group with a different attributed cause ('shared state or data model bug'), never stating all five share one cause (the 401/session rejection).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "High user impact (combined 100+ users) and repeated across multiple components.",
+        "reason": "The analysis adds user counts together ('combined 100+ users') without noting the export's explicit warning that the same user can appear in more than one issue, and does not identify 44 (BANKUI-3C8) as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "58 users affected, but only 63 events \u2014 likely a routing or build issue.",
+        "reason": "The analysis mentions 58 users and 63 events but does not state that 58 is the highest user count in the list or that by user impact it is the top item; it labels it only 'Medium Impact.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "Breadcrumb: Navigation before \u2192 404 on bundle",
+        "reason": "The analysis notes the 404 and vaguely says 'related to deployment' but does not give the specific timing (first seen 21:11:36, ~6.5 min after 4.7.0 deploy at 21:05:00) or explain the mechanism of open sessions requesting replaced hashed bundles.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "Not a defect in the app \u2014 caused by a third-party extension. User is likely using a browser extension that conflicts with the app. Low user impact (1 user) and likely not reproducible in production without the extension.",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension issue on one user's machine, notes 4812 events / 1 user, chrome-extension culprit, no app breadcrumbs, and recommends marking it 'Not our defect' rather than fixing it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "Priority 1: BANKUI-3C8 \u2014 401 errors (high volume, high user impact)",
+        "reason": "The analysis does not state that event count is a misleading ranking metric; instead it uses 'high volume' as a justification for prioritizing BANKUI-3C8, directly contradicting the point that the two largest counts are not the most valuable things to fix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "Already fixed \u2014 can be closed or archived.",
+        "reason": "The analysis does not notice that BANKUI-1A7 was last seen on 2026-09-11 (after 4.7.0 deployed 2026-09-10), indicating a regression; it treats it as properly resolved and recommends closing it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "All have `lastFrame` pointing to minified Angular code \u2014 source maps not uploaded (as noted in comments), making debugging harder.",
+        "reason": "The analysis conveys that source maps are not uploaded, lastFrame values are minified, and this prevents tracing to specific components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that total affected users cannot be determined from the data.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "likely a backend/auth issue, but may be triggered by frontend code (e.g., missing token refresh). Should be investigated with backend team.",
+        "reason": "The analysis presents the auth/session issue as a possibility ('likely', 'may be triggered by') but does not clearly connect the four undefined-property errors to the 401s as the shared cause, nor note that confirming would require a full event rather than this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Priority 1: BANKUI-3C8 \u2014 401 errors (high volume, high user impact)\n- **Priority 2: BANKUI-4A1 or BANKUI-4A2** \u2014 Angular component errors (shared root cause, high user impact)",
+        "reason": "The analysis does not put BANKUI-5D6 first (most users), does not frame the 401 cluster as one fix closing five issues, and does not recommend reopening BANKUI-1A7; it instead prioritizes BANKUI-3C8 and a single Angular error.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly places BANKUI-2F0 under 'Do not work on' and calls it 'Not our defect' with 'Low user impact (1 user),' not treating its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues together under one heading with a shared cause ('shared state or data model bug') and a single investigation action, not treating them as separate defects with separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "High user impact (combined 100+ users) and repeated across multiple components.",
+        "reason": "The analysis adds distinct-user counts across issues ('combined 100+ users'), which the export explicitly warns against because the same user can appear in more than one issue.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "Close BANKUI-1A7 \u2014 it's resolved.",
+        "reason": "The analysis explicitly states BANKUI-1A7 is 'Already fixed' and recommends closing it, ignoring the evidence of regression (last seen after 4.7.0 deploy).",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as 'likely a backend/auth issue' and 'systemic auth failure,' not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps BANKUI-5D6 in its own 'ChunkLoadError' group and BANKUI-1A7 in its own 'Resolved Issue' group, neither of which is merged into the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No sprint or priority assigned yet.",
+        "reason": "The ticket clearly shows 'Priority: Medium'; only the sprint is None. Stating no priority is assigned contradicts the ticket data."
+      },
+      {
+        "quote": "All occur in the same module (`/payments/batch/actions` and `/settlements/run`)",
+        "reason": "BANKUI-4A1 is at /settlements/run/8214 while the other three are at /payments/batch/actions/...; these are two different modules, not 'the same module.'"
+      },
+      {
+        "quote": "The ticket says \"work top down by event count\" \u2014 but that led to a low-impact issue last time.",
+        "reason": "The ticket does not say 'work top down by event count' as an instruction or statement; it says 'Last time we worked top down by event count and spent the sprint on something that turned out to affect one person,' describing a past negative experience, not a directive."
+      }
+    ]
+  }
+}

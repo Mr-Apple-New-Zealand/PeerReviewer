@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Critical: Forbidden API calls to `masterfile-api`\n   - **Command**: `AddPaymentRoutingRuleSecondaryCommand` and `BulkUpdateSecondaryBranchesCommand`\n   - **Error**: `Dapr.Client.InvocationException: Response status code does not indicate success: 403 (Forbidden)`\n   - **Endpoint**: `branchlocation/get?ID=71&includeDetails=False` and `branchlocation/GetAll`\n   - **Impact**: Users cannot save secondary branches on payment routing rules because the `masterfile-api` service denies access.",
+      "reason": "The analysis identifies the 403 Forbidden on both endpoints, both commands, and connects it to the user-reported save failures, though it omits the count of four occurrences."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Critical: SQL Conversion Errors (Error 245)\n   - **Query**: `SearchPaymentRoutingRuleQuery`\n   - **Error**: `Conversion failed when converting the ****** value '******' to data type ******`",
+      "reason": "The analysis correctly identifies the query, error number 245, and the masked error message, but does not state that it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Note: The log truncates the actual values and types \u2014 **cannot be diagnosed without the actual data**.",
+      "reason": "The analysis clearly states the values and types are masked/truncated and cannot be identified from the log, matching the expected point."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Critical: SQL Timeout Errors (Error -2)\n   - **Query**: `GetMonitorJobsQuery`\n   - **Error**: `Execution Timeout Expired`\n   - **Impact**: Long-running queries (up to 72 seconds) cause timeouts, likely due to inefficient queries or locked rows.\n   - **Note**: This is a performance issue, not a functional failure",
+      "reason": "The analysis identifies the query and error but does not state the count (eight), the time window (22:26:37\u201322:29:08), the recovery from 22:36:47 onward, or characterize it as a bounded episode; it also incorrectly attributes the 72-second duration to this query."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Long-running queries: `GetStatementLineQuery` (30\u201370+ seconds) \u2014 these are performance warnings, not functional failures.",
+      "reason": "The analysis mentions GetStatementLineQuery with an approximate range but places it in the 'noise' section rather than identifying it as a degrading issue, and omits the count (fourteen), the rising trend, and that it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string, the exposed password, or the credential exposure at all."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Warnings about data protection: These are standard ASP.NET Core warnings and not actionable.",
+      "reason": "The analysis conveys that startup warnings are routine and not the cause, but does not enumerate the specific warnings (DataProtection key directory, No XML encryptor, Overriding address(es), Failed to determine https port)."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "INFO-level logs: Most are normal operational logs (e.g., `Request X completed in Xms`, `Service Permissions found`, `Application started`).",
+      "reason": "The analysis covers Service Permissions and the 404 as non-defects, but does not mention the ObjectMapper licence lines or the client-aborted TaskCanceledException at 21:11:02."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Repeated stack traces: Trimmed per support's instruction \u2014 not relevant to triage.",
+      "reason": "The analysis mentions the trimming of stack traces but does not note that timestamps are time-of-day only with no date, that they are out of order, or that elapsed times and sequence cannot be established."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause: Likely misconfigured permissions or authentication in `masterfile-api` (not the Payments API).",
+      "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a fault in payments code, using 'Likely' to frame it as an inference."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Immediate:\n   - **Platform team** should be notified that the 403 Forbidden errors are coming from `masterfile-api` \u2014 they need to check permissions or Dapr invocation config.\n   - **Database team** should inspect the SQL Conversion Error (245) \u2014 likely a data integrity issue.",
+      "reason": "The analysis puts 403 first and SQL 245 second, but does not include GetStatementLineQuery in the priority order (it is in the noise section) and does not mention the credential exposure as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the data protection warnings are 'standard ASP.NET Core warnings and not actionable' and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error; it explicitly states the log truncates this information."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state an elapsed time, duration, or ordered sequence across the file as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject name 'payments.prod.requests.payments.errors' or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it attributes different issues to different causes."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Impact: Long-running queries (up to 72 seconds) cause timeouts, likely due to inefficient queries or locked rows.",
+      "reason": "The 72-second duration (72974ms) is from GetStatementLineQuery, not GetMonitorJobsQuery. The GetMonitorJobsQuery entries show completion times of 4501ms, 5289ms, 4638ms before the timeouts. Attributing 'up to 72 seconds' to GetMonitorJobsQuery is a factual misattribution not supported by the log."
+    },
+    {
+      "quote": "Impact: Query fails silently or with partial results, likely due to malformed or corrupted data in the database (e.g., string vs numeric field mismatch).",
+      "reason": "The log shows the SearchPaymentRoutingRuleQuery failures as ERR-level entries with explicit SqlException stack traces, not silent failures. The phrase 'fails silently' contradicts the log evidence. The specific diagnosis of 'string vs numeric field mismatch' is also not supported by the masked log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 189.2
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "Critical: Forbidden API calls to `masterfile-api`\n   - **Command**: `AddPaymentRoutingRuleSecondaryCommand` and `BulkUpdateSecondaryBranchesCommand`\n   - **Error**: `Dapr.Client.InvocationException: Response status code does not indicate success: 403 (Forbidden)`\n   - **Endpoint**: `branchlocation/get?ID=71&includeDetails=False` and `branchlocation/GetAll`\n   - **Impact**: Users cannot save secondary branches on payment routing rules because the `masterfile-api` service denies access.",
+        "reason": "The analysis identifies the 403 Forbidden on both endpoints, both commands, and connects it to the user-reported save failures, though it omits the count of four occurrences.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Critical: SQL Conversion Errors (Error 245)\n   - **Query**: `SearchPaymentRoutingRuleQuery`\n   - **Error**: `Conversion failed when converting the ****** value '******' to data type ******`",
+        "reason": "The analysis correctly identifies the query, error number 245, and the masked error message, but does not state that it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "Note: The log truncates the actual values and types \u2014 **cannot be diagnosed without the actual data**.",
+        "reason": "The analysis clearly states the values and types are masked/truncated and cannot be identified from the log, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Critical: SQL Timeout Errors (Error -2)\n   - **Query**: `GetMonitorJobsQuery`\n   - **Error**: `Execution Timeout Expired`\n   - **Impact**: Long-running queries (up to 72 seconds) cause timeouts, likely due to inefficient queries or locked rows.\n   - **Note**: This is a performance issue, not a functional failure",
+        "reason": "The analysis identifies the query and error but does not state the count (eight), the time window (22:26:37\u201322:29:08), the recovery from 22:36:47 onward, or characterize it as a bounded episode; it also incorrectly attributes the 72-second duration to this query.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "Long-running queries: `GetStatementLineQuery` (30\u201370+ seconds) \u2014 these are performance warnings, not functional failures.",
+        "reason": "The analysis mentions GetStatementLineQuery with an approximate range but places it in the 'noise' section rather than identifying it as a degrading issue, and omits the count (fourteen), the rising trend, and that it is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string, the exposed password, or the credential exposure at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Warnings about data protection: These are standard ASP.NET Core warnings and not actionable.",
+        "reason": "The analysis conveys that startup warnings are routine and not the cause, but does not enumerate the specific warnings (DataProtection key directory, No XML encryptor, Overriding address(es), Failed to determine https port).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "INFO-level logs: Most are normal operational logs (e.g., `Request X completed in Xms`, `Service Permissions found`, `Application started`).",
+        "reason": "The analysis covers Service Permissions and the 404 as non-defects, but does not mention the ObjectMapper licence lines or the client-aborted TaskCanceledException at 21:11:02.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "Repeated stack traces: Trimmed per support's instruction \u2014 not relevant to triage.",
+        "reason": "The analysis mentions the trimming of stack traces but does not note that timestamps are time-of-day only with no date, that they are out of order, or that elapsed times and sequence cannot be established.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Root cause: Likely misconfigured permissions or authentication in `masterfile-api` (not the Payments API).",
+        "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a fault in payments code, using 'Likely' to frame it as an inference.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "Immediate:\n   - **Platform team** should be notified that the 403 Forbidden errors are coming from `masterfile-api` \u2014 they need to check permissions or Dapr invocation config.\n   - **Database team** should inspect the SQL Conversion Error (245) \u2014 likely a data integrity issue.",
+        "reason": "The analysis puts 403 first and SQL 245 second, but does not include GetStatementLineQuery in the priority order (it is in the noise section) and does not mention the credential exposure as a parallel security item.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the data protection warnings are 'standard ASP.NET Core warnings and not actionable' and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error; it explicitly states the log truncates this information.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state an elapsed time, duration, or ordered sequence across the file as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject name 'payments.prod.requests.payments.errors' or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it attributes different issues to different causes.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Impact: Long-running queries (up to 72 seconds) cause timeouts, likely due to inefficient queries or locked rows.",
+        "reason": "The 72-second duration (72974ms) is from GetStatementLineQuery, not GetMonitorJobsQuery. The GetMonitorJobsQuery entries show completion times of 4501ms, 5289ms, 4638ms before the timeouts. Attributing 'up to 72 seconds' to GetMonitorJobsQuery is a factual misattribution not supported by the log."
+      },
+      {
+        "quote": "Impact: Query fails silently or with partial results, likely due to malformed or corrupted data in the database (e.g., string vs numeric field mismatch).",
+        "reason": "The log shows the SearchPaymentRoutingRuleQuery failures as ERR-level entries with explicit SqlException stack traces, not silent failures. The phrase 'fails silently' contradicts the log evidence. The specific diagnosis of 'string vs numeric field mismatch' is also not supported by the masked log."
+      }
+    ]
+  }
+}
