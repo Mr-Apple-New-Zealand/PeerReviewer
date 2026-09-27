@@ -105,7 +105,7 @@ An inference stated as certain fact counts as partial. **Coverage** is the same 
 The summary names three things:
 - the best-quality model
 - the **best value** model: the one with the least memory among those within 5 points of the best (`--value-margin`)
-- the **Pareto front**: models that no other model beats on quality, memory and time at once
+- the **Pareto front**: models that no other model beats on both quality and memory. Time is not an axis: the runner is shared, so a long run usually overlaps with something else. The same 72B build measured 28s a case idle and 55.2s with a judge and an embedding model resident, at an identical 56.31 GB - memory holds up under contention, time does not
 
 If other models are resident on the server when a run starts, the report warns that timings may be contended.
 

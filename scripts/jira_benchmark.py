@@ -821,6 +821,15 @@ JUDGE_DEFAULTS = {
 }
 
 
+# Used when neither the caller nor JUDGE_DEFAULTS supplies one. These knobs
+# are declared with default=None so that "not passed" stays distinguishable
+# from "passed the value argparse would have chosen" - testing truthiness
+# instead let a 16384 argparse default silently beat the 40960 the table
+# specifies for Qwen3.8-27B, which is how run 36 was judged at the wrong
+# budget while reporting the table as applied.
+JUDGE_FALLBACKS = {"judge_think": "", "judge_num_predict": 16384}
+
+
 def judge_defaults_for(judge: str) -> dict:
     key = judge.strip().lower()
     for name, defaults in JUDGE_DEFAULTS.items():
@@ -1032,16 +1041,23 @@ def aggregate(record: dict) -> dict:
 
 
 def pareto(aggs: dict) -> set[str]:
-    """Models no other model beats on quality, memory and time at once."""
+    """Models no other model beats on both quality and memory.
+
+    Time is deliberately not an axis. The single self-hosted runner is shared,
+    and a long run will usually overlap with something else: the same
+    Qwen2.5-VL-72B build measured 28s a case on an idle server and 55.2s with
+    a judge and an embedding model resident, at an identical 56.31 GB. Memory
+    is stable under contention and time is not, so including time would put
+    models on or off the front according to what else happened to be running.
+    Time is still reported per run, with a warning when the run was contended.
+    """
     pts = {m: a for m, a in aggs.items()
-           if a["quality"] is not None and a["resident_gb"] is not None and a["mean_case_s"] is not None}
+           if a["quality"] is not None and a["resident_gb"] is not None}
     front = set()
     for m, a in pts.items():
         dominated = any(
             b["quality"] >= a["quality"] and b["resident_gb"] <= a["resident_gb"]
-            and b["mean_case_s"] <= a["mean_case_s"]
-            and (b["quality"] > a["quality"] or b["resident_gb"] < a["resident_gb"]
-                 or b["mean_case_s"] < a["mean_case_s"])
+            and (b["quality"] > a["quality"] or b["resident_gb"] < a["resident_gb"])
             for n, b in pts.items() if n != m)
         if not dominated:
             front.add(m)
@@ -1082,7 +1098,8 @@ def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dic
                 L.append(f"- **Best value** (smallest memory within {margin:g} points of the best): {value} "
                          f"at {a['quality']:.1f}/100, {a['resident_gb']:.1f} GB resident, "
                          f"{fmt_s(a['mean_case_s'])} per case.")
-            L.append(f"- **Pareto front** (nothing else is better on quality, memory and time at once): "
+            L.append(f"- **Pareto front** (nothing else is better on both quality and memory; "
+                     f"time is excluded because the server is shared): "
                      f"{', '.join(m for m in ranked if m in front) or 'n/a'}.")
             L.append("")
 
@@ -1350,9 +1367,11 @@ def main() -> None:
     # JSON, and an Ollama judge that runs out returns empty content -- which
     # is how minimax-m3:cloud failed all 54 calls at the old fixed 8192.
     # 16384 matches what the Claude judge path allows itself (16000).
-    ap.add_argument("--judge-num-predict", type=int, default=16384,
-                    help="Only for an Ollama judge; raise it for a reasoning judge")
-    ap.add_argument("--judge-think", default="", help="Only for an Ollama judge")
+    ap.add_argument("--judge-num-predict", type=int, default=None,
+                    help=f"Only for an Ollama judge; raise it for a reasoning judge "
+                         f"(default {JUDGE_FALLBACKS['judge_num_predict']}, or whatever "
+                         f"JUDGE_DEFAULTS specifies for the judge)")
+    ap.add_argument("--judge-think", default=None, help="Only for an Ollama judge")
     ap.add_argument("--allow-over-window", action="store_true",
                     help="Permit --num-ctx above the model's trained window (degrades quality)")
     ap.add_argument("--judge-attempts", type=int, default=4,
@@ -1417,9 +1436,12 @@ def main() -> None:
     }
 
     for key, value in judge_defaults_for(args.judge).items():
-        if not cfg.get(key):
+        if cfg.get(key) is None:
             cfg[key] = value
             print(f"Judge default applied: {key}={value} (required by {args.judge})")
+    for key, value in JUDGE_FALLBACKS.items():
+        if cfg.get(key) is None:
+            cfg[key] = value
 
     if args.calibrate_judge:
         print(f"Calibrating judge {args.judge} on {len(cases)} cases x 3 synthetic analyses")
