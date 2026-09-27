@@ -1,6 +1,6 @@
 # Jira Analyst Benchmark
 
-Finds which model gives the best Jira ticket analysis for the least resource cost. Every candidate model analyses the same ten synthetic cases. Claude Sonnet 5 grades each analysis against an answer key, and the harness records what each model cost to run.
+Finds which model gives the best Jira ticket analysis for the least resource cost. Every candidate model analyses the same eighteen synthetic cases. A judge grades each analysis against an answer key, and the harness records what each model cost to run. The default judge is `Qwen3.8-27B-imatrix:Q4_K_S` on the local server; `claude-sonnet-5` is the reference and is still selectable.
 
 | Piece | Where |
 |---|---|
@@ -45,6 +45,7 @@ Other modes:
 - `--skip-judge`: analyses and cost only.
 - `--rejudge <run dir>`: re-grade saved analyses after changing the judge, the judge prompt, an answer key or the scoring code, without regenerating them. In Actions, use `mode: rejudge` with `results_dir` set to a committed model folder such as `jira_analyst_results/Qwen3-VL-32B-Instruct` (the runner only sees committed files). Each `*.judge.json` keeps the judge's raw output and its original verdicts, so you can see what the harness downgraded and why.
 - `--calibrate-judge`: check the judge (see below).
+- `--allow-over-window`: permit `--num-ctx` above the model's trained window. Without it the run stops, because Ollama answers anyway and the scores are then quietly unreliable; the window comes from the GGUF's own metadata.
 
 Defaults are `num_ctx 32768`, `num_predict 4096` and `temperature 0.3`, sent explicitly to the model so its Modelfile cannot make the comparison unequal. By default the analyst prompt comes from the file, so every model gets the same one. Pass `--system-prompt modelfile` to test each model with its own `SYSTEM` instead.
 
@@ -111,10 +112,13 @@ If other models are resident on the server when a run starts, the report warns t
 ## Trusting the numbers
 
 - **Check the judge first.** Run `mode: calibrate-judge` once, and again whenever the judge prompt, the judge model or an answer key changes. It grades three synthetic analyses per case: a perfect one built from the key, an empty one, and one that asserts every trap. A working judge gives about 100%, 0%, and all traps caught. This screens out a broken judge; it does not prove a working one grades real prose well.
-- **Noise.** Ten cases and one judge pass means differences under about 5 points are noise. For close calls, use `repeats: 3`. The range shows in the Quality column.
-- **Cost of judging.** Each graded case costs roughly $0.02–0.05 of Sonnet 5 time, so a 10-model run is a few dollars.
+  Note one blind spot: the perfect analysis is built from the answer key's own wording, so a judge that quotes the key back instead of the analysis grounds successfully and scores a clean sheet. Two candidates passed calibration and were only caught on real prose, by `ungrounded` counts of 39 and 58. To qualify a new judge, follow calibration with `mode: rejudge` of a run already graded by another judge, and compare per case.
+- **Noise.** Eighteen cases and one judge pass means differences under about 5 points are noise. For close calls, use `repeats: 3`. The range shows in the Quality column.
+- **Cost of judging.** With the default local judge this is GPU time, not money, and it dominates a run: measured at about 107s a call against 34s a case for a 32B analyst, so judging took ~140 minutes against ~31 minutes of analysis. With `judge: claude-sonnet-5` it is roughly $0.02-0.05 a graded case, a few dollars a run, and about four times faster.
+- **A judge smoke test runs first.** Before any analyst work, the harness grades one two-checkpoint case and stops unless the judge returns a usable verdict. Every judge failure seen so far - an invalid API key, a reasoning model spending its whole `num_predict` thinking, a missing think level, a schema the endpoint does not enforce - used to surface only after the analyst had run for half an hour.
+- **A judge's required settings are applied for it.** `JUDGE_DEFAULTS` in the script holds them, so they cannot be forgotten between runs: Qwen3.8-27B gets `think=medium` and `num_predict 40960`, without which it reasons at xhigh and returns empty content. The run prints each default it applied.
 - **The prompts are fingerprinted.** Every run records the SHA of the analyst prompt, the judge prompt and the cases, as the review benchmark does. Runs with different SHAs are not comparable.
-- **Vision.** C11 attaches a real screenshot (`jira_benchmark/images/`), so it measures actual screenshot reading; C09 is its counterpart, where the image is deliberately withheld and the model should say so rather than invent one. Images go only to the model under test: the judge grades the written analysis against the answer key, so no image is ever sent to the cloud judge. A model without the `vision` capability is detected before the request, and its image cases are recorded as errors and scored 0, since reading the screenshot is the task.
+- **Vision.** C11 attaches a real screenshot (`jira_benchmark/images/`), so it measures actual screenshot reading; C09 is its counterpart, where the image is deliberately withheld and the model should say so rather than invent one. Images go only to the model under test: the judge grades the written analysis against the answer key, so no image is ever sent to the judge, cloud or local. A model without the `vision` capability is detected before the request, and its image cases are recorded as errors and scored 0, since reading the screenshot is the task.
 - **Log and telemetry cases.** C14 to C18 attach files from `jira_benchmark/logs/`, which the harness inlines as text rather than sending as images, so a text-only model is scored on them like any other. The fixtures are derived from a real production pod log and a real Sentry event, both anonymised; `jira_benchmark/logs/README.md` records what was changed.
 - **Quantization.** Cost figures are for the build as benchmarked. If you benchmark at F16 and then quantize the winner, re-run the full benchmark on the quantized build to confirm its quality held, rather than assuming it did.
 
