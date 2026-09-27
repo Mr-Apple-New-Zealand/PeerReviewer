@@ -9,6 +9,7 @@ Finds which model gives the best Jira ticket analysis for the least resource cos
 | Cases and answer keys | `jira_benchmark/cases/C*.json` |
 | Analyst system prompt | `jira_benchmark/analyst_system_prompt.md`: the generic ticket-analyst prompt, the same text as the `SYSTEM` in the Qwen2.5-VL and Qwen3-VL Modelfiles. Keep them in sync. |
 | Judge instructions | `jira_benchmark/judge_prompt.md` |
+| Results and recommendations | [TICKET_ANALYST_RESULTS.md](TICKET_ANALYST_RESULTS.md): what has been measured, which judge and why, and what is not comparable |
 | Output | `jira_benchmark_results/run-<n>/`: `summary.md`, `results.json`, and each model's analyses and judge verdicts |
 
 ## Running it
