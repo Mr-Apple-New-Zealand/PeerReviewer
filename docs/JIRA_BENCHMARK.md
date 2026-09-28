@@ -41,6 +41,8 @@ python3 scripts/jira_benchmark.py --models "Qwen3-VL-32B-Instruct:latest" --num-
 
 The script also accepts a comma-separated list of models locally; the one-model rule is only enforced by the workflow.
 
+**A Claude model can be the analyst, not just the judge.** Pass a `claude-*` tag as `model` and the run goes to the Anthropic API instead of Ollama, with screenshots sent as image blocks so the vision cases still work. It exists to give the leaderboard a reference ceiling: without one there is no way to tell whether the local leader's score is near the achievable maximum. Three things such a run cannot honour, and it records them in its own errors list: temperature is not sent (current Claude models reject it), `num_ctx` does not apply, and the times are wall clock including the network rather than a server's generation time. Resident GB is absent too, so it is excluded from the Pareto front.
+
 Other modes:
 - `--list-cases`: sizes and point counts. No model calls.
 - `--skip-judge`: analyses and cost only.

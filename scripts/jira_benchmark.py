@@ -529,6 +529,77 @@ def ollama_chat(ep: Endpoints, model: str, system: str, user: str, options: dict
     }
 
 
+def anthropic_chat(ep: Endpoints, model: str, system: str, user: str, max_tokens: int,
+                   images: list[Path] | None = None) -> dict:
+    """A Claude analyst call, shaped like ollama_chat's return so the run loop
+    does not care which backend answered.
+
+    Exists so a frontier model can be measured on the same cases as the local
+    fleet, giving the leaderboard a reference ceiling: without one there is no
+    way to tell whether the leader's score is near the achievable maximum or
+    nowhere close.
+
+    Differences a reader of the results needs to know, flagged on the run:
+    temperature is not sent (current Claude models reject it), there is no
+    num_ctx to set, and the timings are wall clock including the network, not a
+    server's own generation time.
+    """
+    if not ep.anthropic_key:
+        raise RuntimeError(f"'{model}' is a Claude model but ANTHROPIC_API_KEY is unset.")
+    content: list[dict] = []
+    for path in images or []:
+        content.append({"type": "image", "source": {
+            "type": "base64",
+            "media_type": "image/png" if path.suffix.lower() == ".png" else "image/jpeg",
+            "data": base64.b64encode(path.read_bytes()).decode()}})
+    content.append({"type": "text", "text": user})
+    body = {"model": model.strip().lower(), "max_tokens": max_tokens, "system": system,
+            "messages": [{"role": "user", "content": content}],
+            "thinking": {"type": "adaptive"}}
+    headers = {"x-api-key": ep.anthropic_key, "anthropic-version": "2023-06-01"}
+    t0 = time.monotonic()
+    delay = 15
+    for attempt in range(4):
+        try:
+            data = post_json("https://api.anthropic.com/v1/messages", body, headers, timeout=900)
+            break
+        except HttpError as e:
+            if attempt < 3 and (e.status == 429 or e.status >= 500):
+                print(f"      (analyst HTTP {e.status}, retry in {delay}s)")
+                time.sleep(delay)
+                delay *= 2
+                continue
+            raise
+    wall = time.monotonic() - t0
+    text = "".join(b.get("text") or "" for b in data.get("content") or []
+                   if b.get("type") == "text").strip()
+    thinking = "".join(b.get("thinking") or "" for b in data.get("content") or []
+                       if b.get("type") == "thinking").strip()
+    usage = data.get("usage") or {}
+    # 'length' is what the run loop looks for to flag a truncated answer.
+    stop = data.get("stop_reason")
+    return {
+        "content": text,
+        "thinking": thinking,
+        "metrics": {
+            "wall_s": round(wall, 2),
+            "total_s": round(wall, 2),
+            "load_s": None,
+            "gen_s": round(wall, 2),
+            "prompt_tokens": usage.get("input_tokens"),
+            "output_tokens": usage.get("output_tokens"),
+            # Deliberately absent: wall clock includes the network, so a
+            # tokens-per-second figure here would not mean what it means for a
+            # local model.
+            "prompt_tps": None,
+            "output_tps": None,
+            "done_reason": "length" if stop == "max_tokens" else ("stop" if stop == "end_turn" else stop),
+            "thinking_chars": len(thinking),
+            "content_chars": len(text),
+        },
+    }
+
+
 def anthropic_json(ep: Endpoints, model: str, system: str, user: str, schema: dict,
                    effort: str, max_tokens: int = 16000) -> tuple[dict, dict]:
     """Claude call constrained to a JSON schema. No temperature: current Claude
@@ -895,7 +966,9 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
               prefixes: set[str], out_dir: Path) -> dict:
     mdir = out_dir / slug(model)
     mdir.mkdir(parents=True, exist_ok=True)
-    local = not Endpoints.is_cloud(model)
+    # Served by Ollama, so /api/ps memory, the vision capability check and the
+    # unload all apply. A ':cloud' tag or a Claude model is none of those.
+    local = not (Endpoints.is_cloud(model) or Endpoints.is_claude(model))
     record = {"model": model, "think": think or None, "cases": [], "resource": {}, "errors": []}
 
     if think and think.lower() != "false" and local:
@@ -905,6 +978,10 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
             think = ""
             record["think"] = None
 
+    if Endpoints.is_claude(model):
+        record["errors"].append(
+            f"{model}: temperature {cfg['temperature']} not applied (Claude rejects it); "
+            f"num_ctx not applicable; times are wall clock including the network")
     if local:
         others = [m.get("name") for m in ep.ps() if m.get("name") != model]
         if others:
@@ -941,8 +1018,12 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
                 record["errors"].append(f"{tag}: model has no vision capability")
                 continue
             try:
-                r = ollama_chat(ep, model, analyst_prompt, case_texts[case["id"]], options, think,
-                                images=case_images(case))
+                if Endpoints.is_claude(model):
+                    r = anthropic_chat(ep, model, analyst_prompt, case_texts[case["id"]],
+                                       cfg["num_predict"], images=case_images(case))
+                else:
+                    r = ollama_chat(ep, model, analyst_prompt, case_texts[case["id"]], options,
+                                    think, images=case_images(case))
             except Exception as e:
                 print(f"ERROR: {e}")
                 entry.update({"error": f"request failed: {e}", "score": 0.0})
@@ -1517,6 +1598,9 @@ def main() -> None:
                  f"Ollama would silently drop the start of the prompt. Raise --num-ctx or use --cases.")
     if not args.skip_judge and Endpoints.is_claude(args.judge) and not ep.anthropic_key:
         sys.exit("ERROR: judge is a Claude model but ANTHROPIC_API_KEY is unset (or pass --skip-judge).")
+    claude_analysts = [m for m, _ in models if Endpoints.is_claude(m)]
+    if claude_analysts and not ep.anthropic_key:
+        sys.exit(f"ERROR: {claude_analysts} are Claude models but ANTHROPIC_API_KEY is unset.")
 
     # The analyst's context must not exceed what the model was trained on:
     # beyond it, Ollama still answers but quality degrades silently. Two runs
