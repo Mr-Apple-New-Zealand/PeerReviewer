@@ -361,8 +361,22 @@ def image_tokens(path: Path) -> int:
 KEY_RE = re.compile(r"\b([A-Z][A-Z0-9]{1,9})-(\d+)\b")
 
 
-def project_prefixes(cases: list[dict]) -> set[str]:
-    return {t["key"].split("-")[0] for c in cases for t in c["tickets"]}
+def project_prefixes(cases: list[dict], *instructions: str) -> set[str]:
+    """Key prefixes that count as a ticket reference, so a made-up one is caught.
+
+    The cases' own prefixes, plus any prefix appearing in the analyst's
+    instructions. The second part matters: the system prompt carries a
+    placeholder key ("e.g. PROJ-123") and models repeat it back as though it
+    were a real ticket to act on - Qwen3-VL-32B-Thinking told the reader to
+    "create a ticket (PROJ-123)" on C14. A key that appears only in the
+    instructions is by definition not a ticket in the case, so treating its
+    prefix as flaggable turns the most likely invented key from invisible
+    into counted.
+    """
+    found = {t["key"].split("-")[0] for c in cases for t in c["tickets"]}
+    for text in instructions:
+        found |= {m.group(1) for m in KEY_RE.finditer(text or "")}
+    return found
 
 
 def invented_keys(analysis: str, case_text: str, prefixes: set[str]) -> list[str]:
@@ -1525,8 +1539,8 @@ def main() -> None:
 
     cases = load_cases([c for c in args.cases.split(",")] if args.cases else None)
     case_texts = {c["id"]: render_case(c) for c in cases}
-    prefixes = project_prefixes(cases)
     analyst_prompt = ANALYST_PROMPT_FILE.read_text(encoding="utf-8").strip()
+    prefixes = project_prefixes(cases, analyst_prompt)
     judge_prompt = JUDGE_PROMPT_FILE.read_text(encoding="utf-8").strip()
     system_for_models = analyst_prompt if args.system_prompt == "file" else ""
 
