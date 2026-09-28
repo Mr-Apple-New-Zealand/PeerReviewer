@@ -20,46 +20,29 @@ step with it.
 
 ## Current standing
 
-Six runs have been measured on the full eighteen cases with the judge of
+Six models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
-| Model | Quant | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsupported | GB |
-|---|---|---|---|---|---|---|---|---|
-| **Qwen3-VL-8B-Instruct-imatrix** | Q3_K_M | **49.7 (48–52)** | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
-| Qwen2.5-VL-32B-Instruct | Q5_K_M | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
-| Qwen3-VL-8B-Thinking-imatrix ¹ | Q4_K_M | 47.3 (46–49) | 64% | 61.6 | 9.9 | 6/114 | 42 | 13.0 |
-| Qwen3-VL-8B-Thinking-imatrix ² | Q4_K_M | *52.3 (48–54)* | 60% | 62.9 | 24.7 | 7/162 | 59 | 13.0 |
-| Qwen2.5-VL-72B-Instruct | Q4_K_S | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
-| Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
-| Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
+| Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsup | GB |
+|---|---|---|---|---|---|---|---|---|---|
+| **Qwen3-VL-8B-Thinking-imatrix** | Q4_K_M | 1.0 | **52.3 (48–54)** | 60% | 62.9 | 24.7 | **7/162** | 59 | 13.0 |
+| Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
+| Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
+| Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
+| Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
+| Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
 
-All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Instruct builds
-ran at num_ctx 32768 / num_predict 8192, the Thinking build at 49152 / 16384,
-which it requires. Judge grounding stayed clean: 0–4 ungrounded, 0–1 omitted.
+All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Judge grounding
+stayed clean: 0–2 ungrounded, 0 omitted. Instruct builds ran at num_ctx 32768 /
+num_predict 8192; the Thinking build at 49152 / 16384, which it requires.
 
-² Run at **temperature 1.0**, so it is excluded from the generated leaderboard and
-italicised here — see below. It is the same build as ¹, and the better one.
+**Temperature is a per-model setting, not a fleet constant**, and is shown above and
+in the generated leaderboard's Runs table. Each model runs at what suits it, as it
+already does for `num_ctx`. The reason is measured, not preferential: see below.
+`docs/CONFIG_SETTINGS.md` records the per-model choice.
 
-¹ **The Thinking build lost 9 of its 54 runs to empty content**, so its figures are
-not like-for-like — see below. Its traps are out of 114 rather than 162 for the
-same reason.
-
-### Generation beats size, by a wide margin
-
-**A Qwen3-VL 8B at Q3_K_M matches a Qwen2.5-VL 32B at Q5_K_M, using a third of
-the memory and carrying the worst quantization in the fleet.** It also beats the
-72B, which needs six times its memory.
-
-That comparison is loaded against the 8B in every respect except generation:
-3 bits against 5, 9.4 GB against 32.5, 8B parameters against 32B. It still wins on
-coverage and on the telemetry cases. Whatever changed between Qwen2.5-VL and
-Qwen3-VL is worth more than any amount of the size or quantization this benchmark
-has varied.
-
-The corollary is that **this build is under-quantized on purpose and should be
-rebuilt at Q4_K_M** - Q3_K_M was only ever defensible while it was paired with the
-32B at the same quant, and it is now the one build holding the Instruct track back.
-Expect it to go up.
+Because temperature changes what a model writes, a gap of a few points between two
+runs at different temperatures is not evidence about the models.
 
 ### Temperature 1.0 fixes the Thinking build, and takes it off the board
 

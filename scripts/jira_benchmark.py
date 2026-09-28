@@ -1127,12 +1127,13 @@ def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dic
         L += ["## Runs", "",
               "Resident GB includes the KV cache at each run's own num_ctx, so it reads higher for a model "
               "run at a larger context.", "",
-              "| Model | Run | Started | num_ctx | num_predict | Repeats | Harness | Folder |",
-              "|---|---|---|---|---|---|---|---|"]
+              "| Model | Run | Started | num_ctx | num_predict | Temp | Repeats | Harness | Folder |",
+              "|---|---|---|---|---|---|---|---|---|"]
         for m in ranked:
             ri = runs[m]
             L.append(f"| {m} | {ri['run_id']} | {ri['started']} | {ri['num_ctx']} | {ri['num_predict']} "
-                     f"| {ri['repeats']} | {ri['harness_commit']} | {ri['folder']} |")
+                     f"| {ri.get('temperature')} | {ri['repeats']} | {ri['harness_commit']} "
+                     f"| {ri['folder']} |")
         L.append("")
 
     if notes:
@@ -1189,12 +1190,22 @@ def save_results(out_dir: Path, cfg: dict, records: list[dict]) -> None:
 
 # ── Leaderboard across runs ──────────────────────────────────────────────────
 
-# Scores are only comparable when these match. num_ctx, num_predict and
-# repeats may differ: each model runs at the settings that suit it, and none of
-# them changes a score unless the run was truncated, which the run's own
-# warnings flag.
+# Scores are only comparable when these match. num_ctx, num_predict, repeats
+# and temperature may differ: each model runs at the settings that suit it.
+#
+# Temperature is the loose one, and it is deliberate. A thinking model at the
+# fleet default of 0.3 degenerates - the Qwen3-VL-8B-Thinking lost 9 of 54 runs to
+# runaway reasoning at 0.3 and none at the card's 1.0 - so holding every model to
+# one value measures the convention rather than the model. The cards themselves
+# disagree: 0.7 for Instruct, 1.0 for Thinking. Each run's temperature is printed
+# in the Runs table so a mixed leaderboard says so, and docs/CONFIG_SETTINGS.md
+# records the per-model choice.
+#
+# It does change what a model writes, unlike num_ctx, so a difference of a few
+# points between two runs at different temperatures is not evidence about the
+# models.
 COMPARABLE_ON = ("cases_sha", "judge", "judge_effort", "judge_prompt_sha", "analyst_prompt_sha",
-                 "temperature", "system_prompt")
+                 "system_prompt")
 
 
 def compare_runs(roots: list[Path], out_dir: Path, value_margin: float) -> str:
@@ -1250,6 +1261,7 @@ def compare_runs(roots: list[Path], out_dir: Path, value_margin: float) -> str:
     records = [{k: v for k, v in e["rec"].items() if k != "aggregate"} for e in latest.values()]
     runs = {m: {"run_id": e["cfg"].get("run_id"), "started": e["cfg"].get("started"),
                 "num_ctx": e["cfg"].get("num_ctx"), "num_predict": e["cfg"].get("num_predict"),
+                "temperature": e["cfg"].get("temperature"),
                 "repeats": e["cfg"].get("repeats"), "harness_commit": e["cfg"].get("harness_commit"),
                 "folder": str(e["folder"])} for m, e in latest.items()}
     case_ids = {c["case"] for r in records for c in r["cases"]}
