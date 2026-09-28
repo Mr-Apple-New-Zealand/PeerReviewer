@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "AddPaymentRoutingRuleSecondaryCommand (RuleSetId 41001, SecondaryBranchID 71; also RuleSetId 41002) fails with: Dapr.Client.InvocationException: ... invoking method: 'branchlocation/get?ID=71&includeDetails=False' on app-id: 'masterfile-api' ---> HttpRequestException: Response status code does not indicate success: 403 (Forbidden)",
+      "reason": "The analysis identifies both Dapr methods, both commands, the 403, and explicitly connects it to the user-reported save failure, though it hedges the count as 'at least twice each' rather than stating four."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Repeated SQL error on SearchPaymentRoutingRuleQuery: Conversion failed when converting the ****** value '******' to data type ****** (SQL Error 245). The actual value/column is masked in the log, so the specific bad data can't be identified. Recurs several times",
+      "reason": "The handler, error number, and message are correct, but the analysis says 'several times' rather than the specific count of five."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual value/column is masked in the log, so the specific bad data can't be identified.",
+      "reason": "The analysis clearly states the values are masked and cannot be identified from this log, and recommends requesting unmasked values from the database team."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetMonitorJobsQueryHandler (pending payments monitor) repeatedly throws Execution Timeout Expired (SQL Error -2), roughly 22:26\u201322:29, then recovers. Looks like a database performance/locking issue, separate feature area.",
+      "reason": "The handler, error type, approximate time window, and bounded nature are conveyed, but the exact count of eight and the specific recovery timestamp (22:36:47) are missing."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "UpdatePaymentRoutingRuleCommand (RuleSetId 41003) fails with a generic ApplicationValidationException: Application validation errors have occured. \u2014 no detail on which field/rule failed. Could be user error or a real validation bug; can't tell from this log.",
+      "reason": "The command, exception type, and lack of detail are identified, but the analysis does not state it failed twice nor explicitly frame it as a logging gap worth fixing."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery shows escalating long-running requests (35s \u2192 72s against a 10s threshold) at the very end of the log window \u2014 a worsening performance problem, unrelated to routing rules, that should be watched.",
+      "reason": "The query, threshold, escalation range, and worsening trend are conveyed, but the specific count of fourteen breaches is not stated."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At startup the log records at DBG level: Using connection string: Server=sql-prd.internal,1433;Database=Payments;User ID=svc_payments;Password=Pr0d-Payments-2026!;TrustServerCertificate=True \u2014 a production database password in plaintext in application logs. This is a credential exposure and should be treated as urgent",
+      "reason": "The analysis identifies the DBG-level connection string with the specific credentials, calls it a credential exposure, and recommends rotating the password and fixing the logging."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the specific restart at 02:50:11/02:50:14 or explain that it is why startup warnings appear twice; it only lumps 'Startup/shutdown banners' into routine noise."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Startup/shutdown banners, DataProtection key warnings, \"Service Permissions found and sent on the event bus\", ObjectMapper license messages.",
+      "reason": "The analysis lists DataProtection key warnings as routine noise but does not enumerate all four specific warnings (No XML encryptor, Overriding address(es), Failed to determine https port) nor explicitly state they are not the cause of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Service Permissions found and sent on the event bus\", ObjectMapper license messages. ... TaskCanceledException: The connection was aborted by the client at 21:11:02 \u2014 likely a client navigating away/timeout, not evidence of a server bug on its own. ... GetPendingPaymentQuery returned 404: pending payment 88213 not found \u2014 looks like an expected \"not found\" response, not an error.",
+      "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are identified as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No dates, and entries are not in chronological order (e.g. timestamps jump 01:03 \u2192 20:17 \u2192 22:42 \u2192 back to 01:18, etc.). It's impossible to reconstruct an actual timeline, confirm how often the 403 errors occurred, or tie any specific log entry to the two user reports.",
+      "reason": "The analysis explicitly states the lack of dates, non-chronological order, inability to establish timeline, and the trimming of stack traces making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is not a database-team issue: it's an authorization failure on a service-to-service call to masterfile-api. Root cause (expired/misconfigured Dapr access policy, revoked service credential, or a permission change on masterfile-api's side) can't be determined from this log alone",
+      "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a payments code fault, using hedging language ('can't be determined', listing possibilities), which satisfies the inference requirement."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "treat it as the fix-first item since it's the exact reported issue. ... Open a separate, urgent item for the plaintext production DB password in logs \u2014 rotate svc_payments credential and fix the logging configuration ... Route the SQL conversion error (Error 245) on SearchPaymentRoutingRuleQuery and the GetMonitorJobsQueryHandler timeouts to the database team as secondary items",
+      "reason": "The analysis clearly prioritises the 403s first, the credential as a parallel urgent security item, and the SQL errors/slow queries as secondary, matching the expected priority order."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings; it lists them as routine noise."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values are masked and cannot be identified, without naming any specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly warns that timestamps are not in order and no dates are present, and does not state any elapsed time or ordered sequence as fact."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject names at all, let alone treat them as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim crash-looping or repeated restarts; it only mentions 'Startup/shutdown banners' as routine noise."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'This is not a database-team issue' for the 403s and attributes different causes to different problems, never claiming the database was down or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 249.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "AddPaymentRoutingRuleSecondaryCommand (RuleSetId 41001, SecondaryBranchID 71; also RuleSetId 41002) fails with: Dapr.Client.InvocationException: ... invoking method: 'branchlocation/get?ID=71&includeDetails=False' on app-id: 'masterfile-api' ---> HttpRequestException: Response status code does not indicate success: 403 (Forbidden)",
+        "reason": "The analysis identifies both Dapr methods, both commands, the 403, and explicitly connects it to the user-reported save failure, though it hedges the count as 'at least twice each' rather than stating four.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Repeated SQL error on SearchPaymentRoutingRuleQuery: Conversion failed when converting the ****** value '******' to data type ****** (SQL Error 245). The actual value/column is masked in the log, so the specific bad data can't be identified. Recurs several times",
+        "reason": "The handler, error number, and message are correct, but the analysis says 'several times' rather than the specific count of five.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The actual value/column is masked in the log, so the specific bad data can't be identified.",
+        "reason": "The analysis clearly states the values are masked and cannot be identified from this log, and recommends requesting unmasked values from the database team.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "GetMonitorJobsQueryHandler (pending payments monitor) repeatedly throws Execution Timeout Expired (SQL Error -2), roughly 22:26\u201322:29, then recovers. Looks like a database performance/locking issue, separate feature area.",
+        "reason": "The handler, error type, approximate time window, and bounded nature are conveyed, but the exact count of eight and the specific recovery timestamp (22:36:47) are missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "UpdatePaymentRoutingRuleCommand (RuleSetId 41003) fails with a generic ApplicationValidationException: Application validation errors have occured. \u2014 no detail on which field/rule failed. Could be user error or a real validation bug; can't tell from this log.",
+        "reason": "The command, exception type, and lack of detail are identified, but the analysis does not state it failed twice nor explicitly frame it as a logging gap worth fixing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "GetStatementLineQuery shows escalating long-running requests (35s \u2192 72s against a 10s threshold) at the very end of the log window \u2014 a worsening performance problem, unrelated to routing rules, that should be watched.",
+        "reason": "The query, threshold, escalation range, and worsening trend are conveyed, but the specific count of fourteen breaches is not stated.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "At startup the log records at DBG level: Using connection string: Server=sql-prd.internal,1433;Database=Payments;User ID=svc_payments;Password=Pr0d-Payments-2026!;TrustServerCertificate=True \u2014 a production database password in plaintext in application logs. This is a credential exposure and should be treated as urgent",
+        "reason": "The analysis identifies the DBG-level connection string with the specific credentials, calls it a credential exposure, and recommends rotating the password and fixing the logging.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not identify the specific restart at 02:50:11/02:50:14 or explain that it is why startup warnings appear twice; it only lumps 'Startup/shutdown banners' into routine noise.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Startup/shutdown banners, DataProtection key warnings, \"Service Permissions found and sent on the event bus\", ObjectMapper license messages.",
+        "reason": "The analysis lists DataProtection key warnings as routine noise but does not enumerate all four specific warnings (No XML encryptor, Overriding address(es), Failed to determine https port) nor explicitly state they are not the cause of the failures.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Service Permissions found and sent on the event bus\", ObjectMapper license messages. ... TaskCanceledException: The connection was aborted by the client at 21:11:02 \u2014 likely a client navigating away/timeout, not evidence of a server bug on its own. ... GetPendingPaymentQuery returned 404: pending payment 88213 not found \u2014 looks like an expected \"not found\" response, not an error.",
+        "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are identified as non-defects.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "No dates, and entries are not in chronological order (e.g. timestamps jump 01:03 \u2192 20:17 \u2192 22:42 \u2192 back to 01:18, etc.). It's impossible to reconstruct an actual timeline, confirm how often the 403 errors occurred, or tie any specific log entry to the two user reports.",
+        "reason": "The analysis explicitly states the lack of dates, non-chronological order, inability to establish timeline, and the trimming of stack traces making it an incomplete record.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "This is not a database-team issue: it's an authorization failure on a service-to-service call to masterfile-api. Root cause (expired/misconfigured Dapr access policy, revoked service credential, or a permission change on masterfile-api's side) can't be determined from this log alone",
+        "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a payments code fault, using hedging language ('can't be determined', listing possibilities), which satisfies the inference requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "treat it as the fix-first item since it's the exact reported issue. ... Open a separate, urgent item for the plaintext production DB password in logs \u2014 rotate svc_payments credential and fix the logging configuration ... Route the SQL conversion error (Error 245) on SearchPaymentRoutingRuleQuery and the GetMonitorJobsQueryHandler timeouts to the database team as secondary items",
+        "reason": "The analysis clearly prioritises the 403s first, the credential as a parallel urgent security item, and the SQL errors/slow queries as secondary, matching the expected priority order.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection or XML encryptor warnings; it lists them as routine noise.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values are masked and cannot be identified, without naming any specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis explicitly warns that timestamps are not in order and no dates are present, and does not state any elapsed time or ordered sequence as fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject names at all, let alone treat them as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim crash-looping or repeated restarts; it only mentions 'Startup/shutdown banners' as routine noise.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly states 'This is not a database-team issue' for the 403s and attributes different causes to different problems, never claiming the database was down or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 and BANK-440 describe the same defect: Both report stale balance on the web dashboard/home screen after a transfer (BANK-440: Components=Transactions, BANK-425: Components=Web \u2014 inconsistent component tagging, but same symptom). Both are on Affects version 3.1.4.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both are web dashboard/home screen stale balance after transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close as duplicate of BANK-425 (or merge into it), since BANK-425 was filed earlier and already has the root-cause diagnosis.",
+      "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as duplicate, with the tickets linked."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate \u2014 it's a distinct bug: mobile push notifications (not the web dashboard) showing a stale balance, caused by using the TransferRequested event instead of TransferCompleted. Different platform, different root cause, already has an owner and a proposed fix.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted), already in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Hana Sato's comment on BANK-425 already diagnosed the root cause: the web front end caches the balance in local storage (BalanceCache) for 15 minutes with no invalidation on transfer success.",
+      "reason": "The analysis states the cause (15-minute BalanceCache in local storage, not invalidated after transfer) and the fix (invalidate/clear BalanceCache when a transfer succeeds)."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: BANK-419 introduced the regression reported in BANK-425/BANK-440. This isn't stated explicitly on any ticket \u2014 it's based on matching descriptions, timing, and fix version.",
+      "reason": "The analysis presents the regression link as an explicit inference, identifies BANK-419 as the likely cause, and recommends linking it to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No one is currently assigned to either web ticket, so nothing is actively blocking work except lack of ownership.",
+      "reason": "The analysis states both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and does not claim it is one."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the API returns the correct balance and attributes the issue to client-side caching, not a backend problem."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 111.45
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 and BANK-440 describe the same defect: Both report stale balance on the web dashboard/home screen after a transfer (BANK-440: Components=Transactions, BANK-425: Components=Web \u2014 inconsistent component tagging, but same symptom). Both are on Affects version 3.1.4.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both are web dashboard/home screen stale balance after transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close as duplicate of BANK-425 (or merge into it), since BANK-425 was filed earlier and already has the root-cause diagnosis.",
+        "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as duplicate, with the tickets linked.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate \u2014 it's a distinct bug: mobile push notifications (not the web dashboard) showing a stale balance, caused by using the TransferRequested event instead of TransferCompleted. Different platform, different root cause, already has an owner and a proposed fix.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted), already in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato's comment on BANK-425 already diagnosed the root cause: the web front end caches the balance in local storage (BalanceCache) for 15 minutes with no invalidation on transfer success.",
+        "reason": "The analysis states the cause (15-minute BalanceCache in local storage, not invalidated after transfer) and the fix (invalidate/clear BalanceCache when a transfer succeeds).",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Inference: BANK-419 introduced the regression reported in BANK-425/BANK-440. This isn't stated explicitly on any ticket \u2014 it's based on matching descriptions, timing, and fix version.",
+        "reason": "The analysis presents the regression link as an explicit inference, identifies BANK-419 as the likely cause, and recommends linking it to the bug tickets.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "No one is currently assigned to either web ticket, so nothing is actively blocking work except lack of ownership.",
+        "reason": "The analysis states both duplicate tickets (BANK-440 and BANK-425) are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and does not claim it is one.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the API returns the correct balance and attributes the issue to client-side caching, not a backend problem.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "On mobile web, if a transfer between own accounts times out (`ERR_TXN_504`) and the user taps Retry, the source account is debited twice while the destination is credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected component/version: Transactions, 3.1.4; fix targeted for 3.2.0.",
+      "reason": "The analysis names version 3.1.4, fix target 3.2.0, and later states the release date as 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause identified as two compounding issues: the debit/credit aren't wrapped in a single DB transaction, and the Retry action resubmits with no idempotency key, so the server treats it as a brand-new transfer.",
+      "reason": "Both root causes (no idempotency key on retry, debit/credit not in a single DB transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress, assigned to Priya Nair.\n- **Blocking progress:** PR #218 (single DB transaction + `Idempotency-Key` header support) is open and awaiting code review",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Aroha Walker asked Marcus Reid (reporter) to raise manual reversal of the duplicate debits with Finance Ops for the three affected customers",
+      "reason": "The analysis identifies three affected customers, the need for manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "no update in the ticket confirming this happened",
+      "reason": "The analysis explicitly notes the ticket does not confirm the Finance reversal has been raised or completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair: progress PR #218 through review; once merged, confirm fix covers both the atomic transaction and idempotency key, and add/request a regression test replicating the toxiproxy timeout + retry scenario.\n- **Marcus Reid:** confirm whether Finance Ops has been engaged for the manual reversal of the three affected customers' duplicate debits",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are clearly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently describes PR #218 as 'open and awaiting code review' and frames merging as a future action, never claiming it has been merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the bug does NOT reproduce on desktop web and attributes this to the disabled submit button, matching the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 280.35
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "On mobile web, if a transfer between own accounts times out (`ERR_TXN_504`) and the user taps Retry, the source account is debited twice while the destination is credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected component/version: Transactions, 3.1.4; fix targeted for 3.2.0.",
+        "reason": "The analysis names version 3.1.4, fix target 3.2.0, and later states the release date as 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Root cause identified as two compounding issues: the debit/credit aren't wrapped in a single DB transaction, and the Retry action resubmits with no idempotency key, so the server treats it as a brand-new transfer.",
+        "reason": "Both root causes (no idempotency key on retry, debit/credit not in a single DB transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress, assigned to Priya Nair.\n- **Blocking progress:** PR #218 (single DB transaction + `Idempotency-Key` header support) is open and awaiting code review",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Aroha Walker asked Marcus Reid (reporter) to raise manual reversal of the duplicate debits with Finance Ops for the three affected customers",
+        "reason": "The analysis identifies three affected customers, the need for manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "no update in the ticket confirming this happened",
+        "reason": "The analysis explicitly notes the ticket does not confirm the Finance reversal has been raised or completed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair: progress PR #218 through review; once merged, confirm fix covers both the atomic transaction and idempotency key, and add/request a regression test replicating the toxiproxy timeout + retry scenario.\n- **Marcus Reid:** confirm whether Finance Ops has been engaged for the manual reversal of the three affected customers' duplicate debits",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are clearly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently describes PR #218 as 'open and awaiting code review' and frames merging as a future action, never claiming it has been merged or deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the bug does NOT reproduce on desktop web and attributes this to the disabled submit button, matching the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

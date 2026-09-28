@@ -969,7 +969,8 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
     # Served by Ollama, so /api/ps memory, the vision capability check and the
     # unload all apply. A ':cloud' tag or a Claude model is none of those.
     local = not (Endpoints.is_cloud(model) or Endpoints.is_claude(model))
-    record = {"model": model, "think": think or None, "cases": [], "resource": {}, "errors": []}
+    record = {"model": model, "think": think or None, "cases": [], "resource": {},
+              "errors": [], "notes": []}
 
     if think and think.lower() != "false" and local:
         caps = ep.capabilities(model)
@@ -979,8 +980,10 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
             record["think"] = None
 
     if Endpoints.is_claude(model):
-        record["errors"].append(
-            f"{model}: temperature {cfg['temperature']} not applied (Claude rejects it); "
+        # A caveat about the backend, not a failed case: it must be visible in
+        # the warnings without inflating the error count.
+        record["notes"].append(
+            f"temperature {cfg['temperature']} not applied (Claude rejects it); "
             f"num_ctx not applicable; times are wall clock including the network")
     if local:
         others = [m.get("name") for m in ep.ps() if m.get("name") != model]
@@ -1234,6 +1237,8 @@ def write_summary(out_dir: Path, cfg: dict, records: list[dict], cases: list[dic
         a = aggs[r["model"]]
         for e in r["errors"]:
             warnings.append(f"{r['model']}: {e}")
+        for n in r.get("notes") or []:
+            warnings.append(f"{r['model']}: {n}")
         for c in r["cases"]:
             for fl in c.get("flags", []):
                 warnings.append(f"{r['model']} {c['case']}: {fl}")

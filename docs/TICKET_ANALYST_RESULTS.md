@@ -20,29 +20,67 @@ step with it.
 
 ## Current standing
 
-Six models have been measured on the full eighteen cases with the judge of
+Seven models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsup | GB |
 |---|---|---|---|---|---|---|---|---|---|
-| **Qwen3-VL-8B-Thinking-imatrix** | Q4_K_M | 1.0 | **52.3 (48–54)** | 60% | 62.9 | 24.7 | **7/162** | 59 | 13.0 |
-| Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
-| Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
-| Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
+| **claude-sonnet-5** ¹ | — | n/a | **88.4 (87–91)** | **90%** | **93.6** | **74.9** | **4/162** | **13** | — |
+| Qwen3-VL-8B-Thinking-imatrix | Q4_K_M | 1.0 | 52.3 (48–54) | 60% | 62.9 | 24.7 | 7/162 | 59 | 13.0 |
+| Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | 63% | 57.9 | 28.4 | 19/162 | 67 | **9.4** |
+| Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | 60.6 | 19.5 | 7/162 | 37 | 32.5 |
+| Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | 15 | 56.3 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
 
 All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Judge grounding
-stayed clean: 0–2 ungrounded, 0 omitted. Instruct builds ran at num_ctx 32768 /
-num_predict 8192; the Thinking build at 49152 / 16384, which it requires.
+stayed clean: 0–2 ungrounded, 0 omitted.
 
-**Temperature is a per-model setting, not a fleet constant**, and is shown above and
-in the generated leaderboard's Runs table. Each model runs at what suits it, as it
-already does for `num_ctx`. The reason is measured, not preferential: see below.
-`docs/CONFIG_SETTINGS.md` records the per-model choice.
+¹ Hosted, so it has no resident GB and is outside the Pareto front, which needs
+memory. Temperature is not sent (Claude rejects it) and `num_ctx` does not apply;
+its times are wall clock including the network. It is a **reference ceiling**, not
+a value comparison.
 
-Because temperature changes what a model writes, a gap of a few points between two
-runs at different temperatures is not evidence about the models.
+### The local models are much further from the ceiling than the board suggested
+
+Sonnet scores **88.4 against the local leader's 52.3** — a 36-point gap, larger
+than the gap between the local leader and the worst model measured. Until this run
+there was no way to tell whether 52.3 was near the achievable maximum. It is not.
+
+The checkpoint breakdown is the clearest way to see it:
+
+| | Sonnet | Qwen3-VL-8B-Thinking |
+|---|---|---|
+| Found (full credit) | **343 (81%)** | 147 (35%) |
+| Partial (half credit) | 58 (14%) | 166 (39%) |
+| Missed | **22 (5%)** | 110 (26%) |
+
+The local leader's score is carried by partial credit; Sonnet's is carried by
+points it actually made. On the prose cases it reaches **93.6**, which is close to
+saturating them.
+
+**It is also the most trustworthy, not merely the most thorough.** It trips the
+fewest traps (4 against 7–20) and makes the fewest unsupported claims (13, or 0.24
+per analysis, against 59 for the local leader). The usual recall-against-trust
+trade-off does not appear: it finds more *and* asserts less that is unsupported.
+
+### The telemetry cases are the gap, not the prose
+
+C14–C18: **74.9** against the best local score of 28.4. On the prose cases the
+spread is 93.6 against 62.9, a factor of 1.5; on logs and Sentry exports it is a
+factor of 2.7. Reading machine output is where the local fleet falls furthest
+behind, and it is the half of this benchmark added most recently.
+
+Its vision scores — C11 76.2, C12 80.9, C13 **97.6** — show the screenshot cases
+are not what separates the field either. C13, the wordless-markup case, is close to
+solved.
+
+### What this means for the local search
+
+Nothing measured locally is a substitute for a frontier model on this task. The
+practical questions are now narrower: how much of the 36-point gap matters for the
+intended use, and whether a local model plus human review costs less than the API
+call. A run of 54 analyses at ~15k input tokens each is a few dollars.
 
 ### Temperature 1.0 fixes the Thinking build, and takes it off the board
 

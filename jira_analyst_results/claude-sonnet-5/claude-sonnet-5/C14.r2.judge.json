@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "AddPaymentRoutingRuleSecondaryCommand and BulkUpdateSecondaryBranchesCommand are failing with 403 Forbidden when calling the masterfile-api service (via Dapr) to look up branch location data. This is an authorization/config failure on a downstream call, not a database error and not obviously a payments-api application bug.",
+      "reason": "The analysis identifies the 403 Forbidden on both branchlocation/get and branchlocation/GetAll, names both commands, lists all four occurrences, and explicitly connects it to the user-reported save failure as the highest-severity issue."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Repeated 03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31: Conversion failed when converting the ****** value '******' to data type ******. (Error Number:245, State:1, Class:16)",
+      "reason": "The analysis names the query, lists five timestamps, quotes the error message with the masked values, and gives Error Number 245."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual values/types are masked (shown as ******), so the specific column/value responsible cannot be identified from this log.",
+      "reason": "The analysis explicitly states the masking prevents identification and later reiterates that unmasked values are needed for diagnosis."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Cluster of Execution Timeout Expired errors between 22:26:37 and 22:29:08, then the same query succeeds normally from 22:36:47 onward. Looks like a transient database/contention spike rather than an ongoing failure.",
+      "reason": "The analysis gives the correct time range and recovery point and characterises it as bounded/transient, but does not state the count of eight or the Error Number:-2."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A run of Long-running request warnings, latency climbing from ~35s up to ~72s against a 10s threshold, all within one short window (00:20:43\u201300:24:34).",
+      "reason": "The analysis identifies the query, the threshold, the rising range, and the escalating pattern, but does not state the exact count of fourteen or explicitly note it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a production database password logged in plaintext at DBG level, and it is now sitting in this ticket's attachment. This is a credential exposure issue independent of the payments-save bug and should be treated as a security incident: rotate svc_payments's password and stop logging connection strings at DBG level in production.",
+      "reason": "The analysis quotes the full connection string with password, identifies it as a credential exposure at DBG level, and recommends rotation and removal of the logging."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the single restart at 02:50:11/02:50:14 or connect it to the duplicate startup warnings; instead it incorrectly claims 'at least two restarts.'"
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Startup boilerplate: \"Configuring web host\", \"Now listening on: http://0.0.0.0:8080\", DataProtection key storage warnings, \"No XML encryptor configured\", \"Failed to determine the https port for redirect\" \u2014 standard ASP.NET Core startup noise, not incident-related.",
+      "reason": "The analysis names the DataProtection, XML encryptor, and https port warnings as routine startup noise not related to the failures, covering the key point even though it omits the 'Overriding address(es)' line."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "\"Service Permissions found and sent on the event bus\" repeats \u2014 routine startup/heartbeat behaviour. ObjectMapper license info line \u2014 routine. GetPendingPaymentQuery returned 404: pending payment 88213 not found \u2014 expected \"not found\" response, not a fault. TaskCanceledException: A task was canceled at 21:11:02 \u2014 client-side disconnect",
+      "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are explicitly listed as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The container logs time-of-day only, with no date, and the file clearly wraps across at least two restarts and multiple day boundaries... It is not possible to reconstruct a reliable timeline of \"first occurrence\" or how these clusters relate to each other in time.",
+      "reason": "The analysis identifies the time-of-day-only issue, the non-sequential timestamps, and the trimming of stack traces as limitations preventing a complete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A 403 (not a timeout or 5xx) indicates an authorization problem \u2014 payments-api's Dapr identity/token being rejected by masterfile-api, or a masterfile-api-side ACL/scope change \u2014 not a SQL Server issue.",
+      "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a payments code fault, using hedged language and an explicit 'Inference:' label, and notes the consistent failure on both methods."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fix in this order: 1. masterfile-api 403 Forbidden on branch lookups (blocks the exact user-reported action). 2. SearchPaymentRoutingRuleQuery conversion error (recurring, same functional area). 3. GetMonitorJobsQuery timeouts and GetStatementLineQuery slow-query warnings... 4. Independently and urgently: rotate the exposed svc_payments production password and stop logging connection strings.",
+      "reason": "The priority order matches: 403s first (blocks user action), then SQL 245, then GetStatementLineQuery, with the credential handled in parallel as a security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the DataProtection and XML encryptor warnings as 'standard ASP.NET Core startup noise, not incident-related' and never attributes the 403s or SQL errors to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values are masked and cannot be identified, and never names a specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly warns that timestamps are time-of-day only with no date and that a reliable timeline cannot be reconstructed; it does not state any elapsed time or ordered sequence as fact."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions the NATS subject 'payments.prod.requests.payments.errors' or treats it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "the file clearly wraps across at least two restarts and multiple day boundaries",
+      "reason": "The log shows only one restart (02:50:11 shutdown, 02:50:14 start), but the analysis claims 'at least two restarts,' implying repeated restarts."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the 403s are 'not a database problem' and distinguishes the Dapr/authorization issue from the separate SQL issues; it never claims the database was down or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 258.09
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "AddPaymentRoutingRuleSecondaryCommand and BulkUpdateSecondaryBranchesCommand are failing with 403 Forbidden when calling the masterfile-api service (via Dapr) to look up branch location data. This is an authorization/config failure on a downstream call, not a database error and not obviously a payments-api application bug.",
+        "reason": "The analysis identifies the 403 Forbidden on both branchlocation/get and branchlocation/GetAll, names both commands, lists all four occurrences, and explicitly connects it to the user-reported save failure as the highest-severity issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Repeated 03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31: Conversion failed when converting the ****** value '******' to data type ******. (Error Number:245, State:1, Class:16)",
+        "reason": "The analysis names the query, lists five timestamps, quotes the error message with the masked values, and gives Error Number 245.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The actual values/types are masked (shown as ******), so the specific column/value responsible cannot be identified from this log.",
+        "reason": "The analysis explicitly states the masking prevents identification and later reiterates that unmasked values are needed for diagnosis.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Cluster of Execution Timeout Expired errors between 22:26:37 and 22:29:08, then the same query succeeds normally from 22:36:47 onward. Looks like a transient database/contention spike rather than an ongoing failure.",
+        "reason": "The analysis gives the correct time range and recovery point and characterises it as bounded/transient, but does not state the count of eight or the Error Number:-2.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "A run of Long-running request warnings, latency climbing from ~35s up to ~72s against a 10s threshold, all within one short window (00:20:43\u201300:24:34).",
+        "reason": "The analysis identifies the query, the threshold, the rising range, and the escalating pattern, but does not state the exact count of fourteen or explicitly note it is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "This is a production database password logged in plaintext at DBG level, and it is now sitting in this ticket's attachment. This is a credential exposure issue independent of the payments-save bug and should be treated as a security incident: rotate svc_payments's password and stop logging connection strings at DBG level in production.",
+        "reason": "The analysis quotes the full connection string with password, identifies it as a credential exposure at DBG level, and recommends rotation and removal of the logging.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not identify the single restart at 02:50:11/02:50:14 or connect it to the duplicate startup warnings; instead it incorrectly claims 'at least two restarts.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Startup boilerplate: \"Configuring web host\", \"Now listening on: http://0.0.0.0:8080\", DataProtection key storage warnings, \"No XML encryptor configured\", \"Failed to determine the https port for redirect\" \u2014 standard ASP.NET Core startup noise, not incident-related.",
+        "reason": "The analysis names the DataProtection, XML encryptor, and https port warnings as routine startup noise not related to the failures, covering the key point even though it omits the 'Overriding address(es)' line.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "\"Service Permissions found and sent on the event bus\" repeats \u2014 routine startup/heartbeat behaviour. ObjectMapper license info line \u2014 routine. GetPendingPaymentQuery returned 404: pending payment 88213 not found \u2014 expected \"not found\" response, not a fault. TaskCanceledException: A task was canceled at 21:11:02 \u2014 client-side disconnect",
+        "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are explicitly listed as non-defects.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "The container logs time-of-day only, with no date, and the file clearly wraps across at least two restarts and multiple day boundaries... It is not possible to reconstruct a reliable timeline of \"first occurrence\" or how these clusters relate to each other in time.",
+        "reason": "The analysis identifies the time-of-day-only issue, the non-sequential timestamps, and the trimming of stack traces as limitations preventing a complete record.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "A 403 (not a timeout or 5xx) indicates an authorization problem \u2014 payments-api's Dapr identity/token being rejected by masterfile-api, or a masterfile-api-side ACL/scope change \u2014 not a SQL Server issue.",
+        "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services rather than a payments code fault, using hedged language and an explicit 'Inference:' label, and notes the consistent failure on both methods.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "Fix in this order: 1. masterfile-api 403 Forbidden on branch lookups (blocks the exact user-reported action). 2. SearchPaymentRoutingRuleQuery conversion error (recurring, same functional area). 3. GetMonitorJobsQuery timeouts and GetStatementLineQuery slow-query warnings... 4. Independently and urgently: rotate the exposed svc_payments production password and stop logging connection strings.",
+        "reason": "The priority order matches: 403s first (blocks user action), then SQL 245, then GetStatementLineQuery, with the credential handled in parallel as a security item.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly labels the DataProtection and XML encryptor warnings as 'standard ASP.NET Core startup noise, not incident-related' and never attributes the 403s or SQL errors to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values are masked and cannot be identified, and never names a specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis explicitly warns that timestamps are time-of-day only with no date and that a reliable timeline cannot be reconstructed; it does not state any elapsed time or ordered sequence as fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis never mentions the NATS subject 'payments.prod.requests.payments.errors' or treats it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "the file clearly wraps across at least two restarts and multiple day boundaries",
+        "reason": "The log shows only one restart (02:50:11 shutdown, 02:50:14 start), but the analysis claims 'at least two restarts,' implying repeated restarts.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly states the 403s are 'not a database problem' and distinguishes the Dapr/authorization issue from the separate SQL issues; it never claims the database was down or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

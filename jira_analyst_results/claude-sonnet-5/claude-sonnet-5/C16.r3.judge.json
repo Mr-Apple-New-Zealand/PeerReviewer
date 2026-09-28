@@ -1,0 +1,229 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Before: 281\u2013319ms, consistently fast, appears many times with no warnings.\n- After: no longer completes normally at all in this window; every instance is logged as a `[WRN] Long-running request`, ranging from 33,757ms up to 72,974ms.",
+      "reason": "The analysis gives the correct before range (281\u2013319 ms) and after range (33,757\u201372,974 ms, i.e. ~34\u201373 s), matching the expected point."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "That is roughly a **100x to 240x** increase in response time for this specific query.",
+      "reason": "The analysis states a 100x\u2013240x increase, which aligns with the expected ~110x at the start and ~240x at the worst reading."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The slowdown also **worsens across the window**: 35,171ms at 00:20:43 rising to 72,974ms by 00:24:34 \u2014 consistent with a backlog building rather than a flat, one-off delay.",
+      "reason": "The analysis clearly states the worsening trend with the start and end timestamps, though it omits the intermediate ~44 s phase at 00:24:05 and the 69\u201373 s phase from 00:24:21 onward as distinct stages."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery \u2014 essentially unchanged:\n- Before: 2987\u20133341ms.\n- After: 3188\u20133402ms.\n- This is the query Ravi Kumar names as the likely cause\u2026 The logs do **not** support that: its timing is flat across both windows.",
+      "reason": "The analysis gives correct before/after ranges, states it is unchanged, and explicitly contradicts Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand: 1840ms before vs 1902ms after \u2014 no meaningful change.",
+      "reason": "Correct numbers and the conclusion that it is unchanged, implying the regression is specific to the statement line query."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The after log's startup line shows: `Applied 1 pending migration: 20260914_2100_ReindexStatementLines`, applied on release, timestamped just hours before the observed slowdown. This directly concerns statement lines and sits in tension with Tom Becker's comment that \"nothing in 4.7.0 touched statements\" \u2014 worth flagging as a conflict between that comment and the log evidence.",
+      "reason": "The analysis names the migration, notes it was applied with the release, and explicitly flags the contradiction with Tom Becker's claim."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "(Inference: the migration is a plausible trigger \u2014 e.g. an incomplete reindex, lock contention, or a dropped/degraded index \u2014 but the log does not prove this; it only shows correlation in time.)",
+      "reason": "Presented explicitly as an inference, identifies the migration as the most likely place to look, and correctly notes the logs show only temporal correlation, not causation."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "this is a plausible mechanism for why later requests queue and get progressively slower, but the log doesn't say what is occupying the threads.",
+      "reason": "The analysis mentions the starvation warning with correct details and calls it a 'plausible mechanism,' but it is more ambiguous than the key expects\u2014it does not clearly frame it as a consequence of the slow query rather than an independent cause, and it omits the specific 44 s \u2192 69 s jump alignment."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Only a 5-minute window is captured each side; there's no data on whether the slowdown is constant, intermittent, or tied to load (e.g., a concurrent batch job at midnight), and no confirmation the sampled requests are for comparable accounts/statement sizes.",
+      "reason": "The analysis notes the short window and lack of intermediate data, but does not explicitly mention the different days, the small number of samples per query, or frame the magnitude as 'indicative rather than measured.'"
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Tom Becker (or whoever owns the Statements API) should check whether `20260914_2100_ReindexStatementLines` completed cleanly and whether the relevant index is healthy/being rebuilt under load \u2014 this is the strongest lead from the logs.\n- Pull DB-side metrics (lock waits, query plans) for `GetStatementLineQuery` during the incident window",
+      "reason": "The analysis recommends checking the migration and indexes, pulling query plans, and notes Tom Becker as the owner who believes it is not his team's change, covering the key next actions."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is 'essentially unchanged' and that the logs do not support Ravi's theory; it does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration is presented only as a 'plausible trigger' within an explicitly labelled inference; the analysis does not state as fact that the migration caused the slowdown or describe specific schema changes it made."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states 100x\u2013240x, which is supported by the log timings; it does not claim a smaller unsupported magnitude."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name thread-pool starvation as the root cause; it calls it a 'plausible mechanism' and explicitly states it is 'not established whether thread exhaustion is causing the long query times or is itself caused by something else.'"
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 244.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "Before: 281\u2013319ms, consistently fast, appears many times with no warnings.\n- After: no longer completes normally at all in this window; every instance is logged as a `[WRN] Long-running request`, ranging from 33,757ms up to 72,974ms.",
+        "reason": "The analysis gives the correct before range (281\u2013319 ms) and after range (33,757\u201372,974 ms, i.e. ~34\u201373 s), matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "That is roughly a **100x to 240x** increase in response time for this specific query.",
+        "reason": "The analysis states a 100x\u2013240x increase, which aligns with the expected ~110x at the start and ~240x at the worst reading.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "The slowdown also **worsens across the window**: 35,171ms at 00:20:43 rising to 72,974ms by 00:24:34 \u2014 consistent with a backlog building rather than a flat, one-off delay.",
+        "reason": "The analysis clearly states the worsening trend with the start and end timestamps, though it omits the intermediate ~44 s phase at 00:24:05 and the 69\u201373 s phase from 00:24:21 onward as distinct stages.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery \u2014 essentially unchanged:\n- Before: 2987\u20133341ms.\n- After: 3188\u20133402ms.\n- This is the query Ravi Kumar names as the likely cause\u2026 The logs do **not** support that: its timing is flat across both windows.",
+        "reason": "The analysis gives correct before/after ranges, states it is unchanged, and explicitly contradicts Ravi Kumar's suggestion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "ExportStatementCommand: 1840ms before vs 1902ms after \u2014 no meaningful change.",
+        "reason": "Correct numbers and the conclusion that it is unchanged, implying the regression is specific to the statement line query.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "The after log's startup line shows: `Applied 1 pending migration: 20260914_2100_ReindexStatementLines`, applied on release, timestamped just hours before the observed slowdown. This directly concerns statement lines and sits in tension with Tom Becker's comment that \"nothing in 4.7.0 touched statements\" \u2014 worth flagging as a conflict between that comment and the log evidence.",
+        "reason": "The analysis names the migration, notes it was applied with the release, and explicitly flags the contradiction with Tom Becker's claim.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "(Inference: the migration is a plausible trigger \u2014 e.g. an incomplete reindex, lock contention, or a dropped/degraded index \u2014 but the log does not prove this; it only shows correlation in time.)",
+        "reason": "Presented explicitly as an inference, identifies the migration as the most likely place to look, and correctly notes the logs show only temporal correlation, not causation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "this is a plausible mechanism for why later requests queue and get progressively slower, but the log doesn't say what is occupying the threads.",
+        "reason": "The analysis mentions the starvation warning with correct details and calls it a 'plausible mechanism,' but it is more ambiguous than the key expects\u2014it does not clearly frame it as a consequence of the slow query rather than an independent cause, and it omits the specific 44 s \u2192 69 s jump alignment.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "Only a 5-minute window is captured each side; there's no data on whether the slowdown is constant, intermittent, or tied to load (e.g., a concurrent batch job at midnight), and no confirmation the sampled requests are for comparable accounts/statement sizes.",
+        "reason": "The analysis notes the short window and lack of intermediate data, but does not explicitly mention the different days, the small number of samples per query, or frame the magnitude as 'indicative rather than measured.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Tom Becker (or whoever owns the Statements API) should check whether `20260914_2100_ReindexStatementLines` completed cleanly and whether the relevant index is healthy/being rebuilt under load \u2014 this is the strongest lead from the logs.\n- Pull DB-side metrics (lock waits, query plans) for `GetStatementLineQuery` during the incident window",
+        "reason": "The analysis recommends checking the migration and indexes, pulling query plans, and notes Tom Becker as the owner who believes it is not his team's change, covering the key next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is 'essentially unchanged' and that the logs do not support Ravi's theory; it does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The migration is presented only as a 'plausible trigger' within an explicitly labelled inference; the analysis does not state as fact that the migration caused the slowdown or describe specific schema changes it made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis states 100x\u2013240x, which is supported by the log timings; it does not claim a smaller unsupported magnitude.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis does not name thread-pool starvation as the root cause; it calls it a 'plausible mechanism' and explicitly states it is 'not established whether thread exhaustion is causing the long query times or is itself caused by something else.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

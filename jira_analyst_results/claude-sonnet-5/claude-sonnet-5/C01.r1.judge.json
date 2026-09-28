@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A mobile-web transfer that times out after ~30 seconds can be retried by the user, but the retry is sent as a brand-new request with no idempotency protection, and the debit/credit are not atomic. This has caused at least one confirmed double-debit ($250 debited twice, credited once)",
+      "reason": "The analysis clearly states that retrying after the timeout results in the source being debited twice and the destination credited once."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected component/version: Transactions, mobile-web, v3.1.4. Confirmed **not** reproducible on desktop web (no Retry button, submit is disabled after timeout) \u2014 Tom Becker, 2026-09-10.",
+      "reason": "The analysis names v3.1.4 as the affected version and separately references the 3.2.0 target release on 2026-09-24 in the Current state section."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the retry is sent as a brand-new request with no idempotency protection, and the debit/credit are not atomic",
+      "reason": "Both parts of the root cause (no idempotency key on retry, debit and credit not in a single DB transaction) are clearly stated and attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress, assigned to Priya Nair. \u2026 PR #218 is **waiting on code review** as of the last update (2026-09-12).",
+      "reason": "All three elements\u2014status, assignee, and PR #218 awaiting code review\u2014are explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Aroha Walker (2026-09-11) asked Marcus Reid to raise manual reversal of the duplicate debits with Finance Ops for the three affected customers.",
+      "reason": "The analysis names the three affected customers, the need for manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "There is no follow-up comment confirming this was done \u2014 this is an open, unacknowledged action item.",
+      "reason": "The analysis explicitly notes the ticket does not confirm the reversal request was raised or that customers were refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair / reviewers: prioritize code review of PR #218 given the proximity to the 2026-09-24 target \u2026 Marcus Reid: confirm (in the ticket) whether Finance Ops has been notified and reversal of the three duplicate debits is underway/complete",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed as suggested next steps."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is still waiting on code review and that merge, testing, and release still need to happen; it never claims the PR is merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the bug is confirmed NOT reproducible on desktop web, correctly reflecting Tom Becker's QA finding."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 63.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A mobile-web transfer that times out after ~30 seconds can be retried by the user, but the retry is sent as a brand-new request with no idempotency protection, and the debit/credit are not atomic. This has caused at least one confirmed double-debit ($250 debited twice, credited once)",
+        "reason": "The analysis clearly states that retrying after the timeout results in the source being debited twice and the destination credited once.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected component/version: Transactions, mobile-web, v3.1.4. Confirmed **not** reproducible on desktop web (no Retry button, submit is disabled after timeout) \u2014 Tom Becker, 2026-09-10.",
+        "reason": "The analysis names v3.1.4 as the affected version and separately references the 3.2.0 target release on 2026-09-24 in the Current state section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "the retry is sent as a brand-new request with no idempotency protection, and the debit/credit are not atomic",
+        "reason": "Both parts of the root cause (no idempotency key on retry, debit and credit not in a single DB transaction) are clearly stated and attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress, assigned to Priya Nair. \u2026 PR #218 is **waiting on code review** as of the last update (2026-09-12).",
+        "reason": "All three elements\u2014status, assignee, and PR #218 awaiting code review\u2014are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Aroha Walker (2026-09-11) asked Marcus Reid to raise manual reversal of the duplicate debits with Finance Ops for the three affected customers.",
+        "reason": "The analysis names the three affected customers, the need for manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "There is no follow-up comment confirming this was done \u2014 this is an open, unacknowledged action item.",
+        "reason": "The analysis explicitly notes the ticket does not confirm the reversal request was raised or that customers were refunded.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair / reviewers: prioritize code review of PR #218 given the proximity to the 2026-09-24 target \u2026 Marcus Reid: confirm (in the ticket) whether Finance Ops has been notified and reversal of the three duplicate debits is underway/complete",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed as suggested next steps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is still waiting on code review and that merge, testing, and release still need to happen; it never claims the PR is merged or deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the bug is confirmed NOT reproducible on desktop web, correctly reflecting Tom Becker's QA finding.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

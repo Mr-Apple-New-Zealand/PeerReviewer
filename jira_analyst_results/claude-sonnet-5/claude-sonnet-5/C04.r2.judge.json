@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No \u2014 do not tell the customer this is fixed yet",
+      "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked **Done/Resolved: Fixed**, but the most recent comment shows the fix has **not been confirmed working** on the target release. \u2026 Tom Becker's retest on 2026-09-10 (build 3.1.4.17) found the reset email for `test+qa1@example.com` still doesn't arrive",
+      "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 but Tom Becker's 2026-09-10 retest on 3.1.4 (build 3.1.4.17) shows emails still not arriving, matching all key specifics."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP log now shows `550 5.1.3 Invalid recipient address`, suggesting the **email provider/SMTP relay** is rejecting the address, not the application code.",
+      "reason": "The analysis explicitly quotes the new SMTP error code and identifies it as a different error signature from the original regex issue."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "suggesting the **email provider/SMTP relay** is rejecting the address, not the application code. \u2026 New suspected cause: SMTP provider rejecting plus-addressed recipients (`550 5.1.3`) \u2014 not yet root-caused or assigned.",
+      "reason": "The analysis presents the provider rejection as a suspected/suggested cause (using 'suggesting', 'suspected', 'not yet root-caused'), correctly framing it as an unconfirmed inference rather than established fact."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "nobody has reopened it or commented since Tom's 2026-09-10 finding. \u2026 No owner assigned to investigate the new failure. \u2026 No links to a follow-up ticket for the SMTP-level rejection.",
+      "reason": "The analysis clearly states that nobody reopened the ticket, no follow-up ticket exists, and no owner is assigned to the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reopen BANK-377 (or raise a new linked ticket) to investigate the `550 5.1.3 Invalid recipient address` SMTP rejection \u2026 Do not confirm resolution to the customer yet. Tell them the fix for the original issue has shipped, but a related delivery problem was found in testing and is being investigated \u2014 avoid a false 'all clear.'",
+      "reason": "The analysis recommends reopening or raising a linked ticket, assigning investigation of the provider rejection, and giving the customer a holding response rather than confirming a fix."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states nobody has reopened the ticket and no follow-up ticket exists, which is the opposite of the trap claim."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 63.5
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "No \u2014 do not tell the customer this is fixed yet",
+        "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket is marked **Done/Resolved: Fixed**, but the most recent comment shows the fix has **not been confirmed working** on the target release. \u2026 Tom Becker's retest on 2026-09-10 (build 3.1.4.17) found the reset email for `test+qa1@example.com` still doesn't arrive",
+        "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 but Tom Becker's 2026-09-10 retest on 3.1.4 (build 3.1.4.17) shows emails still not arriving, matching all key specifics.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "SMTP log now shows `550 5.1.3 Invalid recipient address`, suggesting the **email provider/SMTP relay** is rejecting the address, not the application code.",
+        "reason": "The analysis explicitly quotes the new SMTP error code and identifies it as a different error signature from the original regex issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "suggesting the **email provider/SMTP relay** is rejecting the address, not the application code. \u2026 New suspected cause: SMTP provider rejecting plus-addressed recipients (`550 5.1.3`) \u2014 not yet root-caused or assigned.",
+        "reason": "The analysis presents the provider rejection as a suspected/suggested cause (using 'suggesting', 'suspected', 'not yet root-caused'), correctly framing it as an unconfirmed inference rather than established fact.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "nobody has reopened it or commented since Tom's 2026-09-10 finding. \u2026 No owner assigned to investigate the new failure. \u2026 No links to a follow-up ticket for the SMTP-level rejection.",
+        "reason": "The analysis clearly states that nobody reopened the ticket, no follow-up ticket exists, and no owner is assigned to the remaining problem.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Reopen BANK-377 (or raise a new linked ticket) to investigate the `550 5.1.3 Invalid recipient address` SMTP rejection \u2026 Do not confirm resolution to the customer yet. Tell them the fix for the original issue has shipped, but a related delivery problem was found in testing and is being investigated \u2014 avoid a false 'all clear.'",
+        "reason": "The analysis recommends reopening or raising a linked ticket, assigning investigation of the provider rejection, and giving the customer a holding response rather than confirming a fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states nobody has reopened the ticket and no follow-up ticket exists, which is the opposite of the trap claim.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

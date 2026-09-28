@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Yes \u2014 BANK-440 is very likely a duplicate of BANK-425. Both describe the same symptom: web dashboard/home screen balance doesn't reflect a completed transfer (BANK-440: \"the balance on the web dashboard still shows the old value\"; BANK-425: \"the balance shown on the home screen (web) is out of date\"). Both affect version 3.1.4.",
+      "reason": "The analysis clearly identifies both tickets as duplicates reporting the same web dashboard/home screen stale-balance symptom on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Close as duplicate of BANK-425, with a link added between them. No further separate investigation needed \u2014 the diagnosis already exists on BANK-425. BANK-425: Keep open as the primary ticket. It has an unassigned assignee despite a completed diagnosis \u2014 assign an engineer (e.g. Hana Sato, since she diagnosed it and owned BANK-419) to implement the fix",
+      "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate with a link, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate \u2014 different platform (mobile push notification vs. web dashboard), different root cause (event ordering: notification built from `TransferRequested` instead of `TransferCompleted`, per Ravi Kumar), and already has a fix in progress.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, citing the mobile push-notification context, the TransferRequested vs TransferCompleted cause, and its in-progress status with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the front end caches the balance in local storage (`BalanceCache`) for 15 minutes and nothing invalidates it after a transfer",
+      "reason": "The analysis states the 15-minute BalanceCache in local storage is not invalidated after a transfer, and separately recommends clearing it when a transfer succeeds as the fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "There is a plausible causal link (inference, not stated in the tickets): the caching behaviour both BANK-425 and BANK-440 complain about was introduced by **BANK-419** (\"Cache the balance response in local storage for 15 minutes\"), shipped in 3.1.4, with no mention of invalidating the cache on transfer. This looks like a regression/gap left by BANK-419 rather than a coincidence",
+      "reason": "The analysis presents the BANK-419 regression link as an inference (explicitly labelled), identifies it as the likely source, and recommends linking it, satisfying the inference requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It has an unassigned assignee despite a completed diagnosis",
+      "reason": "The analysis mentions BANK-425 is unassigned but does not explicitly state that BANK-440 is also unassigned, so the 'both unassigned' point is only partially conveyed."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains why, so it does not assert the trap claim."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'BANK-440 confirms the API returns the correct value immediately,' which aligns with the ticket and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 225.15
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Yes \u2014 BANK-440 is very likely a duplicate of BANK-425. Both describe the same symptom: web dashboard/home screen balance doesn't reflect a completed transfer (BANK-440: \"the balance on the web dashboard still shows the old value\"; BANK-425: \"the balance shown on the home screen (web) is out of date\"). Both affect version 3.1.4.",
+        "reason": "The analysis clearly identifies both tickets as duplicates reporting the same web dashboard/home screen stale-balance symptom on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-440: Close as duplicate of BANK-425, with a link added between them. No further separate investigation needed \u2014 the diagnosis already exists on BANK-425. BANK-425: Keep open as the primary ticket. It has an unassigned assignee despite a completed diagnosis \u2014 assign an engineer (e.g. Hana Sato, since she diagnosed it and owned BANK-419) to implement the fix",
+        "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate with a link, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate \u2014 different platform (mobile push notification vs. web dashboard), different root cause (event ordering: notification built from `TransferRequested` instead of `TransferCompleted`, per Ravi Kumar), and already has a fix in progress.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, citing the mobile push-notification context, the TransferRequested vs TransferCompleted cause, and its in-progress status with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "the front end caches the balance in local storage (`BalanceCache`) for 15 minutes and nothing invalidates it after a transfer",
+        "reason": "The analysis states the 15-minute BalanceCache in local storage is not invalidated after a transfer, and separately recommends clearing it when a transfer succeeds as the fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "There is a plausible causal link (inference, not stated in the tickets): the caching behaviour both BANK-425 and BANK-440 complain about was introduced by **BANK-419** (\"Cache the balance response in local storage for 15 minutes\"), shipped in 3.1.4, with no mention of invalidating the cache on transfer. This looks like a regression/gap left by BANK-419 rather than a coincidence",
+        "reason": "The analysis presents the BANK-419 regression link as an inference (explicitly labelled), identifies it as the likely source, and recommends linking it, satisfying the inference requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "It has an unassigned assignee despite a completed diagnosis",
+        "reason": "The analysis mentions BANK-425 is unassigned but does not explicitly state that BANK-440 is also unassigned, so the 'both unassigned' point is only partially conveyed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains why, so it does not assert the trap claim.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'BANK-440 confirms the API returns the correct value immediately,' which aligns with the ticket and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

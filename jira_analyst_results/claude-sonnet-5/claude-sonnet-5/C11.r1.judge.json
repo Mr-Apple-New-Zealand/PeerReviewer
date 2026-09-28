@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C11-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Error!**\n> \"To keep using mobile app, please log in to Online Banking and fill the customer's questionnaire.\"",
+      "reason": "The analysis quotes the exact dialog heading and body text matching the screenshot."
+    },
+    {
+      "id": "C11-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "On the \"Enter your Online Banking credentials\" login screen, after entering credentials, the app shows a modal dialog:\n\n> **Error!**\n> \"To keep using mobile app, please log in to Online Banking and fill the customer's questionnaire.\"\n\nOnly button available: **OK**",
+      "reason": "The analysis identifies the login screen context, the single OK button, and that the dialog blocks progress."
+    },
+    {
+      "id": "C11-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Reproduced internally on a test account (username shown: TESTRELAXLUX4), but exact steps (e.g., what triggers the questionnaire requirement) are not documented.",
+      "reason": "The analysis names the username TESTRELAXLUX4 but never mentions the password field being empty; in fact it says 'after entering credentials,' contradicting the empty password shown in the screenshot."
+    },
+    {
+      "id": "C11-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never infers that the block occurs before authentication; it instead states 'after entering credentials,' which contradicts the empty-password observation that would support such an inference."
+    },
+    {
+      "id": "C11-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter (Marcus Reid) confirmed this is reproducible on a test account, so it is not isolated to one customer.",
+      "reason": "The analysis states the issue reproduces on the team's test account, is not customer-specific, and notes mobile 5.4.1 and unassigned status."
+    },
+    {
+      "id": "C11-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Tom Becker's comment flags the core open question: should this be a hard block (customer must complete the questionnaire elsewhere before mobile access is restored) or just a warning that shouldn't prevent login? This ambiguity is unresolved and no one has answered it yet.",
+      "reason": "The analysis clearly identifies Tom Becker's unanswered question about hard block vs. warning."
+    },
+    {
+      "id": "C11-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Triage/assign: This should be picked up promptly given High priority and confirmed customer impact; currently unassigned.\n- **Clarify intended behavior:** Someone (product/compliance owner) needs to confirm whether the questionnaire requirement is a deliberate gate",
+      "reason": "The analysis recommends assigning the ticket, confirming with the product/compliance owner whether the block is intended, and answering the open question, covering the key next actions."
+    },
+    {
+      "id": "C11-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only quotes the error text visible in the screenshot and does not invent any additional error codes, session-expired messages, or on-screen wording."
+    },
+    {
+      "id": "C11-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "after entering credentials, the app shows a modal error blocks progress and instructs them to log in to Online Banking (a separate channel) and complete a \"customer's questionnaire.\"",
+      "reason": "The analysis states 'after entering credentials,' implying the password was entered, and frames the error as a response to a login attempt, contradicting the screenshot which shows the password field empty."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 304.91
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C11-P1",
+        "quote": "**Error!**\n> \"To keep using mobile app, please log in to Online Banking and fill the customer's questionnaire.\"",
+        "reason": "The analysis quotes the exact dialog heading and body text matching the screenshot.",
+        "verdict": "found"
+      },
+      {
+        "id": "C11-P2",
+        "quote": "On the \"Enter your Online Banking credentials\" login screen, after entering credentials, the app shows a modal dialog:\n\n> **Error!**\n> \"To keep using mobile app, please log in to Online Banking and fill the customer's questionnaire.\"\n\nOnly button available: **OK**",
+        "reason": "The analysis identifies the login screen context, the single OK button, and that the dialog blocks progress.",
+        "verdict": "found"
+      },
+      {
+        "id": "C11-P3",
+        "quote": "Reproduced internally on a test account (username shown: TESTRELAXLUX4), but exact steps (e.g., what triggers the questionnaire requirement) are not documented.",
+        "reason": "The analysis names the username TESTRELAXLUX4 but never mentions the password field being empty; in fact it says 'after entering credentials,' contradicting the empty password shown in the screenshot.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C11-I1",
+        "quote": "",
+        "reason": "The analysis never infers that the block occurs before authentication; it instead states 'after entering credentials,' which contradicts the empty-password observation that would support such an inference.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C11-P4",
+        "quote": "The reporter (Marcus Reid) confirmed this is reproducible on a test account, so it is not isolated to one customer.",
+        "reason": "The analysis states the issue reproduces on the team's test account, is not customer-specific, and notes mobile 5.4.1 and unassigned status.",
+        "verdict": "found"
+      },
+      {
+        "id": "C11-P5",
+        "quote": "Tom Becker's comment flags the core open question: should this be a hard block (customer must complete the questionnaire elsewhere before mobile access is restored) or just a warning that shouldn't prevent login? This ambiguity is unresolved and no one has answered it yet.",
+        "reason": "The analysis clearly identifies Tom Becker's unanswered question about hard block vs. warning.",
+        "verdict": "found"
+      },
+      {
+        "id": "C11-P6",
+        "quote": "Triage/assign: This should be picked up promptly given High priority and confirmed customer impact; currently unassigned.\n- **Clarify intended behavior:** Someone (product/compliance owner) needs to confirm whether the questionnaire requirement is a deliberate gate",
+        "reason": "The analysis recommends assigning the ticket, confirming with the product/compliance owner whether the block is intended, and answering the open question, covering the key next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C11-T1",
+        "quote": "",
+        "reason": "The analysis only quotes the error text visible in the screenshot and does not invent any additional error codes, session-expired messages, or on-screen wording.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C11-T2",
+        "quote": "after entering credentials, the app shows a modal error blocks progress and instructs them to log in to Online Banking (a separate channel) and complete a \"customer's questionnaire.\"",
+        "reason": "The analysis states 'after entering credentials,' implying the password was entered, and frames the error as a response to a login attempt, contradicting the screenshot which shows the password field empty.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

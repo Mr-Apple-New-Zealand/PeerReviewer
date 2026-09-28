@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual send failures, starting at 18:02:48 and recurring through 18:38, are all: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled. SMTP status code: 535",
+      "reason": "The analysis clearly identifies the SMTP 535 authentication error with the exact server response text as the cause of failed delivery, though it does not name the EmailSender/OutboxDispatcher code paths."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No. Marcus's comment states the cause is \"obvious\": unpersisted data-protection keys with no XML encryptor. The log does contain those warnings, but they are startup noise, not the error causing failed sends. Every actual send failure in the log is an SMTP 535 authentication error",
+      "reason": "The analysis explicitly states the reporter's explanation is not supported, calls the DataProtection warnings routine startup noise, and notes they have nothing to do with SMTP delivery."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Combined with the note that item 991204 has reached 5 delivery attempts and stays at the head of the queue with \"no backoff and no dead-letter path,\" this confirms a genuine, escalating backlog",
+      "reason": "The analysis covers the 5-second retry cadence (implied by the recurring errors), no backoff, no dead-letter path, item 991204 at 5 attempts, and head-of-queue blocking."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox queue grows continuously across the log window: 1412 \u2192 1508 \u2192 1604 \u2192 1702 \u2192 1799 \u2192 1896 \u2192 1993 \u2192 2089 pending messages. Combined with the note that item 991204 has reached 5 delivery attempts and stays at the head of the queue with \"no backoff and no dead-letter path,\" this confirms a genuine, escalating backlog",
+      "reason": "The analysis lists the full progression from 1412 to 2089 and notes the ~100 msgs per 6 minutes rate, confirming the backlog is still growing."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the attached pod log, however, only covers 18:02 onward (post-restart) and shows the notification service consistently failing to send emails due to an SMTP authentication error",
+      "reason": "The analysis states the log only covers 18:02 onward, the previous container's log was not captured, and there is no direct evidence of what happened at 14:00."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Restart already tried and failed (Priya, 18:44) \u2014 repeating it is unlikely to help since the error is a credential/auth-method rejection, not a transient connection issue.",
+      "reason": "The analysis explicitly states the pod was already restarted at 18:02, the same 535 errors continue through 18:38, and another restart is unlikely to help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a distinct, well-known failure mode (many mail providers, e.g. Microsoft 365/Exchange Online, have disabled basic auth in favour of OAuth2/modern auth), and points to a credential or auth-method problem with the SMTP configuration, not to key storage.",
+      "reason": "The analysis presents the inference that the mail provider disabled basic auth for the account and the fix is a change of auth method/credentials, using language like 'points to' and 'confirm whether' rather than stating it as established fact."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Investigate the SMTP credential/auth method for svc-notify@example.com at smtp.example.com:587 \u2014 confirm whether basic auth was recently disabled by the mail provider and whether the app needs to move to OAuth2/modern auth or a new credential.",
+      "reason": "All three next actions are present: confirm with mail tenant owner and change auth method, add backoff/dead-letter to the dispatcher, and retrieve pre-18:02 logs to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A brief unrelated NATS reconnect blip occurs at 18:07:12\u201313 and self-resolves; doesn't appear connected to the email failures.",
+      "reason": "The analysis notes the NATS blip self-resolved and is unrelated, and mentions the health check at 18:21:09 reporting Healthy, making clear neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection key explanation, calling the warnings 'startup noise' and stating 'Do not action the data-protection key fix as the resolution for this incident.'"
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log only covers 18:02 onward and that there is no direct evidence of what happened at 14:00; it does not claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says repeating the restart is 'unlikely to help' and does not recommend it as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the NATS blip as 'unrelated' and 'self-resolves,' and does not blame the health check or poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error shown in the log; it does not mention rate limiting, TLS failure, or mailbox-full responses."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 194.36
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The actual send failures, starting at 18:02:48 and recurring through 18:38, are all: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled. SMTP status code: 535",
+        "reason": "The analysis clearly identifies the SMTP 535 authentication error with the exact server response text as the cause of failed delivery, though it does not name the EmailSender/OutboxDispatcher code paths.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "No. Marcus's comment states the cause is \"obvious\": unpersisted data-protection keys with no XML encryptor. The log does contain those warnings, but they are startup noise, not the error causing failed sends. Every actual send failure in the log is an SMTP 535 authentication error",
+        "reason": "The analysis explicitly states the reporter's explanation is not supported, calls the DataProtection warnings routine startup noise, and notes they have nothing to do with SMTP delivery.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "Combined with the note that item 991204 has reached 5 delivery attempts and stays at the head of the queue with \"no backoff and no dead-letter path,\" this confirms a genuine, escalating backlog",
+        "reason": "The analysis covers the 5-second retry cadence (implied by the recurring errors), no backoff, no dead-letter path, item 991204 at 5 attempts, and head-of-queue blocking.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "Outbox queue grows continuously across the log window: 1412 \u2192 1508 \u2192 1604 \u2192 1702 \u2192 1799 \u2192 1896 \u2192 1993 \u2192 2089 pending messages. Combined with the note that item 991204 has reached 5 delivery attempts and stays at the head of the queue with \"no backoff and no dead-letter path,\" this confirms a genuine, escalating backlog",
+        "reason": "The analysis lists the full progression from 1412 to 2089 and notes the ~100 msgs per 6 minutes rate, confirming the backlog is still growing.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "the attached pod log, however, only covers 18:02 onward (post-restart) and shows the notification service consistently failing to send emails due to an SMTP authentication error",
+        "reason": "The analysis states the log only covers 18:02 onward, the previous container's log was not captured, and there is no direct evidence of what happened at 14:00.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Restart already tried and failed (Priya, 18:44) \u2014 repeating it is unlikely to help since the error is a credential/auth-method rejection, not a transient connection issue.",
+        "reason": "The analysis explicitly states the pod was already restarted at 18:02, the same 535 errors continue through 18:38, and another restart is unlikely to help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "This is a distinct, well-known failure mode (many mail providers, e.g. Microsoft 365/Exchange Online, have disabled basic auth in favour of OAuth2/modern auth), and points to a credential or auth-method problem with the SMTP configuration, not to key storage.",
+        "reason": "The analysis presents the inference that the mail provider disabled basic auth for the account and the fix is a change of auth method/credentials, using language like 'points to' and 'confirm whether' rather than stating it as established fact.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Investigate the SMTP credential/auth method for svc-notify@example.com at smtp.example.com:587 \u2014 confirm whether basic auth was recently disabled by the mail provider and whether the app needs to move to OAuth2/modern auth or a new credential.",
+        "reason": "All three next actions are present: confirm with mail tenant owner and change auth method, add backoff/dead-letter to the dispatcher, and retrieve pre-18:02 logs to confirm the 14:00 start.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "A brief unrelated NATS reconnect blip occurs at 18:07:12\u201313 and self-resolves; doesn't appear connected to the email failures.",
+        "reason": "The analysis notes the NATS blip self-resolved and is unrelated, and mentions the health check at 18:21:09 reporting Healthy, making clear neither is part of the failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection key explanation, calling the warnings 'startup noise' and stating 'Do not action the data-protection key fix as the resolution for this incident.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the log only covers 18:02 onward and that there is no direct evidence of what happened at 14:00; it does not claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis explicitly says repeating the restart is 'unlikely to help' and does not recommend it as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis describes the NATS blip as 'unrelated' and 'self-resolves,' and does not blame the health check or poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error shown in the log; it does not mention rate limiting, TLS failure, or mailbox-full responses.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

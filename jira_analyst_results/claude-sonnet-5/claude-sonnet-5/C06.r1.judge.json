@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the required end-to-end test against Northwind's sandbox cannot run until Northwind's CA certificates are loaded into the staging trust store \u2014 that work is tracked separately in OPS-77.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the E2E test can't run until CA certs are in the staging trust store, and OPS-77 is waiting for Northwind to send the bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Due date was 2026-09-10 \u2014 already **5 days overdue** as of today (2026-09-15). Last update 2026-09-11: still no CA bundle from Northwind; escalation requested via partner manager, no further update since.",
+      "reason": "All elements are present: due date 2026-09-10, overdue as of 2026-09-15, last update 2026-09-11, Northwind hasn't replied, partner manager escalation requested."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Today is 2026-09-15, release is 2026-09-24 (9 days out). Even if the bundle arrived today, Ravi needs 2 days for E2E \u2014 feasible only if OPS-77 closes almost immediately.",
+      "reason": "The release date (2026-09-24) and Ravi's ~2-day E2E testing need are both stated; the sprint end date (2026-09-22) is omitted but is supplementary detail in the key."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At high risk of missing the 2026-09-24 release date. The blocking dependency (OPS-77) is overdue and stalled on a third party with no committed delivery date, and Ravi Kumar still needs ~2 days of testing/fixes after that's resolved \u2014 leaving very little margin.",
+      "reason": "Presented as a risk assessment (\"at high risk\"), noting the dependency on Northwind and the absence of a committed date, which matches the inference expectation."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Development is complete and merged behind a feature flag (`MTLS_PARTNER`, off by default)",
+      "reason": "Directly states the code is complete, merged, behind MTLS_PARTNER flag, off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Northwind's mTLS requirement takes effect 2026-10-01, a week *after* the 3.2.0 release (2026-09-24). This means BANK-405 doesn't strictly need to ship in 3.2.0 to meet Northwind's deadline",
+      "reason": "Mentions OPS-77 covers staging then production, and the 1 October 2026 hard external deadline beyond the release date."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Jo Tan / partner manager**: Escalate again with Northwind today, given OPS-77 is now 5 days overdue; get a firm commitment date for the CA bundle. **Ravi Kumar / Dev Patel**: Decide and document a fallback \u2014 since `MTLS_PARTNER` is off by default, confirm whether 3.2.0 can ship with the flag disabled",
+      "reason": "Both next actions are present: escalate through partner manager (Jo Tan) for a firm date, and plan for shipping with the flag off if certs don't arrive in time."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims certificates have been received, installed, or that OPS-77 is done; it consistently states the bundle has not arrived."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states there is no committed delivery date from Northwind and only quotes 'early next week' as an unconfirmed vendor statement, not a commitment."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 279.72
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "the required end-to-end test against Northwind's sandbox cannot run until Northwind's CA certificates are loaded into the staging trust store \u2014 that work is tracked separately in OPS-77.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the E2E test can't run until CA certs are in the staging trust store, and OPS-77 is waiting for Northwind to send the bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "Due date was 2026-09-10 \u2014 already **5 days overdue** as of today (2026-09-15). Last update 2026-09-11: still no CA bundle from Northwind; escalation requested via partner manager, no further update since.",
+        "reason": "All elements are present: due date 2026-09-10, overdue as of 2026-09-15, last update 2026-09-11, Northwind hasn't replied, partner manager escalation requested.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Today is 2026-09-15, release is 2026-09-24 (9 days out). Even if the bundle arrived today, Ravi needs 2 days for E2E \u2014 feasible only if OPS-77 closes almost immediately.",
+        "reason": "The release date (2026-09-24) and Ravi's ~2-day E2E testing need are both stated; the sprint end date (2026-09-22) is omitted but is supplementary detail in the key.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "At high risk of missing the 2026-09-24 release date. The blocking dependency (OPS-77) is overdue and stalled on a third party with no committed delivery date, and Ravi Kumar still needs ~2 days of testing/fixes after that's resolved \u2014 leaving very little margin.",
+        "reason": "Presented as a risk assessment (\"at high risk\"), noting the dependency on Northwind and the absence of a committed date, which matches the inference expectation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Development is complete and merged behind a feature flag (`MTLS_PARTNER`, off by default)",
+        "reason": "Directly states the code is complete, merged, behind MTLS_PARTNER flag, off by default.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "Northwind's mTLS requirement takes effect 2026-10-01, a week *after* the 3.2.0 release (2026-09-24). This means BANK-405 doesn't strictly need to ship in 3.2.0 to meet Northwind's deadline",
+        "reason": "Mentions OPS-77 covers staging then production, and the 1 October 2026 hard external deadline beyond the release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "**Jo Tan / partner manager**: Escalate again with Northwind today, given OPS-77 is now 5 days overdue; get a firm commitment date for the CA bundle. **Ravi Kumar / Dev Patel**: Decide and document a fallback \u2014 since `MTLS_PARTNER` is off by default, confirm whether 3.2.0 can ship with the flag disabled",
+        "reason": "Both next actions are present: escalate through partner manager (Jo Tan) for a firm date, and plan for shipping with the flag off if certs don't arrive in time.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis never claims certificates have been received, installed, or that OPS-77 is done; it consistently states the bundle has not arrived.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states there is no committed delivery date from Northwind and only quotes 'early next week' as an unconfirmed vendor statement, not a commitment.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

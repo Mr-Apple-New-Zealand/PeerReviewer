@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Group 1 \u2014 401-triggered crashes (likely one shared root cause): BANKUI-4A1, 4A2, 4A9, 4B3\u2026 Group 1b \u2014 underlying 401 flood: BANKUI-3C8\u2026 this is the console-logged symptom of the same session/auth problem feeding Group 1",
+      "reason": "All five issues are identified, grouped under one shared 401 cause, with 3C8 described as the console logger recording the 401 that feeds the four crash issues."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Combined this is the largest distinct-user impact (roughly 30\u201344 users each, can't be summed per the export's own note, but clearly overlapping and widespread)",
+      "reason": "The analysis correctly states the counts can't be summed, but does not explicitly identify 44 (from 3C8) as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Users (58) exceed events (63) almost 1:1, meaning nearly every affected user hit it once \u2014 consistent with a cache/versioning issue rather than a code defect in a specific screen.",
+      "reason": "The analysis mentions 58 users and 63 events but does not explicitly state that 58 is the highest user count in the list or that by user impact it is the top item despite being nearly the quietest by event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First seen 2026-09-10T21:11:36Z, six minutes after the 4.7.0 deploy (21:05:00Z) \u2014 classic stale-asset pattern (client has an old app shell referencing a chunk hash removed by the new deploy).",
+      "reason": "The analysis gives the correct first-seen timestamp, the deploy time, the ~6-minute gap, and explains the mechanism of old sessions requesting replaced hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SecurityError culprit is chrome-extension://.../inject.js, 1 user only, all breadcrumbs from a single browser session with no app code involved. This is a third-party browser extension conflict, not an application bug. Despite having the second-highest event count (4812), it should not be triaged as a defect \u2014 recommend marking resolved/ignored in Sentry.",
+      "reason": "All elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, not a defect, should be filtered/ignored."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "this avoids repeating the earlier mistake of chasing raw event counts, since 2F0 and 3C8 have the two highest event totals but are respectively a non-issue and a symptom rather than the best standalone fix.",
+      "reason": "The analysis explicitly identifies 3C8 (5140) and 2F0 (4812) as the two highest event counts, labels 3C8 a symptom/logger and 2F0 a non-issue, and states neither is the best fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "marked resolved in 4.6.0, but lastSeen is 2026-09-11 \u2014 after that release. Low volume (18 events/12 users). Possibly stale clients on cached old bundles, or an incomplete fix. Not sprint-worthy at this volume, but worth a quick check rather than silent dismissal.",
+      "reason": "The analysis flags the post-resolution activity and suggests a check, but hedges with 'possibly stale clients' and does not firmly conclude it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No source maps for bank-ui (confirmed by Ravi Kumar, on backlog) \u2014 all lastFrame values are minified (ie.project, q.render, L.buildAction, N.setRows, W.flatten), so the exact code path for the crash cluster can't be pinned down from this data alone.",
+      "reason": "The analysis states source maps are missing, gives minified name examples, and concludes the issues can't be traced to a component from this export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the 58 users in 5D6 and the 44 in the 401 cluster may overlap, making the total affected-user count unknowable from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Working hypothesis (inference): the UI doesn't handle 401/auth failures before trying to process the response body, so an expired/invalid session surfaces as a JS crash instead of a clean re-auth or error state.",
+      "reason": "The inference is clearly labelled, identifies the session-expiry-without-handling mechanism, and the different endpoints are listed in the group description; the analysis also notes the data is insufficient for full confirmation."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. Investigate and fix the 401/session-handling root cause (3C8 + the 4A1/4A2/4A9/4B3 crash cluster as one piece of work).\u2026 2. Fix the stale-chunk issue behind BANKUI-5D6.",
+      "reason": "The analysis reverses the expected order (401 cluster first, 5D6 second) and does not cite 'most users' as the primary reason for 5D6; it also does not explicitly say to reopen 1A7, only to spot-check it."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes 2F0 from the priority list and does not treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues are grouped under one shared root cause and 3C8 is linked to them; they are not treated as separate defects with separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the user counts 'can't be summed per the export's own note' and never adds them together."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the post-resolution activity and recommends a spot-check; it does not state 1A7 is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are described as session/auth issues, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "5D6 is placed in a separate 'Group 2 \u2014 deployment-related' and 1A7 in its own section; the noted shared chunk filename is explicitly labelled 'not confirmed' and 'a possible link, not a fact.'"
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Users (58) exceed events (63) almost 1:1, meaning nearly every affected user hit it once",
+      "reason": "58 does not exceed 63; the user count is less than the event count. The statement inverts the relationship, though the approximate 1:1 ratio interpretation is roughly correct."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 346.13
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Group 1 \u2014 401-triggered crashes (likely one shared root cause): BANKUI-4A1, 4A2, 4A9, 4B3\u2026 Group 1b \u2014 underlying 401 flood: BANKUI-3C8\u2026 this is the console-logged symptom of the same session/auth problem feeding Group 1",
+        "reason": "All five issues are identified, grouped under one shared 401 cause, with 3C8 described as the console logger recording the 401 that feeds the four crash issues.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "Combined this is the largest distinct-user impact (roughly 30\u201344 users each, can't be summed per the export's own note, but clearly overlapping and widespread)",
+        "reason": "The analysis correctly states the counts can't be summed, but does not explicitly identify 44 (from 3C8) as the best single estimate of reach for the cluster.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "Users (58) exceed events (63) almost 1:1, meaning nearly every affected user hit it once \u2014 consistent with a cache/versioning issue rather than a code defect in a specific screen.",
+        "reason": "The analysis mentions 58 users and 63 events but does not explicitly state that 58 is the highest user count in the list or that by user impact it is the top item despite being nearly the quietest by event count.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "First seen 2026-09-10T21:11:36Z, six minutes after the 4.7.0 deploy (21:05:00Z) \u2014 classic stale-asset pattern (client has an old app shell referencing a chunk hash removed by the new deploy).",
+        "reason": "The analysis gives the correct first-seen timestamp, the deploy time, the ~6-minute gap, and explains the mechanism of old sessions requesting replaced hashed bundles.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "SecurityError culprit is chrome-extension://.../inject.js, 1 user only, all breadcrumbs from a single browser session with no app code involved. This is a third-party browser extension conflict, not an application bug. Despite having the second-highest event count (4812), it should not be triaged as a defect \u2014 recommend marking resolved/ignored in Sentry.",
+        "reason": "All elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, not a defect, should be filtered/ignored.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "this avoids repeating the earlier mistake of chasing raw event counts, since 2F0 and 3C8 have the two highest event totals but are respectively a non-issue and a symptom rather than the best standalone fix.",
+        "reason": "The analysis explicitly identifies 3C8 (5140) and 2F0 (4812) as the two highest event counts, labels 3C8 a symptom/logger and 2F0 a non-issue, and states neither is the best fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "marked resolved in 4.6.0, but lastSeen is 2026-09-11 \u2014 after that release. Low volume (18 events/12 users). Possibly stale clients on cached old bundles, or an incomplete fix. Not sprint-worthy at this volume, but worth a quick check rather than silent dismissal.",
+        "reason": "The analysis flags the post-resolution activity and suggests a check, but hedges with 'possibly stale clients' and does not firmly conclude it has regressed and should be reopened.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "No source maps for bank-ui (confirmed by Ravi Kumar, on backlog) \u2014 all lastFrame values are minified (ie.project, q.render, L.buildAction, N.setRows, W.flatten), so the exact code path for the crash cluster can't be pinned down from this data alone.",
+        "reason": "The analysis states source maps are missing, gives minified name examples, and concludes the issues can't be traced to a component from this export.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never states that the 58 users in 5D6 and the 44 in the 401 cluster may overlap, making the total affected-user count unknowable from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Working hypothesis (inference): the UI doesn't handle 401/auth failures before trying to process the response body, so an expired/invalid session surfaces as a JS crash instead of a clean re-auth or error state.",
+        "reason": "The inference is clearly labelled, identifies the session-expiry-without-handling mechanism, and the different endpoints are listed in the group description; the analysis also notes the data is insufficient for full confirmation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. Investigate and fix the 401/session-handling root cause (3C8 + the 4A1/4A2/4A9/4B3 crash cluster as one piece of work).\u2026 2. Fix the stale-chunk issue behind BANKUI-5D6.",
+        "reason": "The analysis reverses the expected order (401 cluster first, 5D6 second) and does not cite 'most users' as the primary reason for 5D6; it also does not explicitly say to reopen 1A7, only to spot-check it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly excludes 2F0 from the priority list and does not treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The four undefined-property issues are grouped under one shared root cause and 3C8 is linked to them; they are not treated as separate defects with separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis explicitly states the user counts 'can't be summed per the export's own note' and never adds them together.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis flags the post-resolution activity and recommends a spot-check; it does not state 1A7 is fixed or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The 401s are described as session/auth issues, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "5D6 is placed in a separate 'Group 2 \u2014 deployment-related' and 1A7 in its own section; the noted shared chunk filename is explicitly labelled 'not confirmed' and 'a possible link, not a fact.'",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Users (58) exceed events (63) almost 1:1, meaning nearly every affected user hit it once",
+        "reason": "58 does not exceed 63; the user count is less than the event count. The statement inverts the relationship, though the approximate 1:1 ratio interpretation is roughly correct."
+      }
+    ]
+  }
+}

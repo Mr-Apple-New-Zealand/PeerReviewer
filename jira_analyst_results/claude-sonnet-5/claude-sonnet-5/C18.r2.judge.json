@@ -1,0 +1,281 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Group A \u2014 Cascading TypeErrors from unhandled 401 responses\n- BANKUI-3C8 (5140 events, 44 users) \u2014 `HttpErrorResponse 401` on `/api/settlements/Run/GetAllRunBookingsForCustomerOrder`, logged via a generic `console.error` handler for every failed request.\n- BANKUI-4A1 (312 events, 41 users) \u2014 preceded by 22 XHR breadcrumbs returning 401.\n- BANKUI-4A2 (289 events, 39 users) \u2014 preceded by 401 from `/api/settlements/CustomerOrder/Search`.",
+      "reason": "All five issues are grouped together with their shared 401 cause clearly explained, including the console logger role of 3C8."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Sentry's own note states `users` counts cannot be summed across issues (a user may appear in more than one issue), so the '144 combined users' implied by adding Group A's user columns is **not a valid number** \u2014 I have not added them; the actual distinct-user reach of Group A is unknown without further Sentry querying.",
+      "reason": "The analysis explicitly states the counts cannot be summed and uses 44 (the 3C8 count) as the reference point for reach, matching the key's expectation."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Only 63 events but **58 distinct users** \u2014 the highest user count of any issue in the export.",
+      "reason": "Clearly states 58 users is the highest in the list and contrasts it with the low event count of 63."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference**: `firstSeen` (2026-09-10T21:11:36Z) is ~6 minutes after the 4.7.0 deploy (2026-09-10T21:05:00Z). Classic pattern of clients holding an old index.html/bundle reference after a deploy invalidates chunk hashes.",
+      "reason": "Correctly identifies the timing relative to the 4.7.0 deploy, the 404 on the bundle, and the open-session/hashed-bundle explanation."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANKUI-2F0** \u2014 `SecurityError` from `chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`. 4812 events but only **1 user**, all from a single browser session, no app breadcrumbs. This is a third-party browser extension interfering with the page, not a bank-ui defect.",
+      "reason": "All elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, not a defect, should be filtered."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This avoids repeating last sprint's mistake: sorting purely by event count would put BANKUI-3C8 (5140) and BANKUI-2F0 (4812) at the top \u2014 but 2F0 is not our bug, and 3C8 in isolation understates the real (multi-page) impact of Group A.",
+      "reason": "Identifies both top event counts, explains 3C8 is a logger and 2F0 is one user's extension, and states neither is the most valuable fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis states BANKUI-1A7 needs 'No action needed' and to 'Confirm BANKUI-1A7 stays closed/resolved \u2014 no further action,' completely missing the regression (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10)."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**source maps are not uploaded for bank-ui**, so all `lastFrame` values are minified (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`, `W.flatten`). This limits precise root-causing but is already tracked separately on the backlog per Ravi's comment.",
+      "reason": "Clearly states source maps are missing, gives examples of minified names, and notes this prevents tracing to components from the export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the actual distinct-user reach of Group A is unknown without further Sentry querying",
+      "reason": "The analysis addresses the non-addability within Group A but does not specifically state that the 58 users in 5D6 may or may not overlap with the 44 in the 401 cluster, so the total affected-user count across groups cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Inference**: these five issues are one root cause, not five separate defects. The near-identical `firstSeen` timestamps (all ~2026-09-05T02:14:0x) and the pattern of \"401 response \u2192 code assumes a populated body \u2192 TypeError on `.sort`/`.rows`/`.returnProperties`/`.length`\" strongly suggest the UI does not handle failed/unauthorized API responses defensively across several screens",
+      "reason": "The analysis presents the app-side inference (not handling 401s) as an inference, but does not specifically infer 'sessions expiring' as the likely trigger; it lists multiple possibilities and says the trigger is 'not in this data.'"
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Group A (the 401 cascade, treated as one root-cause fix)** \u2014 highest combined user impact (up to ~44 distinct users on the root 401 issue, plus overlapping affected users across four dependent screens), touches multiple pages, and matches the actual symptom pattern (crashes following failed API calls) rather than raw event count.\n2. **BANKUI-5D6 (chunk load failure)** \u2014 lower event count but the **single largest distinct-user count** (58) of any real defect",
+      "reason": "The analysis reverses the priority order (401 cluster first, 5D6 second) versus the key (5D6 first, 401 cluster second), and does not recommend reopening BANKUI-1A7, instead saying it needs no action."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly identifies 2F0 as not a defect and recommends filtering it; it does not place it at or near the top of the priority list."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeError issues and 3C8 together as one root cause, explicitly stating 'these five issues are one root cause, not five separate defects.'"
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly warns against summing user counts and states the combined number is 'not a valid number.'"
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7: status `resolved`, already shipped in release 4.6.0. No action needed; included only because the export query pulls both resolved and unresolved issues.",
+      "reason": "The analysis states BANKUI-1A7 needs no action and should stay closed/resolved, directly violating the key's expectation that it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as unhandled API responses and does not characterize them as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 is placed in a separate 'Group B' and BANKUI-1A7 in 'Not grouped / standalone'; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The near-identical `firstSeen` timestamps (all ~2026-09-05T02:14:0x)",
+      "reason": "BANKUI-4A9 was first seen at 2026-09-06T19:50:41Z and BANKUI-4B3 at 2026-09-05T04:02:55Z; only 4A1, 4A2, and 3C8 share the ~02:14 timestamp, so 'all' is factually incorrect."
+    },
+    {
+      "quote": "No engineering tickets currently exist for either group",
+      "reason": "The ticket data shows Links: None on BANK-498, but this only means no links are recorded on this ticket; it does not establish that no other engineering tickets exist in the project for these issues."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "unsupported_claim"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 377.92
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Group A \u2014 Cascading TypeErrors from unhandled 401 responses\n- BANKUI-3C8 (5140 events, 44 users) \u2014 `HttpErrorResponse 401` on `/api/settlements/Run/GetAllRunBookingsForCustomerOrder`, logged via a generic `console.error` handler for every failed request.\n- BANKUI-4A1 (312 events, 41 users) \u2014 preceded by 22 XHR breadcrumbs returning 401.\n- BANKUI-4A2 (289 events, 39 users) \u2014 preceded by 401 from `/api/settlements/CustomerOrder/Search`.",
+        "reason": "All five issues are grouped together with their shared 401 cause clearly explained, including the console logger role of 3C8.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "Sentry's own note states `users` counts cannot be summed across issues (a user may appear in more than one issue), so the '144 combined users' implied by adding Group A's user columns is **not a valid number** \u2014 I have not added them; the actual distinct-user reach of Group A is unknown without further Sentry querying.",
+        "reason": "The analysis explicitly states the counts cannot be summed and uses 44 (the 3C8 count) as the reference point for reach, matching the key's expectation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "Only 63 events but **58 distinct users** \u2014 the highest user count of any issue in the export.",
+        "reason": "Clearly states 58 users is the highest in the list and contrasts it with the low event count of 63.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "**Inference**: `firstSeen` (2026-09-10T21:11:36Z) is ~6 minutes after the 4.7.0 deploy (2026-09-10T21:05:00Z). Classic pattern of clients holding an old index.html/bundle reference after a deploy invalidates chunk hashes.",
+        "reason": "Correctly identifies the timing relative to the 4.7.0 deploy, the 404 on the bundle, and the open-session/hashed-bundle explanation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "**BANKUI-2F0** \u2014 `SecurityError` from `chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`. 4812 events but only **1 user**, all from a single browser session, no app breadcrumbs. This is a third-party browser extension interfering with the page, not a bank-ui defect.",
+        "reason": "All elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, not a defect, should be filtered.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "This avoids repeating last sprint's mistake: sorting purely by event count would put BANKUI-3C8 (5140) and BANKUI-2F0 (4812) at the top \u2014 but 2F0 is not our bug, and 3C8 in isolation understates the real (multi-page) impact of Group A.",
+        "reason": "Identifies both top event counts, explains 3C8 is a logger and 2F0 is one user's extension, and states neither is the most valuable fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "The analysis states BANKUI-1A7 needs 'No action needed' and to 'Confirm BANKUI-1A7 stays closed/resolved \u2014 no further action,' completely missing the regression (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "**source maps are not uploaded for bank-ui**, so all `lastFrame` values are minified (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`, `W.flatten`). This limits precise root-causing but is already tracked separately on the backlog per Ravi's comment.",
+        "reason": "Clearly states source maps are missing, gives examples of minified names, and notes this prevents tracing to components from the export alone.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "the actual distinct-user reach of Group A is unknown without further Sentry querying",
+        "reason": "The analysis addresses the non-addability within Group A but does not specifically state that the 58 users in 5D6 may or may not overlap with the 44 in the 401 cluster, so the total affected-user count across groups cannot be determined.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "**Inference**: these five issues are one root cause, not five separate defects. The near-identical `firstSeen` timestamps (all ~2026-09-05T02:14:0x) and the pattern of \"401 response \u2192 code assumes a populated body \u2192 TypeError on `.sort`/`.rows`/`.returnProperties`/`.length`\" strongly suggest the UI does not handle failed/unauthorized API responses defensively across several screens",
+        "reason": "The analysis presents the app-side inference (not handling 401s) as an inference, but does not specifically infer 'sessions expiring' as the likely trigger; it lists multiple possibilities and says the trigger is 'not in this data.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. **Group A (the 401 cascade, treated as one root-cause fix)** \u2014 highest combined user impact (up to ~44 distinct users on the root 401 issue, plus overlapping affected users across four dependent screens), touches multiple pages, and matches the actual symptom pattern (crashes following failed API calls) rather than raw event count.\n2. **BANKUI-5D6 (chunk load failure)** \u2014 lower event count but the **single largest distinct-user count** (58) of any real defect",
+        "reason": "The analysis reverses the priority order (401 cluster first, 5D6 second) versus the key (5D6 first, 401 cluster second), and does not recommend reopening BANKUI-1A7, instead saying it needs no action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly identifies 2F0 as not a defect and recommends filtering it; it does not place it at or near the top of the priority list.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeError issues and 3C8 together as one root cause, explicitly stating 'these five issues are one root cause, not five separate defects.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis explicitly warns against summing user counts and states the combined number is 'not a valid number.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7: status `resolved`, already shipped in release 4.6.0. No action needed; included only because the export query pulls both resolved and unresolved issues.",
+        "reason": "The analysis states BANKUI-1A7 needs no action and should stay closed/resolved, directly violating the key's expectation that it has regressed and should be reopened.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401s as unhandled API responses and does not characterize them as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "BANKUI-5D6 is placed in a separate 'Group B' and BANKUI-1A7 in 'Not grouped / standalone'; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The near-identical `firstSeen` timestamps (all ~2026-09-05T02:14:0x)",
+        "reason": "BANKUI-4A9 was first seen at 2026-09-06T19:50:41Z and BANKUI-4B3 at 2026-09-05T04:02:55Z; only 4A1, 4A2, and 3C8 share the ~02:14 timestamp, so 'all' is factually incorrect."
+      },
+      {
+        "quote": "the '144 combined users' implied by adding Group A's user columns is **not a valid number**",
+        "reason": "The sum of all five Group A user counts (44+41+39+33+31) is 188, not 144. The figure 144 equals only the four TypeError issues (41+39+33+31), so the stated sum is arithmetically wrong for 'Group A's user columns.'"
+      },
+      {
+        "quote": "No engineering tickets currently exist for either group",
+        "reason": "The ticket data shows Links: None on BANK-498, but this only means no links are recorded on this ticket; it does not establish that no other engineering tickets exist in the project for these issues."
+      }
+    ]
+  }
+}
