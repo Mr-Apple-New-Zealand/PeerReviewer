@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. Both describe the same issue: the web dashboard balance does not update after a transfer, requiring a logout/login to refresh.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both about the web dashboard balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-440 as duplicate of BANK-425. Rationale: BANK-425 has the same description, same root cause, and a fix suggestion. It was created earlier and already has investigation by Hana Sato.",
+      "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is not a duplicate of BANK-440. It concerns the mobile app's push notification showing stale data, which is a separate component (mobile notifications) and a different symptom (notification content vs. dashboard display). However, it shares a root cause: stale data being used before the transaction is finalized.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate and a mobile push-notification issue, but says it 'shares a root cause' rather than a different cause, only implies the TransferRequested event issue, and never names Ravi Kumar as the assignee."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause: The balance is cached in local storage (from BANK-419), but no mechanism clears or invalidates the cache after a transfer.",
+      "reason": "The analysis identifies the local-storage BalanceCache not being invalidated after a transfer as the cause, and recommends clearing it when a transfer succeeds, matching the expected point."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is not a duplicate. It's a completed task that introduced the caching behavior that caused the bug in BANK-440/BANK-425. It's a related, upstream change that created the problem, not a duplicate.",
+      "reason": "The analysis states BANK-419 introduced the bug as established fact ('introduced the caching behavior that caused the bug') rather than as a likely regression, so it does not meet the inference requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Missing ownership: BANK-440 is unassigned; BANK-425 was investigated by Hana Sato.",
+      "reason": "The analysis explicitly states BANK-440 is unassigned but only implies BANK-425 is unassigned by saying it was 'investigated by Hana Sato' rather than stating it is unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so it does not fall into the trap."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'API is correct: GET /api/user/balance returns the updated balance immediately,' consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 138.31
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. Both describe the same issue: the web dashboard balance does not update after a transfer, requiring a logout/login to refresh.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both about the web dashboard balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-440 as duplicate of BANK-425. Rationale: BANK-425 has the same description, same root cause, and a fix suggestion. It was created earlier and already has investigation by Hana Sato.",
+        "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate of BANK-440. It concerns the mobile app's push notification showing stale data, which is a separate component (mobile notifications) and a different symptom (notification content vs. dashboard display). However, it shares a root cause: stale data being used before the transaction is finalized.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate and a mobile push-notification issue, but says it 'shares a root cause' rather than a different cause, only implies the TransferRequested event issue, and never names Ravi Kumar as the assignee.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Root cause: The balance is cached in local storage (from BANK-419), but no mechanism clears or invalidates the cache after a transfer.",
+        "reason": "The analysis identifies the local-storage BalanceCache not being invalidated after a transfer as the cause, and recommends clearing it when a transfer succeeds, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is not a duplicate. It's a completed task that introduced the caching behavior that caused the bug in BANK-440/BANK-425. It's a related, upstream change that created the problem, not a duplicate.",
+        "reason": "The analysis states BANK-419 introduced the bug as established fact ('introduced the caching behavior that caused the bug') rather than as a likely regression, so it does not meet the inference requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Missing ownership: BANK-440 is unassigned; BANK-425 was investigated by Hana Sato.",
+        "reason": "The analysis explicitly states BANK-440 is unassigned but only implies BANK-425 is unassigned by saying it was 'investigated by Hana Sato' rather than stating it is unassigned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so it does not fall into the trap.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'API is correct: GET /api/user/balance returns the updated balance immediately,' consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

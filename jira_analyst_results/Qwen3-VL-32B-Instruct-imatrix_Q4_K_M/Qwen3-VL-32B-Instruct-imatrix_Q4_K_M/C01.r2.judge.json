@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A bug in the mobile web transfer flow causes the source account to be debited twice when a transfer times out and the user retries.",
+      "reason": "The analysis states the double debit but never explicitly mentions that the destination account is credited only once, which is the other half of the expected outcome."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected Version: 3.1.4\n- **Fix Version**: 3.2.0\n- **Target Fix Version**: 3.2.0 (scheduled for 2026-09-24)",
+      "reason": "All three elements\u2014affected version 3.1.4, fix version 3.2.0, and release date 2026-09-24\u2014are clearly stated."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The debit and credit operations are not atomic, and the retry lacks an idempotency key, leading to duplicate debits.",
+      "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single transaction) are clearly identified."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factor**: Awaiting code review for PR #218",
+      "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This has affected three customers and requires manual reversal by Finance Ops.",
+      "reason": "Three customers, manual reversal by Finance, and Marcus Reid being asked to raise it with Finance Ops are all covered across the summary and next actions."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "no ticket raised for that yet (as noted by Aroha Walker)",
+      "reason": "The analysis correctly notes that the Finance reversal has not yet been raised, and the Note section reinforces that it is merely a comment, not a completed action."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Coordinate with code reviewer to expedite review.\n   - Document acceptance criteria in the ticket.\n2. **Marcus Reid**:\n   - Raise a ticket with Finance Ops for manual reversal of the three affected customers (as requested by Aroha Walker).",
+      "reason": "Both next actions\u2014getting PR #218 reviewed and confirming customer reversals with Finance Ops\u2014are listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is awaiting code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the fix is only for mobile web and that desktop has no Retry button, consistent with the ticket's QA finding."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Mobile web UI should not allow retry without idempotency.",
+      "reason": "The ticket's fix (PR #218) addresses the API endpoint (idempotency-key header and single DB transaction); it does not mention any UI change to disable or gate the Retry button, so this 'acceptance criterion' has no basis in the ticket."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 83.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A bug in the mobile web transfer flow causes the source account to be debited twice when a transfer times out and the user retries.",
+        "reason": "The analysis states the double debit but never explicitly mentions that the destination account is credited only once, which is the other half of the expected outcome.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected Version: 3.1.4\n- **Fix Version**: 3.2.0\n- **Target Fix Version**: 3.2.0 (scheduled for 2026-09-24)",
+        "reason": "All three elements\u2014affected version 3.1.4, fix version 3.2.0, and release date 2026-09-24\u2014are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The debit and credit operations are not atomic, and the retry lacks an idempotency key, leading to duplicate debits.",
+        "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single transaction) are clearly identified.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factor**: Awaiting code review for PR #218",
+        "reason": "Status, assignee, and PR #218 awaiting code review are all explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "This has affected three customers and requires manual reversal by Finance Ops.",
+        "reason": "Three customers, manual reversal by Finance, and Marcus Reid being asked to raise it with Finance Ops are all covered across the summary and next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "no ticket raised for that yet (as noted by Aroha Walker)",
+        "reason": "The analysis correctly notes that the Finance reversal has not yet been raised, and the Note section reinforces that it is merely a comment, not a completed action.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Coordinate with code reviewer to expedite review.\n   - Document acceptance criteria in the ticket.\n2. **Marcus Reid**:\n   - Raise a ticket with Finance Ops for manual reversal of the three affected customers (as requested by Aroha Walker).",
+        "reason": "Both next actions\u2014getting PR #218 reviewed and confirming customer reversals with Finance Ops\u2014are listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is awaiting code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the fix is only for mobile web and that desktop has no Retry button, consistent with the ticket's QA finding.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Mobile web UI should not allow retry without idempotency.",
+        "reason": "The ticket's fix (PR #218) addresses the API endpoint (idempotency-key header and single DB transaction); it does not mention any UI change to disable or gate the Retry button, so this 'acceptance criterion' has no basis in the ticket."
+      }
+    ]
+  }
+}

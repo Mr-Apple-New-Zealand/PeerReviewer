@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No, we cannot tell the customer this is fixed \u2014 the issue is not resolved in practice, despite being marked as \"Done\" in Jira.",
+      "reason": "The analysis clearly and directly states that support should not tell the customer the issue is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jira Status: Done | Resolution: Fixed\n- **Assignee**: Priya Nair\n- **Blocking Factor**: The fix only addressed internal validation; the email provider still rejects plus-addressed emails. The issue is not resolved in production.",
+      "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 and that retesting shows the problem persists, but does not attribute the retest to Tom Becker, give the date 2026-09-10, or mention staging."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "retesting revealed that the email provider now rejects these addresses with error `550 5.1.3 Invalid recipient address`, meaning the problem persists at the email delivery level.",
+      "reason": "The analysis explicitly cites the SMTP error code 550 5.1.3 Invalid recipient address as the new failure."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the email provider now rejects these addresses with error `550 5.1.3 Invalid recipient address`, meaning the problem persists at the email delivery level.",
+      "reason": "The analysis states the email provider rejection as established fact rather than presenting it as Tom's unconfirmed observation ('looks like'), so it fails the inference-hedging requirement."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Update Jira: Reopen BANK-377, change status to \"In Progress\", and add a comment explaining the new root cause (email provider rejection). Assign to Priya Nair or Tom Becker for further investigation.",
+      "reason": "The analysis implies the ticket has not been reopened and no one is working on it by suggesting these as next steps, but does not explicitly state that nobody reopened the ticket or that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reopen BANK-377, change status to \"In Progress\", and add a comment explaining the new root cause (email provider rejection). Assign to Priya Nair or Tom Becker for further investigation.",
+      "reason": "The analysis recommends reopening the ticket, assigning an owner to investigate the provider rejection, and giving the customer a holding response instead of confirming a fix."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests reopening the ticket as a future action and notes 'Related Tickets: None linked,' without claiming a reopen or follow-up already exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The fix was only partial \u2014 it moved the problem from our system to the email provider.",
+      "reason": "The tickets do not confirm that the rejection is caused by the email provider specifically; Tom's comment says 'Looks like the email provider is rejecting it now rather than our regex,' which is an unconfirmed observation, not an established fact. The analysis presents this as definitive."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 88.46
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "No, we cannot tell the customer this is fixed \u2014 the issue is not resolved in practice, despite being marked as \"Done\" in Jira.",
+        "reason": "The analysis clearly and directly states that support should not tell the customer the issue is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "Jira Status: Done | Resolution: Fixed\n- **Assignee**: Priya Nair\n- **Blocking Factor**: The fix only addressed internal validation; the email provider still rejects plus-addressed emails. The issue is not resolved in production.",
+        "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 and that retesting shows the problem persists, but does not attribute the retest to Tom Becker, give the date 2026-09-10, or mention staging.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "retesting revealed that the email provider now rejects these addresses with error `550 5.1.3 Invalid recipient address`, meaning the problem persists at the email delivery level.",
+        "reason": "The analysis explicitly cites the SMTP error code 550 5.1.3 Invalid recipient address as the new failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "the email provider now rejects these addresses with error `550 5.1.3 Invalid recipient address`, meaning the problem persists at the email delivery level.",
+        "reason": "The analysis states the email provider rejection as established fact rather than presenting it as Tom's unconfirmed observation ('looks like'), so it fails the inference-hedging requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "Update Jira: Reopen BANK-377, change status to \"In Progress\", and add a comment explaining the new root cause (email provider rejection). Assign to Priya Nair or Tom Becker for further investigation.",
+        "reason": "The analysis implies the ticket has not been reopened and no one is working on it by suggesting these as next steps, but does not explicitly state that nobody reopened the ticket or that no one currently owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Reopen BANK-377, change status to \"In Progress\", and add a comment explaining the new root cause (email provider rejection). Assign to Priya Nair or Tom Becker for further investigation.",
+        "reason": "The analysis recommends reopening the ticket, assigning an owner to investigate the provider rejection, and giving the customer a holding response instead of confirming a fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis suggests reopening the ticket as a future action and notes 'Related Tickets: None linked,' without claiming a reopen or follow-up already exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The fix was only partial \u2014 it moved the problem from our system to the email provider.",
+        "reason": "The tickets do not confirm that the rejection is caused by the email provider specifically; Tom's comment says 'Looks like the email provider is rejecting it now rather than our regex,' which is an unconfirmed observation, not an established fact. The analysis presents this as definitive."
+      }
+    ]
+  }
+}

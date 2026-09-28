@@ -1,0 +1,275 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-4A1, 4A2, 4A9, 4B3 all involve `undefined` property access and are preceded by 401 responses \u2014 **strongly correlated**. Likely caused by frontend code assuming API responses are valid when they are not (due to auth failure).",
+      "reason": "The analysis groups the four undefined-property issues with the 401 cause and explicitly links BANKUI-3C8 as the 401 that causes the cascading errors, conveying that all five share one cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that distinct-user counts cannot be summed, nor does it identify 44 (BANKUI-3C8) as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It's a **new, high-impact issue** (58 users, 63 events) introduced in 4.7.0.",
+      "reason": "The analysis gives the 58-user and 63-event figures and prioritises it first, but does not explicitly state that 58 is more than any other issue or that it is nearly the quietest by event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6 (ChunkLoadError) is a **new issue** introduced in 4.7.0 (deployed 2026-09-10), likely due to a broken asset deployment or CDN issue.",
+      "reason": "The analysis notes the 4.7.0 deploy and the 404, but omits the specific timestamps (21:11:36 vs 21:05:00) and the correct mechanism of open sessions requesting hashed bundles the deploy replaced."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0 (SecurityError from Chrome extension) \u2014 **external**. Not actionable by the bank-ui team.",
+      "reason": "The analysis correctly identifies it as a Chrome extension issue and not a bank-ui defect, but omits the 1-user detail, the extension-script specifics, and the explicit 'filter rather than fix' recommendation."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No clear definition of \"priority\" \u2014 event count vs. user impact vs. severity.",
+      "reason": "The analysis implicitly avoids ranking by event count and flags 3C8/2F0 as not defects, but never explicitly states that event count is a misleading ranking or that the two largest counts are not the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-1A7 is never mentioned in the analysis; the regression (last seen 2026-09-11 after 4.7.0 deploy) and the need to reopen it are entirely absent."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Source maps are not uploaded, so stack traces are minified.",
+      "reason": "The analysis notes source maps are missing and traces are minified, but does not give specific minified-name examples (ie.project, N.setRows) or state that no issue can be traced to a component from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that the total affected-user count cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inference: The 401 errors are likely the root cause of the undefined property errors \u2014 the frontend code attempts to process null/undefined responses from failed API calls.",
+      "reason": "Labelled as an inference and captures the general idea, but misses the 'sessions expiring without the application handling the rejection' framing and the caveat that confirming would require a full event, not this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. BANKUI-5D6 \u2192 fix deployment/CDN issue. 2. BANKUI-3C8 \u2192 escalate to backend/auth team; simultaneously, fix frontend to handle 401 responses gracefully.",
+      "reason": "The two sprint slots are correct (5D6 first, then the 401 cluster), and 2F0 is flagged as not a defect, but the analysis omits reopening BANKUI-1A7 and does not frame the second slot as 'one fix closes five issues.'"
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes BANKUI-2F0 from the priority list and labels it 'not our defects' and 'Not actionable by the bank-ui team.'"
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues together under a shared 401 cause and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-1A7 is not mentioned at all, so the analysis does not state it is fixed, resolved, or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as 'backend auth failure' and 'auth issues,' never as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 is treated as a separate deployment/asset issue and BANKUI-1A7 is not mentioned; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The Sentry export for `bank-ui` (2026-09-05 to 2026-09-12) shows 8 unresolved issues",
+      "reason": "The JSON contains 7 issues with status 'unresolved' and 1 (BANKUI-1A7) with status 'resolved'; the total is 8 issues but only 7 are unresolved."
+    },
+    {
+      "quote": "Affected versions: 4.6.0 and 4.7.0 (deployed on 2026-08-27 and 2026-09-10).",
+      "reason": "The ticket explicitly states 'Affects versions: None | Fix versions: None'; the releases listed in the JSON are deployment context for the period, not declared affected versions."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 220.97
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "BANKUI-4A1, 4A2, 4A9, 4B3 all involve `undefined` property access and are preceded by 401 responses \u2014 **strongly correlated**. Likely caused by frontend code assuming API responses are valid when they are not (due to auth failure).",
+        "reason": "The analysis groups the four undefined-property issues with the 401 cause and explicitly links BANKUI-3C8 as the 401 that causes the cascading errors, conveying that all five share one cause.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that distinct-user counts cannot be summed, nor does it identify 44 (BANKUI-3C8) as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "It's a **new, high-impact issue** (58 users, 63 events) introduced in 4.7.0.",
+        "reason": "The analysis gives the 58-user and 63-event figures and prioritises it first, but does not explicitly state that 58 is more than any other issue or that it is nearly the quietest by event count.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "BANKUI-5D6 (ChunkLoadError) is a **new issue** introduced in 4.7.0 (deployed 2026-09-10), likely due to a broken asset deployment or CDN issue.",
+        "reason": "The analysis notes the 4.7.0 deploy and the 404, but omits the specific timestamps (21:11:36 vs 21:05:00) and the correct mechanism of open sessions requesting hashed bundles the deploy replaced.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 (SecurityError from Chrome extension) \u2014 **external**. Not actionable by the bank-ui team.",
+        "reason": "The analysis correctly identifies it as a Chrome extension issue and not a bank-ui defect, but omits the 1-user detail, the extension-script specifics, and the explicit 'filter rather than fix' recommendation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "No clear definition of \"priority\" \u2014 event count vs. user impact vs. severity.",
+        "reason": "The analysis implicitly avoids ranking by event count and flags 3C8/2F0 as not defects, but never explicitly states that event count is a misleading ranking or that the two largest counts are not the most valuable to fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "BANKUI-1A7 is never mentioned in the analysis; the regression (last seen 2026-09-11 after 4.7.0 deploy) and the need to reopen it are entirely absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded, so stack traces are minified.",
+        "reason": "The analysis notes source maps are missing and traces are minified, but does not give specific minified-name examples (ie.project, N.setRows) or state that no issue can be traced to a component from this export alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that the total affected-user count cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Inference: The 401 errors are likely the root cause of the undefined property errors \u2014 the frontend code attempts to process null/undefined responses from failed API calls.",
+        "reason": "Labelled as an inference and captures the general idea, but misses the 'sessions expiring without the application handling the rejection' framing and the caveat that confirming would require a full event, not this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. BANKUI-5D6 \u2192 fix deployment/CDN issue. 2. BANKUI-3C8 \u2192 escalate to backend/auth team; simultaneously, fix frontend to handle 401 responses gracefully.",
+        "reason": "The two sprint slots are correct (5D6 first, then the 401 cluster), and 2F0 is flagged as not a defect, but the analysis omits reopening BANKUI-1A7 and does not frame the second slot as 'one fix closes five issues.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly excludes BANKUI-2F0 from the priority list and labels it 'not our defects' and 'Not actionable by the bank-ui team.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues together under a shared 401 cause and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "BANKUI-1A7 is not mentioned at all, so the analysis does not state it is fixed, resolved, or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401s as 'backend auth failure' and 'auth issues,' never as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "BANKUI-5D6 is treated as a separate deployment/asset issue and BANKUI-1A7 is not mentioned; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The Sentry export for `bank-ui` (2026-09-05 to 2026-09-12) shows 8 unresolved issues",
+        "reason": "The JSON contains 7 issues with status 'unresolved' and 1 (BANKUI-1A7) with status 'resolved'; the total is 8 issues but only 7 are unresolved."
+      },
+      {
+        "quote": "Affected versions: 4.6.0 and 4.7.0 (deployed on 2026-08-27 and 2026-09-10).",
+        "reason": "The ticket explicitly states 'Affects versions: None | Fix versions: None'; the releases listed in the JSON are deployment context for the period, not declared affected versions."
+      }
+    ]
+  }
+}

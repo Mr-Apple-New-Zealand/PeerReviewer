@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "retrying a failed transfer after a timeout causes the source account to be debited twice while the destination is credited only once",
+      "reason": "The analysis clearly states the double-debit/single-credit symptom and references ERR_TXN_504 in the reproduction steps."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected Version: 3.1.4\n- **Fix Version**: 3.2.0",
+      "reason": "The analysis names 3.1.4 as the affected version, 3.2.0 as the fix version, and gives the release date 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause is a lack of idempotency and the absence of a single transaction for debit and credit operations.",
+      "reason": "Both root-cause elements (no idempotency key on retry, debit and credit not in one DB transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factor**: Waiting on code review for PR #218, which implements a fix.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are present."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Three customers already affected; manual reversals required (Finance Ops involvement needed).",
+      "reason": "The analysis identifies three affected customers, the need for manual reversals by Finance, and in next actions assigns Marcus Reid to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual action needed is for Marcus to follow up with Finance Ops, as per the comment.",
+      "reason": "By listing the reversal as a pending next action and stating it is still 'needed,' the analysis conveys that the ticket does not confirm the reversal has been raised or the customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code Reviewer (e.g., Tom Becker or Aroha Walker): Review PR #218 promptly to avoid blocking Sprint 38.\n3. **Marcus Reid**: Raise a task with Finance Ops to reverse the three duplicate debits as requested by Aroha Walker.",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is still waiting on code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'desktop web is unaffected (as noted by Tom Becker),' correctly reflecting that the bug does not reproduce on desktop."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.4
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "retrying a failed transfer after a timeout causes the source account to be debited twice while the destination is credited only once",
+        "reason": "The analysis clearly states the double-debit/single-credit symptom and references ERR_TXN_504 in the reproduction steps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected Version: 3.1.4\n- **Fix Version**: 3.2.0",
+        "reason": "The analysis names 3.1.4 as the affected version, 3.2.0 as the fix version, and gives the release date 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The root cause is a lack of idempotency and the absence of a single transaction for debit and credit operations.",
+        "reason": "Both root-cause elements (no idempotency key on retry, debit and credit not in one DB transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee**: Priya Nair\n- **Blocking Factor**: Waiting on code review for PR #218, which implements a fix.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Three customers already affected; manual reversals required (Finance Ops involvement needed).",
+        "reason": "The analysis identifies three affected customers, the need for manual reversals by Finance, and in next actions assigns Marcus Reid to raise it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "The actual action needed is for Marcus to follow up with Finance Ops, as per the comment.",
+        "reason": "By listing the reversal as a pending next action and stating it is still 'needed,' the analysis conveys that the ticket does not confirm the reversal has been raised or the customers refunded.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Code Reviewer (e.g., Tom Becker or Aroha Walker): Review PR #218 promptly to avoid blocking Sprint 38.\n3. **Marcus Reid**: Raise a task with Finance Ops to reverse the three duplicate debits as requested by Aroha Walker.",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is still waiting on code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states 'desktop web is unaffected (as noted by Tom Becker),' correctly reflecting that the bug does not reproduce on desktop.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

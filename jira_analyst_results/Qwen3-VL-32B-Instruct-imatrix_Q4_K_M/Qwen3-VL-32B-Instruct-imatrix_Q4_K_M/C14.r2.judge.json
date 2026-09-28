@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "403 Forbidden from masterfile-api (High Severity)\n- **Occurrences**: Multiple, including:\n  - `AddPaymentRoutingRuleSecondaryCommand` at `19:13:31` and `19:09:00`\n  - `BulkUpdateSecondaryBranchesCommand` at `04:01:20` and `19:09:10`\n- **Error**: `Response status code does not indicate success: 403 (Forbidden)` when calling `branchlocation/get?ID=71` or `branchlocation/GetAll` on `masterfile-api`.\n- **Impact**: Directly causes failure to save secondary branches \u2014 matches user-reported issue of \"failed saves\".",
+      "reason": "Identifies the 403 Forbidden from masterfile-api on both endpoints, both affected commands, all four occurrences, and the direct link to user-reported save failures."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Occurrences: Multiple, starting at `03:37:32`, `03:38:24`, `03:38:50`, etc.\n- **Error**: `Conversion failed when converting the ****** value '******' to data type ******.` (Error 245)\n- **Impact**: Fails `SearchPaymentRoutingRuleQuery`",
+      "reason": "Correctly identifies the handler, error 245, and the masked message, but says 'Multiple' and lists only three timestamps with 'etc.' rather than specifying the exact count of five."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The error masks the actual value and target data type: `****** value '******' to data type ******`.\n- **Cannot determine**: Which column, which table, what data type mismatch, or what value triggered it.\n- **Need**: Database logs or query plan to identify the exact field.",
+      "reason": "Clearly states that the value and type are masked, that the specific column/value/type cannot be identified from this log, and that external sources are needed."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Occurrences: At `22:26:37`, `22:26:39`, `22:26:46`, etc.\n- **Error**: `Execution Timeout Expired. The timeout period elapsed...` (Error -2)\n- **Impact**: Fails `GetMonitorJobsQuery` \u2014 may cause monitoring dashboards to fail or time out.",
+      "reason": "Identifies the handler, error number, and a few timestamps, but does not give the count of eight, the end time of 22:29:08, the recovery from 22:36:47 onward, or the conclusion that it is a bounded episode."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap where individual validation messages are not recorded."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery took 35k\u201372k ms (threshold 10k ms) \u2014 multiple entries from `00:20:43` to `00:24:34`.\n- **Impact**: May cause UI slowness but not outright failure.\n- **Action**: Can be ignored for triage; may need optimization later.",
+      "reason": "Identifies the query, threshold, and approximate range (35k\u201372k ms), but says 'multiple entries' rather than fourteen, and does not explicitly state the trend is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string with the password logged at DBG level, nor flag it as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Logs show restart at `02:50:11` \u2014 normal maintenance or auto-restart.\n- **Impact**: None \u2014 no errors during restart.",
+      "reason": "Identifies the single restart at 02:50:11 but does not reference the 'Application is shutting down...' / second 'Starting web host' pair or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Data Protection Warnings (Low Severity)\n- `Storing keys in a directory... may not be persisted` \u2014 known issue in containerized apps.\n- **Impact**: None \u2014 only affects key persistence, not runtime.",
+      "reason": "Only addresses the DataProtection key directory warning; does not mention the 'No XML encryptor configured', 'Overriding address(es)', or 'Failed to determine the https port for redirect' warnings as routine."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Service Permissions Broadcasts (Low Severity)\n- Repeated `Service Permissions found and sent on the event bus` \u2014 normal startup behavior.",
+      "reason": "Only identifies the Service Permissions messages as non-defects; does not mention the ObjectMapper licence lines, the TaskCanceledException at 21:11:02, or the 404 for pending payment 88213."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed, making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root Cause: Likely authentication/authorization issue between Payments API and masterfile-api. The Payments API may lack proper credentials or permissions to access branch data.",
+      "reason": "Presents the 403s as a likely access-control/credential issue between the two services (using 'Likely' and 'may'), consistent with the inference that it is a configuration problem rather than a fault in payments code."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Priority Order for Fixing:\n1. 403 Forbidden (user-facing save failures)\n2. SQL conversion errors (search failures)\n3. Execution timeout (monitoring impact)\n4. Long-running queries (optimization)",
+      "reason": "Correctly prioritises 403s first and SQL conversion errors second, and includes long-running queries, but omits the credential-in-log as a parallel security item entirely."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the DataProtection warning as having 'None' impact and a 'known issue,' and does not attribute the 403s, SQL errors, or failed saves to it."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the value and type are masked and cannot be determined, without naming any specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists individual timestamps but does not state elapsed durations or assert an ordered sequence of events across the file as if the timestamps were dated and sequential."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis refers to a single restart at 02:50:11 and does not claim crash-looping or repeated restarts."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies multiple distinct issues (403s, SQL conversion, timeouts) and does not claim the database was down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 215.4
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "403 Forbidden from masterfile-api (High Severity)\n- **Occurrences**: Multiple, including:\n  - `AddPaymentRoutingRuleSecondaryCommand` at `19:13:31` and `19:09:00`\n  - `BulkUpdateSecondaryBranchesCommand` at `04:01:20` and `19:09:10`\n- **Error**: `Response status code does not indicate success: 403 (Forbidden)` when calling `branchlocation/get?ID=71` or `branchlocation/GetAll` on `masterfile-api`.\n- **Impact**: Directly causes failure to save secondary branches \u2014 matches user-reported issue of \"failed saves\".",
+        "reason": "Identifies the 403 Forbidden from masterfile-api on both endpoints, both affected commands, all four occurrences, and the direct link to user-reported save failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Occurrences: Multiple, starting at `03:37:32`, `03:38:24`, `03:38:50`, etc.\n- **Error**: `Conversion failed when converting the ****** value '******' to data type ******.` (Error 245)\n- **Impact**: Fails `SearchPaymentRoutingRuleQuery`",
+        "reason": "Correctly identifies the handler, error 245, and the masked message, but says 'Multiple' and lists only three timestamps with 'etc.' rather than specifying the exact count of five.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The error masks the actual value and target data type: `****** value '******' to data type ******`.\n- **Cannot determine**: Which column, which table, what data type mismatch, or what value triggered it.\n- **Need**: Database logs or query plan to identify the exact field.",
+        "reason": "Clearly states that the value and type are masked, that the specific column/value/type cannot be identified from this log, and that external sources are needed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Occurrences: At `22:26:37`, `22:26:39`, `22:26:46`, etc.\n- **Error**: `Execution Timeout Expired. The timeout period elapsed...` (Error -2)\n- **Impact**: Fails `GetMonitorJobsQuery` \u2014 may cause monitoring dashboards to fail or time out.",
+        "reason": "Identifies the handler, error number, and a few timestamps, but does not give the count of eight, the end time of 22:29:08, the recovery from 22:36:47 onward, or the conclusion that it is a bounded episode.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis never mentions UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap where individual validation messages are not recorded.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "GetStatementLineQuery took 35k\u201372k ms (threshold 10k ms) \u2014 multiple entries from `00:20:43` to `00:24:34`.\n- **Impact**: May cause UI slowness but not outright failure.\n- **Action**: Can be ignored for triage; may need optimization later.",
+        "reason": "Identifies the query, threshold, and approximate range (35k\u201372k ms), but says 'multiple entries' rather than fourteen, and does not explicitly state the trend is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string with the password logged at DBG level, nor flag it as a credential exposure requiring rotation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "Logs show restart at `02:50:11` \u2014 normal maintenance or auto-restart.\n- **Impact**: None \u2014 no errors during restart.",
+        "reason": "Identifies the single restart at 02:50:11 but does not reference the 'Application is shutting down...' / second 'Starting web host' pair or explain why startup warnings appear twice.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Data Protection Warnings (Low Severity)\n- `Storing keys in a directory... may not be persisted` \u2014 known issue in containerized apps.\n- **Impact**: None \u2014 only affects key persistence, not runtime.",
+        "reason": "Only addresses the DataProtection key directory warning; does not mention the 'No XML encryptor configured', 'Overriding address(es)', or 'Failed to determine the https port for redirect' warnings as routine.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Service Permissions Broadcasts (Low Severity)\n- Repeated `Service Permissions found and sent on the event bus` \u2014 normal startup behavior.",
+        "reason": "Only identifies the Service Permissions messages as non-defects; does not mention the ObjectMapper licence lines, the TaskCanceledException at 21:11:02, or the 404 for pending payment 88213.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed, making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Root Cause: Likely authentication/authorization issue between Payments API and masterfile-api. The Payments API may lack proper credentials or permissions to access branch data.",
+        "reason": "Presents the 403s as a likely access-control/credential issue between the two services (using 'Likely' and 'may'), consistent with the inference that it is a configuration problem rather than a fault in payments code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "Priority Order for Fixing:\n1. 403 Forbidden (user-facing save failures)\n2. SQL conversion errors (search failures)\n3. Execution timeout (monitoring impact)\n4. Long-running queries (optimization)",
+        "reason": "Correctly prioritises 403s first and SQL conversion errors second, and includes long-running queries, but omits the credential-in-log as a parallel security item entirely.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly labels the DataProtection warning as having 'None' impact and a 'known issue,' and does not attribute the 403s, SQL errors, or failed saves to it.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the value and type are masked and cannot be determined, without naming any specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis lists individual timestamps but does not state elapsed durations or assert an ordered sequence of events across the file as if the timestamps were dated and sequential.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis refers to a single restart at 02:50:11 and does not claim crash-looping or repeated restarts.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis identifies multiple distinct issues (403s, SQL conversion, timeouts) and does not claim the database was down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

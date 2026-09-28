@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows that the notifications service is failing to send emails due to **SMTP authentication failure (status code 535)**, not because of data protection key storage issues as claimed.",
+      "reason": "The analysis correctly identifies the SMTP 535 auth failure and quotes the full server response, but does not mention that the error is raised from EmailSender and OutboxDispatcher as the expect requires."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid attributes the failure to data protection key storage, but the log shows SMTP auth failure as the actual cause. The key storage warnings are informational and do not prevent email sending.",
+      "reason": "The analysis clearly states the reporter's explanation is not supported, calls the warnings informational/non-critical, and says they are unrelated to the SMTP delivery failure."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No dead-letter queue or backoff: The outbox dispatcher retries every 5 seconds without backoff, leading to resource waste and potential throttling.",
+      "reason": "The analysis mentions the 5-second retry, no backoff, and no dead-letter, but does not reference outbox item 991204, the five-attempt threshold, or that one failing item blocks the queue behind it."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Backlog growth: From 1412 to 2089 pending messages in ~20 minutes.",
+      "reason": "The correct numbers (1412\u21922089) are given, but the time span is stated as ~20 minutes when the log shows 18:02:48 to 18:39:48, which is approximately 37 minutes."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses the 14:00 timeframe, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod restart at 18:02 did not resolve the issue, confirming it's not a transient container issue.",
+      "reason": "The analysis explicitly states the 18:02 restart did not resolve the issue, which conveys that another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The SMTP server explicitly disabled basic authentication, yet the service is trying to use it. This suggests misconfiguration (e.g., wrong auth method, expired password, or incorrect server settings).",
+      "reason": "The analysis presents the inference that basic auth was disabled for the account and the fix is a change of authentication method/credentials, using hedging language ('suggests'), and names svc-notify@example.com."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm the SMTP server allows authentication (e.g., OAuth2, app password, or TLS-based auth). Check if `svc-notify@example.com` credentials are valid and have not expired. Ensure the service uses the correct authentication method (e.g., not basic auth if disabled).",
+      "reason": "The analysis covers confirming the auth method and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09, nor does it explicitly clear them as unrelated to the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unrelated to the failure."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix; it notes the restart already failed to resolve the issue."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS, the health check, or the poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references SMTP errors and codes actually present in the log (535, 5.7.139) and does not invent rate-limiting, TLS-failure, or mailbox-full responses."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Backlog growth: From 1412 to 2089 pending messages in ~20 minutes.",
+      "reason": "The log timestamps show 1412 pending at 18:02:48 and 2089 at 18:39:48, a span of approximately 37 minutes, not ~20 minutes."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 125.04
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows that the notifications service is failing to send emails due to **SMTP authentication failure (status code 535)**, not because of data protection key storage issues as claimed.",
+        "reason": "The analysis correctly identifies the SMTP 535 auth failure and quotes the full server response, but does not mention that the error is raised from EmailSender and OutboxDispatcher as the expect requires.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Marcus Reid attributes the failure to data protection key storage, but the log shows SMTP auth failure as the actual cause. The key storage warnings are informational and do not prevent email sending.",
+        "reason": "The analysis clearly states the reporter's explanation is not supported, calls the warnings informational/non-critical, and says they are unrelated to the SMTP delivery failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "No dead-letter queue or backoff: The outbox dispatcher retries every 5 seconds without backoff, leading to resource waste and potential throttling.",
+        "reason": "The analysis mentions the 5-second retry, no backoff, and no dead-letter, but does not reference outbox item 991204, the five-attempt threshold, or that one failing item blocks the queue behind it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "Backlog growth: From 1412 to 2089 pending messages in ~20 minutes.",
+        "reason": "The correct numbers (1412\u21922089) are given, but the time span is stated as ~20 minutes when the log shows 18:02:48 to 18:39:48, which is approximately 37 minutes.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis never addresses the 14:00 timeframe, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "The pod restart at 18:02 did not resolve the issue, confirming it's not a transient container issue.",
+        "reason": "The analysis explicitly states the 18:02 restart did not resolve the issue, which conveys that another restart will not help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "The SMTP server explicitly disabled basic authentication, yet the service is trying to use it. This suggests misconfiguration (e.g., wrong auth method, expired password, or incorrect server settings).",
+        "reason": "The analysis presents the inference that basic auth was disabled for the account and the fix is a change of authentication method/credentials, using hedging language ('suggests'), and names svc-notify@example.com.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Confirm the SMTP server allows authentication (e.g., OAuth2, app password, or TLS-based auth). Check if `svc-notify@example.com` credentials are valid and have not expired. Ensure the service uses the correct authentication method (e.g., not basic auth if disabled).",
+        "reason": "The analysis covers confirming the auth method and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09, nor does it explicitly clear them as unrelated to the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unrelated to the failure.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix; it notes the restart already failed to resolve the issue.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS, the health check, or the poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references SMTP errors and codes actually present in the log (535, 5.7.139) and does not invent rate-limiting, TLS-failure, or mailbox-full responses.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Backlog growth: From 1412 to 2089 pending messages in ~20 minutes.",
+        "reason": "The log timestamps show 1412 pending at 18:02:48 and 2089 at 18:39:48, a span of approximately 37 minutes, not ~20 minutes."
+      }
+    ]
+  }
+}

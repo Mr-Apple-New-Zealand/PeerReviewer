@@ -1,0 +1,309 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Around timestamp 1789197802 (2026-09-12 07:23:22 UTC), the user's session token expired or became invalid. This is evidenced by a cascade of 401 Unauthorized responses from multiple API endpoints",
+      "reason": "The analysis identifies the 401 cascade starting at a timestamp but does not describe the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap with no activity, or that all prior XHRs returned 200."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause is a lack of defensive programming in the UI code when handling API responses. Specifically: The application assumes that API responses will always return a valid object with a rows (or similar) property. When an API call fails (e.g., due to 401), the UI does not handle the error gracefully and continues to try to process undefined data.",
+      "reason": "The analysis identifies the 401\u2192undefined\u2192TypeError chain and mentions 401 handling as a fix, but frames the root cause as missing null checks rather than the absence of central 401 handling (no redirect, no guard)."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the four earlier sentry.event entries ('rows' twice, 'returnProperties', 'length') in the breadcrumbs or that they should be treated as one defect."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The token/refresh call at 1789182766.371 succeeded, but it's unclear if it was sufficient or if the token was invalidated later.",
+      "reason": "The analysis mentions the successful token refresh but does not state it was the only refresh, that it occurred before the gap, or that no refresh was attempted after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurred in production on bank-uat.example.com",
+      "reason": "The analysis does not flag the discrepancy between the Production environment tag and the UAT URL, does not identify the Sentry environment as misconfigured, and does not answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor does it discuss the stale transaction name affecting Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The stack trace is minified and unsymbolicated. The ie.project function and the sort call cannot be mapped to actual source code without source maps. The Sentry event notes js_no_source for all JS files, and scraping attempts failed.",
+      "reason": "The analysis clearly conveys that source maps are missing, the stack is minified/unsymbolicated, js_no_source errors exist, scraping failed, and the component cannot be identified."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are both null, nor connects this to the inability to tie the event to a build or match source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Why the Token Expired: The event does not indicate whether the token expired naturally, was revoked, or if there was a bug in token refresh logic.",
+      "reason": "The analysis conveys that the event does not reveal why the token was rejected and that expiry cannot be distinguished from revocation or other causes."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The most likely scenario is that the user had an active session that expired during a long-running interaction. The UI attempted to process data from a failed API call, leading to a crash.",
+      "reason": "Presented as an inference, but it does not specifically connect the idle gap, the successful pre-gap refresh, and the absence of a subsequent refresh as the mechanism for the token expiring."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Improve Auth Handling: Ensure the UI gracefully handles 401 responses by redirecting to login or refreshing the token automatically (if possible), rather than letting the UI crash.",
+      "reason": "The analysis covers auth handling and source maps but omits fixing the Sentry environment, setting release/dist, correcting the stale transaction name, and explicitly stating that a null guard alone would hide the problem without fixing it."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The root cause is a lack of defensive programming in the UI code when handling API responses. Specifically: The application assumes that API responses will always return a valid object with a rows (or similar) property. When an API call fails (e.g., due to 401), the UI does not handle the error gracefully and continues to try to process undefined data.",
+      "reason": "The analysis explicitly names the missing null/undefined check as the root cause and primary fix, rather than framing it as a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurred in production on bank-uat.example.com",
+      "reason": "The analysis states the error occurred in production without flagging that the URL is the UAT host and the environment tag is misconfigured."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently refers to the batch actions screen (/payments/batch/actions) and never states the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "The error occurred in 6728.b4f17ce620a8d539.js, which is a bundled chunk \u2014 we don't know which component or service this belongs to (e.g., BatchActionsComponent, SettlementService, etc.).",
+      "reason": "The analysis names only the minified function and bundled file while explicitly stating it cannot be mapped to actual source code or a specific component."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as expected behavior for expired tokens, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The UI remained broken until the user reloaded the page.",
+      "reason": "The breadcrumbs in the Sentry event end with 401 responses on the batch actions page; there is no reload event, navigation to a login page, or any other evidence in the event that the user reloaded. The ticket description mentions users 'have to reload' generally, but this specific event does not show it."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 225.65
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "Around timestamp 1789197802 (2026-09-12 07:23:22 UTC), the user's session token expired or became invalid. This is evidenced by a cascade of 401 Unauthorized responses from multiple API endpoints",
+        "reason": "The analysis identifies the 401 cascade starting at a timestamp but does not describe the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap with no activity, or that all prior XHRs returned 200.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The root cause is a lack of defensive programming in the UI code when handling API responses. Specifically: The application assumes that API responses will always return a valid object with a rows (or similar) property. When an API call fails (e.g., due to 401), the UI does not handle the error gracefully and continues to try to process undefined data.",
+        "reason": "The analysis identifies the 401\u2192undefined\u2192TypeError chain and mentions 401 handling as a fix, but frames the root cause as missing null checks rather than the absence of central 401 handling (no redirect, no guard).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the four earlier sentry.event entries ('rows' twice, 'returnProperties', 'length') in the breadcrumbs or that they should be treated as one defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "The token/refresh call at 1789182766.371 succeeded, but it's unclear if it was sufficient or if the token was invalidated later.",
+        "reason": "The analysis mentions the successful token refresh but does not state it was the only refresh, that it occurred before the gap, or that no refresh was attempted after the gap.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "The error occurred in production on bank-uat.example.com",
+        "reason": "The analysis does not flag the discrepancy between the Production environment tag and the UAT URL, does not identify the Sentry environment as misconfigured, and does not answer Tom Becker's question.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor does it discuss the stale transaction name affecting Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The stack trace is minified and unsymbolicated. The ie.project function and the sort call cannot be mapped to actual source code without source maps. The Sentry event notes js_no_source for all JS files, and scraping attempts failed.",
+        "reason": "The analysis clearly conveys that source maps are missing, the stack is minified/unsymbolicated, js_no_source errors exist, scraping failed, and the component cannot be identified.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are both null, nor connects this to the inability to tie the event to a build or match source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "Why the Token Expired: The event does not indicate whether the token expired naturally, was revoked, or if there was a bug in token refresh logic.",
+        "reason": "The analysis conveys that the event does not reveal why the token was rejected and that expiry cannot be distinguished from revocation or other causes.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The most likely scenario is that the user had an active session that expired during a long-running interaction. The UI attempted to process data from a failed API call, leading to a crash.",
+        "reason": "Presented as an inference, but it does not specifically connect the idle gap, the successful pre-gap refresh, and the absence of a subsequent refresh as the mechanism for the token expiring.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not discuss the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Improve Auth Handling: Ensure the UI gracefully handles 401 responses by redirecting to login or refreshing the token automatically (if possible), rather than letting the UI crash.",
+        "reason": "The analysis covers auth handling and source maps but omits fixing the Sentry environment, setting release/dist, correcting the stale transaction name, and explicitly stating that a null guard alone would hide the problem without fixing it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The root cause is a lack of defensive programming in the UI code when handling API responses. Specifically: The application assumes that API responses will always return a valid object with a rows (or similar) property. When an API call fails (e.g., due to 401), the UI does not handle the error gracefully and continues to try to process undefined data.",
+        "reason": "The analysis explicitly names the missing null/undefined check as the root cause and primary fix, rather than framing it as a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "The error occurred in production on bank-uat.example.com",
+        "reason": "The analysis states the error occurred in production without flagging that the URL is the UAT host and the environment tag is misconfigured.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis consistently refers to the batch actions screen (/payments/batch/actions) and never states the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "The error occurred in 6728.b4f17ce620a8d539.js, which is a bundled chunk \u2014 we don't know which component or service this belongs to (e.g., BatchActionsComponent, SettlementService, etc.).",
+        "reason": "The analysis names only the minified function and bundled file while explicitly stating it cannot be mapped to actual source code or a specific component.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as expected behavior for expired tokens, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The UI remained broken until the user reloaded the page.",
+        "reason": "The breadcrumbs in the Sentry event end with 401 responses on the batch actions page; there is no reload event, navigation to a login page, or any other evidence in the event that the user reloaded. The ticket description mentions users 'have to reload' generally, but this specific event does not show it."
+      }
+    ]
+  }
+}

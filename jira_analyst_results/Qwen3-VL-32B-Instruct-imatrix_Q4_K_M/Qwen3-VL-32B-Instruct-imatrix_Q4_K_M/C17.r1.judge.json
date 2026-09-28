@@ -1,0 +1,333 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The user was interacting with the settlement allocation interface, making multiple successful API calls (e.g., Query, InvokeAction, GetAllocationLineMarketPlanDetail) between 7:23 AM and 7:55 AM (UTC).",
+      "reason": "The analysis gives wrong timestamps (7:23\u20137:55 AM instead of ~03:11\u201303:13 AM), never mentions the ~4-hour-10-minute gap, and presents the session as continuous rather than split into two halves."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The core defect is a lack of null/undefined checking before calling .sort() on a data structure (likely an array) in the Angular component that handles batch actions. This is exacerbated by: Unauthenticated state handling: The app does not gracefully handle 401 responses.",
+      "reason": "The analysis identifies the 401-handling gap but elevates the null check to 'core defect' status, framing the 401 handling as a secondary exacerbating factor rather than the root cause."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "which triggered more 401 errors and another error: Cannot read properties of undefined (reading 'length'), indicating the UI continued to attempt operations on invalid data.",
+      "reason": "The analysis mentions only the 'length' error from the cascade; it does not mention the two 'rows' errors or the 'returnProperties' error, nor does it explicitly state they should be treated as one defect."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The app attempted to refresh the token or re-fetch data, but failed (no token/refresh success in the breadcrumbs).",
+      "reason": "The analysis incorrectly states there is no token/refresh success in the breadcrumbs, when in fact a POST to /api/security/token/refresh returned 200 at timestamp 1789182766.696 (before the gap); it never identifies the refresh or the absence of one after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Tom Becker's comment suggests the team should confirm the environment (which is already confirmed as Production) before treating it as critical.",
+      "reason": "The analysis does not identify the environment misconfiguration; it states the environment is 'confirmed as Production' despite every URL pointing to bank-uat.example.com, and never flags the discrepancy."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor does it discuss the stale transaction name affecting Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The stack trace is minified and symbolicated frames are missing. The error occurred in 6728.b4f17ce620a8d539.js, but without source maps, you cannot pinpoint the exact component or function.",
+      "reason": "The analysis identifies missing source maps and minified frames but does not mention the three js_no_source errors, the three failed scraping_attempts due to DNS resolution failure for the UAT host, or the symbolicated_in_app: false flag."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are both null in the Sentry event, nor the consequence that the event cannot be tied to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "While the 401s suggest session expiry, the event doesn't confirm whether the token expired, was revoked, or if there was a backend auth misconfiguration.",
+      "reason": "The analysis captures the idea that the event cannot determine why the 401s occurred, but does not cite the specific reason (response_body_size 0 on all 401s, no token expiry data present)."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The most likely scenario is: The user's session token expired while they were on the batch actions screen. The app attempted to refresh the token or re-fetch data, but failed (no token/refresh success in the breadcrumbs).",
+      "reason": "Presented as an inference (good), and the core idea (token expired, no refresh ran) is present, but the supporting evidence is factually wrong (claims no refresh success exists) and the four-hour idle gap is never mentioned."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB InvokeAction response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording at all."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the in_app flags on frames, the in_app_frame_mix 'in-app-only' metadata, or the fact that polyfills frames are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Improve Auth Handling: Ensure the app detects 401 responses and redirects to login or shows a session-expired message, rather than continuing to render. 4. Enable Source Maps in Sentry: Upload source maps for bank-ui 4.7.0 to Sentry to get readable stack traces.",
+      "reason": "The analysis includes auth handling and source maps but omits fixing the Sentry environment misconfiguration, correcting the stale transaction name, and does not caveat that a null guard would merely hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The core defect is a lack of null/undefined checking before calling .sort() on a data structure (likely an array) in the Angular component that handles batch actions.",
+      "reason": "The analysis explicitly names the missing null check as the 'core defect' and recommends adding null guards as a fix, rather than treating it as a defensive measure over the real 401-handling problem."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurred in production on bank-uat.example.com in Edge 153.0.0 on Windows.",
+      "reason": "The analysis states the error occurred 'in production' and later says the environment is 'confirmed as Production' without flagging that all URLs point to the UAT host."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently refers to the 'batch actions screen' and never states the error occurred on /settlements/run/8214 or settlements run 8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the minified bundle file and function name but explicitly states it cannot pinpoint the exact component or function, so it does not name an application source file, component, or line number as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as session token expiry/invalidation and lists 'backend auth misconfiguration' only as an unconfirmed possibility, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not explicitly describe activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it; it simply omits the gap."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "making multiple successful API calls (e.g., Query, InvokeAction, GetAllocationLineMarketPlanDetail) between 7:23 AM and 7:55 AM (UTC)",
+      "reason": "The first-half breadcrumbs have Unix timestamps 1789182659\u20131789182813, which correspond to approximately 03:11\u201303:13 AM UTC, not 7:23\u20137:55 AM. The 7:23 AM time is actually when the 401 cascade begins."
+    },
+    {
+      "quote": "At 7:56 AM (UTC), the user clicked a dropdown menu (button.btn.btn-sm.btn-secondary.dropdown-toggle) and selected an option.",
+      "reason": "The dropdown-toggle click is at timestamp 1789197800.719, which corresponds to approximately 07:23:20 UTC, not 7:56 AM."
+    },
+    {
+      "quote": "no token/refresh success in the breadcrumbs",
+      "reason": "The breadcrumbs contain a POST to /api/security/token/refresh at timestamp 1789182766.696 with status_code 200, which is a successful refresh."
+    },
+    {
+      "quote": "Tom Becker's comment suggests the team should confirm the environment (which is already confirmed as Production) before treating it as critical.",
+      "reason": "The environment is not confirmed as Production; the url tag, request.url, and every breadcrumb URL point to bank-uat.example.com (UAT), contradicting the 'Production' environment tag."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 225.0
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "The user was interacting with the settlement allocation interface, making multiple successful API calls (e.g., Query, InvokeAction, GetAllocationLineMarketPlanDetail) between 7:23 AM and 7:55 AM (UTC).",
+        "reason": "The analysis gives wrong timestamps (7:23\u20137:55 AM instead of ~03:11\u201303:13 AM), never mentions the ~4-hour-10-minute gap, and presents the session as continuous rather than split into two halves.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The core defect is a lack of null/undefined checking before calling .sort() on a data structure (likely an array) in the Angular component that handles batch actions. This is exacerbated by: Unauthenticated state handling: The app does not gracefully handle 401 responses.",
+        "reason": "The analysis identifies the 401-handling gap but elevates the null check to 'core defect' status, framing the 401 handling as a secondary exacerbating factor rather than the root cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "which triggered more 401 errors and another error: Cannot read properties of undefined (reading 'length'), indicating the UI continued to attempt operations on invalid data.",
+        "reason": "The analysis mentions only the 'length' error from the cascade; it does not mention the two 'rows' errors or the 'returnProperties' error, nor does it explicitly state they should be treated as one defect.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "The app attempted to refresh the token or re-fetch data, but failed (no token/refresh success in the breadcrumbs).",
+        "reason": "The analysis incorrectly states there is no token/refresh success in the breadcrumbs, when in fact a POST to /api/security/token/refresh returned 200 at timestamp 1789182766.696 (before the gap); it never identifies the refresh or the absence of one after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Tom Becker's comment suggests the team should confirm the environment (which is already confirmed as Production) before treating it as critical.",
+        "reason": "The analysis does not identify the environment misconfiguration; it states the environment is 'confirmed as Production' despite every URL pointing to bank-uat.example.com, and never flags the discrepancy.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor does it discuss the stale transaction name affecting Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The stack trace is minified and symbolicated frames are missing. The error occurred in 6728.b4f17ce620a8d539.js, but without source maps, you cannot pinpoint the exact component or function.",
+        "reason": "The analysis identifies missing source maps and minified frames but does not mention the three js_no_source errors, the three failed scraping_attempts due to DNS resolution failure for the UAT host, or the symbolicated_in_app: false flag.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are both null in the Sentry event, nor the consequence that the event cannot be tied to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "While the 401s suggest session expiry, the event doesn't confirm whether the token expired, was revoked, or if there was a backend auth misconfiguration.",
+        "reason": "The analysis captures the idea that the event cannot determine why the 401s occurred, but does not cite the specific reason (response_body_size 0 on all 401s, no token expiry data present).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The most likely scenario is: The user's session token expired while they were on the batch actions screen. The app attempted to refresh the token or re-fetch data, but failed (no token/refresh success in the breadcrumbs).",
+        "reason": "Presented as an inference (good), and the core idea (token expired, no refresh ran) is present, but the supporting evidence is factually wrong (claims no refresh success exists) and the four-hour idle gap is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB InvokeAction response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never discusses the in_app flags on frames, the in_app_frame_mix 'in-app-only' metadata, or the fact that polyfills frames are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Improve Auth Handling: Ensure the app detects 401 responses and redirects to login or shows a session-expired message, rather than continuing to render. 4. Enable Source Maps in Sentry: Upload source maps for bank-ui 4.7.0 to Sentry to get readable stack traces.",
+        "reason": "The analysis includes auth handling and source maps but omits fixing the Sentry environment misconfiguration, correcting the stale transaction name, and does not caveat that a null guard would merely hide the symptom.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The core defect is a lack of null/undefined checking before calling .sort() on a data structure (likely an array) in the Angular component that handles batch actions.",
+        "reason": "The analysis explicitly names the missing null check as the 'core defect' and recommends adding null guards as a fix, rather than treating it as a defensive measure over the real 401-handling problem.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "The error occurred in production on bank-uat.example.com in Edge 153.0.0 on Windows.",
+        "reason": "The analysis states the error occurred 'in production' and later says the environment is 'confirmed as Production' without flagging that all URLs point to the UAT host.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis consistently refers to the 'batch actions screen' and never states the error occurred on /settlements/run/8214 or settlements run 8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis mentions the minified bundle file and function name but explicitly states it cannot pinpoint the exact component or function, so it does not name an application source file, component, or line number as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as session token expiry/invalidation and lists 'backend auth misconfiguration' only as an unconfirmed possibility, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not explicitly describe activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it; it simply omits the gap.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "making multiple successful API calls (e.g., Query, InvokeAction, GetAllocationLineMarketPlanDetail) between 7:23 AM and 7:55 AM (UTC)",
+        "reason": "The first-half breadcrumbs have Unix timestamps 1789182659\u20131789182813, which correspond to approximately 03:11\u201303:13 AM UTC, not 7:23\u20137:55 AM. The 7:23 AM time is actually when the 401 cascade begins."
+      },
+      {
+        "quote": "At 7:56 AM (UTC), the user clicked a dropdown menu (button.btn.btn-sm.btn-secondary.dropdown-toggle) and selected an option.",
+        "reason": "The dropdown-toggle click is at timestamp 1789197800.719, which corresponds to approximately 07:23:20 UTC, not 7:56 AM."
+      },
+      {
+        "quote": "no token/refresh success in the breadcrumbs",
+        "reason": "The breadcrumbs contain a POST to /api/security/token/refresh at timestamp 1789182766.696 with status_code 200, which is a successful refresh."
+      },
+      {
+        "quote": "Tom Becker's comment suggests the team should confirm the environment (which is already confirmed as Production) before treating it as critical.",
+        "reason": "The environment is not confirmed as Production; the url tag, request.url, and every breadcrumb URL point to bank-uat.example.com (UAT), contradicting the 'Production' environment tag."
+      }
+    ]
+  }
+}

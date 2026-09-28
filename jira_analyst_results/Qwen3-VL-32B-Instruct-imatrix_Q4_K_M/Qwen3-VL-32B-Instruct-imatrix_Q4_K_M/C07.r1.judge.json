@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:31 NZST: Transfer errors begin to appear in monitoring dashboards.",
+      "reason": "The timeline states impact began at 09:31, and the root-cause section quotes 'The config deploy at 09:30 (OPS-81)', conveying both the deploy time and impact start."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 NZST: Monitoring alert fires due to TransferErrorRate > 20%.\n- **09:52 NZST**: Incident declared by Sam Okafor.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:31 NZST: Sam Okafor initiates rollback of OPS-81 config deploy.\n- **10:44 NZST**: Rollback complete. Transfer error rate drops to under 1%.\n- **10:50 NZST**: Incident resolved.",
+      "reason": "Rollback start (10:31) and resolution (10:50) are correct, but the recovery time is stated as 10:44 (rollback complete) rather than 10:42 (when the error rate was actually back under 1% per the ticket)."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Detect (TTD)  \n= Time from first error occurrence to incident declaration  \n= 09:52 \u2013 09:31 = **21 minutes**",
+      "reason": "The analysis calculates TTD as 21 minutes (09:31 to 09:52 incident declaration) rather than the expected 16 minutes (09:31 to 09:47 alert), using the wrong endpoint."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Recover (TTR)  \n= Time from incident declaration to recovery (error rate under 1%)  \n= 10:44 \u2013 09:52 = **52 minutes**",
+      "reason": "The analysis gives 52 minutes (09:52\u219210:44) and 73 minutes (09:31\u219210:44); neither matches the expected 71, 55, or 79 minutes because the recovery endpoint is 10:44 instead of 10:42."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used by the **Transactions API** for token validation. This caused the Transactions API to reject valid tokens signed with the new key, resulting in 401 errors for all transfer requests.",
+      "reason": "The root cause is fully stated: OPS-81 rotated the JWT key for Auth, Transactions API still validated against the old key, producing 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A post-incident review is scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only reports Priya Nair's suggestion as a timeline entry and does not name the database or slow queries as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All times stated (21 min, 52 min, 73 min) are derived from pairs of timestamps that appear in the ticket (09:31, 09:52, 10:44), so no unsupported timestamp pair is used."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "10:44 NZST: Rollback complete. Transfer error rate drops to under 1%.",
+      "reason": "The ticket states the error rate was back under 1% at 10:42, not 10:44; 10:44 is when the rollback was complete. The analysis conflates the two events and attributes the recovery to the wrong time."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 122.74
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31 NZST: Transfer errors begin to appear in monitoring dashboards.",
+        "reason": "The timeline states impact began at 09:31, and the root-cause section quotes 'The config deploy at 09:30 (OPS-81)', conveying both the deploy time and impact start.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 NZST: Monitoring alert fires due to TransferErrorRate > 20%.\n- **09:52 NZST**: Incident declared by Sam Okafor.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 NZST: Sam Okafor initiates rollback of OPS-81 config deploy.\n- **10:44 NZST**: Rollback complete. Transfer error rate drops to under 1%.\n- **10:50 NZST**: Incident resolved.",
+        "reason": "Rollback start (10:31) and resolution (10:50) are correct, but the recovery time is stated as 10:44 (rollback complete) rather than 10:42 (when the error rate was actually back under 1% per the ticket).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect (TTD)  \n= Time from first error occurrence to incident declaration  \n= 09:52 \u2013 09:31 = **21 minutes**",
+        "reason": "The analysis calculates TTD as 21 minutes (09:31 to 09:52 incident declaration) rather than the expected 16 minutes (09:31 to 09:47 alert), using the wrong endpoint.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover (TTR)  \n= Time from incident declaration to recovery (error rate under 1%)  \n= 10:44 \u2013 09:52 = **52 minutes**",
+        "reason": "The analysis gives 52 minutes (09:52\u219210:44) and 73 minutes (09:31\u219210:44); neither matches the expected 71, 55, or 79 minutes because the recovery endpoint is 10:44 instead of 10:42.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated in config deploy **OPS-81** without updating the key used by the **Transactions API** for token validation. This caused the Transactions API to reject valid tokens signed with the new key, resulting in 401 errors for all transfer requests.",
+        "reason": "The root cause is fully stated: OPS-81 rotated the JWT key for Auth, Transactions API still validated against the old key, producing 401 IDX10503 errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "A post-incident review is scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis only reports Priya Nair's suggestion as a timeline entry and does not name the database or slow queries as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "All times stated (21 min, 52 min, 73 min) are derived from pairs of timestamps that appear in the ticket (09:31, 09:52, 10:44), so no unsupported timestamp pair is used.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "10:44 NZST: Rollback complete. Transfer error rate drops to under 1%.",
+        "reason": "The ticket states the error rate was back under 1% at 10:42, not 10:44; 10:44 is when the rollback was complete. The analysis conflates the two events and attributes the recovery to the wrong time."
+      }
+    ]
+  }
+}
