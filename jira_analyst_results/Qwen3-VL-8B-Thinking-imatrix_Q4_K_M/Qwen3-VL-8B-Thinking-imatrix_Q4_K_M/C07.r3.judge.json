@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31 NZST: Errors begin (dashboards show transfer failures).",
+      "reason": "The analysis states the impact started at 09:31 but never mentions the config deploy OPS-81 occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 NZST: Monitoring alert triggers for `TransferErrorRate > 20%`.  \n- **09:52 NZST**: Incident declared by Sam Okafor (error rate at 64%).",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 NZST: Rollback of OPS-81 config deploy initiated.  \n- **10:42 NZST**: Transfer error rate drops below 1% (service restored).  \n- **10:44 NZST**: Rollback of OPS-81 config deploy complete.  \n- **10:50 NZST**: Ticket resolved.",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "16 minutes (from 09:31 NZST error start to 09:47 NZST alert).",
+      "reason": "Exactly matches the expected 16-minute detection time with correct start and end points."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "50 minutes (from 09:52 NZST incident declaration to 10:42 NZST service restoration).",
+      "reason": "The analysis uses incident declaration (09:52) as the start point, yielding 50 minutes, which is not one of the acceptable metrics listed in the key (71 from impact, 55 from detection, or 79 to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "JWT signing key rotation in OPS-81 config deploy without updating the Transactions API's validation key (confirmed by Sam Okafor at 10:24 NZST).  \n- *Inference*: The Auth service began issuing tokens with a new key, but the Transactions API continued validating with the old key, causing `IDX10503: Signature validation failed` errors (401s).",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation, 401, and IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Missing: No details on pre-incident monitoring thresholds or post-incident review outcomes (scheduled for 2026-09-16).",
+      "reason": "The post-incident review date of 2026-09-16 is stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the database suggestion only as Priya Nair's hypothesis that was 'later ruled out,' not as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 16-minute detection (09:31\u219209:47) and 50-minute recovery (09:52\u219210:42) are both supported by timestamp pairs present in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 89.31
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31 NZST: Errors begin (dashboards show transfer failures).",
+        "reason": "The analysis states the impact started at 09:31 but never mentions the config deploy OPS-81 occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 NZST: Monitoring alert triggers for `TransferErrorRate > 20%`.  \n- **09:52 NZST**: Incident declared by Sam Okafor (error rate at 64%).",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 NZST: Rollback of OPS-81 config deploy initiated.  \n- **10:42 NZST**: Transfer error rate drops below 1% (service restored).  \n- **10:44 NZST**: Rollback of OPS-81 config deploy complete.  \n- **10:50 NZST**: Ticket resolved.",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "16 minutes (from 09:31 NZST error start to 09:47 NZST alert).",
+        "reason": "Exactly matches the expected 16-minute detection time with correct start and end points.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "50 minutes (from 09:52 NZST incident declaration to 10:42 NZST service restoration).",
+        "reason": "The analysis uses incident declaration (09:52) as the start point, yielding 50 minutes, which is not one of the acceptable metrics listed in the key (71 from impact, 55 from detection, or 79 to resolution).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "JWT signing key rotation in OPS-81 config deploy without updating the Transactions API's validation key (confirmed by Sam Okafor at 10:24 NZST).  \n- *Inference*: The Auth service began issuing tokens with a new key, but the Transactions API continued validating with the old key, causing `IDX10503: Signature validation failed` errors (401s).",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation, 401, and IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Missing: No details on pre-incident monitoring thresholds or post-incident review outcomes (scheduled for 2026-09-16).",
+        "reason": "The post-incident review date of 2026-09-16 is stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the database suggestion only as Priya Nair's hypothesis that was 'later ruled out,' not as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The 16-minute detection (09:31\u219209:47) and 50-minute recovery (09:52\u219210:42) are both supported by timestamp pairs present in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

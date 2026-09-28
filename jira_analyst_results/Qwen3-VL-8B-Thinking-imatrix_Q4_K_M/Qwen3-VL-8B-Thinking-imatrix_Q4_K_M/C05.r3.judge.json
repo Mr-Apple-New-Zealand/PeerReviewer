@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. Close BANK-425 and link it to BANK-440.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both describe the web dashboard balance remaining stale after transfers."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-425 and link it to BANK-440. Assign the fix (clearing cache on transfer success) to BANK-440.",
+      "reason": "The analysis recommends closing one and keeping the other, links them, and preserves Hana Sato's root-cause analysis; the key allows either direction as long as tickets are linked and analysis is preserved."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate; it's a separate issue. \u2026 Root cause: notification service uses `TransferRequested` (pre-apply) instead of `TransferCompleted` event. \u2026 In Progress, assigned to Ravi Kumar.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event), and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause is identical\u2014balance cache (from BANK-419) isn't invalidated post-transfer. \u2026 Hana Sato's comment (2026-09-06) confirms the fix (clear `BalanceCache` on transfer success) applies to both.",
+      "reason": "The analysis identifies the BalanceCache not being invalidated after a transfer as the cause and states the fix is to clear it on transfer success, referencing BANK-419 as the source of the 15-minute cache."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The cache implementation (BANK-419) *enabled* the stale balance issue in BANK-440/BANK-425, but it's a separate task. \u2026 it's the *cause* of the bug, not the bug itself.",
+      "reason": "The analysis identifies BANK-419 as the cause but states it as established fact ('it's the cause') rather than as a probable regression, and does not recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Current state: Open, unassigned.",
+      "reason": "The analysis states BANK-425 is unassigned but never explicitly states BANK-440's assignment status, so the point that both duplicates are unassigned is only half-covered."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so the trap is not violated."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the stale balance to the client-side cache, not to the API returning a wrong value; it never claims the API is at fault."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Acceptance criteria: Balance updates immediately after transfer without logout.",
+      "reason": "The tickets contain no acceptance-criteria field; this is invented ticket content presented as if it were part of the ticket structure."
+    },
+    {
+      "quote": "Acceptance criteria: Notification displays new balance post-transfer.",
+      "reason": "MOB-88 has no acceptance-criteria field in the export; this is fabricated ticket content."
+    },
+    {
+      "quote": "Acceptance criteria: Balance cached for 15 minutes.",
+      "reason": "BANK-419 has no acceptance-criteria field in the export; this is fabricated ticket content."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 103.44
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. Close BANK-425 and link it to BANK-440.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both describe the web dashboard balance remaining stale after transfers.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-425 and link it to BANK-440. Assign the fix (clearing cache on transfer success) to BANK-440.",
+        "reason": "The analysis recommends closing one and keeping the other, links them, and preserves Hana Sato's root-cause analysis; the key allows either direction as long as tickets are linked and analysis is preserved.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate; it's a separate issue. \u2026 Root cause: notification service uses `TransferRequested` (pre-apply) instead of `TransferCompleted` event. \u2026 In Progress, assigned to Ravi Kumar.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event), and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Root cause is identical\u2014balance cache (from BANK-419) isn't invalidated post-transfer. \u2026 Hana Sato's comment (2026-09-06) confirms the fix (clear `BalanceCache` on transfer success) applies to both.",
+        "reason": "The analysis identifies the BalanceCache not being invalidated after a transfer as the cause and states the fix is to clear it on transfer success, referencing BANK-419 as the source of the 15-minute cache.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "The cache implementation (BANK-419) *enabled* the stale balance issue in BANK-440/BANK-425, but it's a separate task. \u2026 it's the *cause* of the bug, not the bug itself.",
+        "reason": "The analysis identifies BANK-419 as the cause but states it as established fact ('it's the cause') rather than as a probable regression, and does not recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Current state: Open, unassigned.",
+        "reason": "The analysis states BANK-425 is unassigned but never explicitly states BANK-440's assignment status, so the point that both duplicates are unassigned is only half-covered.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440, so the trap is not violated.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis attributes the stale balance to the client-side cache, not to the API returning a wrong value; it never claims the API is at fault.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Acceptance criteria: Balance updates immediately after transfer without logout.",
+        "reason": "The tickets contain no acceptance-criteria field; this is invented ticket content presented as if it were part of the ticket structure."
+      },
+      {
+        "quote": "Acceptance criteria: Notification displays new balance post-transfer.",
+        "reason": "MOB-88 has no acceptance-criteria field in the export; this is fabricated ticket content."
+      },
+      {
+        "quote": "Acceptance criteria: Balance cached for 15 minutes.",
+        "reason": "BANK-419 has no acceptance-criteria field in the export; this is fabricated ticket content."
+      }
+    ]
+  }
+}

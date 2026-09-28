@@ -1,0 +1,239 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "regressed from 281\u2013319ms to 35,171\u201372,974ms",
+      "reason": "The analysis correctly states the baseline range (281\u2013319 ms) and the post-release range (35,171\u201372,974 ms, i.e. ~35\u201373 s)."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "now takes 35\u201373 seconds (vs. 0.28\u20130.32 seconds in 4.6.3)",
+      "reason": "The raw numbers are given but the analysis never states the magnitude of the slowdown (hundredfold, ~110\u00d7, ~240\u00d7); it leaves the reader to do the arithmetic."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "regressed from 281\u2013319ms to 35,171\u201372,974ms",
+      "reason": "The analysis gives the overall min\u2013max range but does not describe the progressive worsening within the after window (\u224835 s early, \u224844 s mid, \u224869\u201373 s late) with the relevant timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery (stable at 2,987\u20133,341ms in 4.6.3; 3,011\u20133,402ms in 4.7.0)\u2026Ravi Kumar's comment suggests the account summary query is slow, but logs show it is stable (contradicting his assumption).",
+      "reason": "Correct before/after ranges, explicit statement that it is stable, and direct contradiction of Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand (slight increase from 1,840ms to 1,902ms)",
+      "reason": "Correct figures and the overall framing ('regression in GetStatementLineQuery') makes clear the slowdown is specific to that query, not a general service degradation."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom initially dismissed it as unrelated to statements; Ravi suggested the account summary query, which the logs refute.",
+      "reason": "The analysis mentions Tom's dismissal and the migration's presence in 4.7.0 separately, but never explicitly states that the migration record in the after-log contradicts Tom's claim that nothing in 4.7.0 touched statements."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The migration 20260914_2100_ReindexStatementLines applied in 4.7.0 coincides with the regression.",
+      "reason": "The analysis notes the coincidence and suggests reviewing the migration, but does not frame it as the 'most likely' candidate or present it as an inference; it stays at the level of factual coincidence plus a to-do item."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Logs show thread pool starvation (31 queued items, 0 threads available) but do not explain why (e.g., database changes, resource constraints).",
+      "reason": "The analysis mentions the starvation warning but never infers that it is a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Data variability: Logs are for a single midnight window; cannot confirm if the issue occurs during peak hours.",
+      "reason": "The analysis acknowledges the limited window but does not note the ~5-minute duration, the different days, the small sample count, or that the regression size is therefore indicative rather than precisely measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check migration impact: Review 20260914_2100_ReindexStatementLines (applied in 4.7.0) for changes to GetStatementLineQuery (Tom Becker).",
+      "reason": "The analysis suggests reviewing the migration and analysing DB logs, but does not specifically call for checking the execution plan and indexes, nor for collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts Ravi's suggestion; it never names it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses 'coincides' rather than 'caused' and does not describe any schema change (dropping/rebuilding an index)."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis gives the correct raw timings (281\u2013319 ms \u2192 35,171\u201372,974 ms) and does not state an unsupported multiplier like 10\u00d7 or 2\u00d7."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions thread-pool starvation as an observed log entry but does not name it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "4.7.0 logs show 0 queued items during stable periods; peak load may trigger starvation",
+      "reason": "The after-log contains no statement of the number of queued items during non-starvation periods; the only queue-related line is the single starvation warning at 00:24:11. Claiming the logs 'show 0 queued items during stable periods' is not supported by the log contents."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 190.6
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "regressed from 281\u2013319ms to 35,171\u201372,974ms",
+        "reason": "The analysis correctly states the baseline range (281\u2013319 ms) and the post-release range (35,171\u201372,974 ms, i.e. ~35\u201373 s).",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "now takes 35\u201373 seconds (vs. 0.28\u20130.32 seconds in 4.6.3)",
+        "reason": "The raw numbers are given but the analysis never states the magnitude of the slowdown (hundredfold, ~110\u00d7, ~240\u00d7); it leaves the reader to do the arithmetic.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "regressed from 281\u2013319ms to 35,171\u201372,974ms",
+        "reason": "The analysis gives the overall min\u2013max range but does not describe the progressive worsening within the after window (\u224835 s early, \u224844 s mid, \u224869\u201373 s late) with the relevant timestamps.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery (stable at 2,987\u20133,341ms in 4.6.3; 3,011\u20133,402ms in 4.7.0)\u2026Ravi Kumar's comment suggests the account summary query is slow, but logs show it is stable (contradicting his assumption).",
+        "reason": "Correct before/after ranges, explicit statement that it is stable, and direct contradiction of Ravi's suggestion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "ExportStatementCommand (slight increase from 1,840ms to 1,902ms)",
+        "reason": "Correct figures and the overall framing ('regression in GetStatementLineQuery') makes clear the slowdown is specific to that query, not a general service degradation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "Tom initially dismissed it as unrelated to statements; Ravi suggested the account summary query, which the logs refute.",
+        "reason": "The analysis mentions Tom's dismissal and the migration's presence in 4.7.0 separately, but never explicitly states that the migration record in the after-log contradicts Tom's claim that nothing in 4.7.0 touched statements.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "The migration 20260914_2100_ReindexStatementLines applied in 4.7.0 coincides with the regression.",
+        "reason": "The analysis notes the coincidence and suggests reviewing the migration, but does not frame it as the 'most likely' candidate or present it as an inference; it stays at the level of factual coincidence plus a to-do item.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "Logs show thread pool starvation (31 queued items, 0 threads available) but do not explain why (e.g., database changes, resource constraints).",
+        "reason": "The analysis mentions the starvation warning but never infers that it is a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44 s to ~69 s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "Data variability: Logs are for a single midnight window; cannot confirm if the issue occurs during peak hours.",
+        "reason": "The analysis acknowledges the limited window but does not note the ~5-minute duration, the different days, the small sample count, or that the regression size is therefore indicative rather than precisely measured.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Check migration impact: Review 20260914_2100_ReindexStatementLines (applied in 4.7.0) for changes to GetStatementLineQuery (Tom Becker).",
+        "reason": "The analysis suggests reviewing the migration and analysing DB logs, but does not specifically call for checking the execution plan and indexes, nor for collecting a longer sample from both versions before concluding.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts Ravi's suggestion; it never names it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis uses 'coincides' rather than 'caused' and does not describe any schema change (dropping/rebuilding an index).",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis gives the correct raw timings (281\u2013319 ms \u2192 35,171\u201372,974 ms) and does not state an unsupported multiplier like 10\u00d7 or 2\u00d7.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis mentions thread-pool starvation as an observed log entry but does not name it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "4.7.0 logs show 0 queued items during stable periods; peak load may trigger starvation",
+        "reason": "The after-log contains no statement of the number of queued items during non-starvation periods; the only queue-related line is the single starvation warning at 00:24:11. Claiming the logs 'show 0 queued items during stable periods' is not supported by the log contents."
+      }
+    ]
+  }
+}

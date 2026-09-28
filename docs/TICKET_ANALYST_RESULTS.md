@@ -20,20 +20,25 @@ step with it.
 
 ## Current standing
 
-Five runs have been measured on the full eighteen cases with the judge of
+Six runs have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsupported | GB |
 |---|---|---|---|---|---|---|---|---|
 | **Qwen3-VL-8B-Instruct-imatrix** | Q3_K_M | **49.7 (48–52)** | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
+| Qwen3-VL-8B-Thinking-imatrix ¹ | Q4_K_M | 47.3 (46–49) | **64%** | 61.6 | 9.9 | 6/114 | 42 | 13.0 |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
 
-All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats, num_ctx 32768 /
-num_predict 8192. Judge grounding stayed clean: 0–2 ungrounded, 0 omitted
-throughout.
+All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Instruct builds
+ran at num_ctx 32768 / num_predict 8192, the Thinking build at 49152 / 16384,
+which it requires. Judge grounding stayed clean: 0–4 ungrounded, 0–1 omitted.
+
+¹ **The Thinking build lost 9 of its 54 runs to empty content**, so its figures are
+not like-for-like — see below. Its traps are out of 114 rather than 162 for the
+same reason.
 
 ### Generation beats size, by a wide margin
 
@@ -51,6 +56,42 @@ The corollary is that **this build is under-quantized on purpose and should be
 rebuilt at Q4_K_M** - Q3_K_M was only ever defensible while it was paired with the
 32B at the same quant, and it is now the one build holding the Instruct track back.
 Expect it to go up.
+
+### Reasoning did not pay for itself, and it failed where it was needed most
+
+The Thinking build at Q4_K_M went into runaway reasoning on **9 of 54 runs**,
+returning empty content after exhausting `num_predict`. Eight of the nine were
+telemetry cases:
+
+```
+C15 x2   C17 x2   C18 x2   C14   C16   C10
+```
+
+Those score 0 and are not retried, so the delivered figures understate the model.
+Over the 45 runs that completed:
+
+| | As delivered | Completed runs only |
+|---|---|---|
+| Quality | 47.3 | 56.7 |
+| C01–C13 | 61.6 | 63.6 |
+| C14–C18 | 9.9 | 19.9 |
+
+**Neither number flatters it against its own Instruct sibling.** On prose it
+reaches 63.6 at best against the Instruct build's 57.9 — a real gain. On telemetry
+it reaches 19.9 at best against the Instruct build's **28.4**, and it only achieves
+that by not answering a third of those cases. Reasoning made it better at reading
+tickets and worse at reading logs, which is the opposite of what the extra budget
+was for.
+
+It is also expensive: **5,244 output tokens a case against the Instruct build's
+815, and 53.1s against 7.3s** — seven times the time and six times the tokens, for
+a lower delivered score.
+
+Raising `num_predict` is the wrong lever here; Qwen warns that thinking models loop
+at low temperatures, and the fleet runs at 0.3 against a card value of 1.0. If this
+build is worth revisiting, raise temperature toward 1.0 first — but on this evidence
+the Instruct sibling is the better model at the same size, for a seventh of the
+time.
 
 ### The top two are tied, but they are not the same model
 

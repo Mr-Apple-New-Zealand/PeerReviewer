@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31: Errors begin (per Sam Okafor's comment at 09:52: \"errors starting at around 09:31\").",
+      "reason": "The analysis states impact started at 09:31 but never explicitly states the config deploy OPS-81 occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert triggers (TransferErrorRate > 20%).  \n- **09:52**: Incident declared by Sam Okafor (error rate at 64%).",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:31: Rollback of OPS-81 config deploy initiated.  \n- **10:42**: Transfer error rate drops to under 1%.  \n- **10:44**: Rollback complete.",
+      "reason": "The rollback start (10:31) and recovery (10:42) are present, but the incident resolution at 10:50 is not mentioned anywhere in the analysis."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to detect: 16 minutes (from 09:31 error start to 09:47 alert).",
+      "reason": "Exactly matches the expected 16 minutes from 09:31 to 09:47."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to recover: 55 minutes (from 09:47 alert to 10:42 error rate recovery).",
+      "reason": "55 minutes from detection (09:47 to 10:42) with the start point explicitly stated, which is one of the acceptable options."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against, causing 401 errors (\"IDX10503: Signature validation failed\").",
+      "reason": "All key elements are present: OPS-81, JWT signing key rotation, Transactions API not updated, 401 errors, and the specific error code IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow queries are only mentioned as Priya Nair's suggestion in the timeline, not asserted as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min detect, 55 min recover) are directly supported by timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 73.63
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31: Errors begin (per Sam Okafor's comment at 09:52: \"errors starting at around 09:31\").",
+        "reason": "The analysis states impact started at 09:31 but never explicitly states the config deploy OPS-81 occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert triggers (TransferErrorRate > 20%).  \n- **09:52**: Incident declared by Sam Okafor (error rate at 64%).",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback of OPS-81 config deploy initiated.  \n- **10:42**: Transfer error rate drops to under 1%.  \n- **10:44**: Rollback complete.",
+        "reason": "The rollback start (10:31) and recovery (10:42) are present, but the incident resolution at 10:50 is not mentioned anywhere in the analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 16 minutes (from 09:31 error start to 09:47 alert).",
+        "reason": "Exactly matches the expected 16 minutes from 09:31 to 09:47.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 55 minutes (from 09:47 alert to 10:42 error rate recovery).",
+        "reason": "55 minutes from detection (09:47 to 10:42) with the start point explicitly stated, which is one of the acceptable options.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against, causing 401 errors (\"IDX10503: Signature validation failed\").",
+        "reason": "All key elements are present: OPS-81, JWT signing key rotation, Transactions API not updated, 401 errors, and the specific error code IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database/slow queries are only mentioned as Priya Nair's suggestion in the timeline, not asserted as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min detect, 55 min recover) are directly supported by timestamp pairs in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

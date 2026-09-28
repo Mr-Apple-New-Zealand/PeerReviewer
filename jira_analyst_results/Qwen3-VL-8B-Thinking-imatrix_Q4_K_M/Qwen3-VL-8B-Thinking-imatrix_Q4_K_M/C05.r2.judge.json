@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both describe identical issues (stale balance after transfer), but BANK-425 was created earlier (2026-09-05 vs. 2026-09-13) and has a documented root cause (cache not invalidated).",
+      "reason": "The analysis clearly identifies BANK-425 and BANK-440 as the same web balance-staleness issue and calls them duplicates."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close as duplicate of BANK-425 (created earlier, same root cause). *Why*: BANK-425 has a documented fix (clear BalanceCache on transfer) and is the original ticket.",
+      "reason": "The analysis recommends keeping BANK-425 (older, has root-cause analysis) and closing BANK-440 as a duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 involves push notifications showing pre-transfer balances (different issue).",
+      "reason": "The analysis identifies MOB-88 as a separate mobile push-notification issue with a different cause (event switching), in progress with Ravi Kumar, and explicitly not a duplicate."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 has a documented fix (clear BalanceCache on transfer) and is the original ticket.",
+      "reason": "The analysis identifies the 15-minute BalanceCache not being invalidated as the root cause and clearing it on transfer as the fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419: Completed cache implementation (3.1.4) but doesn't address cache invalidation after transfers (the root cause in BANK-425/BANK-440).",
+      "reason": "The analysis notes the connection between BANK-419's cache and the bug but does not frame it as a probable regression or recommend linking the tickets, so the inference is only partially conveyed."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, unassigned, no comments. - **BANK-425**: Open, unassigned, has a comment with root cause and fix.",
+      "reason": "Both duplicate tickets are explicitly stated as unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a different issue and unrelated to dashboard caching; it never calls it a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the staleness to the front-end cache and never claims the balance API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No screenshots or API details for BANK-440.",
+      "reason": "The ticket explicitly states 'The API is fine: GET /api/user/balance returns the correct new balance immediately after the transfer,' so API details are present in the ticket."
+    },
+    {
+      "quote": "Acceptance criteria: Balance updates immediately after transfer without logout.",
+      "reason": "The ticket has no 'Acceptance criteria' field; this is an invented structural element not present in the export."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 97.25
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Both describe identical issues (stale balance after transfer), but BANK-425 was created earlier (2026-09-05 vs. 2026-09-13) and has a documented root cause (cache not invalidated).",
+        "reason": "The analysis clearly identifies BANK-425 and BANK-440 as the same web balance-staleness issue and calls them duplicates.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close as duplicate of BANK-425 (created earlier, same root cause). *Why*: BANK-425 has a documented fix (clear BalanceCache on transfer) and is the original ticket.",
+        "reason": "The analysis recommends keeping BANK-425 (older, has root-cause analysis) and closing BANK-440 as a duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 involves push notifications showing pre-transfer balances (different issue).",
+        "reason": "The analysis identifies MOB-88 as a separate mobile push-notification issue with a different cause (event switching), in progress with Ravi Kumar, and explicitly not a duplicate.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425 has a documented fix (clear BalanceCache on transfer) and is the original ticket.",
+        "reason": "The analysis identifies the 15-minute BalanceCache not being invalidated as the root cause and clearing it on transfer as the fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419: Completed cache implementation (3.1.4) but doesn't address cache invalidation after transfers (the root cause in BANK-425/BANK-440).",
+        "reason": "The analysis notes the connection between BANK-419's cache and the bug but does not frame it as a probable regression or recommend linking the tickets, so the inference is only partially conveyed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, unassigned, no comments. - **BANK-425**: Open, unassigned, has a comment with root cause and fix.",
+        "reason": "Both duplicate tickets are explicitly stated as unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a different issue and unrelated to dashboard caching; it never calls it a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis attributes the staleness to the front-end cache and never claims the balance API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No screenshots or API details for BANK-440.",
+        "reason": "The ticket explicitly states 'The API is fine: GET /api/user/balance returns the correct new balance immediately after the transfer,' so API details are present in the ticket."
+      },
+      {
+        "quote": "Acceptance criteria: Balance updates immediately after transfer without logout.",
+        "reason": "The ticket has no 'Acceptance criteria' field; this is an invented structural element not present in the export."
+      }
+    ]
+  }
+}

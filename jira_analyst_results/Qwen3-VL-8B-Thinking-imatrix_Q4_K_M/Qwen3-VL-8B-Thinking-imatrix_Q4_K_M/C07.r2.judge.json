@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key rotation in config deploy **OPS-81** (at 09:30 NZST) was not synchronized with the Transactions API.",
+      "reason": "The analysis states OPS-81 at 09:30 and problem start at 09:31, matching the expected facts."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Detection: 09:47 NZST (monitoring alert triggered for `TransferErrorRate > 20%`)  - **Incident declared**: 09:52 NZST (Sam Okafor confirmed 64% error rate)",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Rollback initiated: 10:31 NZST (OPS-81 config revert started)  - **Recovery achieved**: 10:42 NZST (error rate dropped below 1%)  - **Incident resolved**: 10:50 NZST (ticket closed)",
+      "reason": "All three timestamps (10:31 rollback, 10:42 recovery below 1%, 10:50 resolution) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to detect: 16 minutes (from 09:31 to 09:47)",
+      "reason": "Correctly states 16 minutes from 09:31 to 09:47."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to recover: 50 minutes (from 09:52 to 10:42)",
+      "reason": "The start point used is 09:52 (incident declared), which is not one of the acceptable start points (09:31 impact start or 09:47 detection) listed in the key; the math is correct for that interval but the interval itself does not match the expected options."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key rotation in config deploy **OPS-81** (at 09:30 NZST) was not synchronized with the Transactions API. Auth service began issuing tokens with the new key, but the Transactions API continued validating against the old key, causing `IDX10503: Signature validation failed` errors (401s).",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API, 401, IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention a post-incident review or the date 2026-09-16 anywhere."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the cause to the database or slow queries; it correctly identifies the JWT key rotation."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min from 09:31\u201309:47, 50 min from 09:52\u201310:42) are supported by timestamp pairs present in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 74.57
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The JWT signing key rotation in config deploy **OPS-81** (at 09:30 NZST) was not synchronized with the Transactions API.",
+        "reason": "The analysis states OPS-81 at 09:30 and problem start at 09:31, matching the expected facts.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Detection: 09:47 NZST (monitoring alert triggered for `TransferErrorRate > 20%`)  - **Incident declared**: 09:52 NZST (Sam Okafor confirmed 64% error rate)",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Rollback initiated: 10:31 NZST (OPS-81 config revert started)  - **Recovery achieved**: 10:42 NZST (error rate dropped below 1%)  - **Incident resolved**: 10:50 NZST (ticket closed)",
+        "reason": "All three timestamps (10:31 rollback, 10:42 recovery below 1%, 10:50 resolution) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 16 minutes (from 09:31 to 09:47)",
+        "reason": "Correctly states 16 minutes from 09:31 to 09:47.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 50 minutes (from 09:52 to 10:42)",
+        "reason": "The start point used is 09:52 (incident declared), which is not one of the acceptable start points (09:31 impact start or 09:47 detection) listed in the key; the math is correct for that interval but the interval itself does not match the expected options.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key rotation in config deploy **OPS-81** (at 09:30 NZST) was not synchronized with the Transactions API. Auth service began issuing tokens with the new key, but the Transactions API continued validating against the old key, causing `IDX10503: Signature validation failed` errors (401s).",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API, 401, IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis does not mention a post-incident review or the date 2026-09-16 anywhere.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the cause to the database or slow queries; it correctly identifies the JWT key rotation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min from 09:31\u201309:47, 50 min from 09:52\u201310:42) are supported by timestamp pairs present in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

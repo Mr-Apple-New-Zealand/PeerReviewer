@@ -1,0 +1,187 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer timeout on mobile web (ERR_TXN_504) triggers a duplicate debit when users retry. The source account is debited twice while the destination is credited once, confirmed by three customer reports.",
+      "reason": "The analysis clearly states the duplicate debit and single credit resulting from retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects: 3.1.4 (production). Fix target: 3.2.0 (release due 2026-09-24).",
+      "reason": "The analysis correctly identifies the affected version as 3.1.4 and the fix target as 3.2.0 with the 2026-09-24 release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause: retry requests lack idempotency keys (treated as new transfers) and debit/credit operations are not transactionally bound.",
+      "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress (Priya Nair assigned) \u2026 PR #218 (fixing idempotency and transaction binding) is pending code review.",
+      "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Finance Ops must reverse 3 duplicate debits (no ticket for reversal process). \u2026 Marcus Reid (Reporter): Coordinate with Finance Ops to reverse 3 duplicate debits (per Aroha Walker's comment).",
+      "reason": "The analysis identifies three affected customers, the need for manual Finance reversal, and Marcus Reid's role in raising it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance Ops must reverse 3 duplicate debits (no ticket for reversal process).",
+      "reason": "The analysis conveys that the reversal has not yet been raised or completed, though it frames it as a dependency/gap rather than explicitly stating the ticket does not confirm it."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Complete code review of PR #218 (idempotency + transaction binding). \u2026 Marcus Reid (Reporter): Coordinate with Finance Ops to reverse 3 duplicate debits (per Aroha Walker's comment).",
+      "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are clearly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is pending code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states desktop is not affected ('desktop web lacks retry button; no repro on desktop'), consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No other blockers noted.",
+      "reason": "The ticket only mentions PR #218 awaiting code review; it does not state or imply that there are no other blockers."
+    },
+    {
+      "quote": "Frontend must implement idempotency headers (PR #218 only adds backend support).",
+      "reason": "The ticket describes PR #218 as adding 'Idempotency-Key header support to the transfer endpoint' without specifying it is backend-only or that a separate frontend implementation is required."
+    },
+    {
+      "quote": "No test coverage for idempotency headers in retry flows.",
+      "reason": "The ticket contains no information about test coverage; this is an unsupported factual assertion."
+    },
+    {
+      "quote": "No confirmation if PR #218 addresses all mobile web environments (e.g., iOS/Android).",
+      "reason": "The ticket refers to 'mobile web' (a web interface on mobile devices) and does not mention native iOS or Android apps; introducing those platforms is unsupported."
+    },
+    {
+      "quote": "Missing: Explicit acceptance criteria for edge cases (e.g., network recovery during retry).",
+      "reason": "The ticket does not discuss edge cases or network recovery scenarios; this is an unsupported observation about the ticket's contents."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 105.42
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer timeout on mobile web (ERR_TXN_504) triggers a duplicate debit when users retry. The source account is debited twice while the destination is credited once, confirmed by three customer reports.",
+        "reason": "The analysis clearly states the duplicate debit and single credit resulting from retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects: 3.1.4 (production). Fix target: 3.2.0 (release due 2026-09-24).",
+        "reason": "The analysis correctly identifies the affected version as 3.1.4 and the fix target as 3.2.0 with the 2026-09-24 release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Root cause: retry requests lack idempotency keys (treated as new transfers) and debit/credit operations are not transactionally bound.",
+        "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress (Priya Nair assigned) \u2026 PR #218 (fixing idempotency and transaction binding) is pending code review.",
+        "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance Ops must reverse 3 duplicate debits (no ticket for reversal process). \u2026 Marcus Reid (Reporter): Coordinate with Finance Ops to reverse 3 duplicate debits (per Aroha Walker's comment).",
+        "reason": "The analysis identifies three affected customers, the need for manual Finance reversal, and Marcus Reid's role in raising it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Finance Ops must reverse 3 duplicate debits (no ticket for reversal process).",
+        "reason": "The analysis conveys that the reversal has not yet been raised or completed, though it frames it as a dependency/gap rather than explicitly stating the ticket does not confirm it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Complete code review of PR #218 (idempotency + transaction binding). \u2026 Marcus Reid (Reporter): Coordinate with Finance Ops to reverse 3 duplicate debits (per Aroha Walker's comment).",
+        "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are clearly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is pending code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states desktop is not affected ('desktop web lacks retry button; no repro on desktop'), consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No other blockers noted.",
+        "reason": "The ticket only mentions PR #218 awaiting code review; it does not state or imply that there are no other blockers."
+      },
+      {
+        "quote": "Frontend must implement idempotency headers (PR #218 only adds backend support).",
+        "reason": "The ticket describes PR #218 as adding 'Idempotency-Key header support to the transfer endpoint' without specifying it is backend-only or that a separate frontend implementation is required."
+      },
+      {
+        "quote": "No test coverage for idempotency headers in retry flows.",
+        "reason": "The ticket contains no information about test coverage; this is an unsupported factual assertion."
+      },
+      {
+        "quote": "No confirmation if PR #218 addresses all mobile web environments (e.g., iOS/Android).",
+        "reason": "The ticket refers to 'mobile web' (a web interface on mobile devices) and does not mention native iOS or Android apps; introducing those platforms is unsupported."
+      },
+      {
+        "quote": "Missing: Explicit acceptance criteria for edge cases (e.g., network recovery during retry).",
+        "reason": "The ticket does not discuss edge cases or network recovery scenarios; this is an unsupported observation about the ticket's contents."
+      }
+    ]
+  }
+}
