@@ -27,7 +27,8 @@ record. Everything earlier is superseded — see below.
 |---|---|---|---|---|---|---|---|---|
 | **Qwen3-VL-8B-Instruct-imatrix** | Q3_K_M | **49.7 (48–52)** | **63%** | 57.9 | **28.4** | 19/162 | 67 | **9.4** |
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 49.2 (49–50) | 54% | **60.6** | 19.5 | **7/162** | 37 | 32.5 |
-| Qwen3-VL-8B-Thinking-imatrix ¹ | Q4_K_M | 47.3 (46–49) | **64%** | 61.6 | 9.9 | 6/114 | 42 | 13.0 |
+| Qwen3-VL-8B-Thinking-imatrix ¹ | Q4_K_M | 47.3 (46–49) | 64% | 61.6 | 9.9 | 6/114 | 42 | 13.0 |
+| Qwen3-VL-8B-Thinking-imatrix ² | Q4_K_M | *52.3 (48–54)* | 60% | 62.9 | 24.7 | 7/162 | 59 | 13.0 |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | **15** | 56.3 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
@@ -35,6 +36,9 @@ record. Everything earlier is superseded — see below.
 All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Instruct builds
 ran at num_ctx 32768 / num_predict 8192, the Thinking build at 49152 / 16384,
 which it requires. Judge grounding stayed clean: 0–4 ungrounded, 0–1 omitted.
+
+² Run at **temperature 1.0**, so it is excluded from the generated leaderboard and
+italicised here — see below. It is the same build as ¹, and the better one.
 
 ¹ **The Thinking build lost 9 of its 54 runs to empty content**, so its figures are
 not like-for-like — see below. Its traps are out of 114 rather than 162 for the
@@ -56,6 +60,44 @@ The corollary is that **this build is under-quantized on purpose and should be
 rebuilt at Q4_K_M** - Q3_K_M was only ever defensible while it was paired with the
 32B at the same quant, and it is now the one build holding the Instruct track back.
 Expect it to go up.
+
+### Temperature 1.0 fixes the Thinking build, and takes it off the board
+
+Re-running the 8B Thinking at temperature 1.0 — the card's own value, against the
+fleet's 0.3 — removed the failure completely:
+
+| | temp 0.3 | temp 1.0 |
+|---|---|---|
+| Empty-content runs | **9 of 54** | **0** |
+| Quality (delivered) | 47.3 | **52.3** |
+| C01–C13 | 63.6 † | 62.9 |
+| C14–C18 | 19.9 † | **24.7** |
+| Traps | 6/114 | 7/162 |
+| Ungrounded | 4 | 1 |
+| Output tokens a case | 5,244 | **2,885** |
+| Time a case | 53.1s | **26.6s** |
+
+† over completed runs only, since 9 produced no analysis.
+
+So the looping was a low-temperature artefact, exactly as Qwen's guidance says. At
+1.0 it answers every case, halves its output and its time, and gains 5 points of
+delivered quality. Note where the gain is: prose is unchanged at 62.9 against 63.6,
+so the whole improvement is telemetry plus no longer forfeiting nine runs.
+
+**52.3 would top the leaderboard, and it cannot be put there.** Temperature changes
+what a model writes, so `--compare` excludes the run with
+`different temperature 1.0 (ranked runs: 0.3)`. That is the tool being right:
+unlike `num_ctx`, this is not a free variable.
+
+**The decision it forces.** A single fleet temperature cannot suit both tracks — the
+cards ask for 0.7 on Instruct and 1.0 on Thinking, and 0.3 is below both. The
+consistent fix is to treat temperature the way `num_ctx` is already treated: a
+per-track setting, with Instruct and Thinking builds compared within their own
+track and never across it. Thinking builds already cannot share the Instruct memory
+column, for the same reason.
+
+Until that is settled, read 52.3 as this build's real capability and 47.3 as what it
+delivers under the fleet's current convention.
 
 ### Reasoning did not pay for itself, and it failed where it was needed most
 

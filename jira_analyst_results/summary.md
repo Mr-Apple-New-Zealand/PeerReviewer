@@ -2,7 +2,7 @@
 
 | Setting | Value |
 |---|---|
-| generated | 2026-09-28T13:33:25 |
+| generated | 2026-09-28T16:11:01 |
 | models | 6 |
 | cases_sha | ec04f03cff34 |
 | judge | Qwen3.8-27B-imatrix:Q4_K_S |
@@ -42,6 +42,10 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 | Qwen2.5-VL-72B-Instruct:Q4_K_S | 36 | 2026-09-27T05:35:07 | 32768 | 8192 | 3 | 980b243 | jira_analyst_results/Qwen2.5-VL-72B-Instruct_Q4_K_S |
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 39 | 2026-09-27T10:11:04 | 32768 | 8192 | 3 | 044571b | jira_analyst_results/Qwen2.5-VL-7B-Instruct-imatrix_Q4_K_S |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 38 | 2026-09-27T08:35:06 | 32768 | 8192 | 3 | dde479a | jira_analyst_results/Qwen2.5-VL-3B-Instruct-imatrix_Q4_K_M |
+
+## Not ranked
+
+- Qwen3-VL-8B-Thinking-imatrix:Q4_K_M in `jira_analyst_results/Qwen3-VL-8B-Thinking-imatrix_Q4_K_M-v2` (run 43): different temperature 1.0 (ranked runs: 0.3)
 
 ## Score per case
 

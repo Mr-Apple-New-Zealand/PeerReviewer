@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-405 is blocked by OPS-77 until Northwind's CA certificates are in staging, preventing the required end-to-end test (AC2).",
+      "reason": "The analysis clearly states the blocking relationship, the reason (end-to-end test can't run without certs in staging), and that OPS-77 is waiting for Northwind's CA bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "OPS-77's due date (2026-09-10) was missed, with no reply from Northwind despite 2 follow-ups (2026-09-05 and 2026-09-11).",
+      "reason": "The analysis captures the overdue due date and no-reply status, but does not mention that the partner manager was asked to escalate, which is part of the expected point."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-405's release date (2026-09-24) is fixed, but OPS-77's unresolved status creates uncertainty about timeline.",
+      "reason": "The analysis states the release date and the 2-day testing requirement, but omits the sprint end date (2026-09-22) and contains a date calculation error (2026-09-17 is not 2 days before 2026-09-24)."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No concrete timeline for CA bundle delivery from Northwind (only vague \"early next week\" from 2026-09-05).",
+      "reason": "The analysis presents the release as uncertain and at risk, notes there is no committed date from Northwind, and uses conditional language ('risks missing the release'), satisfying the inference requirement."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-405's code is merged (behind MTLS_PARTNER flag), but AC2 remains unmet.",
+      "reason": "The analysis mentions the code is merged behind the MTLS_PARTNER flag but does not state it is 'off by default' or explicitly that the code is complete/done."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Northwind's CA bundle is required for *both* staging and production (per OPS-77 description).",
+      "reason": "The analysis covers the staging-and-production requirement but does not mention the hard external deadline of 1 October 2026 when Northwind requires mTLS."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan (OPS-77 owner) must escalate Northwind again to confirm CA bundle delivery timeline.",
+      "reason": "The analysis recommends escalation through Jo Tan but does not mention the partner manager specifically, and does not explicitly recommend shipping 3.2.0 with the MTLS_PARTNER flag off as a fallback plan."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states the certificates have not been received and OPS-77 is unresolved; it never claims they have been installed or that OPS-77 is done."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states there is no concrete timeline from Northwind and does not attribute any specific committed delivery date to them."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "If OPS-77 is resolved by 2026-09-17 (2 days before the release date), Ravi Kumar could complete testing and include it",
+      "reason": "2026-09-17 is seven days before the 2026-09-24 release date, not two days; the correct date for '2 days before the release' would be 2026-09-22. This is a calculation error producing an unsupported date."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 118.19
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "BANK-405 is blocked by OPS-77 until Northwind's CA certificates are in staging, preventing the required end-to-end test (AC2).",
+        "reason": "The analysis clearly states the blocking relationship, the reason (end-to-end test can't run without certs in staging), and that OPS-77 is waiting for Northwind's CA bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "OPS-77's due date (2026-09-10) was missed, with no reply from Northwind despite 2 follow-ups (2026-09-05 and 2026-09-11).",
+        "reason": "The analysis captures the overdue due date and no-reply status, but does not mention that the partner manager was asked to escalate, which is part of the expected point.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "BANK-405's release date (2026-09-24) is fixed, but OPS-77's unresolved status creates uncertainty about timeline.",
+        "reason": "The analysis states the release date and the 2-day testing requirement, but omits the sprint end date (2026-09-22) and contains a date calculation error (2026-09-17 is not 2 days before 2026-09-24).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "No concrete timeline for CA bundle delivery from Northwind (only vague \"early next week\" from 2026-09-05).",
+        "reason": "The analysis presents the release as uncertain and at risk, notes there is no committed date from Northwind, and uses conditional language ('risks missing the release'), satisfying the inference requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "BANK-405's code is merged (behind MTLS_PARTNER flag), but AC2 remains unmet.",
+        "reason": "The analysis mentions the code is merged behind the MTLS_PARTNER flag but does not state it is 'off by default' or explicitly that the code is complete/done.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "Northwind's CA bundle is required for *both* staging and production (per OPS-77 description).",
+        "reason": "The analysis covers the staging-and-production requirement but does not mention the hard external deadline of 1 October 2026 when Northwind requires mTLS.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan (OPS-77 owner) must escalate Northwind again to confirm CA bundle delivery timeline.",
+        "reason": "The analysis recommends escalation through Jo Tan but does not mention the partner manager specifically, and does not explicitly recommend shipping 3.2.0 with the MTLS_PARTNER flag off as a fallback plan.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis consistently states the certificates have not been received and OPS-77 is unresolved; it never claims they have been installed or that OPS-77 is done.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states there is no concrete timeline from Northwind and does not attribute any specific committed delivery date to them.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "If OPS-77 is resolved by 2026-09-17 (2 days before the release date), Ravi Kumar could complete testing and include it",
+        "reason": "2026-09-17 is seven days before the 2026-09-24 release date, not two days; the correct date for '2 days before the release' would be 2026-09-22. This is a calculation error producing an unsupported date."
+      }
+    ]
+  }
+}

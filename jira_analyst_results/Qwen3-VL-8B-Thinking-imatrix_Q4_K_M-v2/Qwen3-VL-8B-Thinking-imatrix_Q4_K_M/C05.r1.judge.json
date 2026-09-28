@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440.",
+      "reason": "The analysis explicitly identifies BANK-425 as a duplicate of BANK-440 and describes both as web dashboard/home screen balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-440 as duplicate of BANK-425 (identical symptoms, root cause, and solution). 2. Assign BANK-425 to Hana Sato to implement cache invalidation on transfer success.",
+      "reason": "The analysis recommends keeping BANK-425 (which is older and has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No overlap with BANK-440's web balance issue; root cause is event timing (uses TransferRequested instead of TransferCompleted).",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains it is a mobile push-notification problem with a different cause (TransferRequested event), and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425's comment confirms the root cause (caching in BalanceCache not invalidated on transfers).",
+      "reason": "The analysis identifies the BalanceCache not being invalidated after a transfer as the cause and the fix as clearing it on transfer success, matching the expected point."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is the root cause of the problem (BANK-440/BANK-425) but not a duplicate.",
+      "reason": "The analysis states the causal relationship as definitive fact ('is the root cause') rather than as a likely/possible inference, and does not explicitly recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: Open | Owner: Unassigned | Priority: Medium",
+      "reason": "Both BANK-440 and BANK-425 are explicitly listed as 'Owner: Unassigned' in the analysis."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'The API returns correct balances immediately, confirming the issue is frontend-related,' which aligns with the ticket and does not claim the API returns a wrong value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 76.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440.",
+        "reason": "The analysis explicitly identifies BANK-425 as a duplicate of BANK-440 and describes both as web dashboard/home screen balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-440 as duplicate of BANK-425 (identical symptoms, root cause, and solution). 2. Assign BANK-425 to Hana Sato to implement cache invalidation on transfer success.",
+        "reason": "The analysis recommends keeping BANK-425 (which is older and has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "No overlap with BANK-440's web balance issue; root cause is event timing (uses TransferRequested instead of TransferCompleted).",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains it is a mobile push-notification problem with a different cause (TransferRequested event), and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425's comment confirms the root cause (caching in BalanceCache not invalidated on transfers).",
+        "reason": "The analysis identifies the BalanceCache not being invalidated after a transfer as the cause and the fix as clearing it on transfer success, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is the root cause of the problem (BANK-440/BANK-425) but not a duplicate.",
+        "reason": "The analysis states the causal relationship as definitive fact ('is the root cause') rather than as a likely/possible inference, and does not explicitly recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Status: Open | Owner: Unassigned | Priority: Medium",
+        "reason": "Both BANK-440 and BANK-425 are explicitly listed as 'Owner: Unassigned' in the analysis.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'The API returns correct balances immediately, confirming the issue is frontend-related,' which aligns with the ticket and does not claim the API returns a wrong value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,255 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "now taking 35\u201372 seconds (vs. 280\u2013320ms in 4.6.3)",
+      "reason": "The analysis gives the correct before range (~280-320ms vs actual 281-319ms) and after range (35-72s vs actual 35.2-73.0s), with the exact 72974ms value also quoted, conveying the regression magnitude."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states the slowdown as a multiplier (e.g., ~100x, ~110x, ~240x); it only gives the raw before/after numbers without computing the ratio."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Slows from **297ms (avg.)** to **35\u201372s** (log: `Long-running request GetStatementLineQuery took 72974ms`).",
+      "reason": "The analysis gives a flat range (35-72s) but does not describe the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s) with timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery: Stable (3,000\u20133,400ms pre/post, no regression).",
+      "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and explicitly contradicts Ravi Kumar's suggestion, matching the expected point."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand (1840ms before, 1902ms after) is never mentioned in the analysis, so the point that the regression is specific to the line query and not a general service slowdown is not made."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The release notes explicitly mention no statement-related changes, but logs confirm a migration (20260914_2100_ReindexStatementLines) was applied post-release.",
+      "reason": "The analysis correctly identifies the contradiction with Tom Becker's claim and names the migration, but incorrectly says it was applied 'post-release' when the log shows it was applied 3 seconds after the 4.7.0 app started (i.e., during release)."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference**: The migration likely reindexed statement data, but logs confirm no direct SQL query changes (e.g., `GetStatementLineQuery` code unchanged).",
+      "reason": "The analysis presents the migration as the most likely place to look, labels it as an inference, and notes the logs don't establish causation, satisfying the inference checkpoint."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "thread pool starvation (31 queued items) coincides with the regression",
+      "reason": "The analysis mentions the starvation event but does not infer that it is a consequence of requests piling up behind the slow query rather than an independent cause, nor does it note the timing alignment with the 44s\u219269s jump."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the limited sample size (~5-6 minute windows, few samples per query, different days, nothing in between) or note that the regression magnitude is indicative rather than precisely measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Compare `GetStatementLineQuery` SQL execution plans pre/post-migration (e.g., via `EXPLAIN ANALYZE`).",
+      "reason": "The analysis covers checking execution plans and indexes against the migration and notes Tom Becker as owner with his belief, but does not recommend collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts Ravi's suggestion; it does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis labels the migration's effect as an inference ('likely reindexed') and does not state as fact what the migration did to the schema."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state an incorrect magnitude such as 10x or 2x; it gives the raw numbers without a wrong multiplier."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name thread pool starvation as the root cause; it lists it as a coinciding symptom to investigate."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "logs confirm no direct SQL query changes (e.g., `GetStatementLineQuery` code unchanged)",
+      "reason": "The attached logs contain only request timing entries and a migration notice; they do not include source code or SQL statements, so they cannot confirm that query code is unchanged."
+    },
+    {
+      "quote": "logs confirm a migration (20260914_2100_ReindexStatementLines) was applied post-release",
+      "reason": "The log shows the migration was applied at 21:05:36, three seconds after the 4.7.0 app started at 21:05:33, meaning it was applied during release startup, not post-release."
+    },
+    {
+      "quote": "The release notes explicitly mention no statement-related changes",
+      "reason": "There are no 'release notes' in the ticket; the statement comes from Tom Becker's comment, which is a personal assertion, not a formal release document."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 147.61
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "now taking 35\u201372 seconds (vs. 280\u2013320ms in 4.6.3)",
+        "reason": "The analysis gives the correct before range (~280-320ms vs actual 281-319ms) and after range (35-72s vs actual 35.2-73.0s), with the exact 72974ms value also quoted, conveying the regression magnitude.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "The analysis never states the slowdown as a multiplier (e.g., ~100x, ~110x, ~240x); it only gives the raw before/after numbers without computing the ratio.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "Slows from **297ms (avg.)** to **35\u201372s** (log: `Long-running request GetStatementLineQuery took 72974ms`).",
+        "reason": "The analysis gives a flat range (35-72s) but does not describe the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s) with timestamps.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery: Stable (3,000\u20133,400ms pre/post, no regression).",
+        "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and explicitly contradicts Ravi Kumar's suggestion, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand (1840ms before, 1902ms after) is never mentioned in the analysis, so the point that the regression is specific to the line query and not a general service slowdown is not made.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "The release notes explicitly mention no statement-related changes, but logs confirm a migration (20260914_2100_ReindexStatementLines) was applied post-release.",
+        "reason": "The analysis correctly identifies the contradiction with Tom Becker's claim and names the migration, but incorrectly says it was applied 'post-release' when the log shows it was applied 3 seconds after the 4.7.0 app started (i.e., during release).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "**Inference**: The migration likely reindexed statement data, but logs confirm no direct SQL query changes (e.g., `GetStatementLineQuery` code unchanged).",
+        "reason": "The analysis presents the migration as the most likely place to look, labels it as an inference, and notes the logs don't establish causation, satisfying the inference checkpoint.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "thread pool starvation (31 queued items) coincides with the regression",
+        "reason": "The analysis mentions the starvation event but does not infer that it is a consequence of requests piling up behind the slow query rather than an independent cause, nor does it note the timing alignment with the 44s\u219269s jump.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the limited sample size (~5-6 minute windows, few samples per query, different days, nothing in between) or note that the regression magnitude is indicative rather than precisely measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Compare `GetStatementLineQuery` SQL execution plans pre/post-migration (e.g., via `EXPLAIN ANALYZE`).",
+        "reason": "The analysis covers checking execution plans and indexes against the migration and notes Tom Becker as owner with his belief, but does not recommend collecting a longer sample from both versions before concluding.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts Ravi's suggestion; it does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis labels the migration's effect as an inference ('likely reindexed') and does not state as fact what the migration did to the schema.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis does not state an incorrect magnitude such as 10x or 2x; it gives the raw numbers without a wrong multiplier.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis does not name thread pool starvation as the root cause; it lists it as a coinciding symptom to investigate.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "logs confirm no direct SQL query changes (e.g., `GetStatementLineQuery` code unchanged)",
+        "reason": "The attached logs contain only request timing entries and a migration notice; they do not include source code or SQL statements, so they cannot confirm that query code is unchanged."
+      },
+      {
+        "quote": "logs confirm a migration (20260914_2100_ReindexStatementLines) was applied post-release",
+        "reason": "The log shows the migration was applied at 21:05:36, three seconds after the 4.7.0 app started at 21:05:33, meaning it was applied during release startup, not post-release."
+      },
+      {
+        "quote": "The release notes explicitly mention no statement-related changes",
+        "reason": "There are no 'release notes' in the ticket; the statement comes from Tom Becker's comment, which is a personal assertion, not a formal release document."
+      }
+    ]
+  }
+}

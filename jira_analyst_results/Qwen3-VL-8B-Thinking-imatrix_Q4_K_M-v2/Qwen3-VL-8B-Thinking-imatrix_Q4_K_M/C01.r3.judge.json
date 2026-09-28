@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer timeout on mobile web causes duplicate debits when retrying after `ERR_TXN_504`. The source account is debited twice (e.g., $250), while the destination receives one credit.",
+      "reason": "The analysis clearly states that retrying after the timeout results in two debits and one credit."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Versions: Affects 3.1.4; fix target: 3.2.0 (due 2026-09-24).",
+      "reason": "The analysis correctly identifies the affected version, fix version, and release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Tap Retry (no Idempotency-Key header).",
+      "reason": "The analysis identifies both root causes: the missing idempotency key on retry and the non-atomic debit/credit, as reflected in the steps, acceptance criteria, and PR description."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Owner**: Priya Nair\n- **Blocking progress**: Waiting for code review of PR #218 (wrapping debit/credit in a single transaction and adding Idempotency-Key support).",
+      "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid: Coordinate with Finance Ops to reverse duplicate debits for the three affected customers (per Aroha Walker's request).",
+      "reason": "The analysis mentions three affected customers, manual reversal by Finance, and Marcus Reid being asked to coordinate with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "How duplicate debits are reversed (Finance Ops manual process lacks specifics).",
+      "reason": "The analysis implies the reversals are not yet confirmed by listing them as missing information and as a next action, but does not explicitly state that the ticket does not confirm the request has been raised or customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair: Push PR #218 for code review and verify atomic transaction behavior in staging.\n- **Marcus Reid**: Coordinate with Finance Ops to reverse duplicate debits for the three affected customers (per Aroha Walker's request).",
+      "reason": "The analysis lists both getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is waiting for code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug only occurs on mobile web and that desktop disables the retry button, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 76.97
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer timeout on mobile web causes duplicate debits when retrying after `ERR_TXN_504`. The source account is debited twice (e.g., $250), while the destination receives one credit.",
+        "reason": "The analysis clearly states that retrying after the timeout results in two debits and one credit.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Versions: Affects 3.1.4; fix target: 3.2.0 (due 2026-09-24).",
+        "reason": "The analysis correctly identifies the affected version, fix version, and release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Tap Retry (no Idempotency-Key header).",
+        "reason": "The analysis identifies both root causes: the missing idempotency key on retry and the non-atomic debit/credit, as reflected in the steps, acceptance criteria, and PR description.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Owner**: Priya Nair\n- **Blocking progress**: Waiting for code review of PR #218 (wrapping debit/credit in a single transaction and adding Idempotency-Key support).",
+        "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Marcus Reid: Coordinate with Finance Ops to reverse duplicate debits for the three affected customers (per Aroha Walker's request).",
+        "reason": "The analysis mentions three affected customers, manual reversal by Finance, and Marcus Reid being asked to coordinate with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "How duplicate debits are reversed (Finance Ops manual process lacks specifics).",
+        "reason": "The analysis implies the reversals are not yet confirmed by listing them as missing information and as a next action, but does not explicitly state that the ticket does not confirm the request has been raised or customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair: Push PR #218 for code review and verify atomic transaction behavior in staging.\n- **Marcus Reid**: Coordinate with Finance Ops to reverse duplicate debits for the three affected customers (per Aroha Walker's request).",
+        "reason": "The analysis lists both getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is waiting for code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the bug only occurs on mobile web and that desktop disables the retry button, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

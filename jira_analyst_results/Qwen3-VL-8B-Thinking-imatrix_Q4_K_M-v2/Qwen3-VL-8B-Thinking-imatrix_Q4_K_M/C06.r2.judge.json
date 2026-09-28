@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-405 is blocked by OPS-77, preventing the partner payments API from meeting the mutual TLS requirement for Northwind Payments (effective 2026-10-01). The release (3.2.0, due 2026-09-24) depends on Northwind providing CA certificates to staging, which is delayed.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test requires staging certificates, and OPS-77 is waiting for Northwind's CA bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "OPS-77 is *Waiting for vendor* (due 2026-09-10, now overdue).",
+      "reason": "The analysis states the due date and overdue status and notes no reply since 2026-09-11, but does not report that the partner manager was asked to escalate as a fact already taken."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The release (3.2.0, due 2026-09-24) depends on Northwind providing CA certificates to staging, which is delayed.",
+      "reason": "The analysis gives the release date (2026-09-24) and references Ravi's two-day testing need ('two days for test and fixes'), satisfying the checkpoint."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "If OPS-77 remains unresolved by 2026-09-24, BANK-405 may miss the 3.2.0 release.",
+      "reason": "The analysis presents the risk as a possibility ('may miss'), notes there is no timeline for Northwind's delivery, and frames it as uncertain rather than a certainty, satisfying the inference requirement."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Ravi Kumar confirmed code is merged but testing requires OPS-77 resolution.",
+      "reason": "The analysis states the code is merged and names the MTLS_PARTNER feature flag, but does not mention that the flag is off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "preventing the partner payments API from meeting the mutual TLS requirement for Northwind Payments (effective 2026-10-01).",
+      "reason": "The analysis mentions the 1 October external deadline but does not state that OPS-77 also covers production (staging then production), which is part of the expected point."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan (OPS-77): Contact Northwind again to confirm CA bundle delivery timeline (current status: no reply since 2026-09-11). Escalate to Northwind's integration team immediately per comments.",
+      "reason": "The analysis suggests escalation and getting a timeline but does not specify escalation through the partner manager, nor does it propose shipping 3.2.0 with the MTLS_PARTNER flag off as a contingency."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is complete; it consistently describes OPS-77 as unresolved and waiting for the vendor."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis quotes Northwind's 'early next week' as an unconfirmed past statement and notes it conflicts with the current date, without asserting a specific committed delivery date."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Assess if OPS-77 can be accelerated (e.g., staging trust store setup without CA bundle, but ticket states this is not possible).",
+      "reason": "The ticket says 'Needs the bundle from Northwind' but does not explicitly state that the trust store cannot be set up without the bundle; the analysis attributes a definitive 'not possible' claim to the ticket that is not literally present."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 122.42
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "BANK-405 is blocked by OPS-77, preventing the partner payments API from meeting the mutual TLS requirement for Northwind Payments (effective 2026-10-01). The release (3.2.0, due 2026-09-24) depends on Northwind providing CA certificates to staging, which is delayed.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test requires staging certificates, and OPS-77 is waiting for Northwind's CA bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "OPS-77 is *Waiting for vendor* (due 2026-09-10, now overdue).",
+        "reason": "The analysis states the due date and overdue status and notes no reply since 2026-09-11, but does not report that the partner manager was asked to escalate as a fact already taken.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "The release (3.2.0, due 2026-09-24) depends on Northwind providing CA certificates to staging, which is delayed.",
+        "reason": "The analysis gives the release date (2026-09-24) and references Ravi's two-day testing need ('two days for test and fixes'), satisfying the checkpoint.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "If OPS-77 remains unresolved by 2026-09-24, BANK-405 may miss the 3.2.0 release.",
+        "reason": "The analysis presents the risk as a possibility ('may miss'), notes there is no timeline for Northwind's delivery, and frames it as uncertain rather than a certainty, satisfying the inference requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Ravi Kumar confirmed code is merged but testing requires OPS-77 resolution.",
+        "reason": "The analysis states the code is merged and names the MTLS_PARTNER feature flag, but does not mention that the flag is off by default.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "preventing the partner payments API from meeting the mutual TLS requirement for Northwind Payments (effective 2026-10-01).",
+        "reason": "The analysis mentions the 1 October external deadline but does not state that OPS-77 also covers production (staging then production), which is part of the expected point.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan (OPS-77): Contact Northwind again to confirm CA bundle delivery timeline (current status: no reply since 2026-09-11). Escalate to Northwind's integration team immediately per comments.",
+        "reason": "The analysis suggests escalation and getting a timeline but does not specify escalation through the partner manager, nor does it propose shipping 3.2.0 with the MTLS_PARTNER flag off as a contingency.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is complete; it consistently describes OPS-77 as unresolved and waiting for the vendor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis quotes Northwind's 'early next week' as an unconfirmed past statement and notes it conflicts with the current date, without asserting a specific committed delivery date.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Assess if OPS-77 can be accelerated (e.g., staging trust store setup without CA bundle, but ticket states this is not possible).",
+        "reason": "The ticket says 'Needs the bundle from Northwind' but does not explicitly state that the trust store cannot be set up without the bundle; the analysis attributes a definitive 'not possible' claim to the ticket that is not literally present."
+      }
+    ]
+  }
+}

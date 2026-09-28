@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:31: Transfer errors first observed (per Sam Okafor's comment).",
+      "reason": "The analysis states impact started at 09:31 but never gives the 09:30 timestamp for the OPS-81 config deploy."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert triggered for `TransferErrorRate > 20%`.  \n- **09:52**: Incident declared by Sam Okafor.",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:31: Rollback of OPS-81 config deploy initiated.  \n- **10:42**: Transfer error rate drops below 1% (recovery complete).  \n- **10:44**: Rollback confirmed complete.",
+      "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the 10:50 incident resolution is never mentioned."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to detect: 5 minutes (from alert at 09:47 to incident declaration at 09:52).",
+      "reason": "The analysis calculates 5 minutes (alert to declaration) rather than the expected 16 minutes from impact start (09:31) to alert (09:47)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to recover: 11 minutes (from rollback start at 10:31 to resolution at 10:42).",
+      "reason": "The analysis gives 11 minutes from rollback start to recovery, which is not any of the acceptable answers (71 min from impact, 55 min from detection, or 79 min to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Configuration deploy **OPS-81** rotated the JWT signing key for Auth service, but the Transactions API continued using the old key. This caused signature validation failures (401 errors) in all transfer requests.",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API not updated, 401 errors, and IDX10503 is cited in the timeline."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "no post-incident action steps beyond the scheduled review (2026-09-16).",
+      "reason": "The analysis references the scheduled review on 2026-09-16, conveying that a post-incident review is booked for that date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the slow queries but explicitly notes they were 'dismissed by Sam Okafor as normal,' not naming them as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (5 min: 09:47\u219209:52; 11 min: 10:31\u219210:42) are supported by actual timestamp pairs in the ticket, even though they are the wrong metrics."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Error onset (09:31), alert (09:47), and resolution (10:42) timestamps are explicitly stated.",
+      "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment); 10:42 is when the error rate dropped below 1%, not when the incident was resolved."
+    },
+    {
+      "quote": "Time to recover: 11 minutes (from rollback start at 10:31 to resolution at 10:42).",
+      "reason": "Labels 10:42 as 'resolution,' but the ticket records resolution at 10:50; 10:42 is the recovery point, not the resolution."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 98.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31: Transfer errors first observed (per Sam Okafor's comment).",
+        "reason": "The analysis states impact started at 09:31 but never gives the 09:30 timestamp for the OPS-81 config deploy.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert triggered for `TransferErrorRate > 20%`.  \n- **09:52**: Incident declared by Sam Okafor.",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback of OPS-81 config deploy initiated.  \n- **10:42**: Transfer error rate drops below 1% (recovery complete).  \n- **10:44**: Rollback confirmed complete.",
+        "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the 10:50 incident resolution is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 5 minutes (from alert at 09:47 to incident declaration at 09:52).",
+        "reason": "The analysis calculates 5 minutes (alert to declaration) rather than the expected 16 minutes from impact start (09:31) to alert (09:47).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 11 minutes (from rollback start at 10:31 to resolution at 10:42).",
+        "reason": "The analysis gives 11 minutes from rollback start to recovery, which is not any of the acceptable answers (71 min from impact, 55 min from detection, or 79 min to resolution).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Configuration deploy **OPS-81** rotated the JWT signing key for Auth service, but the Transactions API continued using the old key. This caused signature validation failures (401 errors) in all transfer requests.",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API not updated, 401 errors, and IDX10503 is cited in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "no post-incident action steps beyond the scheduled review (2026-09-16).",
+        "reason": "The analysis references the scheduled review on 2026-09-16, conveying that a post-incident review is booked for that date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the slow queries but explicitly notes they were 'dismissed by Sam Okafor as normal,' not naming them as a cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (5 min: 09:47\u219209:52; 11 min: 10:31\u219210:42) are supported by actual timestamp pairs in the ticket, even though they are the wrong metrics.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Error onset (09:31), alert (09:47), and resolution (10:42) timestamps are explicitly stated.",
+        "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment); 10:42 is when the error rate dropped below 1%, not when the incident was resolved."
+      },
+      {
+        "quote": "Time to recover: 11 minutes (from rollback start at 10:31 to resolution at 10:42).",
+        "reason": "Labels 10:42 as 'resolution,' but the ticket records resolution at 10:50; 10:42 is the recovery point, not the resolution."
+      }
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both tickets describe identical issues: web dashboard balance remains stale after a transfer (refreshing/logout required), with the root cause being a 15-minute local storage cache not invalidated on transfers.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-425 and link it to BANK-440. \u2026 BANK-425 was created earlier (2026-09-05 vs. BANK-440's 2026-09-13), so merging it into BANK-440 consolidates the problem scope and solution. \u2026 Update the description with BANK-425's root cause fix (\"clear BalanceCache on transfer success\") and assign to a developer.",
+      "reason": "The analysis recommends closing one and linking to the other, preserves Hana Sato's root-cause analysis by transferring it, and the key allows either direction as long as the analysis is preserved."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This ticket concerns push notification errors (mobile app) showing pre-transfer balances, which is a different component (notifications) and symptom (notification text vs. dashboard UI). \u2026 Ravi Kumar's comment (2026-09-11) confirms this is a distinct event-handling bug (using TransferRequested vs. TransferCompleted).",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested vs TransferCompleted event), and notes Ravi Kumar is working on it."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the root cause being a 15-minute local storage cache not invalidated on transfers. \u2026 BANK-425 contains the key explanation from Hana Sato (2026-09-06) confirming the cache bug and the fix (clear BalanceCache on transfer success)",
+      "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It was successfully shipped (v3.1.4) but the cache logic it added introduced the bug in BANK-440. No dependency link exists between tickets.",
+      "reason": "The analysis states the causal link as established fact rather than as a likely/possible regression, and does not recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never explicitly states that both duplicate tickets are unassigned; it only implies BANK-440 needs assignment."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the API returns correct data immediately and attributes the staleness to the cache, not the API."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 92.09
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Both tickets describe identical issues: web dashboard balance remains stale after a transfer (refreshing/logout required), with the root cause being a 15-minute local storage cache not invalidated on transfers.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-425 and link it to BANK-440. \u2026 BANK-425 was created earlier (2026-09-05 vs. BANK-440's 2026-09-13), so merging it into BANK-440 consolidates the problem scope and solution. \u2026 Update the description with BANK-425's root cause fix (\"clear BalanceCache on transfer success\") and assign to a developer.",
+        "reason": "The analysis recommends closing one and linking to the other, preserves Hana Sato's root-cause analysis by transferring it, and the key allows either direction as long as the analysis is preserved.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "This ticket concerns push notification errors (mobile app) showing pre-transfer balances, which is a different component (notifications) and symptom (notification text vs. dashboard UI). \u2026 Ravi Kumar's comment (2026-09-11) confirms this is a distinct event-handling bug (using TransferRequested vs. TransferCompleted).",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested vs TransferCompleted event), and notes Ravi Kumar is working on it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "the root cause being a 15-minute local storage cache not invalidated on transfers. \u2026 BANK-425 contains the key explanation from Hana Sato (2026-09-06) confirming the cache bug and the fix (clear BalanceCache on transfer success)",
+        "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "It was successfully shipped (v3.1.4) but the cache logic it added introduced the bug in BANK-440. No dependency link exists between tickets.",
+        "reason": "The analysis states the causal link as established fact rather than as a likely/possible regression, and does not recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never explicitly states that both duplicate tickets are unassigned; it only implies BANK-440 needs assignment.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the API returns correct data immediately and attributes the staleness to the cache, not the API.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

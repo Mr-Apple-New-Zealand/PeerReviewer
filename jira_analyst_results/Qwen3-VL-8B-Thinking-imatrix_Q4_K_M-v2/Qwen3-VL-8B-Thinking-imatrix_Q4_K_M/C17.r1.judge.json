@@ -1,0 +1,309 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Error occurs after multiple successful API calls followed by 401 errors",
+      "reason": "The analysis acknowledges the sequence of 200s then 401s and a temporal pattern, but never identifies the ~4-hour-10-minute gap, the specific transition point, or the two distinct halves of the session."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Relationship between 401 errors (multiple API calls returning 401) and main error",
+      "reason": "The analysis explicitly lists the 401-to-TypeError relationship as an unresolved ambiguity rather than concluding that the 401 is the root cause and the TypeError is a symptom of unhandled 401 responses."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the four earlier sentry.event breadcrumb entries ('rows', 'returnProperties', 'length') or the idea that they form one cascade rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the single token refresh POST at 03:12:46, its 200 status, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Environment discrepancy: Ticket states Production but Sentry event URL shows UAT (`bank-uat.example.com`)",
+      "reason": "The analysis identifies the Production-vs-UAT discrepancy but frames it as something to 'confirm' rather than concluding the Sentry environment is misconfigured and polluting production alerting, and does not connect it to Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or contrasts it with the actual request URL /payments/batch/actions, so the stale-transaction problem is absent."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Exact location in code causing the issue (stack trace truncated after \"28 further frames\")",
+      "reason": "The analysis attributes the inability to identify the component to frame truncation rather than to missing source maps, the three js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that this prevents distinguishing token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Check if authentication expiration timing correlates with error occurrence",
+      "reason": "The analysis lists token-expiry correlation as an open investigation question rather than presenting the likely mechanism (token expired during the idle gap, no silent refresh ran) as an inference supported by the evidence."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address any of the red herrings: the 780 KB InvokeAction response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flags on every frame, the in_app_frame_mix 'in-app-only' metadata, or the fact that this flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. Confirm environment details with support team (ticket claims Production but Sentry shows UAT) 2. Investigate why API calls return 401 errors (multiple 401 responses seen in breadcrumbs)",
+      "reason": "The next actions are framed as investigation steps rather than specific remediations (central 401 handling with redirect, fixing Sentry environment config, setting release/dist and uploading source maps, correcting the transaction name, and noting a null guard would only hide the symptom)."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not present a null guard before .sort as the root cause or the fix; it references Tom Becker's preference to understand the cause before guarding."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the UAT URL alongside the Production tag, so it does not treat the error as a confirmed production incident without caveat."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214 as the location of the error."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis points to a minified bundle file at a column position rather than naming a source file, component, method, or line number in application source code."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Examine `/6728.b4f17ce620a8d539.js` around line 60295 for data processing logic",
+      "reason": "The stack trace shows lineno 1 and colno 60295 for that frame; the analysis misidentifies a column number as a line number, which is a factual error about the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 252.91
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "Error occurs after multiple successful API calls followed by 401 errors",
+        "reason": "The analysis acknowledges the sequence of 200s then 401s and a temporal pattern, but never identifies the ~4-hour-10-minute gap, the specific transition point, or the two distinct halves of the session.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Relationship between 401 errors (multiple API calls returning 401) and main error",
+        "reason": "The analysis explicitly lists the 401-to-TypeError relationship as an unresolved ambiguity rather than concluding that the 401 is the root cause and the TypeError is a symptom of unhandled 401 responses.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the four earlier sentry.event breadcrumb entries ('rows', 'returnProperties', 'length') or the idea that they form one cascade rather than separate bugs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not identify the single token refresh POST at 03:12:46, its 200 status, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment discrepancy: Ticket states Production but Sentry event URL shows UAT (`bank-uat.example.com`)",
+        "reason": "The analysis identifies the Production-vs-UAT discrepancy but frames it as something to 'confirm' rather than concluding the Sentry environment is misconfigured and polluting production alerting, and does not connect it to Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or contrasts it with the actual request URL /payments/batch/actions, so the stale-transaction problem is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Exact location in code causing the issue (stack trace truncated after \"28 further frames\")",
+        "reason": "The analysis attributes the inability to identify the component to frame truncation rather than to missing source maps, the three js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that this prevents distinguishing token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "Check if authentication expiration timing correlates with error occurrence",
+        "reason": "The analysis lists token-expiry correlation as an open investigation question rather than presenting the likely mechanism (token expired during the idle gap, no silent refresh ran) as an inference supported by the evidence.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address any of the red herrings: the 780 KB InvokeAction response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flags on every frame, the in_app_frame_mix 'in-app-only' metadata, or the fact that this flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "1. Confirm environment details with support team (ticket claims Production but Sentry shows UAT) 2. Investigate why API calls return 401 errors (multiple 401 responses seen in breadcrumbs)",
+        "reason": "The next actions are framed as investigation steps rather than specific remediations (central 401 handling with redirect, fixing Sentry environment config, setting release/dist and uploading source maps, correcting the transaction name, and noting a null guard would only hide the symptom).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis does not present a null guard before .sort as the root cause or the fix; it references Tom Becker's preference to understand the cause before guarding.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis explicitly flags the UAT URL alongside the Production tag, so it does not treat the error as a confirmed production incident without caveat.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214 as the location of the error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis points to a minified bundle file at a column position rather than naming a source file, component, method, or line number in application source code.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Examine `/6728.b4f17ce620a8d539.js` around line 60295 for data processing logic",
+        "reason": "The stack trace shows lineno 1 and colno 60295 for that frame; the analysis misidentifies a column number as a line number, which is a factual error about the ticket data."
+      }
+    ]
+  }
+}

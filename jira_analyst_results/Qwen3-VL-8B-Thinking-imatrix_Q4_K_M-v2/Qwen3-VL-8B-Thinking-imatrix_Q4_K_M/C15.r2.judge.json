@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows multiple SMTP authentication failures (5.7.139) when attempting to send emails, not the data protection key issue the reporter claimed. The actual error is \"Authentication unsuccessful, basic authentication is disabled\" from the SMTP server",
+      "reason": "The analysis identifies the SMTP authentication failure with the 5.7.139 response and EmailSender.cs, but omits the 535 status code and OutboxDispatcher, making it incomplete."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reporter claims data protection keys are the issue, but log shows this is only a warning (WRN) not an error (ERR). The actual error is SMTP authentication failure.",
+      "reason": "The analysis clearly states the reporter's explanation is not supported, identifies the DataProtection lines as warnings rather than errors, and disconnects them from the actual SMTP failure."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour at all."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not reference the growing outbox backlog (1412 to 2089), the rate of growth, or the implication that customers will keep missing receipts."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not state that the log cannot confirm the 14:00 start, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Pod restart at 18:02 didn't resolve the issue, so repeating restart won't help without fixing the root cause",
+      "reason": "The analysis clearly states that the pod was already restarted at 18:02 without resolution and that another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "What authentication method is required by smtp.example.com (the error mentions \"basic authentication is disabled\")",
+      "reason": "The analysis touches on the need for a different authentication method and references the 'basic authentication is disabled' error, but frames it as open questions to investigate rather than as an inference that the mail provider disabled basic auth for svc-notify@example.com."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check if `svc-notify@example.com` has proper permissions on smtp.example.com",
+      "reason": "The analysis covers confirming the auth method with the mail tenant but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, the health check at 18:21:09, or explicitly state that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation, calling it an incorrect diagnosis."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the 14:00 start to the contact centre's report and does not claim the log shows events at or around 14:00 or covers the outage start."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly recommends against restarting the pod, stating it will not help."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 5.7.139 authentication error that is present in the log; it does not introduce rate limiting, TLS failure, or mailbox-full errors."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Error occurred after pod restart at 18:02 (log shows failure before restart)",
+      "reason": "The log begins with the pod starting at 18:02:41 and the first SMTP error appears at 18:02:48, i.e. after the restart. The parenthetical 'log shows failure before restart' contradicts the log, which contains no entries before 18:02:41."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 173.91
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows multiple SMTP authentication failures (5.7.139) when attempting to send emails, not the data protection key issue the reporter claimed. The actual error is \"Authentication unsuccessful, basic authentication is disabled\" from the SMTP server",
+        "reason": "The analysis identifies the SMTP authentication failure with the 5.7.139 response and EmailSender.cs, but omits the 535 status code and OutboxDispatcher, making it incomplete.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Reporter claims data protection keys are the issue, but log shows this is only a warning (WRN) not an error (ERR). The actual error is SMTP authentication failure.",
+        "reason": "The analysis clearly states the reporter's explanation is not supported, identifies the DataProtection lines as warnings rather than errors, and disconnects them from the actual SMTP failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not reference the growing outbox backlog (1412 to 2089), the rate of growth, or the implication that customers will keep missing receipts.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not state that the log cannot confirm the 14:00 start, does not note that the log begins at 18:02:41, and does not mention that the previous container's log was not captured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Pod restart at 18:02 didn't resolve the issue, so repeating restart won't help without fixing the root cause",
+        "reason": "The analysis clearly states that the pod was already restarted at 18:02 without resolution and that another restart will not help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "What authentication method is required by smtp.example.com (the error mentions \"basic authentication is disabled\")",
+        "reason": "The analysis touches on the need for a different authentication method and references the 'basic authentication is disabled' error, but frames it as open questions to investigate rather than as an inference that the mail provider disabled basic auth for svc-notify@example.com.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Check if `svc-notify@example.com` has proper permissions on smtp.example.com",
+        "reason": "The analysis covers confirming the auth method with the mail tenant but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, the health check at 18:21:09, or explicitly state that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation, calling it an incorrect diagnosis.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis attributes the 14:00 start to the contact centre's report and does not claim the log shows events at or around 14:00 or covers the outage start.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis explicitly recommends against restarting the pod, stating it will not help.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 5.7.139 authentication error that is present in the log; it does not introduce rate limiting, TLS failure, or mailbox-full errors.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Error occurred after pod restart at 18:02 (log shows failure before restart)",
+        "reason": "The log begins with the pod starting at 18:02:41 and the first SMTP error appears at 18:02:48, i.e. after the restart. The parenthetical 'log shows failure before restart' contradicts the log, which contains no entries before 18:02:41."
+      }
+    ]
+  }
+}

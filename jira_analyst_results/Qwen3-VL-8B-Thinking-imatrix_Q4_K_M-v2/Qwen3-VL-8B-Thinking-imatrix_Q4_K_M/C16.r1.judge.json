@@ -1,0 +1,247 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetStatementLineQuery | 281-319ms (max 319ms) | 35,171-72,974ms (avg ~40,000ms) | **133-240x slowdown**",
+      "reason": "The analysis gives the before range (281-319ms) and the after range (35,171-72,974ms), matching the expected ~300ms to ~34-73s."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**133-240x slowdown**",
+      "reason": "The 240x upper bound is close to the expected ~240x, but the 133x lower bound is off (actual minimum ratio is ~110x at 35,171/319), making the stated range partially inaccurate."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis presents only a flat range (35,171-72,974ms) and an average, without describing the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s at specific timestamps)."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery | 3,102-3,341ms (avg ~3,200ms) | 3,188-3,402ms (avg ~3,200ms) | No change",
+      "reason": "The analysis states GetAccountSummaryQuery is unchanged and explicitly notes this contradicts Ravi Kumar's suggestion, though the before range omits the 2987ms sample."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand | 1,840ms | 1,902ms | Minimal change",
+      "reason": "The analysis shows ExportStatementCommand is essentially unchanged (1840\u21921902ms), implying the regression is specific to the statement line query rather than a general slowdown."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Tom Becker states \"Nothing in 4.7.0 touched statements\" while Ravi Kumar identifies the account summary query as the issue, despite logs showing the query timing unchanged",
+      "reason": "The analysis juxtaposes Tom's claim with the log evidence of migration 20260914_2100_ReindexStatementLines applied at 2026-09-14 21:05:36, making the contradiction clear."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue appears related to the ReindexStatementLines migration applied during 4.7.0 deployment",
+      "reason": "The analysis presents the migration as a likely suspect ('appears related') while explicitly noting 'No clear link between the migration and the regression in the provided evidence,' satisfying the inference requirement."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions the thread pool starvation warning but does not infer that it is a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44s to ~69s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the limitations of the comparison (short windows, different days, few samples, no data in between) or qualify the regression size as indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Ravi Kumar should check if the ReindexStatementLines migration altered the GetStatementLineQuery query plan (per comment: \"I'd start there\")",
+      "reason": "The analysis covers checking the query plan and indexes and mentions Tom Becker's position, but does not explicitly recommend collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and does not name it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses hedged language ('appears related') and explicitly states there is no clear causal link, without describing what the migration did to the schema."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated 133-240x range is in the correct order of magnitude (actual ~110-260x) and does not claim a ten-fold or two-fold slowdown."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists thread pool starvation as evidence/symptom and suggests investigating it, without naming it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "35,171-72,974ms (avg ~40,000ms)",
+      "reason": "The actual average of the 14 GetStatementLineQuery readings in the after log is approximately 51,759 ms, not ~40,000 ms; the stated average understates the true mean by about 23%."
+    },
+    {
+      "quote": "GetAccountSummaryQuery | 3,102-3,341ms (avg ~3,200ms)",
+      "reason": "The before log contains a 2,987 ms reading for GetAccountSummaryQuery, so the correct range is 2,987-3,341 ms, not 3,102-3,341 ms."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 192.08
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery | 281-319ms (max 319ms) | 35,171-72,974ms (avg ~40,000ms) | **133-240x slowdown**",
+        "reason": "The analysis gives the before range (281-319ms) and the after range (35,171-72,974ms), matching the expected ~300ms to ~34-73s.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "**133-240x slowdown**",
+        "reason": "The 240x upper bound is close to the expected ~240x, but the 133x lower bound is off (actual minimum ratio is ~110x at 35,171/319), making the stated range partially inaccurate.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis presents only a flat range (35,171-72,974ms) and an average, without describing the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s at specific timestamps).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery | 3,102-3,341ms (avg ~3,200ms) | 3,188-3,402ms (avg ~3,200ms) | No change",
+        "reason": "The analysis states GetAccountSummaryQuery is unchanged and explicitly notes this contradicts Ravi Kumar's suggestion, though the before range omits the 2987ms sample.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "ExportStatementCommand | 1,840ms | 1,902ms | Minimal change",
+        "reason": "The analysis shows ExportStatementCommand is essentially unchanged (1840\u21921902ms), implying the regression is specific to the statement line query rather than a general slowdown.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "Tom Becker states \"Nothing in 4.7.0 touched statements\" while Ravi Kumar identifies the account summary query as the issue, despite logs showing the query timing unchanged",
+        "reason": "The analysis juxtaposes Tom's claim with the log evidence of migration 20260914_2100_ReindexStatementLines applied at 2026-09-14 21:05:36, making the contradiction clear.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "The issue appears related to the ReindexStatementLines migration applied during 4.7.0 deployment",
+        "reason": "The analysis presents the migration as a likely suspect ('appears related') while explicitly noting 'No clear link between the migration and the regression in the provided evidence,' satisfying the inference requirement.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "",
+        "reason": "The analysis mentions the thread pool starvation warning but does not infer that it is a consequence of requests piling up behind the slow query, nor does it note the timing alignment with the jump from ~44s to ~69s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the limitations of the comparison (short windows, different days, few samples, no data in between) or qualify the regression size as indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Ravi Kumar should check if the ReindexStatementLines migration altered the GetStatementLineQuery query plan (per comment: \"I'd start there\")",
+        "reason": "The analysis covers checking the query plan and indexes and mentions Tom Becker's position, but does not explicitly recommend collecting a longer sample from both versions before concluding.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and does not name it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis uses hedged language ('appears related') and explicitly states there is no clear causal link, without describing what the migration did to the schema.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The stated 133-240x range is in the correct order of magnitude (actual ~110-260x) and does not claim a ten-fold or two-fold slowdown.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis lists thread pool starvation as evidence/symptom and suggests investigating it, without naming it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "35,171-72,974ms (avg ~40,000ms)",
+        "reason": "The actual average of the 14 GetStatementLineQuery readings in the after log is approximately 51,759 ms, not ~40,000 ms; the stated average understates the true mean by about 23%."
+      },
+      {
+        "quote": "GetAccountSummaryQuery | 3,102-3,341ms (avg ~3,200ms)",
+        "reason": "The before log contains a 2,987 ms reading for GetAccountSummaryQuery, so the correct range is 2,987-3,341 ms, not 3,102-3,341 ms."
+      }
+    ]
+  }
+}

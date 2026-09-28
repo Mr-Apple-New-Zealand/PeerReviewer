@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:31: Transfer errors begin appearing in dashboards.  ... Root cause identified: JWT signing key rotation in OPS-81 (09:30) caused Auth to use new keys, but Transactions API still validated with old keys.",
+      "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "09:47: Monitoring alert triggers (TransferErrorRate > 20%).",
+      "reason": "The alert at 09:47 is stated, but the incident declaration at 09:52 is absent from the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "partial",
+      "quote": "10:31: Rollback of OPS-81 config deploy initiated.  ... 10:42: Transfer error rate drops below 1% (recovery confirmed).  ... 10:44: Rollback complete.",
+      "reason": "[downgraded: quote not found in analysis] Rollback start (10:31) and recovery (10:42) are present, but the incident resolution at 10:50 is missing."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to detect: 16 minutes (from 09:31 error start to 09:47 alert).",
+      "reason": "Correctly states 16 minutes with the right start and end timestamps."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to recover: 71 minutes (from 09:31 error start to 10:42 resolution).",
+      "reason": "71 minutes from impact start (09:31 to 10:42) with the start point explicitly stated, which matches the key's acceptable answer."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy OPS-81 rotated the JWT signing key for Auth at 09:30, but the Transactions API continued validating tokens with the *old* key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+      "reason": "All key elements are present: OPS-81, JWT key rotation for Auth, Transactions API still on old key, 401, and the IDX10503 error text."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no mention of a post-incident review or the 2026-09-16 date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The slow queries are mentioned only as an observation that was 'later dismissed as normal traffic,' not as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min detect, 71 min recover) are directly supported by timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "C07-P3"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 57.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31: Transfer errors begin appearing in dashboards.  ... Root cause identified: JWT signing key rotation in OPS-81 (09:30) caused Auth to use new keys, but Transactions API still validated with old keys.",
+        "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert triggers (TransferErrorRate > 20%).",
+        "reason": "The alert at 09:47 is stated, but the incident declaration at 09:52 is absent from the timeline.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback of OPS-81 config deploy initiated.  ... 10:42: Transfer error rate drops below 1% (recovery confirmed).  ... 10:44: Rollback complete.",
+        "reason": "Rollback start (10:31) and recovery (10:42) are present, but the incident resolution at 10:50 is missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 16 minutes (from 09:31 error start to 09:47 alert).",
+        "reason": "Correctly states 16 minutes with the right start and end timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 71 minutes (from 09:31 error start to 10:42 resolution).",
+        "reason": "71 minutes from impact start (09:31 to 10:42) with the start point explicitly stated, which matches the key's acceptable answer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The config deploy OPS-81 rotated the JWT signing key for Auth at 09:30, but the Transactions API continued validating tokens with the *old* key, resulting in 401 errors (\"IDX10503: Signature validation failed\").",
+        "reason": "All key elements are present: OPS-81, JWT key rotation for Auth, Transactions API still on old key, 401, and the IDX10503 error text.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis makes no mention of a post-incident review or the 2026-09-16 date.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The slow queries are mentioned only as an observation that was 'later dismissed as normal traffic,' not as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min detect, 71 min recover) are directly supported by timestamp pairs in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

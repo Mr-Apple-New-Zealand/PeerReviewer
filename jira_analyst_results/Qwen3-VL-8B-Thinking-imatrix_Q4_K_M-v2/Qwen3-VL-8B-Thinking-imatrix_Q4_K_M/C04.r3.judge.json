@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Answer: No, you cannot tell the customer it is fixed.**",
+      "reason": "The analysis explicitly states that support cannot tell the customer it is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: Closed as \"Done\" (Resolution: Fixed) but *not actually resolved* due to unaddressed dependencies. ... Tom Becker retested on staging (build 3.1.4.17) on 2026-09-10 and confirmed emails still fail.",
+      "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 but Tom Becker's 2026-09-10 retest on 3.1.4 staging shows emails still not arriving."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP logs show `Rejected: 550 5.1.3 Invalid recipient address`.",
+      "reason": "The analysis clearly states the specific SMTP error code and message from the retest."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "retesting revealed the email provider now rejects these addresses (SMTP error: `550 5.1.3 Invalid recipient address`), causing the problem to persist.",
+      "reason": "The analysis presents the email-provider rejection as established fact ('retesting revealed', 'the actual root cause shifted to the email provider') rather than as Tom's unconfirmed 'looks like' inference."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No update to re-open the ticket or address the email provider issue. ... No ticket exists for this dependency (links: None).",
+      "reason": "The analysis conveys that nobody reopened the ticket or raised a follow-up, leaving the remaining problem unowned."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair must reopen BANK-377 or create a new ticket (e.g., `EMAIL-456`) to address email provider rejection. ... Marcus Reid should not confirm the fix to the customer (per ticket data).",
+      "reason": "The analysis recommends reopening or creating a new ticket, names an owner (Priya Nair), and advises against confirming the fix to the customer."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm it to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states no ticket exists for the dependency and no update to reopen the ticket; it does not claim a follow-up already exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The issue remains unresolved due to a regression discovered after the initial fix.",
+      "reason": "The tickets never describe the provider rejection as a 'regression'; they only show a different error after the regex fix, with Tom speculating it 'looks like' the provider. Calling it a regression is an unsupported characterization not grounded in the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 85.15
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "**Answer: No, you cannot tell the customer it is fixed.**",
+        "reason": "The analysis explicitly states that support cannot tell the customer it is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "Status: Closed as \"Done\" (Resolution: Fixed) but *not actually resolved* due to unaddressed dependencies. ... Tom Becker retested on staging (build 3.1.4.17) on 2026-09-10 and confirmed emails still fail.",
+        "reason": "The analysis conveys that the ticket is Done/Fixed in 3.1.4 but Tom Becker's 2026-09-10 retest on 3.1.4 staging shows emails still not arriving.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "SMTP logs show `Rejected: 550 5.1.3 Invalid recipient address`.",
+        "reason": "The analysis clearly states the specific SMTP error code and message from the retest.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "retesting revealed the email provider now rejects these addresses (SMTP error: `550 5.1.3 Invalid recipient address`), causing the problem to persist.",
+        "reason": "The analysis presents the email-provider rejection as established fact ('retesting revealed', 'the actual root cause shifted to the email provider') rather than as Tom's unconfirmed 'looks like' inference.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "No update to re-open the ticket or address the email provider issue. ... No ticket exists for this dependency (links: None).",
+        "reason": "The analysis conveys that nobody reopened the ticket or raised a follow-up, leaving the remaining problem unowned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Priya Nair must reopen BANK-377 or create a new ticket (e.g., `EMAIL-456`) to address email provider rejection. ... Marcus Reid should not confirm the fix to the customer (per ticket data).",
+        "reason": "The analysis recommends reopening or creating a new ticket, names an owner (Priya Nair), and advises against confirming the fix to the customer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm it to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis states no ticket exists for the dependency and no update to reopen the ticket; it does not claim a follow-up already exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The issue remains unresolved due to a regression discovered after the initial fix.",
+        "reason": "The tickets never describe the provider rejection as a 'regression'; they only show a different error after the regex fix, with Tom speculating it 'looks like' the provider. Calling it a regression is an unsupported characterization not grounded in the ticket data."
+      }
+    ]
+  }
+}

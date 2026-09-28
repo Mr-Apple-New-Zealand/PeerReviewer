@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The logs show repeated SMTP authentication failures (error `5.7.139` and `535`), specifically for email delivery to customer IDs 41082, 55617, and 63340.",
+      "reason": "The analysis correctly identifies the SMTP authentication failure with both error codes and the message text as the cause of undelivered emails, though it omits the specific class names (SmtpException, EmailSender, OutboxDispatcher)."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter claims a data protection keys issue caused the failure, but the logs **do not support this**\u2014they show clear SMTP errors instead of key-persistence issues.",
+      "reason": "The analysis clearly states the reporter's explanation is not supported and explicitly notes the XML encryptor warning is unrelated to SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog (1412\u21922089), the rate of growth, or the implication that customers will keep missing receipts."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41 and that the previous container's log was not captured, so the 14:00 window is not in the file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod restarted at 18:02 with no resolution (Priya Nair confirms restarts were ineffective).",
+      "reason": "The analysis states the restart at 18:02 did not resolve the issue and that emails are still failing, conveying that another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the error `basic authentication is disabled` implies the server requires an alternate method (e.g., OAuth). Marcus Reid's explanation is **invalid** per log data\u2014focus must be on SMTP credentials/authentication.",
+      "reason": "The analysis presents the inference that the mail provider disabled basic auth and the fix is a change of authentication method, using 'implies' and 'e.g.' to signal it is a suggestion rather than established fact."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check platform team's SMTP server (`smtp.example.com`) to confirm if basic auth is disabled and if OAuth is required.",
+      "reason": "The analysis covers confirming the mail tenant's auth change but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09, nor does it explicitly clear them of involvement."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unsupported by the log."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis restates the ticket's 14:00 description but does not claim the log shows or covers that time window."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod; it notes the restart was ineffective."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the failures to NATS reconnection, the health check, or the outbox poll interval."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references error codes and messages actually present in the log (535, 5.7.139, basic authentication disabled); it does not invent rate-limiting, TLS failure, or mailbox-full errors."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 126.64
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The logs show repeated SMTP authentication failures (error `5.7.139` and `535`), specifically for email delivery to customer IDs 41082, 55617, and 63340.",
+        "reason": "The analysis correctly identifies the SMTP authentication failure with both error codes and the message text as the cause of undelivered emails, though it omits the specific class names (SmtpException, EmailSender, OutboxDispatcher).",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter claims a data protection keys issue caused the failure, but the logs **do not support this**\u2014they show clear SMTP errors instead of key-persistence issues.",
+        "reason": "The analysis clearly states the reporter's explanation is not supported and explicitly notes the XML encryptor warning is unrelated to SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the 5-second retry interval, the lack of backoff or dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog (1412\u21922089), the rate of growth, or the implication that customers will keep missing receipts.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41 and that the previous container's log was not captured, so the 14:00 window is not in the file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "The pod restarted at 18:02 with no resolution (Priya Nair confirms restarts were ineffective).",
+        "reason": "The analysis states the restart at 18:02 did not resolve the issue and that emails are still failing, conveying that another restart will not help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "the error `basic authentication is disabled` implies the server requires an alternate method (e.g., OAuth). Marcus Reid's explanation is **invalid** per log data\u2014focus must be on SMTP credentials/authentication.",
+        "reason": "The analysis presents the inference that the mail provider disabled basic auth and the fix is a change of authentication method, using 'implies' and 'e.g.' to signal it is a suggestion rather than established fact.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Check platform team's SMTP server (`smtp.example.com`) to confirm if basic auth is disabled and if OAuth is required.",
+        "reason": "The analysis covers confirming the mail tenant's auth change but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09, nor does it explicitly clear them of involvement.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as unsupported by the log.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis restates the ticket's 14:00 description but does not claim the log shows or covers that time window.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod; it notes the restart was ineffective.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not attribute the failures to NATS reconnection, the health check, or the outbox poll interval.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references error codes and messages actually present in the log (535, 5.7.139, basic authentication disabled); it does not invent rate-limiting, TLS failure, or mailbox-full errors.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

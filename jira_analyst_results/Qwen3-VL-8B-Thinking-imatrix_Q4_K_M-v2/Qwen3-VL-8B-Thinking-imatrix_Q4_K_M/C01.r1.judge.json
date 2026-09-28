@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer timeout on mobile web triggers a duplicate debit when users retry the transaction, resulting in two debits from the source account and one credit to the target account.",
+      "reason": "The analysis clearly states the duplicate debit (two debits) and single credit (one credit) resulting from retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirmed in 3.1.4 staging; not reproducible on desktop web (no retry button).",
+      "reason": "The analysis mentions version 3.1.4 as affected but never states the fix is targeted at 3.2.0 or the 2026-09-24 release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue occurs because the retry button lacks an idempotency key (sending a new request) and the debit/credit operations are not transactionally bound.",
+      "reason": "Both root-cause elements (no idempotency key on retry, debit and credit not in a single transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress (last updated 2026-09-12 16:40)  - **Owner**: Priya Nair  - **Blocking**: PR #218 (fixing the issue) is awaiting code review.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance Ops must manually reverse 3 duplicate debits (per comment from Aroha Walker, 2026-09-11).",
+      "reason": "The analysis mentions 3 customers and manual reversal by Finance Ops but does not state that Marcus Reid was specifically asked to raise this with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance Ops to coordinate manual reversals for affected customers (per comment).",
+      "reason": "The analysis lists the reversal as a next action, implying it hasn't been done, but does not explicitly note that the ticket does not confirm the request has been raised or the customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Priya Nair** to secure code review for PR #218 immediately (blocking progress).  2. **QA team** to validate the fix in staging after PR merge (not specified in ticket).  3. **Finance Ops** to coordinate manual reversals for affected customers (per comment).",
+      "reason": "Both required next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is awaiting code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is not reproducible on desktop web and that no action is required for desktop, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The fix (PR #218) is only for mobile web\u2014desktop web avoids the issue due to UI differences (disabled submit button/retry).",
+      "reason": "The ticket describes PR #218 as wrapping debit/credit in a single transaction and adding Idempotency-Key header support to the transfer endpoint\u2014an API-level fix, not a mobile-web-specific one. The analysis characterises the fix as 'only for mobile web,' which the tickets do not support."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 76.93
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer timeout on mobile web triggers a duplicate debit when users retry the transaction, resulting in two debits from the source account and one credit to the target account.",
+        "reason": "The analysis clearly states the duplicate debit (two debits) and single credit (one credit) resulting from retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Confirmed in 3.1.4 staging; not reproducible on desktop web (no retry button).",
+        "reason": "The analysis mentions version 3.1.4 as affected but never states the fix is targeted at 3.2.0 or the 2026-09-24 release date.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The issue occurs because the retry button lacks an idempotency key (sending a new request) and the debit/credit operations are not transactionally bound.",
+        "reason": "Both root-cause elements (no idempotency key on retry, debit and credit not in a single transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress (last updated 2026-09-12 16:40)  - **Owner**: Priya Nair  - **Blocking**: PR #218 (fixing the issue) is awaiting code review.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance Ops must manually reverse 3 duplicate debits (per comment from Aroha Walker, 2026-09-11).",
+        "reason": "The analysis mentions 3 customers and manual reversal by Finance Ops but does not state that Marcus Reid was specifically asked to raise this with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Finance Ops to coordinate manual reversals for affected customers (per comment).",
+        "reason": "The analysis lists the reversal as a next action, implying it hasn't been done, but does not explicitly note that the ticket does not confirm the request has been raised or the customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "1. **Priya Nair** to secure code review for PR #218 immediately (blocking progress).  2. **QA team** to validate the fix in staging after PR merge (not specified in ticket).  3. **Finance Ops** to coordinate manual reversals for affected customers (per comment).",
+        "reason": "Both required next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is awaiting code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is not reproducible on desktop web and that no action is required for desktop, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The fix (PR #218) is only for mobile web\u2014desktop web avoids the issue due to UI differences (disabled submit button/retry).",
+        "reason": "The ticket describes PR #218 as wrapping debit/credit in a single transaction and adding Idempotency-Key header support to the transfer endpoint\u2014an API-level fix, not a mobile-web-specific one. The analysis characterises the fix as 'only for mobile web,' which the tickets do not support."
+      }
+    ]
+  }
+}
