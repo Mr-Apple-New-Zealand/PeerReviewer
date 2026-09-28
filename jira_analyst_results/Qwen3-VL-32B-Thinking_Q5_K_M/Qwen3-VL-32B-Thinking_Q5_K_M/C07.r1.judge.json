@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30: Config deploy (OPS-81) rotated the JWT signing key for the Auth service (as per 10:24 comment).  \n- 09:31: Transfer errors began (as observed on dashboards; 09:52 comment).",
+      "reason": "Both the 09:30 deploy and 09:31 impact start are clearly stated."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fired for TransferErrorRate > 20% (description).  \n- 09:52: Incident declared with 64% transfer error rate (09:52 comment).",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31: Rollback process started (10:31 comment).  \n- 10:42: Transfer error rate returned to under 1% (recovery achieved; 10:44 comment).  \n- 10:44: Rollback confirmed complete (10:44 comment).  \n- 10:50: Incident resolved (10:50 comment).",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to Detect: 16 minutes (09:31 error start to 09:47 alert).",
+      "reason": "Correctly states 16 minutes with the correct start and end timestamps."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to Recover: 71 minutes (09:31 error start to 10:42 recovery).",
+      "reason": "States 71 minutes from impact start (09:31 to 10:42) with the start point clearly identified."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Root Cause: The JWT signing key was rotated in config deploy (OPS-81) without updating the key the Transactions API validates against (10:24 comment).",
+      "reason": "The core mechanism is stated, but the specific error manifestation (401 'IDX10503: Signature validation failed') is absent."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the post-incident review booked for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min detect, 71 min recover) are supported by timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "10:24: Root cause identified (mismatched JWT keys) and rollback of OPS-81 initiated (10:24 comment).",
+      "reason": "The 10:24 comment identifies the root cause but does not initiate the rollback; the rollback is initiated in the 10:31 comment ('Rolling back the OPS-81 config deploy.')."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 78.21
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:30: Config deploy (OPS-81) rotated the JWT signing key for the Auth service (as per 10:24 comment).  \n- 09:31: Transfer errors began (as observed on dashboards; 09:52 comment).",
+        "reason": "Both the 09:30 deploy and 09:31 impact start are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fired for TransferErrorRate > 20% (description).  \n- 09:52: Incident declared with 64% transfer error rate (09:52 comment).",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback process started (10:31 comment).  \n- 10:42: Transfer error rate returned to under 1% (recovery achieved; 10:44 comment).  \n- 10:44: Rollback confirmed complete (10:44 comment).  \n- 10:50: Incident resolved (10:50 comment).",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect: 16 minutes (09:31 error start to 09:47 alert).",
+        "reason": "Correctly states 16 minutes with the correct start and end timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover: 71 minutes (09:31 error start to 10:42 recovery).",
+        "reason": "States 71 minutes from impact start (09:31 to 10:42) with the start point clearly identified.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Root Cause: The JWT signing key was rotated in config deploy (OPS-81) without updating the key the Transactions API validates against (10:24 comment).",
+        "reason": "The core mechanism is stated, but the specific error manifestation (401 'IDX10503: Signature validation failed') is absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the post-incident review booked for 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min detect, 71 min recover) are supported by timestamp pairs in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "10:24: Root cause identified (mismatched JWT keys) and rollback of OPS-81 initiated (10:24 comment).",
+        "reason": "The 10:24 comment identifies the root cause but does not initiate the rollback; the rollback is initiated in the 10:31 comment ('Rolling back the OPS-81 config deploy.')."
+      }
+    ]
+  }
+}

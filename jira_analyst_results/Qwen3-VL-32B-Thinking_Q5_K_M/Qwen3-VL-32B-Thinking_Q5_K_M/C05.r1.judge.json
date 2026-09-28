@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440.  \n- MOB-88 and BANK-419 are **not duplicates** of BANK-440.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard showing a stale balance after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-440 as a duplicate of BANK-425.  \n  - Keep BANK-425 open for resolution (it already contains the fix).",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is a distinct mobile notification issue (pre-transfer balance in push alerts).",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate and as a mobile push-notification issue in progress with Ravi Kumar, but does not specify the different root cause (message built from TransferRequested event before debit is applied)."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425's comment confirms the same root cause (\"caches balance in local storage for 15 minutes; nothing invalidates cache after transfer\").",
+      "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419: Done, assigned to Hana Sato. The cache implementation (3.1.4) *caused* the bug but is not a duplicate.",
+      "reason": "The analysis states BANK-419 'caused' the bug as established fact rather than as a probable regression, and does not explicitly recommend linking the tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, unassigned. No progress as it duplicates BANK-425.  \n- **BANK-425**: Open, unassigned.",
+      "reason": "The analysis explicitly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440 and is a distinct mobile notification issue."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the stale balance to the local-storage cache, not to the API returning a wrong value; it never claims the API is at fault."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 81.18
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440.  \n- MOB-88 and BANK-419 are **not duplicates** of BANK-440.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard showing a stale balance after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-440 as a duplicate of BANK-425.  \n  - Keep BANK-425 open for resolution (it already contains the fix).",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is a distinct mobile notification issue (pre-transfer balance in push alerts).",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate and as a mobile push-notification issue in progress with Ravi Kumar, but does not specify the different root cause (message built from TransferRequested event before debit is applied).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425's comment confirms the same root cause (\"caches balance in local storage for 15 minutes; nothing invalidates cache after transfer\").",
+        "reason": "The analysis clearly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419: Done, assigned to Hana Sato. The cache implementation (3.1.4) *caused* the bug but is not a duplicate.",
+        "reason": "The analysis states BANK-419 'caused' the bug as established fact rather than as a probable regression, and does not explicitly recommend linking the tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, unassigned. No progress as it duplicates BANK-425.  \n- **BANK-425**: Open, unassigned.",
+        "reason": "The analysis explicitly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440 and is a distinct mobile notification issue.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis attributes the stale balance to the local-storage cache, not to the API returning a wrong value; it never claims the API is at fault.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

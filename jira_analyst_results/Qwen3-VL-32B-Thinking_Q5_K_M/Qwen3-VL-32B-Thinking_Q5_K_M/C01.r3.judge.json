@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Mobile web transfers with a timeout followed by \"Retry\" cause the source account to be debited twice while the destination account is credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit consequence of retrying after a timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4 (clearly specified)\n- Fix versions: 3.2.0 (clearly specified)",
+      "reason": "The analysis names 3.1.4 as the affected version, 3.2.0 as the fix version, and separately states the 2026-09-24 release date."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This happens because the server treats the retry as a new transfer (no idempotency key) and the debit/credit operations aren't in a single database transaction.",
+      "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress (last updated 2026-09-12 16:40)\n- Owner: Priya Nair\n- Blocking progress: PR #218 is open but waiting on code review as the primary blocker.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Three customers have been impacted, requiring manual transaction reversal.",
+      "reason": "The analysis mentions three customers, manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops in the next-actions section."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid should raise the manual reversal request with Finance Ops as requested by Aroha Walker (2026-09-11 comment).",
+      "reason": "By listing the reversal as a suggested next action, the analysis implies the ticket does not confirm it has been completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair should follow up on code review for PR #218 (which adds idempotency key support and single-transaction handling) to unblock progress.\n- Marcus Reid should raise the manual reversal request with Finance Ops as requested by Aroha Walker (2026-09-11 comment).",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and waiting on code review; it never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the bug is confirmed only on mobile web and not on desktop, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 66.13
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "Mobile web transfers with a timeout followed by \"Retry\" cause the source account to be debited twice while the destination account is credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit consequence of retrying after a timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4 (clearly specified)\n- Fix versions: 3.2.0 (clearly specified)",
+        "reason": "The analysis names 3.1.4 as the affected version, 3.2.0 as the fix version, and separately states the 2026-09-24 release date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "This happens because the server treats the retry as a new transfer (no idempotency key) and the debit/credit operations aren't in a single database transaction.",
+        "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress (last updated 2026-09-12 16:40)\n- Owner: Priya Nair\n- Blocking progress: PR #218 is open but waiting on code review as the primary blocker.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Three customers have been impacted, requiring manual transaction reversal.",
+        "reason": "The analysis mentions three customers, manual reversal by Finance, and that Marcus Reid was asked to raise it with Finance Ops in the next-actions section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid should raise the manual reversal request with Finance Ops as requested by Aroha Walker (2026-09-11 comment).",
+        "reason": "By listing the reversal as a suggested next action, the analysis implies the ticket does not confirm it has been completed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair should follow up on code review for PR #218 (which adds idempotency key support and single-transaction handling) to unblock progress.\n- Marcus Reid should raise the manual reversal request with Finance Ops as requested by Aroha Walker (2026-09-11 comment).",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and waiting on code review; it never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the bug is confirmed only on mobile web and not on desktop, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

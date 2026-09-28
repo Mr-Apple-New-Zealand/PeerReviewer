@@ -1,0 +1,312 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two halves of the breadcrumbs, the ~4-hour-10-minute gap, or the specific timestamps marking the transition from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly. The application appears to be attempting to process data from a failed API call without proper null/undefined checks.",
+      "reason": "It identifies 401s as the cause of the undefined state but frames the fix as null/undefined checks rather than identifying the underlying defect as the absence of central 401 handling (no redirect to sign-in, no guard)."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "partial",
+      "quote": "The Sentry event shows multiple related errors: 'Cannot read properties of undefined (reading 'rows')', 'returnProperties', and 'length' after the authentication failures.",
+      "reason": "[downgraded: quote not found in analysis] It lists the related errors but does not state they should be treated as one defect rather than separate bugs, and does not note that 'rows' appears twice."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "partial",
+      "quote": "Conflicting information: The ticket states 'Production' in tags, but the URL is 'bank-uat.example.com' (Sentry event shows UAT environment).",
+      "reason": "[downgraded: quote not found in analysis] It identifies the Production-vs-UAT conflict but does not conclude that the Sentry environment is misconfigured, that events are polluting production alerting, or that this answers Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or the discrepancy with the actual request URL /payments/batch/actions."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No clear understanding of what code path caused the error (stack trace is mostly minified)",
+      "reason": "It acknowledges the stack is minified but does not mention the three js_no_source errors, the three failed scraping_attempts due to unresolvable UAT host, symbolicated_in_app being false, or specific minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor does it state that the event cannot distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly.",
+      "reason": "It presents a 401-related inference with appropriate hedging ('likely') but does not specifically infer that the token expired during an idle period with no silent refresh, nor does it reference the gap or the prior successful refresh."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address any of the red herrings: the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review error handling: The team should investigate how the application handles API failures in the batch actions flow, especially where data is expected to be array-like but may be undefined.",
+      "reason": "It suggests reviewing error handling and verifying the environment, but does not specify central 401 handling with redirect to sign-in, setting release/dist and uploading source maps, correcting the stale transaction name, or explaining why a null guard alone would be insufficient."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The null check is explicitly labelled 'defensive programming' and conditioned on confirming the session issue; it is not presented as the root cause or the primary fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Although it lists 'Production' in Key Details, it explicitly flags the UAT URL as conflicting information and recommends verifying the environment, so it does not treat it as production without flagging the UAT host."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214; it consistently refers to the 'batch actions screen.'"
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as session expiration, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during a gap, nor does it state that failures ran continuously across a gap."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly.",
+      "reason": "The breadcrumbs contain 22 XHR entries with status_code 401, not 7. The count is factually incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "C17-P3",
+      "C17-P5"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 331.03
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two halves of the breadcrumbs, the ~4-hour-10-minute gap, or the specific timestamps marking the transition from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly. The application appears to be attempting to process data from a failed API call without proper null/undefined checks.",
+        "reason": "It identifies 401s as the cause of the undefined state but frames the fix as null/undefined checks rather than identifying the underlying defect as the absence of central 401 handling (no redirect to sign-in, no guard).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "The Sentry event shows multiple related errors: 'Cannot read properties of undefined (reading 'rows')', 'returnProperties', and 'length' after the authentication failures.",
+        "reason": "It lists the related errors but does not state they should be treated as one defect rather than separate bugs, and does not note that 'rows' appears twice.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Conflicting information: The ticket states 'Production' in tags, but the URL is 'bank-uat.example.com' (Sentry event shows UAT environment).",
+        "reason": "It identifies the Production-vs-UAT conflict but does not conclude that the Sentry environment is misconfigured, that events are polluting production alerting, or that this answers Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or the discrepancy with the actual request URL /payments/batch/actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "No clear understanding of what code path caused the error (stack trace is mostly minified)",
+        "reason": "It acknowledges the stack is minified but does not mention the three js_no_source errors, the three failed scraping_attempts due to unresolvable UAT host, symbolicated_in_app being false, or specific minified frame names.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor does it state that the event cannot distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly.",
+        "reason": "It presents a 401-related inference with appropriate hedging ('likely') but does not specifically infer that the token expired during an idle period with no silent refresh, nor does it reference the gap or the prior successful refresh.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address any of the red herrings: the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText wording.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Review error handling: The team should investigate how the application handles API failures in the batch actions flow, especially where data is expected to be array-like but may be undefined.",
+        "reason": "It suggests reviewing error handling and verifying the environment, but does not specify central 401 handling with redirect to sign-in, setting release/dist and uploading source maps, correcting the stale transaction name, or explaining why a null guard alone would be insufficient.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The null check is explicitly labelled 'defensive programming' and conditioned on confirming the session issue; it is not presented as the root cause or the primary fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "Although it lists 'Production' in Key Details, it explicitly flags the UAT URL as conflicting information and recommends verifying the environment, so it does not treat it as production without flagging the UAT host.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214; it consistently refers to the 'batch actions screen.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name any specific source file, component, method, or line number in application code as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as session expiration, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during a gap, nor does it state that failures ran continuously across a gap.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The 401 errors (7 consecutive API failures) likely caused the undefined state that the application wasn't handling properly.",
+        "reason": "The breadcrumbs contain 22 XHR entries with status_code 401, not 7. The count is factually incorrect."
+      }
+    ]
+  }
+}

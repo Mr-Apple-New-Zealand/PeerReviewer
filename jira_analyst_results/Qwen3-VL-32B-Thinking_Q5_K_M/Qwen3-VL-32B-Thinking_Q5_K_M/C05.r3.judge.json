@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. Both tickets describe the same web dashboard balance not updating after transfers in version 3.1.4.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425: Close as duplicate of BANK-440. The fix suggestion (clear BalanceCache on transfer success) should be added as a comment to BANK-440. This ticket is 8 days older but has more detailed information.",
+      "reason": "The analysis recommends keeping one and closing the other, preserves the root-cause analysis by directing it to be added as a comment, and acknowledges BANK-425 is older with more detail; the key accepts either direction if the analysis is preserved."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88: **Not a duplicate** - Affects mobile push notifications (not web dashboard), shows pre-transfer balance in notifications, and has a different root cause (using TransferRequested event instead of TransferCompleted).",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a mobile push-notification issue with a different cause (TransferRequested event), and confirms it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 provides the root cause explanation: \"The web front end caches the balance response in local storage for 15 minutes (BalanceCache). Nothing invalidates the cache after a transfer.\"",
+      "reason": "The analysis clearly states the cause (15-minute BalanceCache in local storage not invalidated after transfer) and the fix (clear BalanceCache on transfer success)."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419: Add a link to BANK-440 showing this task introduced the caching behavior that caused the issue.",
+      "reason": "The analysis states BANK-419 introduced the bug as a definitive fact ('this task introduced the caching behavior that caused the issue', 'this is the implementation that created the problem') rather than as a probable inference, so it does not meet the inference-presentation requirement for a 'found' verdict."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and does not claim it is one."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the stale balance to front-end caching, not to the API returning wrong values; it never claims the API is at fault."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Both BANK-440 and BANK-425 affect the same component (Web), version (3.1.4), and describe the same user experience issue with dashboard balance updates.",
+      "reason": "BANK-440's component is listed as 'Transactions', not 'Web'; only BANK-425 has component 'Web'. The claim that both affect the same component (Web) is contradicted by the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 78.12
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. Both tickets describe the same web dashboard balance not updating after transfers in version 3.1.4.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-425: Close as duplicate of BANK-440. The fix suggestion (clear BalanceCache on transfer success) should be added as a comment to BANK-440. This ticket is 8 days older but has more detailed information.",
+        "reason": "The analysis recommends keeping one and closing the other, preserves the root-cause analysis by directing it to be added as a comment, and acknowledges BANK-425 is older with more detail; the key accepts either direction if the analysis is preserved.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: **Not a duplicate** - Affects mobile push notifications (not web dashboard), shows pre-transfer balance in notifications, and has a different root cause (using TransferRequested event instead of TransferCompleted).",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a mobile push-notification issue with a different cause (TransferRequested event), and confirms it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425 provides the root cause explanation: \"The web front end caches the balance response in local storage for 15 minutes (BalanceCache). Nothing invalidates the cache after a transfer.\"",
+        "reason": "The analysis clearly states the cause (15-minute BalanceCache in local storage not invalidated after transfer) and the fix (clear BalanceCache on transfer success).",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419: Add a link to BANK-440 showing this task introduced the caching behavior that caused the issue.",
+        "reason": "The analysis states BANK-419 introduced the bug as a definitive fact ('this task introduced the caching behavior that caused the issue', 'this is the implementation that created the problem') rather than as a probable inference, so it does not meet the inference-presentation requirement for a 'found' verdict.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and does not claim it is one.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis attributes the stale balance to front-end caching, not to the API returning wrong values; it never claims the API is at fault.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Both BANK-440 and BANK-425 affect the same component (Web), version (3.1.4), and describe the same user experience issue with dashboard balance updates.",
+        "reason": "BANK-440's component is listed as 'Transactions', not 'Web'; only BANK-425 has component 'Web'. The claim that both affect the same component (Web) is contradicted by the ticket data."
+      }
+    ]
+  }
+}

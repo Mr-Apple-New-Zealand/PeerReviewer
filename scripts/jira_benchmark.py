@@ -465,6 +465,29 @@ class Endpoints:
             print(f"      (could not read /api/ps: {e})")
             return []
 
+    @staticmethod
+    def ps_entry(loaded: list[dict], model: str) -> dict | None:
+        """Find a model in /api/ps output.
+
+        Ollama echoes the tag it was created with, which need not be spelled
+        the way the run asked for it: case can differ, and a bare name comes
+        back as ':latest'. An exact match therefore misses often enough to
+        have cost run 44 (Qwen3-VL-32B-Thinking) its memory figure, and with
+        it its place on the Pareto front. Match leniently instead. There is
+        deliberately no "if only one model is loaded, assume it is ours"
+        fallback: that would happily report the judge's footprint as the
+        analyst's, and a wrong number is worse here than a missing one.
+        """
+        def norm(name: str) -> str:
+            name = (name or "").strip().lower()
+            return name[:-7] if name.endswith(":latest") else name
+
+        want = norm(model)
+        for p in loaded:
+            if want in (norm(p.get("name")), norm(p.get("model"))):
+                return p
+        return None
+
     def unload(self, model: str) -> None:
         try:
             post_json(f"{self.ollama}/api/generate", {"model": model, "keep_alive": 0}, timeout=120)
@@ -1039,7 +1062,14 @@ def run_model(ep: Endpoints, cfg: dict, model: str, think: str, cases: list[dict
             if r["thinking"]:
                 (mdir / f"{tag}.thinking.md").write_text(r["thinking"], encoding="utf-8")
             if first and local:
-                snapshot = next((p for p in ep.ps() if p.get("name") == model or p.get("model") == model), None)
+                loaded = ep.ps()
+                snapshot = Endpoints.ps_entry(loaded, model)
+                if not snapshot:
+                    names = ", ".join(sorted(p.get("name") or "?" for p in loaded)) or "nothing loaded"
+                    record["notes"].append(
+                        f"memory not measured: /api/ps did not list {model} (it had: {names}), "
+                        f"so this run has no resident figure and cannot be placed on the Pareto front")
+                    print(f"      (no /api/ps entry for {model}; loaded: {names})")
                 if snapshot:
                     size, vram = snapshot.get("size") or 0, snapshot.get("size_vram") or 0
                     record["resource"].update({

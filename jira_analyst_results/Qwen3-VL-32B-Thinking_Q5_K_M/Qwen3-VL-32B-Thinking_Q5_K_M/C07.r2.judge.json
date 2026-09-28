@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2026-09-11 09:31: Dashboards show transfer errors starting (as per Sam Okafor).",
+      "reason": "The analysis states the impact started at 09:31 and references OPS-81, but never states the config deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "2026-09-11 09:47: Monitoring alert fired for TransferErrorRate > 20% (per description).  - 2026-09-11 09:52: Incident declared; transfer error rate at 64% (Sam Okafor).",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "2026-09-11 10:31: Rollback of OPS-81 config deploy initiated (Sam Okafor).  - 2026-09-11 10:42: Transfer error rate under 1% (per Sam Okafor at 10:44).  - 2026-09-11 10:50: Ticket resolved (Sam Okafor).",
+      "reason": "All three timestamps (rollback start 10:31, recovery below 1% at 10:42, resolution at 10:50) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "16 minutes (09:31 incident start to 09:47 first monitoring alert).",
+      "reason": "Correctly states 16 minutes with the correct start and end timestamps."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "55 minutes (09:47 detection to 10:42 service restoration).",
+      "reason": "States 55 minutes from detection (09:47 to 10:42) with the start point clearly identified, which is one of the acceptable formulations."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key used by the Transactions API for signature validation, causing 401 errors (per comment at 10:24 and resolution note).",
+      "reason": "The root cause is correctly identified: OPS-81 rotated the JWT signing key without updating the Transactions API's validation key, producing 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database slow queries are mentioned only as a timeline event attributed to Priya Nair; the root cause is clearly attributed to the JWT key rotation, not the database."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated durations (16 min detect, 55 min recover) are directly supported by timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 116.38
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "2026-09-11 09:31: Dashboards show transfer errors starting (as per Sam Okafor).",
+        "reason": "The analysis states the impact started at 09:31 and references OPS-81, but never states the config deploy occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "2026-09-11 09:47: Monitoring alert fired for TransferErrorRate > 20% (per description).  - 2026-09-11 09:52: Incident declared; transfer error rate at 64% (Sam Okafor).",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "2026-09-11 10:31: Rollback of OPS-81 config deploy initiated (Sam Okafor).  - 2026-09-11 10:42: Transfer error rate under 1% (per Sam Okafor at 10:44).  - 2026-09-11 10:50: Ticket resolved (Sam Okafor).",
+        "reason": "All three timestamps (rollback start 10:31, recovery below 1% at 10:42, resolution at 10:50) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "16 minutes (09:31 incident start to 09:47 first monitoring alert).",
+        "reason": "Correctly states 16 minutes with the correct start and end timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "55 minutes (09:47 detection to 10:42 service restoration).",
+        "reason": "States 55 minutes from detection (09:47 to 10:42) with the start point clearly identified, which is one of the acceptable formulations.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated in config deploy OPS-81 without updating the key used by the Transactions API for signature validation, causing 401 errors (per comment at 10:24 and resolution note).",
+        "reason": "The root cause is correctly identified: OPS-81 rotated the JWT signing key without updating the Transactions API's validation key, producing 401 IDX10503 errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis makes no mention of a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database slow queries are mentioned only as a timeline event attributed to Priya Nair; the root cause is clearly attributed to the JWT key rotation, not the database.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated durations (16 min detect, 55 min recover) are directly supported by timestamp pairs in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

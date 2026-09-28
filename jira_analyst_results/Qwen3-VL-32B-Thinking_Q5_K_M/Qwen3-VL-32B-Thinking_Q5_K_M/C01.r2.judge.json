@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-412 reports a double debit issue when users tap \"Retry\" after a transfer timeout on mobile web. The system processes a second transfer without an idempotency key and with separate debit/credit transactions, causing the source account to be debited twice while the destination receives one credit.",
+      "reason": "The analysis clearly states that retrying after a timeout causes a double debit and single credit, matching the expected point."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4\n- Fix versions: 3.2.0 (target release: 2026-09-24)",
+      "reason": "The analysis explicitly states the affected version (3.1.4), fix version (3.2.0), and release date (2026-09-24)."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The system processes a second transfer without an idempotency key and with separate debit/credit transactions, causing the source account to be debited twice while the destination receives one credit.",
+      "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- Owner: Priya Nair\n- Blocking factor: Waiting on code review for PR #218 which implements two fixes (single transaction for debit/credit and idempotency key support)",
+      "reason": "All three elements (In Progress status, Priya Nair as assignee, PR #218 waiting on code review) are clearly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Aroha Walker (or Marcus Reid) should immediately follow up with Finance Ops regarding manual reversals for the three affected customers",
+      "reason": "The analysis mentions three customers needing manual reversal and Finance Ops, but hedges with 'Aroha Walker (or Marcus Reid)' rather than stating that Marcus Reid was specifically asked by Aroha to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Aroha Walker's comment indicates this is needed but no confirmation of resolution",
+      "reason": "The analysis explicitly notes there is no confirmation that the reversals have been completed, matching the expected point."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code reviewers should complete the review of PR #218 to unblock the fix\n- The team should verify the fix using the provided reproduction steps and add test cases for all timeout scenarios before release",
+      "reason": "The analysis lists getting PR #218 reviewed and following up with Finance Ops as next actions, covering both expected items."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is still waiting on code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the issue occurs only on mobile web and not on desktop, consistent with Tom Becker's QA finding."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 143.55
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "BANK-412 reports a double debit issue when users tap \"Retry\" after a transfer timeout on mobile web. The system processes a second transfer without an idempotency key and with separate debit/credit transactions, causing the source account to be debited twice while the destination receives one credit.",
+        "reason": "The analysis clearly states that retrying after a timeout causes a double debit and single credit, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4\n- Fix versions: 3.2.0 (target release: 2026-09-24)",
+        "reason": "The analysis explicitly states the affected version (3.1.4), fix version (3.2.0), and release date (2026-09-24).",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The system processes a second transfer without an idempotency key and with separate debit/credit transactions, causing the source account to be debited twice while the destination receives one credit.",
+        "reason": "Both root causes (no idempotency key on retry, and debit/credit not in a single transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- Owner: Priya Nair\n- Blocking factor: Waiting on code review for PR #218 which implements two fixes (single transaction for debit/credit and idempotency key support)",
+        "reason": "All three elements (In Progress status, Priya Nair as assignee, PR #218 waiting on code review) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Aroha Walker (or Marcus Reid) should immediately follow up with Finance Ops regarding manual reversals for the three affected customers",
+        "reason": "The analysis mentions three customers needing manual reversal and Finance Ops, but hedges with 'Aroha Walker (or Marcus Reid)' rather than stating that Marcus Reid was specifically asked by Aroha to raise it with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Aroha Walker's comment indicates this is needed but no confirmation of resolution",
+        "reason": "The analysis explicitly notes there is no confirmation that the reversals have been completed, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Code reviewers should complete the review of PR #218 to unblock the fix\n- The team should verify the fix using the provided reproduction steps and add test cases for all timeout scenarios before release",
+        "reason": "The analysis lists getting PR #218 reviewed and following up with Finance Ops as next actions, covering both expected items.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is still waiting on code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the issue occurs only on mobile web and not on desktop, consistent with Tom Becker's QA finding.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

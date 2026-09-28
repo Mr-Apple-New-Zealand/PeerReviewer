@@ -1,0 +1,257 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "*401-triggered client-side errors:* BANKUI-4A1, 4A2, 4A9, and 4B3 (all caused by 401 responses leading to `TypeError` on undefined properties).",
+      "reason": "The analysis groups four of the five issues correctly but places BANKUI-3C8 in a separate 'Non-defects' category rather than recognizing it as the console logger recording the same 401 that causes the other four, so the five-issue cluster is incomplete."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed, does not reference the export's note about overlapping users, and does not identify 44 as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-5D6 (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.",
+      "reason": "The analysis correctly identifies BANKUI-5D6 as having the highest distinct user count (58) and notes the low event count (63) in the risks section, conveying the contrast between user impact and event volume."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6 (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.",
+      "reason": "The analysis mentions the 404 but does not note the first-seen time (21:11:36), the ~6.5-minute gap after the 4.7.0 deploy (21:05:00), or the mechanism of open sessions requesting old hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0 (definitively not our defect; from a Chrome extension).",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a Chrome extension non-defect but omits the 4,812 event count, the single-user detail, the absence of app breadcrumbs, and the specific recommendation to filter it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The core problem is identifying high-impact defects while avoiding the previous sprint's mistake of prioritizing low-impact issues (e.g., \"affecting one person\").",
+      "reason": "The analysis implicitly de-prioritizes both high-event-count issues but never explicitly states that event count is a misleading ranking metric or calls out that the two largest counts (5,140 and 4,812) are not the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-1A7 is entirely absent from the analysis; there is no mention of its resolved status, its last-seen date after the 4.7.0 deploy, or the need to reopen it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No source maps uploaded (Ravi Kumar's comment), so stack traces (e.g., \"ie.project\") are minified, hindering root-cause analysis.",
+      "reason": "The analysis correctly states that source maps are not uploaded, gives a minified name example, and explains that this prevents tracing issues to components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "401-triggered client-side errors: BANKUI-4A1, 4A2, 4A9, and 4B3 (all caused by 401 responses leading to `TypeError` on undefined properties).",
+      "reason": "The analysis states the 401 connection as established fact rather than as an inference, does not identify the mechanism as sessions expiring without the app handling the rejection, and does not note that confirming would require a full event."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **BANKUI-5D6** (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.  2. **BANKUI-4A1** (41 users): Second-highest distinct user count (41) and the most frequent client-side bug (312 events) from the 401 group.",
+      "reason": "The analysis correctly picks BANKUI-5D6 first but selects a single issue (BANKUI-4A1) as second rather than the 401 cluster as a whole, does not articulate that one HTTP-layer fix closes five issues, and completely omits reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags BANKUI-2F0 as a non-defect requiring no action and does not treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues under a single shared cause (401 responses) and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists individual user counts but never sums them across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-1A7 is not mentioned at all in the analysis, so it is neither stated as fixed, resolved, or needing no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issues as client-side errors triggered by 401 responses, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps BANKUI-5D6 in its own 'Chunk load failure' group and does not mention BANKUI-1A7, so neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 413.39
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "*401-triggered client-side errors:* BANKUI-4A1, 4A2, 4A9, and 4B3 (all caused by 401 responses leading to `TypeError` on undefined properties).",
+        "reason": "The analysis groups four of the five issues correctly but places BANKUI-3C8 in a separate 'Non-defects' category rather than recognizing it as the console logger recording the same 401 that causes the other four, so the five-issue cluster is incomplete.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed, does not reference the export's note about overlapping users, and does not identify 44 as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6 (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.",
+        "reason": "The analysis correctly identifies BANKUI-5D6 as having the highest distinct user count (58) and notes the low event count (63) in the risks section, conveying the contrast between user impact and event volume.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "BANKUI-5D6 (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.",
+        "reason": "The analysis mentions the 404 but does not note the first-seen time (21:11:36), the ~6.5-minute gap after the 4.7.0 deploy (21:05:00), or the mechanism of open sessions requesting old hashed bundles.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 (definitively not our defect; from a Chrome extension).",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a Chrome extension non-defect but omits the 4,812 event count, the single-user detail, the absence of app breadcrumbs, and the specific recommendation to filter it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "The core problem is identifying high-impact defects while avoiding the previous sprint's mistake of prioritizing low-impact issues (e.g., \"affecting one person\").",
+        "reason": "The analysis implicitly de-prioritizes both high-event-count issues but never explicitly states that event count is a misleading ranking metric or calls out that the two largest counts (5,140 and 4,812) are not the most valuable to fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "BANKUI-1A7 is entirely absent from the analysis; there is no mention of its resolved status, its last-seen date after the 4.7.0 deploy, or the need to reopen it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "No source maps uploaded (Ravi Kumar's comment), so stack traces (e.g., \"ie.project\") are minified, hindering root-cause analysis.",
+        "reason": "The analysis correctly states that source maps are not uploaded, gives a minified name example, and explains that this prevents tracing issues to components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not mention that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "401-triggered client-side errors: BANKUI-4A1, 4A2, 4A9, and 4B3 (all caused by 401 responses leading to `TypeError` on undefined properties).",
+        "reason": "The analysis states the 401 connection as established fact rather than as an inference, does not identify the mechanism as sessions expiring without the app handling the rejection, and does not note that confirming would require a full event.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. **BANKUI-5D6** (58 users): Highest distinct user count (58) and causes a critical 404 for a JS chunk, breaking functionality for users.  2. **BANKUI-4A1** (41 users): Second-highest distinct user count (41) and the most frequent client-side bug (312 events) from the 401 group.",
+        "reason": "The analysis correctly picks BANKUI-5D6 first but selects a single issue (BANKUI-4A1) as second rather than the 401 cluster as a whole, does not articulate that one HTTP-layer fix closes five issues, and completely omits reopening BANKUI-1A7.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly flags BANKUI-2F0 as a non-defect requiring no action and does not treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues under a single shared cause (401 responses) and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis lists individual user counts but never sums them across issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "BANKUI-1A7 is not mentioned at all in the analysis, so it is neither stated as fixed, resolved, or needing no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issues as client-side errors triggered by 401 responses, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps BANKUI-5D6 in its own 'Chunk load failure' group and does not mention BANKUI-1A7, so neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

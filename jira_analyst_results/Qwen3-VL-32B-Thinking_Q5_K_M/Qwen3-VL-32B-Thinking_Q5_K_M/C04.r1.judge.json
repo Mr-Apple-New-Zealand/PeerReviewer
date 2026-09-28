@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No, we cannot tell the customer the issue is fixed.",
+      "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked as \"Done\" with resolution \"Fixed\", but the problem still occurs in the 3.1.4 environment with a different error condition. The customer is still experiencing the issue and has asked about it again.",
+      "reason": "The analysis conveys the Done/Fixed status, the 3.1.4 retest on staging (3.1.4.17) on 2026-09-10, and that reset emails to plus-addressed recipients still do not arrive, though it does not name Tom Becker by name."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "retesting on staging (3.1.4.17) shows the issue now manifests as \"Rejected: 550 5.1.3 Invalid recipient address\" in SMTP logs, indicating the email provider is rejecting the address.",
+      "reason": "The analysis clearly states the new SMTP error '550 5.1.3 Invalid recipient address' as a different failure mode."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: The email provider's rejection may be the root cause (e.g., some providers don't support plus-addressed emails), but this requires confirmation as it's not explicitly stated in the ticket.",
+      "reason": "The analysis presents the provider-rejection cause as an inference with explicit uncertainty language ('may be', 'requires confirmation'), distinguishing it from the regex fix in PR #201."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Development team (Priya Nair): Reopen the ticket to investigate the SMTP error: \"550 5.1.3 Invalid recipient address\" and confirm if this is a provider-specific issue.",
+      "reason": "The analysis implies the ticket has not been reopened by recommending it be reopened, but does not explicitly state that nobody reopened it or raised a follow-up, nor does it explicitly say no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Do not tell the customer the issue is fixed. Explain that the system was updated but a different issue with their email provider may be preventing the reset email. Suggest they try their main email address (e.g., name@example.com) without the plus tag.",
+      "reason": "The analysis recommends reopening the ticket, assigning investigation to Priya Nair, and giving the customer a holding response rather than confirming a fix, covering all key elements of the expected recommendation."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis recommends reopening the ticket as a future action and does not claim it has already been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The customer's password reset emails are still not arriving for plus-addressed emails (e.g., test+qa1@example.com).",
+      "reason": "The retest was performed with a test address (test+qa1@example.com) on staging; the tickets do not confirm the specific customer's own email is still failing, only that the general bug persists. Stating it as fact about 'the customer's' emails goes slightly beyond what the tickets establish."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 107.08
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "No, we cannot tell the customer the issue is fixed.",
+        "reason": "The analysis explicitly and clearly states that support should not tell the customer the issue is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket is marked as \"Done\" with resolution \"Fixed\", but the problem still occurs in the 3.1.4 environment with a different error condition. The customer is still experiencing the issue and has asked about it again.",
+        "reason": "The analysis conveys the Done/Fixed status, the 3.1.4 retest on staging (3.1.4.17) on 2026-09-10, and that reset emails to plus-addressed recipients still do not arrive, though it does not name Tom Becker by name.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "retesting on staging (3.1.4.17) shows the issue now manifests as \"Rejected: 550 5.1.3 Invalid recipient address\" in SMTP logs, indicating the email provider is rejecting the address.",
+        "reason": "The analysis clearly states the new SMTP error '550 5.1.3 Invalid recipient address' as a different failure mode.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "Inference: The email provider's rejection may be the root cause (e.g., some providers don't support plus-addressed emails), but this requires confirmation as it's not explicitly stated in the ticket.",
+        "reason": "The analysis presents the provider-rejection cause as an inference with explicit uncertainty language ('may be', 'requires confirmation'), distinguishing it from the regex fix in PR #201.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "Development team (Priya Nair): Reopen the ticket to investigate the SMTP error: \"550 5.1.3 Invalid recipient address\" and confirm if this is a provider-specific issue.",
+        "reason": "The analysis implies the ticket has not been reopened by recommending it be reopened, but does not explicitly state that nobody reopened it or raised a follow-up, nor does it explicitly say no one currently owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Do not tell the customer the issue is fixed. Explain that the system was updated but a different issue with their email provider may be preventing the reset email. Suggest they try their main email address (e.g., name@example.com) without the plus tag.",
+        "reason": "The analysis recommends reopening the ticket, assigning investigation to Priya Nair, and giving the customer a holding response rather than confirming a fix, covering all key elements of the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and that support should not confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis recommends reopening the ticket as a future action and does not claim it has already been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The customer's password reset emails are still not arriving for plus-addressed emails (e.g., test+qa1@example.com).",
+        "reason": "The retest was performed with a test address (test+qa1@example.com) on staging; the tickets do not confirm the specific customer's own email is still failing, only that the general bug persists. Stating it as fact about 'the customer's' emails goes slightly beyond what the tickets establish."
+      }
+    ]
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "JWT signing key rotated in config deploy OPS-81 (09:30) for Auth service, but Transactions API still validated against the old key",
+      "reason": "Both the 09:30 deploy time and 09:31 impact start are clearly stated in the timeline and root cause sections."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fired (TransferErrorRate > 20%).  - 09:52: Incident declared (ticket created); error rate at 64%.",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31: Rollback of OPS-81 config deploy initiated.  - 10:42: Transfer error rate returned to <1% (recovery complete).  - 10:50: Incident resolved.",
+      "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "16 minutes (09:31 start \u2192 09:47 first alert).",
+      "reason": "Time to detect is correctly calculated as 16 minutes from 09:31 to 09:47."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1 hour 11 minutes (09:31 start \u2192 10:42 recovery complete).",
+      "reason": "71 minutes (1h 11m) from impact start 09:31 to recovery 10:42 is stated with the start point clearly identified."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "JWT signing key rotated in config deploy OPS-81 (09:30) for Auth service, but Transactions API still validated against the old key, causing 401 errors (\"IDX10503: Signature validation failed\").",
+      "reason": "All elements of the root cause are present: OPS-81, JWT key rotation, Auth service, Transactions API, 401, and the specific error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:50: Resolved (10:50 comment confirms resolution and post-incident review booking).",
+      "reason": "The analysis mentions a post-incident review is booked but does not state the specific date of 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both T2D (16 min) and T2R (71 min) are supported by pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "the error only appeared after 09:31 (1 minute later) due to delayed propagation",
+      "reason": "The ticket does not explain why there was a 1-minute gap between the 09:30 deploy and 09:31 errors; 'delayed propagation' is an invented explanation not present in the ticket."
+    },
+    {
+      "quote": "10:42 recovery confirmed by all parties",
+      "reason": "Only Sam Okafor's 10:44 comment mentions the 10:42 recovery; Marcus Reid and Priya Nair do not confirm it, so 'all parties' is unsupported."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 72.72
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "JWT signing key rotated in config deploy OPS-81 (09:30) for Auth service, but Transactions API still validated against the old key",
+        "reason": "Both the 09:30 deploy time and 09:31 impact start are clearly stated in the timeline and root cause sections.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fired (TransferErrorRate > 20%).  - 09:52: Incident declared (ticket created); error rate at 64%.",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback of OPS-81 config deploy initiated.  - 10:42: Transfer error rate returned to <1% (recovery complete).  - 10:50: Incident resolved.",
+        "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "16 minutes (09:31 start \u2192 09:47 first alert).",
+        "reason": "Time to detect is correctly calculated as 16 minutes from 09:31 to 09:47.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "1 hour 11 minutes (09:31 start \u2192 10:42 recovery complete).",
+        "reason": "71 minutes (1h 11m) from impact start 09:31 to recovery 10:42 is stated with the start point clearly identified.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "JWT signing key rotated in config deploy OPS-81 (09:30) for Auth service, but Transactions API still validated against the old key, causing 401 errors (\"IDX10503: Signature validation failed\").",
+        "reason": "All elements of the root cause are present: OPS-81, JWT key rotation, Auth service, Transactions API, 401, and the specific error code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "10:50: Resolved (10:50 comment confirms resolution and post-incident review booking).",
+        "reason": "The analysis mentions a post-incident review is booked but does not state the specific date of 2026-09-16.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both T2D (16 min) and T2R (71 min) are supported by pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "the error only appeared after 09:31 (1 minute later) due to delayed propagation",
+        "reason": "The ticket does not explain why there was a 1-minute gap between the 09:30 deploy and 09:31 errors; 'delayed propagation' is an invented explanation not present in the ticket."
+      },
+      {
+        "quote": "10:42 recovery confirmed by all parties",
+        "reason": "Only Sam Okafor's 10:44 comment mentions the 10:42 recovery; Marcus Reid and Priya Nair do not confirm it, so 'all parties' is unsupported."
+      }
+    ]
+  }
+}

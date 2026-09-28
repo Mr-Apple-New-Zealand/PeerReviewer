@@ -20,12 +20,13 @@ step with it.
 
 ## Current standing
 
-Seven models have been measured on the full eighteen cases with the judge of
+Eight models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Unsup | GB |
 |---|---|---|---|---|---|---|---|---|---|
-| **claude-sonnet-5** ¹ | — | n/a | **88.4 (87–91)** | **90%** | **93.6** | **74.9** | **4/162** | **13** | — |
+| **claude-sonnet-5** ¹ | — | n/a | **88.4 (87–91)** | **90%** | **93.6** | **74.9** | 4/162 | **13** | — |
+| **Qwen3-VL-32B-Thinking** | Q5_K_M | 1.0 | **60.6 (60–61)** | 66% | 72.5 | 29.8 | **1/162** | 51 | — ² |
 | Qwen3-VL-8B-Thinking-imatrix | Q4_K_M | 1.0 | 52.3 (48–54) | 60% | 62.9 | 24.7 | 7/162 | 59 | 13.0 |
 | Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | 63% | 57.9 | 28.4 | 19/162 | 67 | **9.4** |
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | 60.6 | 19.5 | 7/162 | 37 | 32.5 |
@@ -34,131 +35,146 @@ record. Everything earlier is superseded — see below.
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 100 | 4.1 |
 
 All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Judge grounding
-stayed clean: 0–2 ungrounded, 0 omitted.
+stayed acceptable: 0–3 ungrounded, 0–1 omitted.
 
 ¹ Hosted, so it has no resident GB and is outside the Pareto front, which needs
 memory. Temperature is not sent (Claude rejects it) and `num_ctx` does not apply;
 its times are wall clock including the network. It is a **reference ceiling**, not
 a value comparison.
 
-### The local models are much further from the ceiling than the board suggested
+² **Not measured, and it should have been.** The `/api/ps` lookup after the first
+case found no entry matching the tag, so run 44 has no footprint and is excluded
+from the Pareto front. The harness now matches the tag case-insensitively and
+records a note when the lookup misses, so this cannot recur silently — but the
+figure for this run is simply lost. Expect roughly **35 GB**: ~23 GB of Q5_K_M
+weights, ~1.4 GB of vision weights and 12 GiB of KV cache at `num_ctx` 49152.
+Confirm it on the next run rather than quoting that estimate.
 
-Sonnet scores **88.4 against the local leader's 52.3** — a 36-point gap, larger
-than the gap between the local leader and the worst model measured. Until this run
-there was no way to tell whether 52.3 was near the achievable maximum. It is not.
+### A local model clears 60, and it is the most careful model on the board
 
-The checkpoint breakdown is the clearest way to see it:
+`Qwen3-VL-32B-Thinking` at temperature 1.0 scores **60.6**, eight points above the
+previous local best and the first local model to pass 60. Two things about it are
+more interesting than the headline.
 
-| | Sonnet | Qwen3-VL-8B-Thinking |
-|---|---|---|
-| Found (full credit) | **343 (81%)** | 147 (35%) |
-| Partial (half credit) | 58 (14%) | 166 (39%) |
-| Missed | **22 (5%)** | 110 (26%) |
+**It trips one trap in 162 — the best record of any model measured, Sonnet
+included.** This is the first metric on which anything local has beaten the
+reference:
 
-The local leader's score is carried by partial credit; Sonnet's is carried by
-points it actually made. On the prose cases it reaches **93.6**, which is close to
-saturating them.
+| | 32B-Thinking | Sonnet | 8B-Thinking | 8B-Instruct |
+|---|---|---|---|---|
+| Traps tripped | **1/162** | 4/162 | 7/162 | 19/162 |
+| Unsupported per analysis | 0.94 | **0.24** | 1.09 | 1.24 |
 
-**It is also the most trustworthy, not merely the most thorough.** It trips the
-fewest traps (4 against 7–20) and makes the fewest unsupported claims (13, or 0.24
-per analysis, against 59 for the local leader). The usual recall-against-trust
-trade-off does not appear: it finds more *and* asserts less that is unsupported.
+**Do not read that as trustworthiness.** The traps are deliberate invitations to
+assert something the tickets do not support, and this model almost never takes
+one. It still makes 51 unsupported claims — four times Sonnet's rate per analysis.
+It is disciplined about the specific wrong answers the cases bait it with, and
+ordinary about volunteering things it cannot support.
 
-### The telemetry cases are the gap, not the prose
+**Its run-to-run range is 60.2–60.9** — 0.7 points across three repeats, against
+6.3 for the 8B-Thinking and 4.3 for Sonnet. That is a surprisingly tight spread
+for a run at temperature 1.0 and worth a second look rather than a boast: with
+three repeats it could be coincidence, and it is the kind of number that also
+appears when repeats are not actually varying.
 
-C14–C18: **74.9** against the best local score of 28.4. On the prose cases the
-spread is 93.6 against 62.9, a factor of 1.5; on logs and Sentry exports it is a
-factor of 2.7. Reading machine output is where the local fleet falls furthest
-behind, and it is the half of this benchmark added most recently.
+**It is not more verbose than the 8B.** 2,849 output tokens a case against the
+8B-Thinking's 2,885 — the same reasoning budget, eight points better. The gain is
+the quality of the thinking, not the amount.
 
-Its vision scores — C11 76.2, C12 80.9, C13 **97.6** — show the screenshot cases
-are not what separates the field either. C13, the wordless-markup case, is close to
-solved.
+**It is slow.** 109.1s a case at 28.4 tok/s, four times the 8B-Thinking's 26.6s,
+and a full 54-case run takes about 100 minutes before judging. Against the 8B it
+buys 8 points of quality and six fewer traps for 4× the time.
 
-### What this means for the local search
+### The gap to the ceiling has closed by a quarter, and is still the story
 
-Nothing measured locally is a substitute for a frontier model on this task. The
-practical questions are now narrower: how much of the 36-point gap matters for the
-intended use, and whether a local model plus human review costs less than the API
-call. A run of 54 analyses at ~15k input tokens each is a few dollars.
+Sonnet scores **88.4 against 60.6** — 27.8 points, down from 36.1 when the 8B led.
+The composition still differs in kind, not degree:
 
-### Temperature 1.0 fixes the Thinking build, and takes it off the board
+| | Sonnet | 32B-Thinking | 8B-Thinking |
+|---|---|---|---|
+| Found (full credit) | **343 (81%)** | 180 (43%) | 147 (35%) |
+| Partial (half credit) | 58 (14%) | 155 (37%) | 166 (39%) |
+| Missed | **22 (5%)** | 88 (21%) | 110 (26%) |
 
-Re-running the 8B Thinking at temperature 1.0 — the card's own value, against the
-fleet's 0.3 — removed the failure completely:
+The local leader's score is still carried by partial credit — it gestures at the
+right answer more often than it makes it. But it misses a fifth fewer checkpoints
+than the 8B (88 against 110) and makes 33 more outright (180 against 147), so the
+gain is real points, not just more hedged ones.
 
-| | temp 0.3 | temp 1.0 |
-|---|---|---|
-| Empty-content runs | **9 of 54** | **0** |
-| Quality (delivered) | 47.3 | **52.3** |
-| C01–C13 | 63.6 † | 62.9 |
-| C14–C18 | 19.9 † | **24.7** |
-| Traps | 6/114 | 7/162 |
-| Ungrounded | 4 | 1 |
-| Output tokens a case | 5,244 | **2,885** |
-| Time a case | 53.1s | **26.6s** |
+### The telemetry cases are still the gap
 
-† over completed runs only, since 9 produced no analysis.
+C14–C18: **29.8** against Sonnet's 74.9. On the prose cases the spread is 93.6
+against 72.5, a factor of 1.3; on logs and Sentry exports it is a factor of 2.5.
+Reading machine output remains where the local fleet falls furthest behind, and
+the 32B-Thinking's advance is mostly on prose — it adds 9.6 points on C01–C13 over
+the 8B-Thinking and 5.1 on C14–C18.
 
-So the looping was a low-temperature artefact, exactly as Qwen's guidance says. At
-1.0 it answers every case, halves its output and its time, and gains 5 points of
-delivered quality. Note where the gain is: prose is unchanged at 62.9 against 63.6,
-so the whole improvement is telemetry plus no longer forfeiting nine runs.
+C17 (a Sentry event whose headline error is the symptom, not the fault) is the
+hardest case in the suite for everything: **17.9** here, 1.3 for the 8B-Thinking,
+0–1 for the older fleet, and even Sonnet only reaches 58.9.
 
-**52.3 would top the leaderboard, and it cannot be put there.** Temperature changes
-what a model writes, so `--compare` excludes the run with
-`different temperature 1.0 (ranked runs: 0.3)`. That is the tool being right:
-unlike `num_ctx`, this is not a free variable.
+**Vision is now this model's weakest prose group**, not its strongest: C11 47.6,
+C12 59.5, C13 61.9, against 72.5 across C01–C13. The 8B-Thinking scored 19.1 on
+C13; at 32B that becomes 61.9, so the wordless-markup case scales with size — but
+Sonnet's 97.6 shows how much is still on the table.
 
-**The decision it forces.** A single fleet temperature cannot suit both tracks — the
-cards ask for 0.7 on Instruct and 1.0 on Thinking, and 0.3 is below both. The
-consistent fix is to treat temperature the way `num_ctx` is already treated: a
-per-track setting, with Instruct and Thinking builds compared within their own
-track and never across it. Thinking builds already cannot share the Instruct memory
-column, for the same reason.
+### Temperature 1.0 is confirmed at two sizes
 
-Until that is settled, read 52.3 as this build's real capability and 47.3 as what it
-delivers under the fleet's current convention.
+The 8B-Thinking's empty-content failures at temperature 0.3 were a low-temperature
+artefact, and the 32B run settles it. Both builds, same change:
 
-### Reasoning did not pay for itself, and it failed where it was needed most
+| | 8B at 0.3 | 8B at 1.0 | 32B at 0.3 | 32B at 1.0 |
+|---|---|---|---|---|
+| Empty-content runs | **9 of 54** | **0** | **3 of 54** | **0** |
+| Quality (delivered) | 47.3 | 52.3 | 64.8 ³ | **60.6** |
+| Output tokens a case | 5,244 | 2,885 | — | 2,849 |
+| Time a case | 53.1s | 26.6s | — | 109.1s |
 
-The Thinking build at Q4_K_M went into runaway reasoning on **9 of 54 runs**,
-returning empty content after exhausting `num_predict`. Eight of the nine were
-telemetry cases:
+³ judged by `Qwen3-Coder-30B`, which produced 39 ungrounded verdicts. **Not
+comparable** with the 60.6 beside it — see Superseded measurements. The 0.3 column
+is listed for the failure count only.
 
-```
-C15 x2   C17 x2   C18 x2   C14   C16   C10
-```
+At 1.0 both builds answer every case. On the 8B, where a clean before-and-after
+exists, prose was unchanged (63.6 → 62.9) and the whole gain was telemetry plus no
+longer forfeiting nine runs. The looping is a low-temperature artefact, exactly as
+Qwen's guidance says, and raising `num_predict` is the wrong lever: more budget
+buys more looping.
 
-Those score 0 and are not retried, so the delivered figures understate the model.
-Over the 45 runs that completed:
+**Runs at different temperatures are now ranked together**, with the temperature
+shown in its own column here and in the generated Runs table. `--compare` no longer
+treats temperature as a comparability key. That is a deliberate loosening: a single
+fleet temperature cannot suit both tracks, since the cards ask 0.7 on Instruct and
+1.0 on Thinking, and 0.3 is below both. Read the Temp column before comparing two
+rows closely — it is a real difference in what the model was asked to do, not a
+free variable like `num_ctx`.
 
-| | As delivered | Completed runs only |
-|---|---|---|
-| Quality | 47.3 | 56.7 |
-| C01–C13 | 61.6 | 63.6 |
-| C14–C18 | 9.9 | 19.9 |
+### Reasoning pays at 32B and not at 8B
 
-**Neither number flatters it against its own Instruct sibling.** On prose it
-reaches 63.6 at best against the Instruct build's 57.9 — a real gain. On telemetry
-it reaches 19.9 at best against the Instruct build's **28.4**, and it only achieves
-that by not answering a third of those cases. Reasoning made it better at reading
-tickets and worse at reading logs, which is the opposite of what the extra budget
-was for.
+With both Thinking builds at their card temperature, the reasoning track only earns
+its cost at the larger size:
 
-It is also expensive: **5,244 output tokens a case against the Instruct build's
-815, and 53.1s against 7.3s** — seven times the time and six times the tokens, for
-a lower delivered score.
+| | 8B-Instruct | 8B-Thinking | 32B-Thinking |
+|---|---|---|---|
+| Quality | 49.7 | 52.3 | **60.6** |
+| C01–C13 | 57.9 | 62.9 | **72.5** |
+| C14–C18 | **28.4** | 24.7 | 29.8 |
+| Traps | 19/162 | 7/162 | **1/162** |
+| Time a case | **7.3s** | 26.6s | 109.1s |
 
-Raising `num_predict` is the wrong lever here; Qwen warns that thinking models loop
-at low temperatures, and the fleet runs at 0.3 against a card value of 1.0. If this
-build is worth revisiting, raise temperature toward 1.0 first — but on this evidence
-the Instruct sibling is the better model at the same size, for a seventh of the
-time.
+At 8B, reasoning buys 5 points of prose and *loses* 3.7 on telemetry for 3.6× the
+time — the Instruct sibling is still the better model at that size for most uses.
+At 32B it buys 14.6 points of prose over the 8B-Instruct and finally edges ahead on
+telemetry too, for 15× the time.
 
-### The top two are tied, but they are not the same model
+**No comparison here isolates reasoning.** The quants differ at every size, and no
+size has a quant-matched Instruct/Thinking pair — the 32B Instruct has not been
+measured at all since its tag was found to hold Q3_K_M weights. Size, quant and
+reasoning move together in this table.
 
-49.7 against 49.2, with overlapping ranges, is a tie. The composition is not:
+### The mid-table tie still holds
+
+49.7 against 49.2, with overlapping ranges, is a tie between the 8B-Instruct and
+the Qwen2.5-VL-32B. The composition is not the same:
 
 | | Qwen3-VL-8B | Qwen2.5-VL-32B |
 |---|---|---|
@@ -170,36 +186,32 @@ time.
 The 8B finds substantially more and is wrong more often; the 32B finds less and is
 right about more of it. **Choose on what sits behind the model.** For a pipeline
 with a verification step, take the 8B's recall. For output a human reads and acts
-on directly, take the 32B - a trap tripped is a confident false statement about a
+on directly, take the 32B — a trap tripped is a confident false statement about a
 ticket, and the 8B makes nearly three times as many.
-
-### The telemetry cases finally move
-
-C14–C18: **1.1, 1.3, 11.7, 19.5, 28.4** for the 3B, 7B, 72B, 32B and Qwen3-VL-8B.
-The best score on log and Sentry analysis now comes from the smallest capable model
-in the field, and it is nearly a third of the way to the ceiling rather than the
-rounding error the small Qwen2.5-VL builds produced. This is where the generational
-difference shows most clearly.
 
 ### Memory has stopped predicting anything
 
-Ordered by memory: 4.1 GB → 14.4, 7.1 GB → 24.5, 9.4 GB → **49.7**, 32.5 GB →
-49.2, 56.3 GB → 45.6. The curve rises steeply to 9 GB and is flat or falling above
-it. On current evidence there is no reason to spend more than about 10 GB on this
-job, provided the model is a recent one.
+Ordered by memory: 4.1 GB → 14.4, 7.1 GB → 24.5, 9.4 GB → **49.7**, 13.0 GB →
+52.3, 32.5 GB → 49.2, 56.3 GB → 45.6. The curve rises steeply to about 13 GB and
+is flat or falling above it.
+
+The new leader would sit at roughly 35 GB if the estimate holds, which — if
+confirmed — puts the first real quality gain above 13 GB on the board. Until it is
+measured, the honest statement is unchanged: **nothing between 13 GB and 56 GB has
+been shown to beat a 13 GB model**, and the run that might have is the one whose
+footprint was not captured. Measuring it is the single cheapest thing that would
+sharpen this section.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
-C14–C18 attach logs and Sentry telemetry. The 72B — the strongest model
-measured — scores 58.7 on the first group and 11.7 on the second. The headline
-Quality is a mean over both, so it moves mostly with the telemetry cases and is
-not a good single number for "can this model read a ticket". Quote the two
-columns.
+C14–C18 attach logs and Sentry telemetry. The headline Quality is a mean over both
+and moves mostly with the telemetry cases, so it is not a good single number for
+"can this model read a ticket". Quote the two columns.
 
 ## Runs still to do
 
-The Qwen3-VL fleet has Modelfiles for eight builds (2B/4B/8B/32B × Instruct and
-Thinking) and none has a usable score. Two things are worth settling first,
-because they decide whether the results can be compared with each other:
+Of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking), three now
+have usable scores. Two things are worth settling before the rest, because they
+decide whether the results can be compared with each other:
 
 - **Quantization.** The Instruct track is nearly matched at Q4_K_M imatrix, with
   only the 8B at Q3_K_M. The Thinking track runs three different quants and the
@@ -210,6 +222,12 @@ because they decide whether the results can be compared with each other:
   16384. The trained-window guard now refuses a run above the model's own
   window, so the 32768-window mistake that voided two runs cannot recur
   silently.
+
+The **Qwen3-VL-32B-Instruct** run is the most valuable one outstanding: it is the
+only way to tell how much of the leader's 60.6 is size and how much is reasoning,
+and it should be quick by comparison — the 8B-Instruct runs in a tenth of the
+Thinking build's time. Run the Thinking builds at temperature 1.0 and the Instruct
+builds at 0.3.
 
 ---
 
@@ -233,7 +251,7 @@ measured against Sonnet on the cases both judges graded.
 | Judge | Δ vs Sonnet | Ungrounded | Omitted | Verdict |
 |---|---|---|---|---|
 | `claude-sonnet-5` | reference | 0 over 5 runs | 0 | Reference |
-| **`Qwen3.8-27B`** | **+1.0, −1.3** | 1, then 0 | 0 | **Judge of record** |
+| **`Qwen3.8-27B`** | **+1.0, −1.3** | 0–3 per run | 0–1 | **Judge of record** |
 | `Gemma-4-31B` | +1.3 | 2 | 0 | Passes; no speed gain |
 | `Qwen3.6-27B` | +8.8 | 0 | 9 | Lenient; runaway thinking |
 | `Qwen3.5-9B` | +7.9 | **58** | 26 | Fabricates quotes |
@@ -243,6 +261,11 @@ measured against Sonnet on the cases both judges graded.
 
 The two Δ figures for Qwen3.8 are from independent runs (the Qwen3-VL-32B and
 the Qwen2.5-VL-72B), both within about a point of Sonnet on the same 13 cases.
+
+Its worst run so far is the Qwen3-VL-32B-Thinking at **3 ungrounded and 1
+omitted** out of 423 checkpoints — under 1%, and an order of magnitude below the
+judges that were rejected, but no longer the clean sheet the earlier runs showed.
+Watch the per-run figure in the warnings list rather than assuming it.
 
 ### Calibration has a blind spot
 
@@ -263,9 +286,10 @@ sees committed files.
 ## What makes two runs comparable
 
 `--compare` ranks runs side by side only if they share the cases, judge, judge
-effort, judge prompt, analyst prompt, temperature and system-prompt mode.
-Anything else is listed under "Not ranked" with the reason. `num_ctx`,
-`num_predict` and `repeats` may differ.
+effort, judge prompt, analyst prompt and system-prompt mode. Anything else is
+listed under "Not ranked" with the reason. `num_ctx`, `num_predict`, `repeats`
+and **temperature** may differ; temperature is shown in its own column so the
+difference is visible in the ranking rather than hidden behind an exclusion.
 
 Changing the judge rescales every score, so a mixed-judge table is not a
 ranking. After a judge or case change, bring older runs up to date with
@@ -284,8 +308,14 @@ result folders are no longer committed.
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 30.9 | 13 | Sonnet | Pre-C14 |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 16.0 | 18 | Sonnet | Was filed under a model name that does not exist (`...-2B-...`); re-measured above |
 | Falcon-H1-Tiny-90M-Instruct | 3.2 | 10 | Sonnet | Pre-C14, fewer cases |
-| Qwen3-VL-32B-Thinking:Q5_K_M | 64.8 | 18 | Qwen3-Coder-30B | Judge produced 39 ungrounded verdicts |
+| Qwen3-VL-32B-Thinking:Q5_K_M | 64.8 | 18 | Qwen3-Coder-30B | Judge produced 39 ungrounded verdicts; also temp 0.3, losing 3 of 54 cases. Re-measured above at 60.6 |
+| Qwen3-VL-8B-Thinking-imatrix:Q4_K_M | 47.3 | 18 | Qwen3.8-27B | Temp 0.3; lost 9 of 54 cases to runaway reasoning. Re-measured above at 52.3 |
 | Qwen3-VL-32B-Instruct-imatrix | — | 18 | — | Judging failed twice; also Q3_K_M weights under a Q4_K_M tag |
+
+**The 64.8 is not evidence that the 32B-Thinking got worse.** A judge that
+fabricates 39 quotations scores high because ungrounded verdicts default to
+credit. The 60.6 is the trustworthy figure, and it is over 54 completed cases
+rather than 51.
 
 Two further Qwen2.5-VL-32B runs were made at num_ctx 49152 and 65536, above that
 model's 32768 trained window. Their judge verdicts are valid but their analyst
@@ -298,7 +328,8 @@ scores are not, and they are not listed.
 **Per-case variance is 15–25 points** at temperature 0.3, measured across 3
 repeats. The aggregate averages most of it out — quality ranges come in at ±2–3
 — but a single case score means little. Use `repeats: 3` for anything you will
-decide on and read the range, not the midpoint.
+decide on and read the range, not the midpoint. The 32B-Thinking's 0.7-point
+range is the exception in the field and has not been explained.
 
 **Time is not a property of the model.** The runner is shared, and a long run
 usually overlaps with something else. The same 72B build measured 28s a case
@@ -307,15 +338,22 @@ idle and 55.2s with a judge and an embedding model resident, at an identical
 not a Pareto axis. Check the `On GPU` column: under 100% means the timings
 measure spill.
 
+**Memory can go unmeasured, and a run then leaves the Pareto front.** Run 44 has
+no footprint because the `/api/ps` lookup found no entry for its tag. The lookup
+is now case-insensitive and records a note when it misses, and the note appears in
+the generated warnings — but check for a `GB` figure before treating a run as
+complete. There is deliberately no fallback that assumes the only loaded model is
+the one under test: that would report the judge's footprint as the analyst's.
+
 **Thinking builds can return nothing.** Reasoning counts against `num_predict`,
 and a model that runs out returns empty content with the text stranded in
-`message.thinking`. The Qwen3-VL-32B-Thinking run lost 3 of 54 cases that way,
-dropping its mean from 68.6 to 64.8. Such a case is recorded as an error and
-scored 0, and is **not** retried — so a run can look complete while cases are
-missing. Read the warnings list first. If it happens, raise temperature toward
-the card's value rather than raising `num_predict`.
+`message.thinking`. At temperature 0.3 the 32B lost 3 of 54 cases that way and the
+8B lost 9; at 1.0 both lost none. Such a case is recorded as an error and scored 0,
+and is **not** retried — so a run can look complete while cases are missing. Read
+the warnings list first, and run Thinking builds at the card's temperature.
 
-**The telemetry cases are where the field separates.** Every model measured so
-far is near the floor on C14–C18, including the 72B at 11.7. That is what those
-cases were written to do, and it means a model that looks mid-table on C01–C13
-may be indistinguishable from the smallest build on log and Sentry analysis.
+**The telemetry cases are where the field separates.** Every local model is far
+below the ceiling on C14–C18 — 29.8 at best against 74.9 — and C17 defeats
+everything measured, Sonnet included at 58.9. That is what those cases were
+written to do, and it means a model that looks mid-table on C01–C13 may be much
+further behind on log and Sentry analysis.

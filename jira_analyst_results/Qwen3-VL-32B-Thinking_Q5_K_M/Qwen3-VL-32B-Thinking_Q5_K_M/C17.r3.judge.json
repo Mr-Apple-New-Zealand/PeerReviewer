@@ -1,0 +1,299 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap, or the specific timestamps marking the transition from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The error appears to happen after the user's session becomes invalid (401 responses) but the frontend doesn't handle the resulting undefined data.",
+      "reason": "It identifies 401s as the cause and the lack of handling as the defect, but does not specify the missing redirect to sign-in or guard, nor that the screen carries on rendering as if it had data."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Whether this is a single defect or multiple related issues (2 different undefined errors observed)",
+      "reason": "It acknowledges multiple errors exist but frames it as an open question, miscounts them as 2, and does not name the specific breadcrumb sentry.event entries (rows, returnProperties, length) or conclude they are one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh call to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Conflicts: The URL in the event shows \"bank-uat.example.com\" but the environment tag says \"Production\" - a potential discrepancy to investigate.",
+      "reason": "It identifies the UAT-vs-Production conflict but does not conclude the environment is misconfigured, that events are polluting production alerting, or explicitly answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214, the request URL /payments/batch/actions, or the mismatch between them."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Exact code location where the sort operation fails (unsymbolicated stack)",
+      "reason": "It acknowledges the stack is unsymbolicated but does not explain why (three js_no_source errors, three failed scraping_attempts due to unresolvable UAT host, symbolicated_in_app false, minified frame names)."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Why the user's session became invalid (401) - could be token expiration, misconfiguration, or server issue",
+      "reason": "It lists possible causes but does not note that all 401 responses have response_body_size 0 (no body explaining the rejection) or that the event contains no token expiry information to distinguish expiry from revocation."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not present a specific inference that the token expired during an idle period with no silent refresh, based on the pre-gap refresh, the gap, and post-gap 401s; it merely lists token expiration as one of several unranked possibilities."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 401 errors have \"OK\" in the status text (unusual for 401s)",
+      "reason": "It touches on the '401 OK' wording but calls it unusual and suggests investigation rather than explaining it is Angular reporting statusText; it does not address the 780 KB response, the Referer, or the ordinary browser/OS."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Frontend engineer should investigate the 401 response handling in the batch actions screen to understand why data becomes undefined during session invalidation.",
+      "reason": "It suggests investigating 401 handling but omits fixing the Sentry environment, setting release/dist and uploading source maps, correcting the stale transaction name, and the point that a null guard would only hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend a null guard before .sort as the fix; it focuses on 401 response handling as the underlying issue."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Although it initially states 'Production (as confirmed in Sentry data),' it explicitly flags the UAT URL discrepancy in the Conflicts section, so it does not treat it as a production incident without flagging the UAT host."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214; it consistently refers to the batch actions screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis references the minified file and function from the stack trace only as a starting point to 'identify which component,' not as the identified location of the fault in application code."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists 'misconfiguration' and 'server issue' only as unconfirmed possibilities among others, not as descriptions of what the 401s represent."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor does it state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 207.66
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap, or the specific timestamps marking the transition from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error appears to happen after the user's session becomes invalid (401 responses) but the frontend doesn't handle the resulting undefined data.",
+        "reason": "It identifies 401s as the cause and the lack of handling as the defect, but does not specify the missing redirect to sign-in or guard, nor that the screen carries on rendering as if it had data.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "Whether this is a single defect or multiple related issues (2 different undefined errors observed)",
+        "reason": "It acknowledges multiple errors exist but frames it as an open question, miscounts them as 2, and does not name the specific breadcrumb sentry.event entries (rows, returnProperties, length) or conclude they are one cascade.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh call to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Conflicts: The URL in the event shows \"bank-uat.example.com\" but the environment tag says \"Production\" - a potential discrepancy to investigate.",
+        "reason": "It identifies the UAT-vs-Production conflict but does not conclude the environment is misconfigured, that events are polluting production alerting, or explicitly answer Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214, the request URL /payments/batch/actions, or the mismatch between them.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Exact code location where the sort operation fails (unsymbolicated stack)",
+        "reason": "It acknowledges the stack is unsymbolicated but does not explain why (three js_no_source errors, three failed scraping_attempts due to unresolvable UAT host, symbolicated_in_app false, minified frame names).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "Why the user's session became invalid (401) - could be token expiration, misconfiguration, or server issue",
+        "reason": "It lists possible causes but does not note that all 401 responses have response_body_size 0 (no body explaining the rejection) or that the event contains no token expiry information to distinguish expiry from revocation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not present a specific inference that the token expired during an idle period with no silent refresh, based on the pre-gap refresh, the gap, and post-gap 401s; it merely lists token expiration as one of several unranked possibilities.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "The 401 errors have \"OK\" in the status text (unusual for 401s)",
+        "reason": "It touches on the '401 OK' wording but calls it unusual and suggests investigation rather than explaining it is Angular reporting statusText; it does not address the 780 KB response, the Referer, or the ordinary browser/OS.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Frontend engineer should investigate the 401 response handling in the batch actions screen to understand why data becomes undefined during session invalidation.",
+        "reason": "It suggests investigating 401 handling but omits fixing the Sentry environment, setting release/dist and uploading source maps, correcting the stale transaction name, and the point that a null guard would only hide the symptom.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis does not recommend a null guard before .sort as the fix; it focuses on 401 response handling as the underlying issue.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "Although it initially states 'Production (as confirmed in Sentry data),' it explicitly flags the UAT URL discrepancy in the Conflicts section, so it does not treat it as a production incident without flagging the UAT host.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214; it consistently refers to the batch actions screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis references the minified file and function from the stack trace only as a starting point to 'identify which component,' not as the identified location of the fault in application code.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis lists 'misconfiguration' and 'server issue' only as unconfirmed possibilities among others, not as descriptions of what the 401s represent.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor does it state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

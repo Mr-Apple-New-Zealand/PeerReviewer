@@ -1,0 +1,275 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The 401 errors are the root cause for four JavaScript errors, while the Chrome extension issue is not our defect.",
+      "reason": "The analysis identifies the four TypeError issues (BANKUI-4A1, 4A2, 4A9, 4B3) and BANKUI-3C8 as sharing the 401 cause, naming all five ticket IDs and the causal relationship."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses whether user counts can be summed, never cites the export's note about overlapping users, and never identifies 44 as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6 (63 events, 58 users) started after 4.7.0 deployment, making it high-impact.",
+      "reason": "It mentions the 58 users and 63 events but does not state that 58 is more than any other issue or that it is the top item by user impact despite being nearly the quietest by event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6 (63 events, 58 users) started after 4.7.0 deployment, making it high-impact.",
+      "reason": "It notes the temporal link to 4.7.0 but omits the specific timestamps (21:11:36 vs 21:05:00), the 404 on the requested bundle, and the explanation that open sessions are requesting hashed bundles the deploy replaced."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0 (4,812 events) is a Chrome extension issue (injection from `chrome-extension://...`) but was reported as \"not our defect\" in Ravi Kumar's comment.",
+      "reason": "It correctly identifies the Chrome extension, 4,812 events, 1 user, and non-defect status, but misattributes the 'not our defect' claim to Ravi Kumar (whose comment is about source maps) and recommends escalation rather than filtering."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-3C8 (5,140 events) is the most frequent issue and likely the root cause of four downstream errors.",
+      "reason": "The analysis uses event count as a primary ranking signal ('most frequent issue') rather than pointing out that the two largest counts are a logger and one user's extension, making event count a misleading metric."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-1A7 is resolved in 4.6.0; no action needed.",
+      "reason": "The analysis states BANKUI-1A7 needs no action, failing to note that it was last seen on 2026-09-11 (after 4.7.0 deployed on 2026-09-10) and has regressed."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are not uploaded (per ticket), so minified error details (e.g., \"ie.project (/6728.b4f17ce620a8d539.js)\") cannot be deobfuscated.",
+      "reason": "It correctly states source maps are missing, gives a minified name example, and notes the consequence that errors cannot be traced to components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster or whether total affected users can be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 401 errors (BANKUI-3C8) are likely a server-side or authentication issue (401 responses from APIs), but the ticket doesn't clarify if this is our defect.",
+      "reason": "It hedges with 'likely' and notes the 401 responses, but does not specifically infer sessions expiring without the app handling the rejection, nor does it note that confirming would require a full event rather than this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Priority 1: Investigate BANKUI-3C8 (401 error) and BANKUI-5D6 (chunk load error)",
+      "reason": "It identifies the two issues but does not rank 5D6 first, does not state 'one fix closes five issues,' incorrectly says 1A7 needs no action instead of reopening it, and recommends escalation for 2F0 rather than filtering."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies BANKUI-2F0 as a non-defect Chrome extension issue and does not place it at or near the top of the priority list or treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeError issues together under a shared 401 cause and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7 is resolved in 4.6.0; no action needed.",
+      "reason": "The analysis explicitly states BANKUI-1A7 needs no action, treating it as resolved and fixed despite the regression evidence."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as a 'server-side or authentication issue,' not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes BANKUI-5D6 to the 4.7.0 deployment and treats BANKUI-1A7 separately; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "was reported as \"not our defect\" in Ravi Kumar's comment",
+      "reason": "Ravi Kumar's only comment in the ticket is about source maps not being uploaded; he does not mention BANKUI-2F0 or call it 'not our defect.' The analysis fabricates an attribution."
+    },
+    {
+      "quote": "BANKUI-3C8 (5,140 events) is marked \"handled\" in the export but is causing four other errors.",
+      "reason": "The data shows BANKUI-3C8 is the console logger that records the 401 responses; the 401 responses themselves are the shared cause of the four TypeError issues. BANKUI-3C8 is not 'causing' them\u2014it is logging the same 401s that cause them."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 223.52
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "The 401 errors are the root cause for four JavaScript errors, while the Chrome extension issue is not our defect.",
+        "reason": "The analysis identifies the four TypeError issues (BANKUI-4A1, 4A2, 4A9, 4B3) and BANKUI-3C8 as sharing the 401 cause, naming all five ticket IDs and the causal relationship.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never discusses whether user counts can be summed, never cites the export's note about overlapping users, and never identifies 44 as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6 (63 events, 58 users) started after 4.7.0 deployment, making it high-impact.",
+        "reason": "It mentions the 58 users and 63 events but does not state that 58 is more than any other issue or that it is the top item by user impact despite being nearly the quietest by event count.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "BANKUI-5D6 (63 events, 58 users) started after 4.7.0 deployment, making it high-impact.",
+        "reason": "It notes the temporal link to 4.7.0 but omits the specific timestamps (21:11:36 vs 21:05:00), the 404 on the requested bundle, and the explanation that open sessions are requesting hashed bundles the deploy replaced.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 (4,812 events) is a Chrome extension issue (injection from `chrome-extension://...`) but was reported as \"not our defect\" in Ravi Kumar's comment.",
+        "reason": "It correctly identifies the Chrome extension, 4,812 events, 1 user, and non-defect status, but misattributes the 'not our defect' claim to Ravi Kumar (whose comment is about source maps) and recommends escalation rather than filtering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "BANKUI-3C8 (5,140 events) is the most frequent issue and likely the root cause of four downstream errors.",
+        "reason": "The analysis uses event count as a primary ranking signal ('most frequent issue') rather than pointing out that the two largest counts are a logger and one user's extension, making event count a misleading metric.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 is resolved in 4.6.0; no action needed.",
+        "reason": "The analysis states BANKUI-1A7 needs no action, failing to note that it was last seen on 2026-09-11 (after 4.7.0 deployed on 2026-09-10) and has regressed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded (per ticket), so minified error details (e.g., \"ie.project (/6728.b4f17ce620a8d539.js)\") cannot be deobfuscated.",
+        "reason": "It correctly states source maps are missing, gives a minified name example, and notes the consequence that errors cannot be traced to components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster or whether total affected users can be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "The 401 errors (BANKUI-3C8) are likely a server-side or authentication issue (401 responses from APIs), but the ticket doesn't clarify if this is our defect.",
+        "reason": "It hedges with 'likely' and notes the 401 responses, but does not specifically infer sessions expiring without the app handling the rejection, nor does it note that confirming would require a full event rather than this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Priority 1: Investigate BANKUI-3C8 (401 error) and BANKUI-5D6 (chunk load error)",
+        "reason": "It identifies the two issues but does not rank 5D6 first, does not state 'one fix closes five issues,' incorrectly says 1A7 needs no action instead of reopening it, and recommends escalation for 2F0 rather than filtering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis identifies BANKUI-2F0 as a non-defect Chrome extension issue and does not place it at or near the top of the priority list or treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeError issues together under a shared 401 cause and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7 is resolved in 4.6.0; no action needed.",
+        "reason": "The analysis explicitly states BANKUI-1A7 needs no action, treating it as resolved and fixed despite the regression evidence.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as a 'server-side or authentication issue,' not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis attributes BANKUI-5D6 to the 4.7.0 deployment and treats BANKUI-1A7 separately; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "was reported as \"not our defect\" in Ravi Kumar's comment",
+        "reason": "Ravi Kumar's only comment in the ticket is about source maps not being uploaded; he does not mention BANKUI-2F0 or call it 'not our defect.' The analysis fabricates an attribution."
+      },
+      {
+        "quote": "BANKUI-3C8 (5,140 events) is marked \"handled\" in the export but is causing four other errors.",
+        "reason": "The data shows BANKUI-3C8 is the console logger that records the 401 responses; the 401 responses themselves are the shared cause of the four TypeError issues. BANKUI-3C8 is not 'causing' them\u2014it is logging the same 401s that cause them."
+      }
+    ]
+  }
+}

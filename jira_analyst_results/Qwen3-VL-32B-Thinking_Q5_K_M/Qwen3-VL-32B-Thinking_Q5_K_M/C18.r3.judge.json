@@ -1,0 +1,271 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Four are client-side defects caused by the app failing to handle 401 (unauthorized) API responses, leading to \"cannot read property of undefined\" errors in different pages.",
+      "reason": "The analysis groups the four undefined-property issues under a shared 401 cause but excludes BANKUI-3C8 from the cluster, calling it a non-defect rather than the fifth member of the same group."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of cluster reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis classifies BANKUI-5D6 as a non-defect and explicitly names 4A1 and 4A2 as the highest-impact issues, never stating that 5D6's 58 users make it the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-5D6 (63 events, 58 users): Chunk load 404 error (bundle not found), not our defect (likely deployment issue; 404 from server).",
+      "reason": "The analysis vaguely links 5D6 to deployment but omits the specific timing (first seen ~6.5 min after 4.7.0 deploy) and the mechanism of open sessions requesting replaced hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0 (4812 events, 1 user): Security error from a Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc), not our defect (browser/3rd-party issue).",
+      "reason": "The analysis correctly identifies 2F0 as a single-user browser extension issue, not an application defect, and recommends documenting/filtering rather than fixing."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": null,
+      "quote": "",
+      "reason": "judge gave no verdict"
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-1A7 is never mentioned in the analysis; the regression (last seen 2026-09-11 after 4.7.0 deploy) and the need to reopen it are absent."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are missing (confirmed in ticket comment), so minified stack traces (e.g., \"ie.project (/6728.b4f17ce620a8d539.js)\") obscure root cause.",
+      "reason": "The analysis conveys that source maps are absent and minified names prevent tracing issues to specific components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, making total affected users indeterminable."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 401 errors (causing client-side defects) may stem from server-side issues (e.g., session expiration), but the client code's failure to handle 401s is the defect.",
+      "reason": "The inference is hedged with 'may' and identifies session expiration, but it does not note that the 401s appear on different endpoints or that confirming the hypothesis would require full events rather than this summary."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis prioritises 4A1 and 4A2 individually rather than 5D6 first and the 401 cluster as a single fix; it never mentions reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly classifies 2F0 as a non-defect and does not use its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues under a shared 401 cause rather than assigning them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds user counts across issues or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-1A7 is not mentioned at all, so the analysis does not state it is fixed, resolved, or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes 401s as unauthorized responses or possible session expiration, never as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis classifies 5D6 as a separate deployment issue and does not mention 1A7; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The weekly Sentry report (2026-09-05 to 2026-09-12) identifies 8 open issues for bank-ui.",
+      "reason": "BANKUI-1A7 has status 'resolved' in the JSON, so the export contains 7 unresolved and 1 resolved issue, not 8 open issues."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [
+      "C18-P6"
+    ],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": [
+      "C16-P6"
+    ]
+  },
+  "judge_usage": {
+    "wall_s": 207.65
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Four are client-side defects caused by the app failing to handle 401 (unauthorized) API responses, leading to \"cannot read property of undefined\" errors in different pages.",
+        "reason": "The analysis groups the four undefined-property issues under a shared 401 cause but excludes BANKUI-3C8 from the cluster, calling it a non-defect rather than the fifth member of the same group.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of cluster reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis classifies BANKUI-5D6 as a non-defect and explicitly names 4A1 and 4A2 as the highest-impact issues, never stating that 5D6's 58 users make it the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "BANKUI-5D6 (63 events, 58 users): Chunk load 404 error (bundle not found), not our defect (likely deployment issue; 404 from server).",
+        "reason": "The analysis vaguely links 5D6 to deployment but omits the specific timing (first seen ~6.5 min after 4.7.0 deploy) and the mechanism of open sessions requesting replaced hashed bundles.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 (4812 events, 1 user): Security error from a Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc), not our defect (browser/3rd-party issue).",
+        "reason": "The analysis correctly identifies 2F0 as a single-user browser extension issue, not an application defect, and recommends documenting/filtering rather than fixing.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "The highest-impact issues (BANKUI-4A1 and BANKUI-4A2) should be prioritized for the next sprint.",
+        "reason": "The analysis implicitly shows the two largest event counts (3C8 at 5140, 2F0 at 4812) are non-defects, but never explicitly states that event count is a misleading ranking metric.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "BANKUI-1A7 is never mentioned in the analysis; the regression (last seen 2026-09-11 after 4.7.0 deploy) and the need to reopen it are absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are missing (confirmed in ticket comment), so minified stack traces (e.g., \"ie.project (/6728.b4f17ce620a8d539.js)\") obscure root cause.",
+        "reason": "The analysis conveys that source maps are absent and minified names prevent tracing issues to specific components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never notes that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, making total affected users indeterminable.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "The 401 errors (causing client-side defects) may stem from server-side issues (e.g., session expiration), but the client code's failure to handle 401s is the defect.",
+        "reason": "The inference is hedged with 'may' and identifies session expiration, but it does not note that the 401s appear on different endpoints or that confirming the hypothesis would require full events rather than this summary.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "",
+        "reason": "The analysis prioritises 4A1 and 4A2 individually rather than 5D6 first and the 401 cluster as a single fix; it never mentions reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly classifies 2F0 as a non-defect and does not use its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues under a shared 401 cause rather than assigning them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds user counts across issues or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "BANKUI-1A7 is not mentioned at all, so the analysis does not state it is fixed, resolved, or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes 401s as unauthorized responses or possible session expiration, never as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis classifies 5D6 as a separate deployment issue and does not mention 1A7; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The weekly Sentry report (2026-09-05 to 2026-09-12) identifies 8 open issues for bank-ui.",
+        "reason": "BANKUI-1A7 has status 'resolved' in the JSON, so the export contains 7 unresolved and 1 resolved issue, not 8 open issues."
+      }
+    ]
+  }
+}
