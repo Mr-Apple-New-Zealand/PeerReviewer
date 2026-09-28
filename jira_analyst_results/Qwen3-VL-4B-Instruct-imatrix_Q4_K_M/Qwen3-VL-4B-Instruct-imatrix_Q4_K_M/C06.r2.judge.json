@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-405 will not make the 3.2.0 release unless the blocking dependency OPS-77 is resolved and the end-to-end test passes. ... OPS-77 is blocked by vendor (Northwind Payments) \u2014 no CA bundle delivered yet. ... cannot run end-to-end tests until Northwind's CA certs are in staging trust store.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until CA certs are in staging, and OPS-77 is waiting for Northwind's CA bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan already escalated, but no reply. Should follow up with a formal escalation or deadline request.",
+      "reason": "The analysis mentions the escalation and lack of reply but never states OPS-77's due date of 2026-09-10 or that it is overdue as of 2026-09-15."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Release deadline: 3.2.0 is scheduled for 2026-09-24 \u2014 only 11 days from current date (2026-09-15), leaving no buffer for delays. ... Ravi estimates 2 days after certs are in staging.",
+      "reason": "The release date and 2-day testing window are stated, but the sprint end date of 2026-09-22 is not mentioned."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-405 will not make the 3.2.0 release unless the blocking dependency OPS-77 is resolved ... If Northwind doesn't respond by 2026-09-20, 3.2.0 will be delayed or may need to be postponed. ... No clear deadline from Northwind.",
+      "reason": "The analysis presents the release as at serious risk/uncertain, conditional on Northwind's response, and explicitly notes no committed deadline from Northwind."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Ravi Kumar's code is merged behind a feature flag but cannot run end-to-end tests until Northwind's CA certs are in staging trust store.",
+      "reason": "The analysis mentions the code is merged behind a feature flag but does not name the flag (MTLS_PARTNER) or state it is off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that certificates are also needed in production, that OPS-77 covers staging then production, or the 1 October 2026 hard external deadline."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Escalate with Northwind \u2014 Jo Tan already escalated, but no reply. Should follow up with a formal escalation or deadline request. ... Contact Northwind's integration team or partner manager to request a firm delivery date or escalate to senior stakeholder.",
+      "reason": "The escalation and firm-date request are covered, but the specific recommendation to plan for 3.2.0 shipping with the MTLS_PARTNER flag off if certs don't arrive in time is absent; instead the analysis suggests postponing the release."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states the CA bundle has not been delivered and OPS-77 is still waiting for the vendor."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'No clear deadline from Northwind' and the dates it mentions (2026-09-18, 2026-09-20) are its own suggested thresholds, not Northwind commitments."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "only 11 days from current date (2026-09-15)",
+      "reason": "From 2026-09-15 to 2026-09-24 is 9 days, not 11; this is an incorrect calculation."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 107.35
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "BANK-405 will not make the 3.2.0 release unless the blocking dependency OPS-77 is resolved and the end-to-end test passes. ... OPS-77 is blocked by vendor (Northwind Payments) \u2014 no CA bundle delivered yet. ... cannot run end-to-end tests until Northwind's CA certs are in staging trust store.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until CA certs are in staging, and OPS-77 is waiting for Northwind's CA bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "Jo Tan already escalated, but no reply. Should follow up with a formal escalation or deadline request.",
+        "reason": "The analysis mentions the escalation and lack of reply but never states OPS-77's due date of 2026-09-10 or that it is overdue as of 2026-09-15.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Release deadline: 3.2.0 is scheduled for 2026-09-24 \u2014 only 11 days from current date (2026-09-15), leaving no buffer for delays. ... Ravi estimates 2 days after certs are in staging.",
+        "reason": "The release date and 2-day testing window are stated, but the sprint end date of 2026-09-22 is not mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "BANK-405 will not make the 3.2.0 release unless the blocking dependency OPS-77 is resolved ... If Northwind doesn't respond by 2026-09-20, 3.2.0 will be delayed or may need to be postponed. ... No clear deadline from Northwind.",
+        "reason": "The analysis presents the release as at serious risk/uncertain, conditional on Northwind's response, and explicitly notes no committed deadline from Northwind.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Ravi Kumar's code is merged behind a feature flag but cannot run end-to-end tests until Northwind's CA certs are in staging trust store.",
+        "reason": "The analysis mentions the code is merged behind a feature flag but does not name the flag (MTLS_PARTNER) or state it is off by default.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "",
+        "reason": "The analysis never mentions that certificates are also needed in production, that OPS-77 covers staging then production, or the 1 October 2026 hard external deadline.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Escalate with Northwind \u2014 Jo Tan already escalated, but no reply. Should follow up with a formal escalation or deadline request. ... Contact Northwind's integration team or partner manager to request a firm delivery date or escalate to senior stakeholder.",
+        "reason": "The escalation and firm-date request are covered, but the specific recommendation to plan for 3.2.0 shipping with the MTLS_PARTNER flag off if certs don't arrive in time is absent; instead the analysis suggests postponing the release.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis consistently states the CA bundle has not been delivered and OPS-77 is still waiting for the vendor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states 'No clear deadline from Northwind' and the dates it mentions (2026-09-18, 2026-09-20) are its own suggested thresholds, not Northwind commitments.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "only 11 days from current date (2026-09-15)",
+        "reason": "From 2026-09-15 to 2026-09-24 is 9 days, not 11; this is an incorrect calculation."
+      }
+    ]
+  }
+}

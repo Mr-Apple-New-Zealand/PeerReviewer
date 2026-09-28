@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated during the config deploy **OPS-81** at **09:30**, but the **Transactions API continued to validate tokens against the old key**",
+      "reason": "The analysis states OPS-81 at 09:30 and references dashboard anomalies starting around 09:31, matching the expected impact start."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Monitoring alert fired at **09:47** (TransferErrorRate > 20%).  \n- Incident declared by Sam Okafor at **09:52**",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Rollback initiated at 10:31** (after identifying root cause).  \n- **Rollback complete at 10:42** \u2014 error rate dropped below 1%.  \n- **Incident resolved at 10:50**.",
+      "reason": "All three timestamps (10:31 rollback start, 10:42 recovery below 1%, 10:50 resolution) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Time to Detect**:  \n**09:47 \u2013 09:52 (5 minutes)**",
+      "reason": "The analysis mentions both 09:31 and 09:47 but calculates time to detect as 5 minutes (alert to declaration) rather than the expected 16 minutes (impact start to alert)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**  \n\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+      "reason": "The analysis states 72 minutes with incorrect start/end labels; none of the acceptable values (71 min from impact, 55 min from detection, or 79 min to resolution) are correctly stated."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated during the config deploy **OPS-81** at **09:30**, but the **Transactions API continued to validate tokens against the old key**, causing **401 Signature validation failed** errors.",
+      "reason": "The root cause is clearly stated: OPS-81 rotated the JWT key, Transactions API still validated against the old key, producing 401 Signature validation failed errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**  \n\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+      "reason": "The analysis claims recovery time from alert (09:47) to resolution (10:50) is 72 minutes, but that interval is actually 63 minutes; and from detection (09:47) to recovery (10:42) is 55 minutes, not 72\u2014neither stated time-to-recover is supported by the labelled timestamps."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**",
+      "reason": "The time from the 09:47 alert to the 10:50 resolution is 63 minutes, not 72 minutes (1 hour 12 minutes); the stated start and end points do not yield the stated duration."
+    },
+    {
+      "quote": "\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+      "reason": "The time from the 09:47 detection to the 10:42 recovery is 55 minutes, not 72 minutes; the stated start and end points do not yield the stated duration."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 186.27
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The JWT signing key was rotated during the config deploy **OPS-81** at **09:30**, but the **Transactions API continued to validate tokens against the old key**",
+        "reason": "The analysis states OPS-81 at 09:30 and references dashboard anomalies starting around 09:31, matching the expected impact start.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Monitoring alert fired at **09:47** (TransferErrorRate > 20%).  \n- Incident declared by Sam Okafor at **09:52**",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "**Rollback initiated at 10:31** (after identifying root cause).  \n- **Rollback complete at 10:42** \u2014 error rate dropped below 1%.  \n- **Incident resolved at 10:50**.",
+        "reason": "All three timestamps (10:31 rollback start, 10:42 recovery below 1%, 10:50 resolution) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**Time to Detect**:  \n**09:47 \u2013 09:52 (5 minutes)**",
+        "reason": "The analysis mentions both 09:31 and 09:47 but calculates time to detect as 5 minutes (alert to declaration) rather than the expected 16 minutes (impact start to alert).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**  \n\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+        "reason": "The analysis states 72 minutes with incorrect start/end labels; none of the acceptable values (71 min from impact, 55 min from detection, or 79 min to resolution) are correctly stated.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated during the config deploy **OPS-81** at **09:30**, but the **Transactions API continued to validate tokens against the old key**, causing **401 Signature validation failed** errors.",
+        "reason": "The root cause is clearly stated: OPS-81 rotated the JWT key, Transactions API still validated against the old key, producing 401 Signature validation failed errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**  \n\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+        "reason": "The analysis claims recovery time from alert (09:47) to resolution (10:50) is 72 minutes, but that interval is actually 63 minutes; and from detection (09:47) to recovery (10:42) is 55 minutes, not 72\u2014neither stated time-to-recover is supported by the labelled timestamps.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "\u2192 **Recovery time: 1 hour 12 minutes (from alert to resolution)**",
+        "reason": "The time from the 09:47 alert to the 10:50 resolution is 63 minutes, not 72 minutes (1 hour 12 minutes); the stated start and end points do not yield the stated duration."
+      },
+      {
+        "quote": "\u2192 **Actual fix time: 1 hour 12 minutes (from detection to recovery)**",
+        "reason": "The time from the 09:47 detection to the 10:42 recovery is 55 minutes, not 72 minutes; the stated start and end points do not yield the stated duration."
+      }
+    ]
+  }
+}

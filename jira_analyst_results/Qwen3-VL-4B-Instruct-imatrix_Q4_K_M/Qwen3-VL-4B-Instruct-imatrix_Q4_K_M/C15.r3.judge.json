@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The logs show repeated SMTP failures (535) due to authentication issues",
+      "reason": "The analysis clearly identifies SMTP authentication failure (535, basic auth disabled) as what is stopping delivery, matching the log evidence."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter's diagnosis is plausible but not supported by the logs. The logs show SMTP auth failure, not key corruption. The fix should address the auth issue, not the key storage",
+      "reason": "The analysis explicitly states the reporter's key-storage explanation is not supported and that the key-related lines are only warnings unrelated to the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or that one failing item blocks the queue."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Outbox queue grows with pending messages (1412 \u2192 2089)",
+      "reason": "The analysis gives the correct start and end numbers but omits the timestamps, the rate (~100 per six minutes), and the explicit consequence for customers."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Restarted pod at 18:02 \u2014 no improvement observed.",
+      "reason": "The analysis notes the restart did not help but does not explicitly state that another restart will not help or cite the continued 535 errors through 18:38:02."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm if basic auth is disabled \u2014 if so, ensure proper auth method (e.g., OAuth, TLS, or API key) is used.",
+      "reason": "The analysis mentions checking basic auth and changing the method but frames it as a conditional next step rather than an inference that the provider disabled basic auth for this account."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Verify SMTP credentials and auth config. Check if svc-notify@example.com is correct and if StartTls=True is properly configured. Confirm if basic auth is disabled \u2014 if so, ensure proper auth method (e.g., OAuth, TLS, or API key) is used.",
+      "reason": "The analysis covers the auth-method fix but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor does it note that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's key-storage explanation as unsupported by the logs and identifies SMTP auth as the actual cause."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis restates the 14:00 report from the ticket description but does not claim the log shows or covers that time window."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod; it notes the prior restart had no effect."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the failures to NATS reconnection, the health check, or the outbox poll interval."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error shown in the log; it does not invent rate-limiting, TLS failure, or mailbox-full errors."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Dependency: Platform team must fix key storage \u2014 but no ticket or action assigned.",
+      "reason": "The log shows SMTP authentication failure (535), not a key-storage failure; the analysis itself concludes the key-storage warnings are unrelated to the outage, so stating key storage as a dependency that 'must' be fixed is unsupported by the ticket evidence."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 150.39
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The logs show repeated SMTP failures (535) due to authentication issues",
+        "reason": "The analysis clearly identifies SMTP authentication failure (535, basic auth disabled) as what is stopping delivery, matching the log evidence.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter's diagnosis is plausible but not supported by the logs. The logs show SMTP auth failure, not key corruption. The fix should address the auth issue, not the key storage",
+        "reason": "The analysis explicitly states the reporter's key-storage explanation is not supported and that the key-related lines are only warnings unrelated to the SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or that one failing item blocks the queue.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "Outbox queue grows with pending messages (1412 \u2192 2089)",
+        "reason": "The analysis gives the correct start and end numbers but omits the timestamps, the rate (~100 per six minutes), and the explicit consequence for customers.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Restarted pod at 18:02 \u2014 no improvement observed.",
+        "reason": "The analysis notes the restart did not help but does not explicitly state that another restart will not help or cite the continued 535 errors through 18:38:02.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "Confirm if basic auth is disabled \u2014 if so, ensure proper auth method (e.g., OAuth, TLS, or API key) is used.",
+        "reason": "The analysis mentions checking basic auth and changing the method but frames it as a conditional next step rather than an inference that the provider disabled basic auth for this account.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Verify SMTP credentials and auth config. Check if svc-notify@example.com is correct and if StartTls=True is properly configured. Confirm if basic auth is disabled \u2014 if so, ensure proper auth method (e.g., OAuth, TLS, or API key) is used.",
+        "reason": "The analysis covers the auth-method fix but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor does it note that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's key-storage explanation as unsupported by the logs and identifies SMTP auth as the actual cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis restates the 14:00 report from the ticket description but does not claim the log shows or covers that time window.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod; it notes the prior restart had no effect.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not attribute the failures to NATS reconnection, the health check, or the outbox poll interval.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error shown in the log; it does not invent rate-limiting, TLS failure, or mailbox-full errors.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Dependency: Platform team must fix key storage \u2014 but no ticket or action assigned.",
+        "reason": "The log shows SMTP authentication failure (535), not a key-storage failure; the analysis itself concludes the key-storage warnings are unrelated to the outage, so stating key storage as a dependency that 'must' be fixed is unsupported by the ticket evidence."
+      }
+    ]
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The primary failure is a 403 Forbidden error when calling `masterfile-api` via Dapr, indicating a permissions or access issue.",
+      "reason": "Identifies the 403 as the primary failure, names both commands and both endpoints, and connects it to the user save, but does not state it appears four times or give the full query parameters."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`SearchPaymentRoutingRuleQuery` \u2192 SQL conversion error (Error 245) \u2014 likely data type mismatch, not related to user action.",
+      "reason": "Names the query and error 245 but does not quote the masked error message or state it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never acknowledges that the value and data type are masked as ****** and therefore cannot be identified from the log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`GetMonitorJobsQuery` \u2192 Execution timeout (Error -2) \u2014 likely infrastructure or DB performance issue.",
+      "reason": "Identifies the timeout and error number but gives no count, time window, recovery, or bounded-episode conclusion."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "UpdatePaymentRoutingRuleCommand and ApplicationValidationException are never mentioned."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "GetStatementLineQuery and its long-running threshold breaches are never mentioned."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The connection string with password logged at DBG level is never mentioned as a credential exposure."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The single pod restart at 02:50:11/02:50:14 is never mentioned."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The startup warnings are never identified as routine noise or distinguished from the actual failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "None of the non-defect lines (Service Permissions, ObjectMapper licence, TaskCanceledException, 404 for payment 88213) are identified as routine noise."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The time-of-day-only timestamps, out-of-order sequence, and trimmed stack traces are never mentioned as limitations."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "indicating a permissions or access issue",
+      "reason": "Presents the 403 as likely a permissions/access issue between the services, but later states it more definitively ('This is not a DB issue \u2014 it's a Dapr/Service permissions issue') and does not cite the reasoning that calls never reach a handler."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The primary failure is a 403 Forbidden error when calling `masterfile-api` via Dapr, indicating a permissions or access issue. There are also SQL conversion errors and timeouts, but these are likely secondary or unrelated to the reported user issue.",
+      "reason": "Prioritises the 403 first but does not give a full ordering, omits GetStatementLineQuery entirely, and does not flag the credential as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The DataProtection and XML encryptor warnings are never named as causes of any failure."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No specific column, value, or data type is named for the SQL 245 error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No elapsed times, durations, or ordered sequences are stated as if timestamps were dated and sequential."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The NATS subject name is never mentioned or treated as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No claim of crash-looping or repeated restarts is made."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database is not claimed to be down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "likely due to the 403 error causing the transaction to fail silently or with no error message",
+      "reason": "The ticket states the user sees it 'says it failed,' meaning a failure message is displayed; 'fail silently' contradicts the reported user experience."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 144.3
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "The primary failure is a 403 Forbidden error when calling `masterfile-api` via Dapr, indicating a permissions or access issue.",
+        "reason": "Identifies the 403 as the primary failure, names both commands and both endpoints, and connects it to the user save, but does not state it appears four times or give the full query parameters.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "`SearchPaymentRoutingRuleQuery` \u2192 SQL conversion error (Error 245) \u2014 likely data type mismatch, not related to user action.",
+        "reason": "Names the query and error 245 but does not quote the masked error message or state it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis never acknowledges that the value and data type are masked as ****** and therefore cannot be identified from the log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "`GetMonitorJobsQuery` \u2192 Execution timeout (Error -2) \u2014 likely infrastructure or DB performance issue.",
+        "reason": "Identifies the timeout and error number but gives no count, time window, recovery, or bounded-episode conclusion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "UpdatePaymentRoutingRuleCommand and ApplicationValidationException are never mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "GetStatementLineQuery and its long-running threshold breaches are never mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The connection string with password logged at DBG level is never mentioned as a credential exposure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The single pod restart at 02:50:11/02:50:14 is never mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The startup warnings are never identified as routine noise or distinguished from the actual failures.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "",
+        "reason": "None of the non-defect lines (Service Permissions, ObjectMapper licence, TaskCanceledException, 404 for payment 88213) are identified as routine noise.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The time-of-day-only timestamps, out-of-order sequence, and trimmed stack traces are never mentioned as limitations.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "indicating a permissions or access issue",
+        "reason": "Presents the 403 as likely a permissions/access issue between the services, but later states it more definitively ('This is not a DB issue \u2014 it's a Dapr/Service permissions issue') and does not cite the reasoning that calls never reach a handler.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "The primary failure is a 403 Forbidden error when calling `masterfile-api` via Dapr, indicating a permissions or access issue. There are also SQL conversion errors and timeouts, but these are likely secondary or unrelated to the reported user issue.",
+        "reason": "Prioritises the 403 first but does not give a full ordering, omits GetStatementLineQuery entirely, and does not flag the credential as a parallel security item.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The DataProtection and XML encryptor warnings are never named as causes of any failure.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "No specific column, value, or data type is named for the SQL 245 error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "No elapsed times, durations, or ordered sequences are stated as if timestamps were dated and sequential.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The NATS subject name is never mentioned or treated as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "No claim of crash-looping or repeated restarts is made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The database is not claimed to be down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "likely due to the 403 error causing the transaction to fail silently or with no error message",
+        "reason": "The ticket states the user sees it 'says it failed,' meaning a failure message is displayed; 'fail silently' contradicts the reported user experience."
+      }
+    ]
+  }
+}

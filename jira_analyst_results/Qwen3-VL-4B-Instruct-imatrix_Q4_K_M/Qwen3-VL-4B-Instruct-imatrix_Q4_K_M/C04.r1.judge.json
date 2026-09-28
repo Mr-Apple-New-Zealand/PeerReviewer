@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Answer: No \u2014 the fix is not yet verified in production.",
+      "reason": "The analysis clearly states support should not tell the customer it is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marked as \"Done\" and \"Fixed\" by Priya Nair, but no production deployment or customer verification has occurred. Re-test by Tom Becker: On staging (3.1.4.17), the email still fails with SMTP error",
+      "reason": "Conveys the Done/Fixed status and Tom Becker's failed retest on 3.1.4 staging, but omits the specific date 2026-09-10."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the email still fails with SMTP error:  \n  > \"Rejected: 550 5.1.3 Invalid recipient address\"  \n  \u2014 indicating the issue persists despite the PR being merged.",
+      "reason": "The specific SMTP error code 550 5.1.3 Invalid recipient address is quoted and identified as a different failure from the original regex issue."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The fix may have been misaligned with the email provider's rules (e.g., SMTP server rejecting `+`-addressed emails). The root cause was misattributed to the regex \u2014 it's now clear the issue is upstream, not the code.",
+      "reason": "The analysis hedges with 'may' but then asserts 'it's now clear the issue is upstream, not the code' as established fact rather than presenting it as Tom's unconfirmed observation."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that nobody reopened the ticket or that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Priya Nair or Tom Becker should: Deploy the fix to production (or at least test it with a real email address like `test+qa1@example.com` in a production-like environment). Confirm the email is delivered successfully. Update the ticket status and resolution accordingly.",
+      "reason": "Suggests deploying and testing but does not recommend reopening BANK-377, raising a linked bug, or assigning an owner to investigate the provider's rejection specifically."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says No and does not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the ticket was reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "no production deployment or customer verification has occurred",
+      "reason": "The tickets contain no information about whether a production deployment took place; the ticket is marked Done/Fixed with fix version 3.1.4, and Tom tested on staging, but nothing confirms or denies a production deployment."
+    },
+    {
+      "quote": "The root cause was misattributed to the regex \u2014 it's now clear the issue is upstream, not the code.",
+      "reason": "Tom Becker's comment says 'Looks like the email provider is rejecting it now rather than our regex,' which is a tentative observation, not a confirmed conclusion; the analysis elevates this to established fact with 'it's now clear.'"
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 85.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "Answer: No \u2014 the fix is not yet verified in production.",
+        "reason": "The analysis clearly states support should not tell the customer it is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "Marked as \"Done\" and \"Fixed\" by Priya Nair, but no production deployment or customer verification has occurred. Re-test by Tom Becker: On staging (3.1.4.17), the email still fails with SMTP error",
+        "reason": "Conveys the Done/Fixed status and Tom Becker's failed retest on 3.1.4 staging, but omits the specific date 2026-09-10.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "the email still fails with SMTP error:  \n  > \"Rejected: 550 5.1.3 Invalid recipient address\"  \n  \u2014 indicating the issue persists despite the PR being merged.",
+        "reason": "The specific SMTP error code 550 5.1.3 Invalid recipient address is quoted and identified as a different failure from the original regex issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "The fix may have been misaligned with the email provider's rules (e.g., SMTP server rejecting `+`-addressed emails). The root cause was misattributed to the regex \u2014 it's now clear the issue is upstream, not the code.",
+        "reason": "The analysis hedges with 'may' but then asserts 'it's now clear the issue is upstream, not the code' as established fact rather than presenting it as Tom's unconfirmed observation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "",
+        "reason": "The analysis never states that nobody reopened the ticket or that no one currently owns the remaining problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Priya Nair or Tom Becker should: Deploy the fix to production (or at least test it with a real email address like `test+qa1@example.com` in a production-like environment). Confirm the email is delivered successfully. Update the ticket status and resolution accordingly.",
+        "reason": "Suggests deploying and testing but does not recommend reopening BANK-377, raising a linked bug, or assigning an owner to investigate the provider's rejection specifically.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly says No and does not confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the ticket was reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "no production deployment or customer verification has occurred",
+        "reason": "The tickets contain no information about whether a production deployment took place; the ticket is marked Done/Fixed with fix version 3.1.4, and Tom tested on staging, but nothing confirms or denies a production deployment."
+      },
+      {
+        "quote": "The root cause was misattributed to the regex \u2014 it's now clear the issue is upstream, not the code.",
+        "reason": "Tom Becker's comment says 'Looks like the email provider is rejecting it now rather than our regex,' which is a tentative observation, not a confirmed conclusion; the analysis elevates this to established fact with 'it's now clear.'"
+      }
+    ]
+  }
+}

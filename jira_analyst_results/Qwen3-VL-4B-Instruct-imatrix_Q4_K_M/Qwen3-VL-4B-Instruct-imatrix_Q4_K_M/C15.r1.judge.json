@@ -1,0 +1,233 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows repeated SMTP failures (status 535) due to authentication issues, and a warning about unencrypted, non-persisted data protection keys.",
+      "reason": "The analysis identifies 535 authentication failure as the cause but omits the specific server response text ('5.7.139 Authentication unsuccessful, basic authentication is disabled') and the code locations (EmailSender, OutboxDispatcher)."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter's explanation (keys are junk due to non-persisted storage + no XML encryptor) is plausible but not directly supported by the log \u2014 the log shows authentication failure, not key corruption.",
+      "reason": "The analysis clearly states the reporter's explanation is not supported by the log and that the key warnings are not linked to the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Consider adding a dead-letter queue or backoff retry to prevent infinite retry loops (as noted in log: \"Retry interval is fixed at 5s; no backoff and no dead-letter path.\")",
+      "reason": "The analysis references the 5-second retry and lack of backoff/dead-letter but does not mention outbox item 991204, the five-attempt threshold, or that one failing item blocks the queue behind it."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the growing outbox backlog, the specific pending counts (1412 to 2089), or the rate of growth."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod restart did not help \u2014 suggesting the issue is not transient or related to container state.",
+      "reason": "The analysis clearly states the restart at 18:02 did not resolve the issue, conveying that another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "If key fix is not possible, investigate whether the SMTP credentials are misconfigured \u2014 the log shows user svc-notify@example.com and host smtp.example.com, but no password or TLS config is shown.",
+      "reason": "The analysis mentions investigating SMTP credentials but does not draw the specific inference that 'basic authentication is disabled' suggests the provider turned it off, making the fix an authentication-method change rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Platform team** should investigate and fix the key storage issue (as per reporter's suggestion).",
+      "reason": "The analysis leads with fixing key storage (the wrong primary action), mentions backoff/dead-letter only as a secondary consideration, and never suggests confirming with the mail tenant or retrieving the pre-18:02 container log."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy status check at 18:21:09."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the reporter's explanation is 'not directly supported by the log' and calls it a 'hypothesis \u2014 not confirmed by the log,' without asserting it as the cause."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis restates the 14:00 time from the ticket description but does not claim the log shows what happened at that time or covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the restart did not help and does not recommend restarting the pod as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the email failures to NATS reconnection, the health check, or the outbox poll interval."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error shown in the log and does not invent rate limiting, TLS failure, or mailbox-full responses."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Payment receipt emails must be delivered successfully. No more 535 SMTP errors. No more unencrypted key warnings. Logs should show successful delivery or clear error resolution.",
+      "reason": "The ticket contains no acceptance criteria; these are invented and presented as if they are part of the ticket structure."
+    },
+    {
+      "quote": "the log shows user svc-notify@example.com and host smtp.example.com, but no password or TLS config is shown",
+      "reason": "The log at 18:05:00 explicitly shows 'StartTls=True', so TLS configuration is in fact shown; the claim that no TLS config is shown is contradicted by the log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 184.21
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows repeated SMTP failures (status 535) due to authentication issues, and a warning about unencrypted, non-persisted data protection keys.",
+        "reason": "The analysis identifies 535 authentication failure as the cause but omits the specific server response text ('5.7.139 Authentication unsuccessful, basic authentication is disabled') and the code locations (EmailSender, OutboxDispatcher).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter's explanation (keys are junk due to non-persisted storage + no XML encryptor) is plausible but not directly supported by the log \u2014 the log shows authentication failure, not key corruption.",
+        "reason": "The analysis clearly states the reporter's explanation is not supported by the log and that the key warnings are not linked to the SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "Consider adding a dead-letter queue or backoff retry to prevent infinite retry loops (as noted in log: \"Retry interval is fixed at 5s; no backoff and no dead-letter path.\")",
+        "reason": "The analysis references the 5-second retry and lack of backoff/dead-letter but does not mention outbox item 991204, the five-attempt threshold, or that one failing item blocks the queue behind it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the growing outbox backlog, the specific pending counts (1412 to 2089), or the rate of growth.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "The pod restart did not help \u2014 suggesting the issue is not transient or related to container state.",
+        "reason": "The analysis clearly states the restart at 18:02 did not resolve the issue, conveying that another restart will not help.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "If key fix is not possible, investigate whether the SMTP credentials are misconfigured \u2014 the log shows user svc-notify@example.com and host smtp.example.com, but no password or TLS config is shown.",
+        "reason": "The analysis mentions investigating SMTP credentials but does not draw the specific inference that 'basic authentication is disabled' suggests the provider turned it off, making the fix an authentication-method change rather than a code change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "1. **Platform team** should investigate and fix the key storage issue (as per reporter's suggestion).",
+        "reason": "The analysis leads with fixing key storage (the wrong primary action), mentions backoff/dead-letter only as a secondary consideration, and never suggests confirming with the mail tenant or retrieving the pre-18:02 container log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy status check at 18:21:09.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the reporter's explanation is 'not directly supported by the log' and calls it a 'hypothesis \u2014 not confirmed by the log,' without asserting it as the cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis restates the 14:00 time from the ticket description but does not claim the log shows what happened at that time or covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis states the restart did not help and does not recommend restarting the pod as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not attribute the email failures to NATS reconnection, the health check, or the outbox poll interval.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error shown in the log and does not invent rate limiting, TLS failure, or mailbox-full responses.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Payment receipt emails must be delivered successfully. No more 535 SMTP errors. No more unencrypted key warnings. Logs should show successful delivery or clear error resolution.",
+        "reason": "The ticket contains no acceptance criteria; these are invented and presented as if they are part of the ticket structure."
+      },
+      {
+        "quote": "the log shows user svc-notify@example.com and host smtp.example.com, but no password or TLS config is shown",
+        "reason": "The log at 18:05:00 explicitly shows 'StartTls=True', so TLS configuration is in fact shown; the claim that no TLS config is shown is contradicted by the log."
+      }
+    ]
+  }
+}

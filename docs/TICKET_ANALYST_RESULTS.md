@@ -20,7 +20,7 @@ step with it.
 
 ## Current standing
 
-Nine models have been measured on the full eighteen cases with the judge of
+Ten models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
@@ -31,6 +31,7 @@ record. Everything earlier is superseded — see below.
 | Qwen3-VL-8B-Thinking-imatrix | Q4_K_M | 1.0 | 52.3 (48–54) | 60% | 62.9 | 24.7 | 7/162 | 0 | 59 | 13.0 |
 | Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | 63% | 57.9 | 28.4 | 19/162 | 1 | 67 | **9.4** |
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | 60.6 | 19.5 | 7/162 | 0 | 37 | 32.5 |
+| **Qwen3-VL-4B-Instruct-imatrix** | Q4_K_M | 0.3 | 48.6 (48–50) | 59% | 58.6 | 22.6 | 13/162 | 2 | 57 | **7.9** |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | 0 | 15 | 56.3 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 0 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 1 | 100 | 4.1 |
@@ -54,6 +55,36 @@ the Instruct build (~19.8 GB weights, ~1.4 GB vision, 8 GiB KV at 32768) and
 **35 GB** for the Thinking build (~23 GB weights, ~1.4 GB vision, 12 GiB KV at
 49152). Both are estimates. Measuring them is the most useful small thing left
 to do.
+
+### The 4B is the value result of the whole benchmark
+
+`Qwen3-VL-4B-Instruct` scores **48.6 at 7.9 GB resident** — and that number only
+means something next to what it is level with:
+
+| Model | Quality | Resident | Time / case |
+|---|---|---|---|
+| Qwen3-VL-8B-Instruct | 49.7 (48–52) | 9.4 GB | 7.3s |
+| Qwen2.5-VL-32B-Instruct | 49.2 (49–50) | 32.5 GB | 33.9s |
+| **Qwen3-VL-4B-Instruct** | **48.6 (48–50)** | **7.9 GB** | **8.4s** |
+| Qwen2.5-VL-72B-Instruct | 45.6 (45–47) | 56.3 GB | 55.2s |
+
+It **ties a 32B at a quarter of the memory and beats a 72B at a seventh of it**,
+and its range overlaps both. Against its own 8B sibling the 1.1-point difference
+sits inside both confidence intervals — statistically a tie, for 1.5 GB less and
+at 185 output tok/s, the fastest capable model on the board.
+
+It earns its Pareto place honestly rather than by being small: nothing measured
+does better on both quality and memory.
+
+**What it gives up is precision, not recall.** Coverage 59% against the 8B's 63%,
+but 13 traps against 19, and 1.06 unsupported claims per analysis against 1.24.
+Per point actually found it is the loosest capable model in the field — 0.40
+unsupported claims per point, against 0.20 for the 32B-Instruct and 0.04 for
+Sonnet. Its checkpoint mix is the most hedged of any model measured: 33% found,
+42% partial, 25% missed.
+
+So it is a first-pass triage model, not an output-to-a-human model. At 8.4s a
+case, running it three times and comparing is still cheaper than one 32B pass.
 
 ### Reasoning does not pay at 32B — the size-matched comparison
 
@@ -189,19 +220,24 @@ The 8B finds substantially more and is wrong more often; the 32B finds less and 
 right about more of it. For a pipeline with a verification step, take the 8B's
 recall. For output a human reads and acts on directly, take the 32B.
 
-### Memory: the curve may have resumed, and we cannot see it
+### Memory: flat from 8 GB to 56 GB
 
-Ordered by measured memory: 4.1 GB → 14.4, 7.1 GB → 24.5, 9.4 GB → 49.7, 13.0 GB →
-**52.3**, 32.5 GB → 49.2, 56.3 GB → 45.6. On measured figures alone the curve
-still rises to 13 GB and falls above it.
+Ordered by measured memory: 4.1 GB → 14.4, 7.1 GB → 24.5, **7.9 GB → 48.6**,
+9.4 GB → 49.7, 13.0 GB → **52.3**, 32.5 GB → 49.2, 56.3 GB → 45.6.
 
-**But the two best local models are both unmeasured**, and both are estimated
-around 29–35 GB. If those estimates hold, the curve does rise again above 13 GB —
-62.5 and 60.6 at roughly 30 GB against 52.3 at 13 GB — and the flat-above-13-GB
-conclusion in earlier versions of this file was an artefact of not having measured
-the models that beat it. That is a different recommendation (spend ~30 GB, not
-~10 GB) resting entirely on two figures nobody has read off `/api/ps`. Treat the
-memory column as unsettled until the two 32B builds are re-run.
+The curve rises very steeply to about 8 GB and is then **flat or falling all the
+way to 56 GB**. Everything from the 4B to the 72B — a 7× span in memory and an
+18× span in parameters — lands between 45.6 and 52.3, which is barely wider than
+a single model's run-to-run range. The 4B result is what makes this sharp: it is
+not that big models disappoint, it is that a 7.9 GB model reaches the same plateau.
+
+**Two exceptions sit above the plateau and neither has been measured.** The 32B
+Instruct and Thinking builds score 62.5 and 60.6, roughly 10 points clear of
+everything else, and both are missing their `/api/ps` figure. If their estimates
+(~29 GB and ~35 GB) hold, the real shape is a plateau from 8–13 GB and a second
+step up at ~30 GB — which is a different recommendation from "8 GB is enough".
+That distinction rests entirely on two numbers nobody has read off the server, so
+re-running those two to capture memory remains the highest-value small task.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The headline Quality is a mean over both
@@ -210,8 +246,8 @@ and moves mostly with the telemetry cases, so it is not a good single number for
 
 ## Runs still to do
 
-Four of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
-have usable scores; the 2B and 4B builds remain. Two things still limit what the
+Five of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
+have usable scores; the 4B-Thinking and both 2B builds remain. Two things still limit what the
 fleet can show:
 
 - **Quantization.** The Instruct track is matched at Q4_K_M imatrix apart from the
@@ -357,6 +393,19 @@ misses, but that fix postdates both runs and has not been exercised. Check for a
 `GB` figure before treating a run as complete. There is deliberately no fallback
 that assumes the only loaded model is the one under test: that would report the
 judge's footprint as the analyst's.
+
+**Low temperature strains the small Instruct builds too, and 4B is where it
+starts.** The 4B-Instruct hit `num_predict` on 4 of 54 runs — the first Instruct
+build in the benchmark ever to do so; no other, from the 3B to the 72B, has hit
+the cap once. It is sporadic rather than case-specific: it happened on C01, the
+shortest and best-specified case in the suite, as well as on C14, C17 and C18.
+The cost is small, because the analysis is written before the model starts
+rambling — three of the four scored at or above their case average, and only
+C17.r1 was destroyed, worth **0.21 points** of overall quality. But the direction
+matches the Thinking track exactly: the fleet runs 0.3, this build's card asks
+0.7, and the smaller the model the less margin it has. If the 2B-Instruct shows
+the same thing more severely, the Instruct track's 0.3 needs revisiting rather
+than patching per model.
 
 **Thinking builds can return nothing.** Reasoning counts against `num_predict`,
 and a model that runs out returns empty content with the text stranded in

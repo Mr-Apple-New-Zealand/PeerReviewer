@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated during config deploy **OPS-81** at **09:30**, but the **Transactions API was not updated** to validate against the new key.",
+      "reason": "The analysis states the deploy was at 09:30 and separately notes 'errors starting ~09:31', covering both required facts."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Monitoring alert fired at **09:47** (TransferErrorRate > 20%).  \n- Incident declared by Sam Okafor at **09:52**",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Rollback initiated at 10:31** (after identifying root cause).  \n- **Rollback complete at 10:42** \u2014 error rate dropped under 1%.  \n- **Incident resolved at 10:50**.",
+      "reason": "All three timestamps (10:31 rollback start, 10:42 recovery below 1%, 10:50 resolution) are present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis calculates time to detect as 5 minutes (09:47 to 09:52, alert to declaration) rather than the expected 16 minutes (09:31 impact start to 09:47 alert)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis states 'Recovery time: 1 hour 12 minutes (from alert to resolution)' which is 72 minutes; this matches neither 71 min (09:31\u219210:42), 55 min (09:47\u219210:42), nor 79 min (09:31\u219210:50), and the label 'from alert to resolution' would be 63 minutes, not 72."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The JWT signing key was rotated during config deploy **OPS-81** at **09:30**, but the **Transactions API was not updated** to validate against the new key. As a result, all transfer requests were rejected with **401 Unauthorized** errors due to **\"IDX10503: Signature validation failed\"**.",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Transactions API not updated, 401, and the exact error code IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 5-minute detect time is supported by 09:47\u219209:52, and the 72-minute recovery is supported by 09:30\u219210:42; both are valid pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 179.15
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The JWT signing key was rotated during config deploy **OPS-81** at **09:30**, but the **Transactions API was not updated** to validate against the new key.",
+        "reason": "The analysis states the deploy was at 09:30 and separately notes 'errors starting ~09:31', covering both required facts.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Monitoring alert fired at **09:47** (TransferErrorRate > 20%).  \n- Incident declared by Sam Okafor at **09:52**",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "**Rollback initiated at 10:31** (after identifying root cause).  \n- **Rollback complete at 10:42** \u2014 error rate dropped under 1%.  \n- **Incident resolved at 10:50**.",
+        "reason": "All three timestamps (10:31 rollback start, 10:42 recovery below 1%, 10:50 resolution) are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "",
+        "reason": "The analysis calculates time to detect as 5 minutes (09:47 to 09:52, alert to declaration) rather than the expected 16 minutes (09:31 impact start to 09:47 alert).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "",
+        "reason": "The analysis states 'Recovery time: 1 hour 12 minutes (from alert to resolution)' which is 72 minutes; this matches neither 71 min (09:31\u219210:42), 55 min (09:47\u219210:42), nor 79 min (09:31\u219210:50), and the label 'from alert to resolution' would be 63 minutes, not 72.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated during config deploy **OPS-81** at **09:30**, but the **Transactions API was not updated** to validate against the new key. As a result, all transfer requests were rejected with **401 Unauthorized** errors due to **\"IDX10503: Signature validation failed\"**.",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Transactions API not updated, 401, and the exact error code IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The 5-minute detect time is supported by 09:47\u219209:52, and the 72-minute recovery is supported by 09:30\u219210:42; both are valid pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

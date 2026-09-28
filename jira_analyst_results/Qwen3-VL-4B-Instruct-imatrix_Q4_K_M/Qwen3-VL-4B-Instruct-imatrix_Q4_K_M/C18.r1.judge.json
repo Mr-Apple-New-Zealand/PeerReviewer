@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Group 4A1, 4A2, 4A9, 4B3 under BANKUI-3C8 \u2014 all caused by 401 responses \u2014 likely same root cause.",
+      "reason": "The analysis groups all five issues (4A1, 4A2, 4A9, 4B3, 3C8) under a shared 401 cause and identifies the TypeErrors as symptoms of the 401, matching the expected grouping."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed, nor does it cite 44 as the best single estimate of cluster reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Second Priority: BANKUI-5D6 \u2014 63 events, 58 users \u2014 high user impact, but lower than 401.",
+      "reason": "The analysis lists 58 users and 63 events but incorrectly states the user impact is 'lower than 401' (58 > 44) and does not identify 5D6 as the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Cause: Chunk 6728.js 404 \u2014 likely due to deployment or CDN issue.",
+      "reason": "The analysis mentions the 404 and deployment vaguely but does not cite the first-seen time (21:11:36), the 4.7.0 deploy time (21:05:00), or the mechanism of open sessions requesting replaced hashed bundles."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0 (SecurityError: Cross-origin frame blocked) - Events: 4,812 | Users: 1 - Cause: Chrome extension inject.js trying to access a cross-origin frame. - Note: All events from same browser session \u2014 likely extension behavior, not app logic. - Implication: Not a bug in bank-ui \u2014 extension or browser policy issue.",
+      "reason": "The analysis correctly identifies 4,812 events, 1 user, chrome-extension origin, no app breadcrumbs, and concludes it is not an app defect that should be filtered."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Sprint Priority: Focus on BANKUI-3C8 \u2014 highest event count (5,140) \u2014 likely the biggest impact.",
+      "reason": "The analysis explicitly uses event count as the primary ranking criterion and does not state that event count is a misleading metric here."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Resolved in 4.6.0 \u2014 already fixed. - Action Needed? Not relevant for current sprint \u2014 already resolved.",
+      "reason": "The analysis treats 1A7 as fully resolved and irrelevant, missing that it was last seen on 2026-09-11 after 4.7.0 deployed on 2026-09-10, indicating a regression."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Source Maps Missing: Makes debugging difficult \u2014 no line-level info.",
+      "reason": "The analysis notes source maps are missing but does not explain that lastFrame names are minified (e.g., ie.project, N.setRows) or that issues cannot be traced to components from this export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in 5D6 overlap with the 44 in the 401 cluster or that total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "All preceded by 401 responses \u2014 likely same root cause: API auth failure.",
+      "reason": "The analysis uses 'likely' and identifies a shared auth cause, but frames it as a backend/auth issue rather than sessions expiring without the app handling rejection, and does not note the caveat that confirming would require a full event."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Sprint Priority: Focus on BANKUI-3C8 \u2014 highest event count (5,140) \u2014 likely the biggest impact. - Second Priority: BANKUI-5D6 \u2014 63 events, 58 users \u2014 high user impact, but lower than 401.",
+      "reason": "The analysis reverses the expected priority (3C8 first by event count instead of 5D6 first by user impact) and does not recommend reopening 1A7 or filtering 2F0 as alongside actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies 2F0 as not a defect and does not rank it high or use its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeError issues under the 401 cause and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add user counts across issues or report a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Resolved in 4.6.0 \u2014 already fixed. - Action Needed? Not relevant for current sprint \u2014 already resolved.",
+      "reason": "The analysis explicitly states 1A7 is fixed/resolved and needs no action, which the key identifies as a trap since it has regressed."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 as an auth/permissions issue, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps 5D6 (deployment/CDN) and 1A7 (already fixed) separate from the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Culprit: All in /payments/batch/actions/...",
+      "reason": "BANKUI-4A1's culprit is '/settlements/run/8214', not a /payments/batch/actions path, so the claim that all four are in /payments/batch/actions/... is factually incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 183.52
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Group 4A1, 4A2, 4A9, 4B3 under BANKUI-3C8 \u2014 all caused by 401 responses \u2014 likely same root cause.",
+        "reason": "The analysis groups all five issues (4A1, 4A2, 4A9, 4B3, 3C8) under a shared 401 cause and identifies the TypeErrors as symptoms of the 401, matching the expected grouping.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed, nor does it cite 44 as the best single estimate of cluster reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "Second Priority: BANKUI-5D6 \u2014 63 events, 58 users \u2014 high user impact, but lower than 401.",
+        "reason": "The analysis lists 58 users and 63 events but incorrectly states the user impact is 'lower than 401' (58 > 44) and does not identify 5D6 as the top item by user impact.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "Cause: Chunk 6728.js 404 \u2014 likely due to deployment or CDN issue.",
+        "reason": "The analysis mentions the 404 and deployment vaguely but does not cite the first-seen time (21:11:36), the 4.7.0 deploy time (21:05:00), or the mechanism of open sessions requesting replaced hashed bundles.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 (SecurityError: Cross-origin frame blocked) - Events: 4,812 | Users: 1 - Cause: Chrome extension inject.js trying to access a cross-origin frame. - Note: All events from same browser session \u2014 likely extension behavior, not app logic. - Implication: Not a bug in bank-ui \u2014 extension or browser policy issue.",
+        "reason": "The analysis correctly identifies 4,812 events, 1 user, chrome-extension origin, no app breadcrumbs, and concludes it is not an app defect that should be filtered.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "Sprint Priority: Focus on BANKUI-3C8 \u2014 highest event count (5,140) \u2014 likely the biggest impact.",
+        "reason": "The analysis explicitly uses event count as the primary ranking criterion and does not state that event count is a misleading metric here.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "Resolved in 4.6.0 \u2014 already fixed. - Action Needed? Not relevant for current sprint \u2014 already resolved.",
+        "reason": "The analysis treats 1A7 as fully resolved and irrelevant, missing that it was last seen on 2026-09-11 after 4.7.0 deployed on 2026-09-10, indicating a regression.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source Maps Missing: Makes debugging difficult \u2014 no line-level info.",
+        "reason": "The analysis notes source maps are missing but does not explain that lastFrame names are minified (e.g., ie.project, N.setRows) or that issues cannot be traced to components from this export.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in 5D6 overlap with the 44 in the 401 cluster or that total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "All preceded by 401 responses \u2014 likely same root cause: API auth failure.",
+        "reason": "The analysis uses 'likely' and identifies a shared auth cause, but frames it as a backend/auth issue rather than sessions expiring without the app handling rejection, and does not note the caveat that confirming would require a full event.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Sprint Priority: Focus on BANKUI-3C8 \u2014 highest event count (5,140) \u2014 likely the biggest impact. - Second Priority: BANKUI-5D6 \u2014 63 events, 58 users \u2014 high user impact, but lower than 401.",
+        "reason": "The analysis reverses the expected priority (3C8 first by event count instead of 5D6 first by user impact) and does not recommend reopening 1A7 or filtering 2F0 as alongside actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis correctly identifies 2F0 as not a defect and does not rank it high or use its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeError issues under the 401 cause and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add user counts across issues or report a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "Resolved in 4.6.0 \u2014 already fixed. - Action Needed? Not relevant for current sprint \u2014 already resolved.",
+        "reason": "The analysis explicitly states 1A7 is fixed/resolved and needs no action, which the key identifies as a trap since it has regressed.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 as an auth/permissions issue, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps 5D6 (deployment/CDN) and 1A7 (already fixed) separate from the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Culprit: All in /payments/batch/actions/...",
+        "reason": "BANKUI-4A1's culprit is '/settlements/run/8214', not a /payments/batch/actions path, so the claim that all four are in /payments/batch/actions/... is factually incorrect."
+      }
+    ]
+  }
+}

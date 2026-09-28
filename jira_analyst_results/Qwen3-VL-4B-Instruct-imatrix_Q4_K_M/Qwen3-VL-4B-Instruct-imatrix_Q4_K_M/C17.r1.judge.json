@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two halves of the session, the ~4-hour-10-minute gap, or the specific timestamps where 200s stop and 401s begin."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Multiple 401 errors occurred before the error, indicating authentication issues, but the core error is unrelated to auth \u2014 it's a UI/data handling error.",
+      "reason": "The analysis explicitly states the error is 'unrelated to auth' and frames it as a UI/data handling error, contradicting the correct interpretation that the 401s cause the undefined data and the app's lack of 401 handling is the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no mention of the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the idea that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Environment confusion: Sentry tags indicate \"Production\" but the URL is bank-uat.example.com, suggesting this may be a UAT environment, not production.",
+      "reason": "It identifies the discrepancy between the Production tag and the UAT URL but hedges with 'suggesting this may be' and does not conclude it is a misconfiguration polluting production alerting or explicitly answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor the stale transaction name affecting Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No stack trace source: The Sentry event shows \"missing_source\" for the JS files, making it hard to pinpoint the exact line or component.",
+      "reason": "It touches on missing source maps but does not mention the three scraping_attempts failing due to DNS resolution, symbolicated_in_app being false, or the minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions release and dist being null or the inability to tie the event to a specific build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss response_body_size 0 on the 401s, the inability to determine why the token was rejected, or the inability to distinguish expiry from revocation or session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis makes no inference about token expiry during an idle period or the absence of a silent refresh as the likely mechanism."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText explanation."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm environment \u2014 verify if this is a UAT or production issue \u2014 if UAT, it may be a misconfiguration or test environment issue.",
+      "reason": "It touches on confirming the environment and mentions guards as temporary, but does not specify handling 401 centrally with redirect to sign-in, setting release/dist and uploading source maps, or correcting the stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Investigate the Angular component that handles batch actions \u2014 look for any .sort() calls on arrays that are not initialized or are null. 2. Check the data flow \u2014 ensure that the array being sorted is always defined before the .sort() call.",
+      "reason": "The analysis frames the .sort on undefined as the core issue to investigate and fix, and explicitly states the error is 'unrelated to auth,' treating the null check as the fix rather than a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the discrepancy between the Production tag and the UAT URL, so it does not treat the error as a production incident without qualification."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214 as the location of the error."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific application source file, component, method, or line number as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as 'authentication issues' without characterizing them as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during a gap or state that failures ran continuously across a gap."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "the core error is unrelated to auth \u2014 it's a UI/data handling error",
+      "reason": "The ticket data shows the 401 responses cause the components to receive no data, and the undefined dereference is a direct consequence of the unhandled 401s; the analysis's claim that the error is unrelated to auth contradicts the evidence in the breadcrumbs."
+    },
+    {
+      "quote": "the actual error is in the Angular runtime (polyfills.js), suggesting a data structure issue in the component or service",
+      "reason": "The polyfills.js frames are zone.js task-scheduling frames in the error-propagation chain, not the origin of the error; the actual application-code frame is ie.project in 6728.b4f17ce620a8d539.js. Attributing the error to 'the Angular runtime (polyfills.js)' misidentifies the origin."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 163.3
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two halves of the session, the ~4-hour-10-minute gap, or the specific timestamps where 200s stop and 401s begin.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Multiple 401 errors occurred before the error, indicating authentication issues, but the core error is unrelated to auth \u2014 it's a UI/data handling error.",
+        "reason": "The analysis explicitly states the error is 'unrelated to auth' and frames it as a UI/data handling error, contradicting the correct interpretation that the 401s cause the undefined data and the app's lack of 401 handling is the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis makes no mention of the four earlier sentry.event breadcrumbs ('rows', 'returnProperties', 'length') or the idea that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment confusion: Sentry tags indicate \"Production\" but the URL is bank-uat.example.com, suggesting this may be a UAT environment, not production.",
+        "reason": "It identifies the discrepancy between the Production tag and the UAT URL but hedges with 'suggesting this may be' and does not conclude it is a misconfiguration polluting production alerting or explicitly answer Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit being /settlements/run/8214 versus the actual URL /payments/batch/actions, nor the stale transaction name affecting Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "No stack trace source: The Sentry event shows \"missing_source\" for the JS files, making it hard to pinpoint the exact line or component.",
+        "reason": "It touches on missing source maps but does not mention the three scraping_attempts failing due to DNS resolution, symbolicated_in_app being false, or the minified frame names.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions release and dist being null or the inability to tie the event to a specific build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss response_body_size 0 on the 401s, the inability to determine why the token was rejected, or the inability to distinguish expiry from revocation or session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis makes no inference about token expiry during an idle period or the absence of a silent refresh as the likely mechanism.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the browser/OS being ordinary, or the '401 OK' statusText explanation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Confirm environment \u2014 verify if this is a UAT or production issue \u2014 if UAT, it may be a misconfiguration or test environment issue.",
+        "reason": "It touches on confirming the environment and mentions guards as temporary, but does not specify handling 401 centrally with redirect to sign-in, setting release/dist and uploading source maps, or correcting the stale transaction name.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "Investigate the Angular component that handles batch actions \u2014 look for any .sort() calls on arrays that are not initialized or are null. 2. Check the data flow \u2014 ensure that the array being sorted is always defined before the .sort() call.",
+        "reason": "The analysis frames the .sort on undefined as the core issue to investigate and fix, and explicitly states the error is 'unrelated to auth,' treating the null check as the fix rather than a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis flags the discrepancy between the Production tag and the UAT URL, so it does not treat the error as a production incident without qualification.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or settlements run 8214 as the location of the error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name a specific application source file, component, method, or line number as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as 'authentication issues' without characterizing them as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during a gap or state that failures ran continuously across a gap.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "the core error is unrelated to auth \u2014 it's a UI/data handling error",
+        "reason": "The ticket data shows the 401 responses cause the components to receive no data, and the undefined dereference is a direct consequence of the unhandled 401s; the analysis's claim that the error is unrelated to auth contradicts the evidence in the breadcrumbs."
+      },
+      {
+        "quote": "the actual error is in the Angular runtime (polyfills.js), suggesting a data structure issue in the component or service",
+        "reason": "The polyfills.js frames are zone.js task-scheduling frames in the error-propagation chain, not the origin of the error; the actual application-code frame is ie.project in 6728.b4f17ce620a8d539.js. Attributing the error to 'the Angular runtime (polyfills.js)' misidentifies the origin."
+      }
+    ]
+  }
+}

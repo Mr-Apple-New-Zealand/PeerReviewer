@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer retry after timeout on mobile web causes the source account to be debited twice while the destination is credited once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects version: 3.1.4\n- **Fix version:** 3.2.0\n- **Sprint:** Sprint 38 (2026-09-09 to 2026-09-22)\n- **PR:** #218 is open and awaiting code review.",
+      "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and the target release date (2026-09-24) in the Current state section."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Idempotency key must be sent on retry.\n  - Debit and credit must be atomic (in one transaction).",
+      "reason": "The analysis mentions idempotency key and atomicity only as acceptance criteria, not as the identified root cause per Priya's reproduction; it never explicitly states the root cause."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **Priority:** High (changed from Medium on 2026-09-08)\n- **Due date:** None (but target release is 3.2.0 on 2026-09-24)\n- **Fix version:** 3.2.0\n- **Sprint:** Sprint 38 (2026-09-09 to 2026-09-22)\n- **PR:** #218 is open and awaiting code review.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are clearly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Finance manual reversal needed \u2014 three customers impacted; no automation or compensation mechanism.",
+      "reason": "The analysis mentions three customers and manual Finance reversal, but misattributes the action to Aroha Walker rather than Marcus Reid, who was specifically asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No link to Finance Ops ticket \u2014 though Aroha suggested raising it, no ticket key or status is provided.",
+      "reason": "The analysis correctly notes that the ticket does not confirm the reversal request has been raised or that customers have been refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair should follow up with code review team to expedite PR #218 review.\n- **Aroha Walker** should raise a ticket with Finance Ops to initiate manual reversals for the three affected customers.\n- **Marcus Reid** should confirm with Finance Ops that the manual reversals are being tracked and that no further action is needed.",
+      "reason": "The analysis identifies both next actions: getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states desktop web is unaffected, consistent with Tom Becker's QA confirmation."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Aroha Walker should raise a ticket with Finance Ops to initiate manual reversals for the three affected customers.",
+      "reason": "The ticket shows Aroha asked Marcus Reid to raise it with Finance Ops ('Marcus, can you raise that with Finance Ops?'), not that Aroha herself should do it; this misattributes the responsible party."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer retry after timeout on mobile web causes the source account to be debited twice while the destination is credited once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects version: 3.1.4\n- **Fix version:** 3.2.0\n- **Sprint:** Sprint 38 (2026-09-09 to 2026-09-22)\n- **PR:** #218 is open and awaiting code review.",
+        "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and the target release date (2026-09-24) in the Current state section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Idempotency key must be sent on retry.\n  - Debit and credit must be atomic (in one transaction).",
+        "reason": "The analysis mentions idempotency key and atomicity only as acceptance criteria, not as the identified root cause per Priya's reproduction; it never explicitly states the root cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **Priority:** High (changed from Medium on 2026-09-08)\n- **Due date:** None (but target release is 3.2.0 on 2026-09-24)\n- **Fix version:** 3.2.0\n- **Sprint:** Sprint 38 (2026-09-09 to 2026-09-22)\n- **PR:** #218 is open and awaiting code review.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 awaiting code review\u2014are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance manual reversal needed \u2014 three customers impacted; no automation or compensation mechanism.",
+        "reason": "The analysis mentions three customers and manual Finance reversal, but misattributes the action to Aroha Walker rather than Marcus Reid, who was specifically asked to raise it with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "No link to Finance Ops ticket \u2014 though Aroha suggested raising it, no ticket key or status is provided.",
+        "reason": "The analysis correctly notes that the ticket does not confirm the reversal request has been raised or that customers have been refunded.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair should follow up with code review team to expedite PR #218 review.\n- **Aroha Walker** should raise a ticket with Finance Ops to initiate manual reversals for the three affected customers.\n- **Marcus Reid** should confirm with Finance Ops that the manual reversals are being tracked and that no further action is needed.",
+        "reason": "The analysis identifies both next actions: getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and awaiting code review; it does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states desktop web is unaffected, consistent with Tom Becker's QA confirmation.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Aroha Walker should raise a ticket with Finance Ops to initiate manual reversals for the three affected customers.",
+        "reason": "The ticket shows Aroha asked Marcus Reid to raise it with Finance Ops ('Marcus, can you raise that with Finance Ops?'), not that Aroha herself should do it; this misattributes the responsible party."
+      }
+    ]
+  }
+}

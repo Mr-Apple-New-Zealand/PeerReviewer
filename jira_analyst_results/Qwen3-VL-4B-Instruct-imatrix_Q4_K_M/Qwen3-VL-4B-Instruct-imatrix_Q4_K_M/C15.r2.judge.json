@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SMTP client attempts to send emails using `svc-notify@example.com` with StartTLS. 3. Server responds with `535 Authentication unsuccessful, basic authentication is disabled`. 4. Email fails repeatedly; no backoff or dead-letter handling.",
+      "reason": "Identifies the 535 SMTP auth failure and the 'basic authentication is disabled' message as the cause, but omits the 5.7.139 server response code and the specific classes (EmailSender, OutboxDispatcher) from the stack trace."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The reporter's explanation (key storage issue) is plausible but not directly proven by the log \u2014 the log shows SMTP failure, not key corruption.",
+      "reason": "States the reporter's explanation is not proven, but does not clearly identify the DataProtection lines as routine ASP.NET Core startup warnings unrelated to SMTP delivery, and still recommends fixing key storage as a primary next action."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Email fails repeatedly; no backoff or dead-letter handling.",
+      "reason": "Mentions no backoff and no dead-letter path but omits the 5-second retry interval, the specific outbox item 991204, the five-attempt threshold, and the blocking effect on subsequent messages; also incorrectly states 'no retry logic' when the log shows a fixed 5s retry."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the specific pending counts (1412 to 2089), the growth rate, or the implication that customers will keep missing receipts until auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window described by the contact centre is absent from this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Pod restarted at 18:02 \u2014 no improvement.",
+      "reason": "Conveys that the restart did not resolve the issue, but does not explicitly state that another restart will not help or cite the continued 535 rejections through 18:38:02."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The SMTP failure is likely due to authentication, not encryption. The fix should address both key storage and SMTP config.",
+      "reason": "Presents the auth issue as likely and recommends reconfiguring credentials, but does not specifically infer that the mail provider turned off basic auth for svc-notify@example.com, and still includes key storage fixes alongside the auth fix rather than framing it as 'rather than anything in the notification code.'"
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Reconfigure SMTP credentials or test with a known working config. Validate that the `svc-notify@example.com` account is properly configured and has permissions.",
+      "reason": "Partially covers the auth fix but does not recommend adding backoff and a dead-letter path to the dispatcher, nor does it suggest retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its immediate recovery, or the healthy check at 18:21:09, nor does it state that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Customers are not receiving payment receipt emails due to SMTP authentication failures (status 535), which are likely caused by invalid or missing encryption keys used for secure communication \u2014 as inferred from the log.",
+      "reason": "The summary explicitly attributes the SMTP failures to the key storage issue, and the next actions list 'Fix key storage' and 'Configure XML encryptor' as primary remediation steps, endorsing the reporter's causal explanation."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at or around 14:00, nor does it claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix; it notes the restart did not help."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error shown in the log; it does not introduce rate limiting, TLS failure, or mailbox-full responses."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No Dead-Letter Handling: Outbox items are stuck in queue with no retry logic \u2014 may cause data loss or system instability.",
+      "reason": "The log explicitly shows a retry mechanism: 'Retry interval is fixed at 5s.' The items are stuck because there is no backoff and no dead-letter path, not because there is no retry logic. Stating 'no retry logic' contradicts the log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 204.8
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "SMTP client attempts to send emails using `svc-notify@example.com` with StartTLS. 3. Server responds with `535 Authentication unsuccessful, basic authentication is disabled`. 4. Email fails repeatedly; no backoff or dead-letter handling.",
+        "reason": "Identifies the 535 SMTP auth failure and the 'basic authentication is disabled' message as the cause, but omits the 5.7.139 server response code and the specific classes (EmailSender, OutboxDispatcher) from the stack trace.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter's explanation (key storage issue) is plausible but not directly proven by the log \u2014 the log shows SMTP failure, not key corruption.",
+        "reason": "States the reporter's explanation is not proven, but does not clearly identify the DataProtection lines as routine ASP.NET Core startup warnings unrelated to SMTP delivery, and still recommends fixing key storage as a primary next action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "Email fails repeatedly; no backoff or dead-letter handling.",
+        "reason": "Mentions no backoff and no dead-letter path but omits the 5-second retry interval, the specific outbox item 991204, the five-attempt threshold, and the blocking effect on subsequent messages; also incorrectly states 'no retry logic' when the log shows a fixed 5s retry.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the specific pending counts (1412 to 2089), the growth rate, or the implication that customers will keep missing receipts until auth is fixed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window described by the contact centre is absent from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Pod restarted at 18:02 \u2014 no improvement.",
+        "reason": "Conveys that the restart did not resolve the issue, but does not explicitly state that another restart will not help or cite the continued 535 rejections through 18:38:02.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "The SMTP failure is likely due to authentication, not encryption. The fix should address both key storage and SMTP config.",
+        "reason": "Presents the auth issue as likely and recommends reconfiguring credentials, but does not specifically infer that the mail provider turned off basic auth for svc-notify@example.com, and still includes key storage fixes alongside the auth fix rather than framing it as 'rather than anything in the notification code.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Reconfigure SMTP credentials or test with a known working config. Validate that the `svc-notify@example.com` account is properly configured and has permissions.",
+        "reason": "Partially covers the auth fix but does not recommend adding backoff and a dead-letter path to the dispatcher, nor does it suggest retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its immediate recovery, or the healthy check at 18:21:09, nor does it state that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "Customers are not receiving payment receipt emails due to SMTP authentication failures (status 535), which are likely caused by invalid or missing encryption keys used for secure communication \u2014 as inferred from the log.",
+        "reason": "The summary explicitly attributes the SMTP failures to the key storage issue, and the next actions list 'Fix key storage' and 'Configure XML encryptor' as primary remediation steps, endorsing the reporter's causal explanation.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at or around 14:00, nor does it claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix; it notes the restart did not help.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error shown in the log; it does not introduce rate limiting, TLS failure, or mailbox-full responses.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No Dead-Letter Handling: Outbox items are stuck in queue with no retry logic \u2014 may cause data loss or system instability.",
+        "reason": "The log explicitly shows a retry mechanism: 'Retry interval is fixed at 5s.' The items are stuck because there is no backoff and no dead-letter path, not because there is no retry logic. Stating 'no retry logic' contradicts the log."
+      }
+    ]
+  }
+}

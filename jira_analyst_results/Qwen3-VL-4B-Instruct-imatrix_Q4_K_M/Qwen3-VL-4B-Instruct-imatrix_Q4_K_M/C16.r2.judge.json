@@ -1,0 +1,247 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetStatementLineQuery requests taking 35\u201373 seconds (vs. 280\u2013320ms pre-release)",
+      "reason": "The analysis clearly conveys the baseline of roughly 300 ms and the post-release range of 35\u201373 seconds, matching the expected point."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery: 35171ms\u201372974ms (avg ~50,000ms), with 4+ instances exceeding 10s threshold.",
+      "reason": "The raw numbers are present but the analysis never states the fold multiplier (\u2248110\u00d7 to \u2248240\u00d7); it only says 'degraded significantly' without quantifying the ratio."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery: 35171ms\u201372974ms (avg ~50,000ms), with 4+ instances exceeding 10s threshold.",
+      "reason": "The analysis gives only the min\u2013max range and an average; it does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetAccountSummaryQuery: 3188ms\u20133402ms (avg ~3250ms) \u2014 unchanged.",
+      "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and not the regression, but gives an incorrect pre-release range (3102\u20133255 ms vs. actual 2987\u20133341 ms) and never mentions that this contradicts Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "suggesting the regression is tied to the statement query, not a general slowdown.",
+      "reason": "The conclusion (regression is specific, not a general slowdown) is stated, but the supporting evidence\u2014ExportStatementCommand at 1840 ms before and 1902 ms after\u2014is entirely absent."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker's comment suggests the change is not in the statements module \u2014 but the logs show the query is the bottleneck.",
+      "reason": "The analysis mentions both the migration and Tom's claim but does not explicitly state that the migration record in the log contradicts his assertion that nothing in 4.7.0 touched statements."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Release 4.7.0 included a migration: 20260914_2100_ReindexStatementLines. This likely caused the query to reindex or recompute large datasets, leading to performance degradation.",
+      "reason": "The migration is identified as the likely place to look (satisfying the inference framing), but the analysis omits the important caveat that the logs only show temporal coincidence, not causation."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Thread pool starvation detected: 31 queued items, 0 threads available for 4200ms.",
+      "reason": "The data point is reported but the analysis never infers that the starvation is a consequence of requests piling up behind the slow query, nor does it note the alignment with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the limited sample size (~5\u20136 min windows, handful of samples per query, different days, nothing in between) or note that the magnitude is indicative rather than precisely measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Compare query plans: Check if the query changed in 4.7.0 (e.g., joins, indexes, or aggregation logic).",
+      "reason": "The analysis covers checking query plans/indexes and validating Tom Becker's position, but does not recommend collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is 'unchanged' and 'relatively stable,' not the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis hedges with 'likely' and uses vague speculation ('reindex or recompute large datasets') rather than stating a specific schema change as fact."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated magnitudes (35\u201373 s vs. 280\u2013320 ms) are consistent with the log data; no unsupported smaller multiplier is given."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Thread pool starvation is listed as a detected condition, not identified as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "GetStatementLineQuery: 281\u2013312ms (avg ~300ms)",
+      "reason": "The actual pre-release values range from 281 ms to 319 ms (the 319 ms reading at 00:21:29 is the maximum); 312 ms is not the upper bound of the range."
+    },
+    {
+      "quote": "GetAccountSummaryQuery: 3102\u20133255ms (avg ~3200ms)",
+      "reason": "The actual pre-release values are 3102, 3341, 2987, and 3255 ms, giving a range of 2987\u20133341 ms; the stated range of 3102\u20133255 ms omits both the true minimum and maximum."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 205.33
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery requests taking 35\u201373 seconds (vs. 280\u2013320ms pre-release)",
+        "reason": "The analysis clearly conveys the baseline of roughly 300 ms and the post-release range of 35\u201373 seconds, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "GetStatementLineQuery: 35171ms\u201372974ms (avg ~50,000ms), with 4+ instances exceeding 10s threshold.",
+        "reason": "The raw numbers are present but the analysis never states the fold multiplier (\u2248110\u00d7 to \u2248240\u00d7); it only says 'degraded significantly' without quantifying the ratio.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "GetStatementLineQuery: 35171ms\u201372974ms (avg ~50,000ms), with 4+ instances exceeding 10s threshold.",
+        "reason": "The analysis gives only the min\u2013max range and an average; it does not describe the progressive worsening within the window (35 s \u2192 44 s \u2192 69\u201373 s) with timestamps.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery: 3188ms\u20133402ms (avg ~3250ms) \u2014 unchanged.",
+        "reason": "The analysis correctly identifies GetAccountSummaryQuery as unchanged and not the regression, but gives an incorrect pre-release range (3102\u20133255 ms vs. actual 2987\u20133341 ms) and never mentions that this contradicts Ravi Kumar's suggestion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "suggesting the regression is tied to the statement query, not a general slowdown.",
+        "reason": "The conclusion (regression is specific, not a general slowdown) is stated, but the supporting evidence\u2014ExportStatementCommand at 1840 ms before and 1902 ms after\u2014is entirely absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "Tom Becker's comment suggests the change is not in the statements module \u2014 but the logs show the query is the bottleneck.",
+        "reason": "The analysis mentions both the migration and Tom's claim but does not explicitly state that the migration record in the log contradicts his assertion that nothing in 4.7.0 touched statements.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "Release 4.7.0 included a migration: 20260914_2100_ReindexStatementLines. This likely caused the query to reindex or recompute large datasets, leading to performance degradation.",
+        "reason": "The migration is identified as the likely place to look (satisfying the inference framing), but the analysis omits the important caveat that the logs only show temporal coincidence, not causation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "Thread pool starvation detected: 31 queued items, 0 threads available for 4200ms.",
+        "reason": "The data point is reported but the analysis never infers that the starvation is a consequence of requests piling up behind the slow query, nor does it note the alignment with the jump from ~44 s to ~69 s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the limited sample size (~5\u20136 min windows, handful of samples per query, different days, nothing in between) or note that the magnitude is indicative rather than precisely measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Compare query plans: Check if the query changed in 4.7.0 (e.g., joins, indexes, or aggregation logic).",
+        "reason": "The analysis covers checking query plans/indexes and validating Tom Becker's position, but does not recommend collecting a longer sample from both versions before concluding.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is 'unchanged' and 'relatively stable,' not the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis hedges with 'likely' and uses vague speculation ('reindex or recompute large datasets') rather than stating a specific schema change as fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The stated magnitudes (35\u201373 s vs. 280\u2013320 ms) are consistent with the log data; no unsupported smaller multiplier is given.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "Thread pool starvation is listed as a detected condition, not identified as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "GetStatementLineQuery: 281\u2013312ms (avg ~300ms)",
+        "reason": "The actual pre-release values range from 281 ms to 319 ms (the 319 ms reading at 00:21:29 is the maximum); 312 ms is not the upper bound of the range."
+      },
+      {
+        "quote": "GetAccountSummaryQuery: 3102\u20133255ms (avg ~3200ms)",
+        "reason": "The actual pre-release values are 3102, 3341, 2987, and 3255 ms, giving a range of 2987\u20133341 ms; the stated range of 3102\u20133255 ms omits both the true minimum and maximum."
+      }
+    ]
+  }
+}

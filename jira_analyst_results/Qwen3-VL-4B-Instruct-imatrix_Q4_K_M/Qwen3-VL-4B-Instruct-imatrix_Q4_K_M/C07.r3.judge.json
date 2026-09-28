@@ -1,0 +1,165 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "found",
+      "quote": "JWT signing key rotation in config deploy OPS-81 at 09:30. \u2026 The dashboard showed errors starting around 09:31",
+      "reason": "[downgraded: quote not found in analysis] Both the 09:30 deploy time and the ~09:31 impact start are clearly stated."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Start of alert: 09:47 (Monitoring alert fired) \u2026 Initial incident declaration: 09:52 (Sam Okafor declared incident)",
+      "reason": "Both the 09:47 alert and 09:52 declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Rollback initiated: 10:31 \u2026 Error rate back under 1%: 10:42 \u2026 Resolution: 10:50",
+      "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Detect: 17 minutes \u2026 Time to detect: 09:52 \u2013 09:47 = 5 minutes (from alert to declaration)",
+      "reason": "The analysis gives 17 minutes in the header (09:30\u219209:47) and 5 minutes in the body (alert\u2192declaration), but never states the correct 16 minutes (09:31\u219209:47)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "if we measure from first alert (09:47) to full recovery (10:42) = 55 minutes",
+      "reason": "The 55-minute figure from detection (09:47) to recovery (10:42) is clearly stated with the start point, matching one of the acceptable answers."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "JWT signing key rotation in config deploy OPS-81 at 09:30. The Transactions API continues to validate tokens against the old key, while the Auth service started issuing tokens with the new key. Result: All transfers failed with 401 Unauthorized error: IDX10503: Signature validation failed.",
+      "reason": "The full root cause chain (OPS-81 key rotation, old vs new key mismatch, 401 IDX10503) is clearly stated."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review scheduled for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the database was not the issue and that slow queries were deemed normal, matching Sam's ruling."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Time to Recover: 32 minutes",
+      "reason": "32 minutes does not correspond to any pair of meaningful timestamps in the ticket (e.g., 09:31\u219210:42=71, 09:47\u219210:42=55, 09:52\u219210:44=52)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "error rate dropped below 1% within 10 minutes of rollback",
+      "reason": "Rollback started at 10:31 and the error rate was back under 1% at 10:42, which is 11 minutes, not 'within 10 minutes.'"
+    },
+    {
+      "quote": "Recovery time: 55 minutes from alert to resolution.",
+      "reason": "Alert (09:47) to resolution (10:50) is 63 minutes, not 55. The 55-minute figure corresponds to alert-to-recovery (10:42), so labelling it 'to resolution' is contradicted by the ticket timestamps."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "C07-P1"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 119.56
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "JWT signing key rotation in config deploy OPS-81 at 09:30. \u2026 The dashboard showed errors starting around 09:31",
+        "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Start of alert: 09:47 (Monitoring alert fired) \u2026 Initial incident declaration: 09:52 (Sam Okafor declared incident)",
+        "reason": "Both the 09:47 alert and 09:52 declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Rollback initiated: 10:31 \u2026 Error rate back under 1%: 10:42 \u2026 Resolution: 10:50",
+        "reason": "All three timestamps (rollback start 10:31, recovery 10:42, resolution 10:50) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect: 17 minutes \u2026 Time to detect: 09:52 \u2013 09:47 = 5 minutes (from alert to declaration)",
+        "reason": "The analysis gives 17 minutes in the header (09:30\u219209:47) and 5 minutes in the body (alert\u2192declaration), but never states the correct 16 minutes (09:31\u219209:47).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "if we measure from first alert (09:47) to full recovery (10:42) = 55 minutes",
+        "reason": "The 55-minute figure from detection (09:47) to recovery (10:42) is clearly stated with the start point, matching one of the acceptable answers.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "JWT signing key rotation in config deploy OPS-81 at 09:30. The Transactions API continues to validate tokens against the old key, while the Auth service started issuing tokens with the new key. Result: All transfers failed with 401 Unauthorized error: IDX10503: Signature validation failed.",
+        "reason": "The full root cause chain (OPS-81 key rotation, old vs new key mismatch, 401 IDX10503) is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review scheduled for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the database was not the issue and that slow queries were deemed normal, matching Sam's ruling.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "Time to Recover: 32 minutes",
+        "reason": "32 minutes does not correspond to any pair of meaningful timestamps in the ticket (e.g., 09:31\u219210:42=71, 09:47\u219210:42=55, 09:52\u219210:44=52).",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "error rate dropped below 1% within 10 minutes of rollback",
+        "reason": "Rollback started at 10:31 and the error rate was back under 1% at 10:42, which is 11 minutes, not 'within 10 minutes.'"
+      },
+      {
+        "quote": "Recovery time: 55 minutes from alert to resolution.",
+        "reason": "Alert (09:47) to resolution (10:50) is 63 minutes, not 55. The 55-minute figure corresponds to alert-to-recovery (10:42), so labelling it 'to resolution' is contradicted by the ticket timestamps."
+      }
+    ]
+  }
+}

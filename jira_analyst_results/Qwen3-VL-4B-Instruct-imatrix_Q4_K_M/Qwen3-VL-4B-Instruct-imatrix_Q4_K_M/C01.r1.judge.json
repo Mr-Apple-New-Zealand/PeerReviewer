@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A transfer retry after a timeout on mobile web causes the source account to be debited twice while the destination is credited once, due to lack of idempotency and transaction isolation.",
+      "reason": "The analysis clearly states the double-debit / single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affected version: 3.1.4\n- **Fix version:** 3.2.0\n- **Acceptance criteria:**",
+      "reason": "The analysis names 3.1.4 as affected, 3.2.0 as fix version, and states the target release date as 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "due to lack of idempotency and transaction isolation",
+      "reason": "The analysis identifies both the missing idempotency key on retry and the lack of a single atomic transaction as the root cause, though it uses the imprecise term 'transaction isolation' instead of 'atomicity.'"
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **Due date:** None (but target release is 3.2.0 on 2026-09-24)\n- **Blocking:** Code review of PR #218 is pending.",
+      "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Customer impact: Three customers affected; Finance Ops must manually reverse debits.",
+      "reason": "The analysis names three affected customers, the need for manual reversal by Finance, and assigns Marcus Reid to escalate to Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus Reid should escalate to Finance Ops to initiate manual reversals for 3 affected customers.",
+      "reason": "The analysis lists the reversal as a suggested next action, implying it has not yet been done, but does not explicitly state that the ticket does not confirm the reversal has been raised or that customers have been refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair should follow up with code reviewer to expedite PR #218 review.\n- **Marcus Reid** should escalate to Finance Ops to initiate manual reversals for 3 affected customers.",
+      "reason": "The analysis lists both getting PR #218 reviewed and confirming customer reversals with Finance Ops as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is pending code review and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states 'Desktop web does not have retry, suggesting the issue is mobile-specific,' which aligns with the ticket's confirmation that desktop is not affected."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "due to lack of idempotency and transaction isolation",
+      "reason": "The ticket describes an atomicity problem (debit and credit are not in one database transaction), not a transaction isolation issue. 'Transaction isolation' is a distinct ACID property referring to how concurrent transactions see each other's data, which is not what the ticket describes."
+    },
+    {
+      "quote": "No clear acceptance criteria for \"retry behavior\" or \"timeout handling\" in the ticket.",
+      "reason": "The ticket explicitly states 'Expected: one debit and one credit' and 'Actual: two debits, one credit,' which constitutes a clear acceptance criterion for the retry behavior."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 93.14
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A transfer retry after a timeout on mobile web causes the source account to be debited twice while the destination is credited once, due to lack of idempotency and transaction isolation.",
+        "reason": "The analysis clearly states the double-debit / single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affected version: 3.1.4\n- **Fix version:** 3.2.0\n- **Acceptance criteria:**",
+        "reason": "The analysis names 3.1.4 as affected, 3.2.0 as fix version, and states the target release date as 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "due to lack of idempotency and transaction isolation",
+        "reason": "The analysis identifies both the missing idempotency key on retry and the lack of a single atomic transaction as the root cause, though it uses the imprecise term 'transaction isolation' instead of 'atomicity.'",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Assignee:** Priya Nair\n- **Resolution:** Unresolved\n- **Due date:** None (but target release is 3.2.0 on 2026-09-24)\n- **Blocking:** Code review of PR #218 is pending.",
+        "reason": "The analysis states the status, assignee, and that PR #218 is waiting on code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Customer impact: Three customers affected; Finance Ops must manually reverse debits.",
+        "reason": "The analysis names three affected customers, the need for manual reversal by Finance, and assigns Marcus Reid to escalate to Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid should escalate to Finance Ops to initiate manual reversals for 3 affected customers.",
+        "reason": "The analysis lists the reversal as a suggested next action, implying it has not yet been done, but does not explicitly state that the ticket does not confirm the reversal has been raised or that customers have been refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair should follow up with code reviewer to expedite PR #218 review.\n- **Marcus Reid** should escalate to Finance Ops to initiate manual reversals for 3 affected customers.",
+        "reason": "The analysis lists both getting PR #218 reviewed and confirming customer reversals with Finance Ops as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is pending code review and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis states 'Desktop web does not have retry, suggesting the issue is mobile-specific,' which aligns with the ticket's confirmation that desktop is not affected.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "due to lack of idempotency and transaction isolation",
+        "reason": "The ticket describes an atomicity problem (debit and credit are not in one database transaction), not a transaction isolation issue. 'Transaction isolation' is a distinct ACID property referring to how concurrent transactions see each other's data, which is not what the ticket describes."
+      },
+      {
+        "quote": "No clear acceptance criteria for \"retry behavior\" or \"timeout handling\" in the ticket.",
+        "reason": "The ticket explicitly states 'Expected: one debit and one credit' and 'Actual: two debits, one credit,' which constitutes a clear acceptance criterion for the retry behavior."
+      }
+    ]
+  }
+}

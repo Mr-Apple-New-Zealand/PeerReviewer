@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two halves of the breadcrumbs, the ~4-hour-10-minute gap, or the specific transition from 200s to 401s; it only vaguely notes the user was on the tab 'for a while.'"
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Shows a chain of HTTP 401 errors (unauthorized) before the JS error, suggesting the UI may have been rendered with invalid or missing data, which then caused the error.",
+      "reason": "It connects 401s to undefined data to the TypeError but hedges with 'may' and 'suggesting,' and never identifies the underlying defect as the absence of 401 handling (no redirect to sign-in, no guard)."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or the idea that they are one cascade rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never references the single token refresh POST to /api/security/token/refresh that returned 200 before the gap, nor the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Environment: Production (via Sentry, URL `https://bank-uat.example.com/payments/batch/actions` \u2014 note: UAT, not prod, but labeled \"Production\" in Sentry tags).",
+      "reason": "The analysis clearly identifies the mismatch between the Production tag and the UAT URL and calls it a misconfiguration, conveying the core point."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214, the request URL /payments/batch/actions, or the stale transaction name issue."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No stack trace context: The Sentry event's stack trace is truncated and symbolicated, making it hard to pinpoint the exact component or file.",
+      "reason": "It touches on the idea that the stack can't identify the component but incorrectly states the trace is 'symbolicated' (symbolicated_in_app is false) and omits the js_no_source errors, scraping failures, and minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The Sentry event shows 401s before the error, but does not show *why* the data was missing \u2014 e.g., expired token, misconfigured permissions, or backend failure.",
+      "reason": "It acknowledges the event doesn't explain the 401s but does not mention response_body_size 0 or the specific inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists 'expired tokens' as one of several equal possibilities to check and also suggests 'race condition or stale data,' but never presents token expiry during idle as the likely mechanism supported by the specific evidence chain (refresh before gap, gap, 401s after)."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB InvokeAction response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true, nor that this is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Add guard clause: As suggested by Tom Becker, add a guard to prevent `.sort()` on undefined arrays \u2014 but this is a workaround, not a fix.",
+      "reason": "It covers the guard-as-workaround point and environment verification, but omits handling 401 centrally with redirect to sign-in, setting release/dist and uploading source maps, and correcting the stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the null guard as 'a workaround, not a fix' and does not present it as the root cause or the solution."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the UAT URL and notes the Production tag is a mislabel, so it does not treat the error as a production incident without qualification."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or attributes the error to that screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis refers only to 'Angular's polyfills' as a general framework area and does not name a specific application source file, component, method, or line number as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists 'misconfigured permissions' only as one of several possibilities to investigate, not as a definitive description of the 401s."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The Sentry event's stack trace is truncated and symbolicated, making it hard to pinpoint the exact component or file.",
+      "reason": "The ticket data shows symbolicated_in_app is false and all frames have symbolicated: false; the trace is NOT symbolicated. The analysis states the opposite."
+    },
+    {
+      "quote": "The error originates in Angular's polyfills, suggesting a data structure (likely an array) was accessed without being defined before a `.sort()` call.",
+      "reason": "The polyfills frames in the stack trace are Zone.js error-propagation frames, not the origin of the fault. The actual error occurs in application code (the 6728 chunk, function ie.project). Attributing the error's origin to polyfills mischaracterises the stack."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 228.66
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two halves of the breadcrumbs, the ~4-hour-10-minute gap, or the specific transition from 200s to 401s; it only vaguely notes the user was on the tab 'for a while.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Shows a chain of HTTP 401 errors (unauthorized) before the JS error, suggesting the UI may have been rendered with invalid or missing data, which then caused the error.",
+        "reason": "It connects 401s to undefined data to the TypeError but hedges with 'may' and 'suggesting,' and never identifies the underlying defect as the absence of 401 handling (no redirect to sign-in, no guard).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or the idea that they are one cascade rather than separate bugs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never references the single token refresh POST to /api/security/token/refresh that returned 200 before the gap, nor the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment: Production (via Sentry, URL `https://bank-uat.example.com/payments/batch/actions` \u2014 note: UAT, not prod, but labeled \"Production\" in Sentry tags).",
+        "reason": "The analysis clearly identifies the mismatch between the Production tag and the UAT URL and calls it a misconfiguration, conveying the core point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214, the request URL /payments/batch/actions, or the stale transaction name issue.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "No stack trace context: The Sentry event's stack trace is truncated and symbolicated, making it hard to pinpoint the exact component or file.",
+        "reason": "It touches on the idea that the stack can't identify the component but incorrectly states the trace is 'symbolicated' (symbolicated_in_app is false) and omits the js_no_source errors, scraping failures, and minified frame names.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "The Sentry event shows 401s before the error, but does not show *why* the data was missing \u2014 e.g., expired token, misconfigured permissions, or backend failure.",
+        "reason": "It acknowledges the event doesn't explain the 401s but does not mention response_body_size 0 or the specific inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis lists 'expired tokens' as one of several equal possibilities to check and also suggests 'race condition or stale data,' but never presents token expiry during idle as the likely mechanism supported by the specific evidence chain (refresh before gap, gap, 401s after).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB InvokeAction response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the fact that polyfills frames are marked in_app true, nor that this is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Add guard clause: As suggested by Tom Becker, add a guard to prevent `.sort()` on undefined arrays \u2014 but this is a workaround, not a fix.",
+        "reason": "It covers the guard-as-workaround point and environment verification, but omits handling 401 centrally with redirect to sign-in, setting release/dist and uploading source maps, and correcting the stale transaction name.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis explicitly labels the null guard as 'a workaround, not a fix' and does not present it as the root cause or the solution.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis flags the UAT URL and notes the Production tag is a mislabel, so it does not treat the error as a production incident without qualification.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or attributes the error to that screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis refers only to 'Angular's polyfills' as a general framework area and does not name a specific application source file, component, method, or line number as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis lists 'misconfigured permissions' only as one of several possibilities to investigate, not as a definitive description of the 401s.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the gap, nor state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The Sentry event's stack trace is truncated and symbolicated, making it hard to pinpoint the exact component or file.",
+        "reason": "The ticket data shows symbolicated_in_app is false and all frames have symbolicated: false; the trace is NOT symbolicated. The analysis states the opposite."
+      },
+      {
+        "quote": "The error originates in Angular's polyfills, suggesting a data structure (likely an array) was accessed without being defined before a `.sort()` call.",
+        "reason": "The polyfills frames in the stack trace are Zone.js error-propagation frames, not the origin of the fault. The actual error occurs in application code (the 6728 chunk, function ie.project). Attributing the error's origin to polyfills mischaracterises the stack."
+      }
+    ]
+  }
+}

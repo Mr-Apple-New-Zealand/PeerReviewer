@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 are **duplicates** \u2014 both describe the same root cause (caching without invalidation).",
+      "reason": "The analysis clearly identifies BANK-425 and BANK-440 as duplicates of the same web balance-stale-after-transfer issue."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Merge BANK-440 and BANK-425 into one ticket (e.g., BANK-440), and **mark BANK-425 as duplicate**. Update description to include Hana Sato's comment and link to the fix.",
+      "reason": "The analysis recommends keeping one ticket, closing the other as duplicate, and preserving Hana Sato's root-cause analysis in the kept ticket."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88: Mobile notification issue \u2014 unrelated to caching, but tied to event timing. \u2026 MOB-88: In Progress, assigned to Ravi Kumar, fix is to switch event source.",
+      "reason": "The analysis clearly states MOB-88 is not a duplicate, identifies it as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted), and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both are web UI issues caused by the same caching mechanism (BalanceCache) not being invalidated after a transfer. \u2026 Update the fix for BANK-440 to invalidate BalanceCache after transfer",
+      "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the cause and clearing it after a transfer as the fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is a completed task to cache balance responses for 15 minutes, which *is* the root cause of the caching issue in BANK-440 and BANK-425.",
+      "reason": "The analysis correctly links BANK-419 as the source of the regression but states it as established fact rather than as a probable inference, so it does not meet the inference-presentation requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open, unassigned, no fix version. \u2026 BANK-425: Open, unassigned, comment from Hana Sato identifies the root cause",
+      "reason": "Both duplicate tickets are explicitly noted as unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a separate issue and not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the stale balance to the client-side cache, not to the API returning a wrong value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 73.93
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 are **duplicates** \u2014 both describe the same root cause (caching without invalidation).",
+        "reason": "The analysis clearly identifies BANK-425 and BANK-440 as duplicates of the same web balance-stale-after-transfer issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Merge BANK-440 and BANK-425 into one ticket (e.g., BANK-440), and **mark BANK-425 as duplicate**. Update description to include Hana Sato's comment and link to the fix.",
+        "reason": "The analysis recommends keeping one ticket, closing the other as duplicate, and preserving Hana Sato's root-cause analysis in the kept ticket.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: Mobile notification issue \u2014 unrelated to caching, but tied to event timing. \u2026 MOB-88: In Progress, assigned to Ravi Kumar, fix is to switch event source.",
+        "reason": "The analysis clearly states MOB-88 is not a duplicate, identifies it as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted), and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Both are web UI issues caused by the same caching mechanism (BalanceCache) not being invalidated after a transfer. \u2026 Update the fix for BANK-440 to invalidate BalanceCache after transfer",
+        "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the cause and clearing it after a transfer as the fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is a completed task to cache balance responses for 15 minutes, which *is* the root cause of the caching issue in BANK-440 and BANK-425.",
+        "reason": "The analysis correctly links BANK-419 as the source of the regression but states it as established fact rather than as a probable inference, so it does not meet the inference-presentation requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open, unassigned, no fix version. \u2026 BANK-425: Open, unassigned, comment from Hana Sato identifies the root cause",
+        "reason": "Both duplicate tickets are explicitly noted as unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a separate issue and not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis attributes the stale balance to the client-side cache, not to the API returning a wrong value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}
