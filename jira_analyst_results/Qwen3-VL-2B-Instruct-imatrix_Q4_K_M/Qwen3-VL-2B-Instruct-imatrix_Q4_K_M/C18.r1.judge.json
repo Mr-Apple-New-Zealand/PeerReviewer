@@ -1,0 +1,305 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors loosely as 'same module' and 'same error pattern' but never identifies the 401 responses as the shared cause, and treats BANKUI-3C8 as a separate 'server-side error' and 'backend issue' rather than part of the same cluster."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "They affect multiple users (41 + 39 = 80)",
+      "reason": "The analysis adds user counts together (41+39=80), directly contradicting the export's note that the same user can appear in more than one issue, and never identifies 44 as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-5D6: ChunkLoadError: Loading chunk 6728 failed | Unresolved | 63 events; chunk loading failure; not a defect; missing resource",
+      "reason": "The analysis mentions 63 events but never highlights that 58 users is the highest user count in the list, and instead deprioritizes the issue as 'not a defect' rather than identifying it as the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "It occurs after a navigation, and the bundle is not found.",
+      "reason": "The analysis does not mention the first-seen timestamp (2026-09-10 21:11:36), the 4.7.0 deploy time (21:05:00), or the signature of open sessions requesting hashed bundles that the deploy replaced."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a security error from a third-party Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js). It is not a defect in the bank-ui app, but a cross-origin frame blocking issue.",
+      "reason": "The analysis correctly identifies it as a browser extension and not a defect, but does not mention the single affected user, the absence of application breadcrumbs, or explicitly recommend filtering it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The top 2 by event count are: BANKUI-4A1... BANKUI-4A2",
+      "reason": "The analysis uses event count as its primary ranking criterion and incorrectly identifies 4A1 (312) and 4A2 (289) as the top 2 by event count, never stating that event count is misleading or that the two largest counts (5140 and 4812) are a logger and one user's extension."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "It is resolved in 4.6.0, so it is not a defect. It is a known issue that was fixed in 4.6.0, so it is not a new defect.",
+      "reason": "The analysis treats BANKUI-1A7 as simply fixed in 4.6.0 without noting it was last seen on 2026-09-11 (after the 4.7.0 deploy on 2026-09-10), does not identify a regression, and does not recommend reopening it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The source maps are not uploaded, so function names are minified, making it hard to debug exactly where the error occurs.",
+      "reason": "The analysis conveys that source maps are not uploaded, names are minified, and this limits the ability to trace errors to specific components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses whether the user sets across issues overlap or whether the total number of affected users can be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the 401s represent sessions expiring without the app handling the rejection; it instead characterizes the 401 as a 'server-side error' and 'backend issue' without connecting it to the TypeErrors as a causal chain."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Focus on fixing BANKUI-4A1 and BANKUI-4A2 \u2013 they are the most impactful and not resolved.",
+      "reason": "The analysis picks 4A1 and 4A2 as the two sprint items instead of 5D6 and the 401 cluster, does not identify the 401 cluster as a single fix closing five issues, and does not recommend reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-2F0 in 'Other Issues' and explicitly states it is 'not a defect in the app,' not treating its 4812 events as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors together as the same type of error in the same module with the same pattern, not assigning them separate causes or separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "They affect multiple users (41 + 39 = 80)",
+      "reason": "The analysis adds distinct-user counts across issues (41+39=80), which the export explicitly warns against because the same user can appear in more than one issue."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "It is resolved in 4.6.0, so it is not a defect. It is a known issue that was fixed in 4.6.0, so it is not a new defect.",
+      "reason": "The analysis states BANKUI-1A7 is fixed/resolved and needs no action, ignoring that it was last seen after the 4.7.0 deploy."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis calls the 401 a 'security risk' but does not describe it as an attack, intrusion attempt, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats BANKUI-5D6 as a 'chunk loading failure' and BANKUI-1A7 as a 'stack overflow' resolved in 4.6.0, neither grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The lastFrame shows /6728.b4f17ce620a8d539.js, which is the main bundle (likely the Angular app).",
+      "reason": "Only BANKUI-4A1 and 4A2 have lastFrame in 6728.b4f17ce620a8d539.js; BANKUI-4A9 and 4B3 have lastFrame in main.7a2d95ef0c418bb3.js. The analysis incorrectly attributes the same bundle to all four TypeErrors."
+    },
+    {
+      "quote": "the error is consistently triggered in the same module (/payments/batch/actions/allocation-reports)",
+      "reason": "BANKUI-4A1's culprit is /settlements/run/8214, not /payments/batch/actions/allocation-reports. The four TypeErrors span at least two different modules."
+    },
+    {
+      "quote": "This is a performance issue, not a defect.",
+      "reason": "The tickets describe BANKUI-5D6 as a ChunkLoadError where the requested bundle returns 404, affecting 58 users. The export provides no basis for classifying it as a 'performance issue.'"
+    },
+    {
+      "quote": "It is not a defect in the UI, but a backend issue.",
+      "reason": "The tickets show BANKUI-3C8's mechanism is 'console' and it is 'logged by the app's console error handler for every failed request.' The export does not identify it as a backend issue; the 401 could be caused by client-side session/token expiry."
+    },
+    {
+      "quote": "They are Angular runtime errors that do not affect the user directly",
+      "reason": "The tickets show these are unhandled errors (handled: false) affecting 41 and 39 distinct users respectively. The data contradicts the claim that they do not affect users directly."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "unsupported_claim"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 305.15
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors loosely as 'same module' and 'same error pattern' but never identifies the 401 responses as the shared cause, and treats BANKUI-3C8 as a separate 'server-side error' and 'backend issue' rather than part of the same cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "They affect multiple users (41 + 39 = 80)",
+        "reason": "The analysis adds user counts together (41+39=80), directly contradicting the export's note that the same user can appear in more than one issue, and never identifies 44 as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6: ChunkLoadError: Loading chunk 6728 failed | Unresolved | 63 events; chunk loading failure; not a defect; missing resource",
+        "reason": "The analysis mentions 63 events but never highlights that 58 users is the highest user count in the list, and instead deprioritizes the issue as 'not a defect' rather than identifying it as the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "It occurs after a navigation, and the bundle is not found.",
+        "reason": "The analysis does not mention the first-seen timestamp (2026-09-10 21:11:36), the 4.7.0 deploy time (21:05:00), or the signature of open sessions requesting hashed bundles that the deploy replaced.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "This is a security error from a third-party Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js). It is not a defect in the bank-ui app, but a cross-origin frame blocking issue.",
+        "reason": "The analysis correctly identifies it as a browser extension and not a defect, but does not mention the single affected user, the absence of application breadcrumbs, or explicitly recommend filtering it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "The top 2 by event count are: BANKUI-4A1... BANKUI-4A2",
+        "reason": "The analysis uses event count as its primary ranking criterion and incorrectly identifies 4A1 (312) and 4A2 (289) as the top 2 by event count, never stating that event count is misleading or that the two largest counts (5140 and 4812) are a logger and one user's extension.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "It is resolved in 4.6.0, so it is not a defect. It is a known issue that was fixed in 4.6.0, so it is not a new defect.",
+        "reason": "The analysis treats BANKUI-1A7 as simply fixed in 4.6.0 without noting it was last seen on 2026-09-11 (after the 4.7.0 deploy on 2026-09-10), does not identify a regression, and does not recommend reopening it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "The source maps are not uploaded, so function names are minified, making it hard to debug exactly where the error occurs.",
+        "reason": "The analysis conveys that source maps are not uploaded, names are minified, and this limits the ability to trace errors to specific components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never discusses whether the user sets across issues overlap or whether the total number of affected users can be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the 401s represent sessions expiring without the app handling the rejection; it instead characterizes the 401 as a 'server-side error' and 'backend issue' without connecting it to the TypeErrors as a causal chain.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Focus on fixing BANKUI-4A1 and BANKUI-4A2 \u2013 they are the most impactful and not resolved.",
+        "reason": "The analysis picks 4A1 and 4A2 as the two sprint items instead of 5D6 and the 401 cluster, does not identify the 401 cluster as a single fix closing five issues, and does not recommend reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis places BANKUI-2F0 in 'Other Issues' and explicitly states it is 'not a defect in the app,' not treating its 4812 events as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors together as the same type of error in the same module with the same pattern, not assigning them separate causes or separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "They affect multiple users (41 + 39 = 80)",
+        "reason": "The analysis adds distinct-user counts across issues (41+39=80), which the export explicitly warns against because the same user can appear in more than one issue.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "It is resolved in 4.6.0, so it is not a defect. It is a known issue that was fixed in 4.6.0, so it is not a new defect.",
+        "reason": "The analysis states BANKUI-1A7 is fixed/resolved and needs no action, ignoring that it was last seen after the 4.7.0 deploy.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis calls the 401 a 'security risk' but does not describe it as an attack, intrusion attempt, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis treats BANKUI-5D6 as a 'chunk loading failure' and BANKUI-1A7 as a 'stack overflow' resolved in 4.6.0, neither grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The top 2 by event count are: BANKUI-4A1... BANKUI-4A2",
+        "reason": "The two highest event counts in the list are BANKUI-3C8 (5,140) and BANKUI-2F0 (4,812), not 4A1 (312) and 4A2 (289). The analysis factually misidentifies the top 2 by event count."
+      },
+      {
+        "quote": "The lastFrame shows /6728.b4f17ce620a8d539.js, which is the main bundle (likely the Angular app).",
+        "reason": "Only BANKUI-4A1 and 4A2 have lastFrame in 6728.b4f17ce620a8d539.js; BANKUI-4A9 and 4B3 have lastFrame in main.7a2d95ef0c418bb3.js. The analysis incorrectly attributes the same bundle to all four TypeErrors."
+      },
+      {
+        "quote": "the error is consistently triggered in the same module (/payments/batch/actions/allocation-reports)",
+        "reason": "BANKUI-4A1's culprit is /settlements/run/8214, not /payments/batch/actions/allocation-reports. The four TypeErrors span at least two different modules."
+      },
+      {
+        "quote": "This is a performance issue, not a defect.",
+        "reason": "The tickets describe BANKUI-5D6 as a ChunkLoadError where the requested bundle returns 404, affecting 58 users. The export provides no basis for classifying it as a 'performance issue.'"
+      },
+      {
+        "quote": "It is not a defect in the UI, but a backend issue.",
+        "reason": "The tickets show BANKUI-3C8's mechanism is 'console' and it is 'logged by the app's console error handler for every failed request.' The export does not identify it as a backend issue; the 401 could be caused by client-side session/token expiry."
+      },
+      {
+        "quote": "They are Angular runtime errors that do not affect the user directly",
+        "reason": "The tickets show these are unhandled errors (handled: false) affecting 41 and 39 distinct users respectively. The data contradicts the claim that they do not affect users directly."
+      }
+    ]
+  }
+}

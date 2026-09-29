@@ -20,7 +20,7 @@ step with it.
 
 ## Current standing
 
-Thirteen models have been measured on the full eighteen cases with the judge of
+Fourteen models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
@@ -35,6 +35,7 @@ record. Everything earlier is superseded — see below.
 | **Qwen3-VL-4B-Instruct-imatrix** | Q4_K_M | 0.3 | 48.6 (48–50) | 59% | 58.6 | 22.6 | 13/162 | 2 | 57 | **7.9** |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | 0 | 15 | 56.3 |
 | Qwen3-VL-2B-Thinking-imatrix ³ | Q5_K_S | 1.0 | 26.7 (25–29) | 45% | 36.0 | 2.4 | 27/149 | 3 | 117 | 8.1 |
+| Qwen3-VL-2B-Instruct-imatrix | Q4_K_M | 0.3 | 25.3 (21–31) | 40% | 33.4 | 4.2 | 30/162 | 1 | 114 | 5.4 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 0 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 1 | 100 | 4.1 |
 | Falcon-H1-Tiny-90M-Instruct ⁴ | Q4_K_S | 0.3 | 1.0 (0–2) | 7% | 1.4 | 0.0 | 7/144 | 0 | 134 | **0.4** |
@@ -96,7 +97,7 @@ unsupported against 57). The two 4B builds bracket the 8B-Instruct, which sits
 between them on quality at 9.4 GB. Below 8B, reasoning is worth its memory; see
 the next section.
 
-### The 2B is where the whole approach stops working
+### The 2B tier does not work, in either build
 
 `Qwen3-VL-2B-Thinking` is the first model in the benchmark that fails on its own
 terms rather than merely scoring badly, and it fails in three ways at once.
@@ -134,9 +135,26 @@ it misses 43% of checkpoints, the worst rate on the board.
 On telemetry it is at the floor: **2.4** on C14–C18, with C15, C17 and C18 all
 scoring exactly 0.
 
-The conclusion for the fleet is simple. **Do not run Thinking builds below 4B.**
-The 4B-Thinking is the smallest that works, and even it only just justifies its
-11 GB against the 4B-Instruct's 7.9.
+**Its Instruct sibling is no better.** 25.3 against 26.7, and it has its own
+failure mode: 7 of 54 runs truncated at `num_predict` (13%, the worst rate in the
+benchmark) and a 10.3-point spread across repeats, also the widest. The whole 2B
+tier is unusable — one build cannot stop thinking, the other cannot stop writing.
+
+| | 2B-Instruct | 2B-Thinking | 4B-Instruct |
+|---|---|---|---|
+| Quality | 25.3 | 26.7 | **48.6** |
+| Resident | **5.4 GB** | 8.1 GB | 7.9 GB |
+| Traps | 30/162 (18.5%) | 27/149 (18.1%) | **13/162 (8.0%)** |
+
+The conclusion for the fleet is simple. **Do not run Thinking builds below 4B**,
+and do not expect anything at 2B to be usable at all. The 4B-Instruct costs 2.5 GB
+more than the 2B-Instruct and is worth 23 more points; that is the best marginal
+return anywhere on this board.
+
+The 2B-Instruct does reach the Pareto front at 5.4 GB — it displaced the
+Qwen2.5-VL-7B, which now uses more memory for a lower score — but being on the
+front is not a recommendation at 25.3. See the note on the front's weakness under
+the Falcon result.
 
 ### The floor, and two things it exposes
 
@@ -177,60 +195,77 @@ that is almost entirely untethered. Its 7 traps look low only because it rarely
 says anything specific enough to trip one, which is the same caution that applies
 to reading the 32B-Thinking's 1/162.
 
-### What reasoning actually buys, measured at three sizes
+### What reasoning actually buys, measured at four sizes
 
-Three size-matched Instruct/Thinking pairs have now been run. The pattern is the
-same at every size, and it is not the one the earlier write-up claimed:
+The Qwen3-VL fleet is complete: four size-matched Instruct/Thinking pairs, same
+cases, same judge. Δ is Thinking minus Instruct, so positive means reasoning
+helped.
 
-| Size | Prose (C01–C13) Δ | Telemetry (C14–C18) Δ | Overall Δ | Traps, Instruct → Thinking |
+| Size | Prose (C01–C13) Δ | Telemetry (C14–C18) Δ | Overall Δ | Trap rate, I → T |
 |---|---|---|---|---|
-| 4B | **+6.0** | −3.8 | +3.3 | 13 → **10** |
-| 8B | **+5.0** | −3.7 | +2.6 | 19 → **7** |
-| 32B | **−0.0** | −6.6 | **−1.9** | 8 → **1** |
+| 2B | +2.7 | −1.9 | +1.4 | 18.5% → 18.1% |
+| 4B | **+6.0** | −3.8 | **+3.3** | 8.0% → 6.2% |
+| 8B | **+5.0** | −3.7 | +2.6 | 11.7% → **4.3%** |
+| 32B | −0.0 | **−6.6** | **−1.9** | 4.9% → **0.6%** |
 
-Δ is Thinking minus Instruct, so positive means reasoning helped.
+**The telemetry penalty is universal.** Negative at all four sizes, and it grows
+with the model: −1.9, −3.8, −3.7, −6.6. Logs and Sentry exports reward exhaustive
+extraction and the reasoning budget does not buy more of it, at any scale.
 
-**Reasoning costs you on telemetry at every size** — −3.7 to −6.6, without
-exception, and the penalty is largest at 32B where the Instruct build is
-strongest. Logs and Sentry exports reward exhaustive extraction, and the reasoning
-budget does not buy more of it.
+**The prose benefit is an inverted U, not a trend.** +2.7 at 2B, peaking at +6.0
+and +5.0 for the 4B and 8B, then vanishing at 32B. Reasoning is a **substitute for
+parameters** — but it needs enough parameters to work with. A 2B is too weak to
+reason its way to much; a 32B does not need to.
 
-**Its prose benefit shrinks to nothing as the model grows** — +6.0 at 4B, +5.0 at
-8B, and −0.03 at 32B, where the two builds are identical to two decimal places
-over 13 cases and 3 repeats. Reasoning behaves like a **substitute for
-parameters** on prose analysis: worth several points to a 4B, worth nothing to a
-32B.
+**The trap reduction has a floor, which corrects an earlier claim here.** This
+file previously said reasoning "always reduces traps, monotonically" on the
+strength of three pairs. The 2B pair breaks it: 18.5% against 18.1% is no
+difference at all. The effect is real from 4B upward and absent below it.
 
-**Reasoning always reduces traps** — 13→10, 19→7, 8→1 — monotonically, and the
-32B-Thinking's 1/162 is the best record on the board, Sonnet's 4/162 included. It
-also cut invented keys to zero in all three pairs (the Instruct builds produced
-2, 1 and 5).
+So the net flips twice across the range. **Below 4B neither build is usable**;
+between 4B and 8B the Thinking build is better and more careful; at 32B the
+Instruct build wins and the only reason to prefer reasoning is its 0.6% trap rate.
 
-So the net effect flips with size. Below about 8B, take the Thinking build: it is
-better overall and more careful. At 32B, take the Instruct build unless a
-confident false statement is expensive, in which case the Thinking build's
-discipline is worth 1.9 points of quality and three times the tokens.
+**The confound, and which way it cuts.** No pair is quant-matched, and in all four
+the *Thinking* build carries the higher quant (Q4→Q5, Q4→Q5, Q3→Q4, Q4→Q5). The
+telemetry penalty is therefore **robust and probably understated** — the reasoning
+builds lose despite a quantization advantage — while the prose gains are upper
+bounds. It is not simply proportional to the quant gap: the 8B pair has the widest
+gap and a smaller prose gain than the 4B.
 
-**The confound, and which way it cuts.** No pair is quant-matched, and in all
-three the *Thinking* build carries the higher quant (Q4→Q5, Q3→Q4, Q4→Q5). That
-means:
+Temperature also differs by track (0.3 Instruct, 1.0 Thinking) by design, since the
+cards ask for different values. On the 8B, where both were measured, prose was
+unchanged (63.6 → 62.9), so temperature is not driving the prose column.
 
-- the telemetry penalty is **robust, probably understated** — the reasoning builds
-  lose despite a quantization advantage
-- the prose gain at 4B and 8B is **partly quantization**, so treat +6.0 and +5.0 as
-  upper bounds. Note it is not simply proportional to the quant gap: the 8B pair
-  has the widest gap (Q3_K_M against Q4_K_M) and the smaller prose gain
-- the trap reduction is **not explainable by quant** in either direction, and is
-  the most consistent effect in the table
+Standardising the Thinking track on Q4_K_M imatrix would remove the confound for
+~0.2 GB a build, and is the one change that would make this table conclusive rather
+than strongly indicative.
 
-Temperature also differs by track (0.3 Instruct, 1.0 Thinking) by design, since
-the cards ask for different values. On the 8B, where both temperatures were
-measured, prose was unchanged (63.6 → 62.9), so temperature is not what is driving
-the prose column.
+### Temperature 0.3 is wrong for the small Instruct builds
 
-Standardising the Thinking track on Q4_K_M imatrix would remove the confound and
-cost ~0.2 GB a build. It is the single change that would make this table
-conclusive rather than strongly indicative.
+The 4B-Instruct raised this and the 2B settles it. Runs that hit `num_predict`,
+Qwen3-VL Instruct track, all at temperature 0.3:
+
+| Model | Truncated runs | Rate |
+|---|---|---|
+| 2B-Instruct | **7 of 54** | 13.0% |
+| 4B-Instruct | 4 of 54 | 7.4% |
+| 8B-Instruct | 0 of 54 | 0% |
+| 32B-Instruct | 0 of 54 | 0% |
+
+No Qwen2.5-VL build ever hit the cap, so this is specific to the small Qwen3-VL
+Instruct builds, and it scales cleanly with size. The card asks for 0.7; the fleet
+runs 0.3, and below 8B that costs real points.
+
+**It costs the 2B roughly 1.5–2 points of its 25.3.** C16 lost two of its three
+repeats to truncation, scoring 0 twice against a ~40 on the surviving run, which
+alone drags the case mean from ~40 to 13.3. Its overall range of **10.3 points**
+(20.6–30.9) is the widest in the benchmark, which is the same instability seen from
+the other end. For the 4B the equivalent cost was only 0.21 points.
+
+**No re-run is planned.** Both 2B builds sit 22+ points below the 4B-Instruct, so
+moving the 2B from 25.3 to perhaps 27 changes no decision. The finding is recorded
+for the next small Instruct build that matters: **run it at 0.7, not 0.3.**
 
 ### The gap to the ceiling
 
@@ -328,9 +363,12 @@ recall. For output a human reads and acts on directly, take the 32B.
 
 ### Memory: flat from 8 GB to 56 GB
 
-Ordered by measured memory: 4.1 GB → 14.4, 7.1 GB → 24.5, **7.9 GB → 48.6**,
-8.1 GB → 26.7, 9.4 GB → 49.7, **11.0 GB → 51.9**, 13.0 GB → **52.3**,
-32.5 GB → 49.2, 56.3 GB → 45.6.
+Ordered by measured memory: 0.4 GB → 1.0, 4.1 GB → 14.4, 5.4 GB → 25.3,
+7.1 GB → 24.5, **7.9 GB → 48.6**, 8.1 GB → 26.7, 9.4 GB → 49.7,
+**11.0 GB → 51.9**, 13.0 GB → **52.3**, 32.5 GB → 49.2, 56.3 GB → 45.6.
+
+The jump from 5.4 GB to 7.9 GB is worth 23 points and is the steepest step on the
+board; everything after 8 GB is flat or falling.
 
 The 8.1 GB entry is the 2B-Thinking and is the one point that sits far below the
 line — 22 points under a model using less memory. Memory does not predict quality,
@@ -374,9 +412,18 @@ and moves mostly with the telemetry cases, so it is not a good single number for
 
 ## Runs still to do
 
-Seven of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
-have usable scores; only the 2B-Instruct remains, plus `Gemma-4-31B-it` once it has
-been rebuilt with its vision projector. Two things still limit what the
+**The Qwen3-VL fleet is complete** — all eight builds (2B/4B/8B/32B × Instruct and
+Thinking) have scores against the judge of record. What remains is outside that
+fleet:
+
+- `Gemma-4-31B-it`, once rebuilt with its vision projector
+- `Muse-Glimmer-30B`, likewise — its Modelfile is written and its KV arithmetic
+  worked out, but its reasoning strength is set in the system prompt rather than by
+  Ollama, which is a mechanism nothing else here uses
+
+Both are non-Qwen, which is the point: every analyst measured so far is Qwen or
+Sonnet, so "local models plateau at 45–52" cannot yet distinguish a real ceiling
+from a family one. Those two runs are worth more than any remaining Qwen variant. Two things still limit what the
 fleet can show:
 
 - **Quantization.** The Instruct track is matched at Q4_K_M imatrix apart from the

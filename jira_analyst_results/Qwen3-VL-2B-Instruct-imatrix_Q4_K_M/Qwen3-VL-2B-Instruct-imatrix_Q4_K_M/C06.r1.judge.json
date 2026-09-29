@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "It is blocked by OPS-77, which is the task to install Northwind Payments CA certificates in staging and production trust stores. ... The end-to-end test for the feature is pending because Northwind's CA certificates are not yet available in staging. ... OPS-77 is waiting for the CA bundle from Northwind's integration team.",
+      "reason": "The analysis clearly states the blocking relationship, the reason (CA certs needed in staging for e2e test), and that OPS-77 is waiting on Northwind."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The CA bundle should be available by 2026-09-10, but no response yet. ... If no response by 2026-09-11, escalate to partner manager.",
+      "reason": "The analysis references the 2026-09-10 due date and lack of response, but does not explicitly state OPS-77 is overdue, does not cite the 2026-09-11 last-update date, and mischaracterizes the partner-manager escalation (already done per the ticket) as a future conditional."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Release: 3.2.0 (scheduled for 2026-09-24)",
+      "reason": "The release date is stated, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No, BANK-405 will not make the 3.2.0 release because OPS-77 is not resolved and the Northwind CA certificates are not available.",
+      "reason": "The analysis states the conclusion as a definitive fact ('will not make') rather than as a risk or uncertainty, which fails the inference requirement that it be presented as likely/possible/suggested."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code is done and merged behind a feature flag (MTLS_PARTNER is off by default).",
+      "reason": "Clearly and accurately conveys that the code is complete, merged, and behind the MTLS_PARTNER flag which is off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "OPS-77, which is the task to install Northwind Payments CA certificates in staging and production trust stores.",
+      "reason": "Production is mentioned, but the 1 October 2026 hard external deadline from Northwind is entirely absent from the analysis."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan should contact Northwind's integration team to get the CA bundle. ... If no response by 2026-09-11, escalate to partner manager.",
+      "reason": "Escalation through the partner manager is mentioned, but the critical contingency of planning to ship 3.2.0 with the MTLS_PARTNER flag off if certificates don't arrive in time is completely absent."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently states they are still pending."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 2026-09-10 date referenced is the internal OPS-77 due date, not a date attributed as a Northwind commitment; the analysis does not state Northwind committed to a specific delivery date."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "If no response by 2026-09-11, escalate to partner manager.",
+      "reason": "The ticket shows Jo Tan already asked the partner manager to escalate on 2026-09-11; the analysis misrepresents a completed action as a future conditional."
+    },
+    {
+      "quote": "Once the CA bundle is available, Ravi Kumar should: Update the staging trust store with the Northwind CA bundle.",
+      "reason": "Installing the CA certificates into the trust store is Jo Tan's task (OPS-77, assigned to Jo Tan); the analysis incorrectly assigns this to Ravi Kumar."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 105.84
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "It is blocked by OPS-77, which is the task to install Northwind Payments CA certificates in staging and production trust stores. ... The end-to-end test for the feature is pending because Northwind's CA certificates are not yet available in staging. ... OPS-77 is waiting for the CA bundle from Northwind's integration team.",
+        "reason": "The analysis clearly states the blocking relationship, the reason (CA certs needed in staging for e2e test), and that OPS-77 is waiting on Northwind.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "The CA bundle should be available by 2026-09-10, but no response yet. ... If no response by 2026-09-11, escalate to partner manager.",
+        "reason": "The analysis references the 2026-09-10 due date and lack of response, but does not explicitly state OPS-77 is overdue, does not cite the 2026-09-11 last-update date, and mischaracterizes the partner-manager escalation (already done per the ticket) as a future conditional.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Release: 3.2.0 (scheduled for 2026-09-24)",
+        "reason": "The release date is stated, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "No, BANK-405 will not make the 3.2.0 release because OPS-77 is not resolved and the Northwind CA certificates are not available.",
+        "reason": "The analysis states the conclusion as a definitive fact ('will not make') rather than as a risk or uncertainty, which fails the inference requirement that it be presented as likely/possible/suggested.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Code is done and merged behind a feature flag (MTLS_PARTNER is off by default).",
+        "reason": "Clearly and accurately conveys that the code is complete, merged, and behind the MTLS_PARTNER flag which is off by default.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "OPS-77, which is the task to install Northwind Payments CA certificates in staging and production trust stores.",
+        "reason": "Production is mentioned, but the 1 October 2026 hard external deadline from Northwind is entirely absent from the analysis.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan should contact Northwind's integration team to get the CA bundle. ... If no response by 2026-09-11, escalate to partner manager.",
+        "reason": "Escalation through the partner manager is mentioned, but the critical contingency of planning to ship 3.2.0 with the MTLS_PARTNER flag off if certificates don't arrive in time is completely absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently states they are still pending.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The 2026-09-10 date referenced is the internal OPS-77 due date, not a date attributed as a Northwind commitment; the analysis does not state Northwind committed to a specific delivery date.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "If no response by 2026-09-11, escalate to partner manager.",
+        "reason": "The ticket shows Jo Tan already asked the partner manager to escalate on 2026-09-11; the analysis misrepresents a completed action as a future conditional."
+      },
+      {
+        "quote": "Once the CA bundle is available, Ravi Kumar should: Update the staging trust store with the Northwind CA bundle.",
+        "reason": "Installing the CA certificates into the trust store is Jo Tan's task (OPS-77, assigned to Jo Tan); the analysis incorrectly assigns this to Ravi Kumar."
+      }
+    ]
+  }
+}

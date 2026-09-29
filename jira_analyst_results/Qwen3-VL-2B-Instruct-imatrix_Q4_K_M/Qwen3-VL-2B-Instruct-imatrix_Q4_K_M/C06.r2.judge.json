@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The main blocker is OPS-77, which is about installing Northwind Payments' CA certificates into the staging and production trust stores. This task is currently waiting for vendor input and has no progress yet.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until certs are in staging, and OPS-77 is waiting for Northwind."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Deadline: 2026-09-10 (due date) \u2014 but no progress yet.",
+      "reason": "The due date and lack of progress are stated, and the escalation quote is included, but the analysis never explicitly says OPS-77 is 'overdue' as of 2026-09-15 nor gives the 2026-09-11 date of the last update."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Fix version: 3.2.0 (scheduled for 2026-09-24)",
+      "reason": "The release date 2026-09-24 is given, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Uncertain release: The 3.2.0 release is not guaranteed unless OPS-77 is completed.",
+      "reason": "The analysis touches on uncertainty and lack of a timeline, but the final answer states 'No, BANK-405 will not make the 3.2.0 release' as a definitive fact rather than a risk/inference, and the 'roughly a week' window is not calculated."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code for mTLS is done and merged behind a feature flag (MTLS_PARTNER off by default).",
+      "reason": "The analysis explicitly states the code is done, merged, behind the MTLS_PARTNER flag, and off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Once the CA bundle is received, import it into staging and then production.",
+      "reason": "The staging-then-production sequence is covered, but the 1 October 2026 hard external deadline from Northwind is never mentioned."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Next step: Once the CA bundle is received, import it into staging and then production.",
+      "reason": "The escalation is quoted but not framed as a next action to get a firm date, and the fallback plan of shipping 3.2.0 with the flag off if certs don't arrive is entirely absent."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states the certificates are missing and OPS-77 is unresolved; it never claims they have been received or installed."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says 'No clear timeline for when the CA bundle will be delivered' and does not attribute any specific committed date to Northwind."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No test plan: No mention of how the test will be run or how the mTLS is validated.",
+      "reason": "The tickets do describe the test approach: AC2 states 'End-to-end test passes in staging against Northwind's sandbox' and Ravi's comment mentions needing 'about two days for the end-to-end test and fixes,' so claiming there is 'no mention of how the test will be run' contradicts the ticket content."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 243.54
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "The main blocker is OPS-77, which is about installing Northwind Payments' CA certificates into the staging and production trust stores. This task is currently waiting for vendor input and has no progress yet.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until certs are in staging, and OPS-77 is waiting for Northwind.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "Deadline: 2026-09-10 (due date) \u2014 but no progress yet.",
+        "reason": "The due date and lack of progress are stated, and the escalation quote is included, but the analysis never explicitly says OPS-77 is 'overdue' as of 2026-09-15 nor gives the 2026-09-11 date of the last update.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Fix version: 3.2.0 (scheduled for 2026-09-24)",
+        "reason": "The release date 2026-09-24 is given, but the sprint end date (2026-09-22) and Ravi's two-day testing estimate are both absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "Uncertain release: The 3.2.0 release is not guaranteed unless OPS-77 is completed.",
+        "reason": "The analysis touches on uncertainty and lack of a timeline, but the final answer states 'No, BANK-405 will not make the 3.2.0 release' as a definitive fact rather than a risk/inference, and the 'roughly a week' window is not calculated.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Code for mTLS is done and merged behind a feature flag (MTLS_PARTNER off by default).",
+        "reason": "The analysis explicitly states the code is done, merged, behind the MTLS_PARTNER flag, and off by default.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "Once the CA bundle is received, import it into staging and then production.",
+        "reason": "The staging-then-production sequence is covered, but the 1 October 2026 hard external deadline from Northwind is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Next step: Once the CA bundle is received, import it into staging and then production.",
+        "reason": "The escalation is quoted but not framed as a next action to get a firm date, and the fallback plan of shipping 3.2.0 with the flag off if certs don't arrive is entirely absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis consistently states the certificates are missing and OPS-77 is unresolved; it never claims they have been received or installed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis explicitly says 'No clear timeline for when the CA bundle will be delivered' and does not attribute any specific committed date to Northwind.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No test plan: No mention of how the test will be run or how the mTLS is validated.",
+        "reason": "The tickets do describe the test approach: AC2 states 'End-to-end test passes in staging against Northwind's sandbox' and Ravi's comment mentions needing 'about two days for the end-to-end test and fixes,' so claiming there is 'no mention of how the test will be run' contradicts the ticket content."
+      }
+    ]
+  }
+}

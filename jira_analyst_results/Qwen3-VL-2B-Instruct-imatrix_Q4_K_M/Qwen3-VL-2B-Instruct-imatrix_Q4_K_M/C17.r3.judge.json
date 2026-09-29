@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap, or the transition from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`.",
+      "reason": "The analysis treats the TypeError as the root cause in a polyfill rather than identifying it as a symptom of unhandled 401 responses with no redirect or guard."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This is a high-priority bug reported in the Production environment.",
+      "reason": "The analysis accepts the Production environment tag at face value without flagging that all URLs point to bank-uat.example.com, and does not answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The event shows the error occurred during a request to `/payments/batch/actions`, with the `transaction` being `/settlements/run/8214`.",
+      "reason": "The analysis lists both values but does not identify the transaction as stale or explain that it misdirects Sentry's culprit and grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+      "reason": "The analysis does not state that source maps are missing, does not mention the js_no_source errors, scraping_attempts failures, or symbolicated_in_app being false, and instead incorrectly attributes the fault to the polyfill."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh running."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or explain that the flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. **Investigate the polyfill script:** The error is caused by a `sort()` call on an array that is `undefined`. This suggests that the polyfill script is not handling the array correctly.",
+      "reason": "The suggested actions focus entirely on the polyfill script and do not mention handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or that a null guard would hide the problem."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+      "reason": "The analysis presents the missing null check before .sort as the root cause and the fix (investigate/fix the polyfill), rather than as a defensive measure over the real 401-handling problem."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This is a high-priority bug reported in the Production environment.",
+      "reason": "The analysis states the error is in Production without flagging that all URLs point to the UAT host bank-uat.example.com."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the transaction value but does not state the error occurred on the /settlements/run/8214 screen; it correctly notes the request was to /payments/batch/actions."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+      "reason": "The analysis names specific minified file names (polyfills.3e8c04b7a91d6f22.js, 6728.b4f17ce620a8d539.js) and a minified method (XMLHttpRequest.Y) as the location of the fault, which the unsymbolicated stack does not actually identify."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during the four-hour gap or state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This suggests that the issue is not in the `batch` action logic but in the polyfill script.",
+      "reason": "The tickets show the polyfill frames are part of the Zone.js error-propagation chain (XMLHttpRequest.Y, V, H, invokeTask, runTask), not the source of the error; the actual error originates in 6728.js (ie.project). The tickets give no basis for concluding the fault is in the polyfill."
+    },
+    {
+      "quote": "The error is caused by a polyfill script that is part of the bank UI application.",
+      "reason": "The Sentry event's metadata identifies the error location as /6728.b4f17ce620a8d539.js, function ie.project, not in the polyfills file. The polyfill frames are the Zone.js scheduling/error-propagation mechanism, not the cause."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 169.26
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two-phase structure of the breadcrumbs, the ~4-hour-10-minute gap, or the transition from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`.",
+        "reason": "The analysis treats the TypeError as the root cause in a polyfill rather than identifying it as a symptom of unhandled 401 responses with no redirect or guard.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "This is a high-priority bug reported in the Production environment.",
+        "reason": "The analysis accepts the Production environment tag at face value without flagging that all URLs point to bank-uat.example.com, and does not answer Tom Becker's question.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "The event shows the error occurred during a request to `/payments/batch/actions`, with the `transaction` being `/settlements/run/8214`.",
+        "reason": "The analysis lists both values but does not identify the transaction as stale or explain that it misdirects Sentry's culprit and grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+        "reason": "The analysis does not state that source maps are missing, does not mention the js_no_source errors, scraping_attempts failures, or symbolicated_in_app being false, and instead incorrectly attributes the fault to the polyfill.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh running.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or explain that the flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "1. **Investigate the polyfill script:** The error is caused by a `sort()` call on an array that is `undefined`. This suggests that the polyfill script is not handling the array correctly.",
+        "reason": "The suggested actions focus entirely on the polyfill script and do not mention handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or that a null guard would hide the problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+        "reason": "The analysis presents the missing null check before .sort as the root cause and the fix (investigate/fix the polyfill), rather than as a defensive measure over the real 401-handling problem.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "This is a high-priority bug reported in the Production environment.",
+        "reason": "The analysis states the error is in Production without flagging that all URLs point to the UAT host bank-uat.example.com.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis mentions the transaction value but does not state the error occurred on the /settlements/run/8214 screen; it correctly notes the request was to /payments/batch/actions.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "The error occurs in `polyfills.3e8c04b7a91d6f22.js` (a polyfill file) when a `sort()` method is called on an array that is `undefined`. This is triggered by a call to `XMLHttpRequest.Y` which is part of the polyfill code.",
+        "reason": "The analysis names specific minified file names (polyfills.3e8c04b7a91d6f22.js, 6728.b4f17ce620a8d539.js) and a minified method (XMLHttpRequest.Y) as the location of the fault, which the unsymbolicated stack does not actually identify.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during the four-hour gap or state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This suggests that the issue is not in the `batch` action logic but in the polyfill script.",
+        "reason": "The tickets show the polyfill frames are part of the Zone.js error-propagation chain (XMLHttpRequest.Y, V, H, invokeTask, runTask), not the source of the error; the actual error originates in 6728.js (ie.project). The tickets give no basis for concluding the fault is in the polyfill."
+      },
+      {
+        "quote": "The error is caused by a polyfill script that is part of the bank UI application.",
+        "reason": "The Sentry event's metadata identifies the error location as /6728.b4f17ce620a8d539.js, function ie.project, not in the polyfills file. The polyfill frames are the Zone.js scheduling/error-propagation mechanism, not the cause."
+      }
+    ]
+  }
+}

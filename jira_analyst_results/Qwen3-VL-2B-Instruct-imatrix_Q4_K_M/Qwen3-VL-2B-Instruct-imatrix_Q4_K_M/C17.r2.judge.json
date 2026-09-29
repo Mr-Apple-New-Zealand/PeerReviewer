@@ -1,0 +1,325 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two-phase breadcrumb structure, the ~4-hour gap, or the 200-to-401 transition."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error is caused by a **missing or invalid `rows` property** in the data returned from a backend API call. The `sort` operation in the Angular code is trying to access a property (`rows`) that does not exist in the data object, which results in the `TypeError`.",
+      "reason": "The analysis attributes the fault to a backend data-structure issue rather than identifying the 401 responses as the cause and the missing 401 handling as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumb entries ('rows' \u00d72, 'returnProperties', 'length') or the idea that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**Environment:** Production (via Sentry)",
+      "reason": "The analysis reports the environment as Production without flagging that every URL in the event points to bank-uat.example.com, the UAT host."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the discrepancy between the transaction/culprit (/settlements/run/8214) and the actual request URL (/payments/batch/actions)."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The **exact** Angular component or function that is calling the `sort` operation.",
+      "reason": "The analysis states the component cannot be identified but does not explain why (missing source maps, three js_no_source errors, failed scraping attempts, symbolicated_in_app false, minified frame names)."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh; it instead attributes the cause to a backend data issue."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' statusText wording)."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. **Investigate the backend API response:** Confirm whether the `rows` property is missing from the API response. 2. **Check the Angular component:** Verify if the `sort` operation is being called on a data structure that is not properly initialized.",
+      "reason": "The suggested actions are 100+ repetitions of checking the rows property; none mention handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or warning that a null guard would hide the problem."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the root cause to a backend data issue (missing rows property) rather than specifically to a missing null check before .sort; it does not present a null guard as the fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "**Environment:** Production (via Sentry)",
+      "reason": "The analysis states the environment as Production without flagging that all URLs point to the UAT host bank-uat.example.com."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies the screen as the 'Batch actions' screen and does not claim the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific application source file, component, method, or line number as the fault location; it explicitly says the component cannot be determined."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The error is caused by a **missing or invalid `rows` property** in the data returned from a backend API call.",
+      "reason": "The tickets show the error is triggered by 401 authentication failures (all requests after the gap return 401 with response_body_size 0), not by a backend returning a malformed data structure. The 'rows' error appears only as a separate breadcrumb sentry.event, not as the cause of the main 'sort' TypeError."
+    },
+    {
+      "quote": "The `sort` operation in the Angular code is trying to access a property (`rows`) that does not exist in the data object, which results in the `TypeError`.",
+      "reason": "The actual error message is 'Cannot read properties of undefined (reading sort)', meaning .sort is being called on an undefined value. The analysis misreads this as accessing a 'rows' property, conflating the main event with a separate breadcrumb error."
+    },
+    {
+      "quote": "The error is a `TypeError: Cannot read properties of undefined (reading 'sort')` in the `polyfills.3e8c04b7a91d6f22.js` file, which is part of the Angular framework.",
+      "reason": "The Sentry event's metadata.location and the top in-app frame point to /6728.b4f17ce620a8d539.js (function ie.project), not to the polyfills file. The polyfills frames appear deeper in the stack as part of the RxJS error-propagation chain, not as the error location."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 282.79
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two-phase breadcrumb structure, the ~4-hour gap, or the 200-to-401 transition.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error is caused by a **missing or invalid `rows` property** in the data returned from a backend API call. The `sort` operation in the Angular code is trying to access a property (`rows`) that does not exist in the data object, which results in the `TypeError`.",
+        "reason": "The analysis attributes the fault to a backend data-structure issue rather than identifying the 401 responses as the cause and the missing 401 handling as the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumb entries ('rows' \u00d72, 'returnProperties', 'length') or the idea that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "**Environment:** Production (via Sentry)",
+        "reason": "The analysis reports the environment as Production without flagging that every URL in the event points to bank-uat.example.com, the UAT host.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not note the discrepancy between the transaction/culprit (/settlements/run/8214) and the actual request URL (/payments/batch/actions).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The **exact** Angular component or function that is calling the `sort` operation.",
+        "reason": "The analysis states the component cannot be identified but does not explain why (missing source maps, three js_no_source errors, failed scraping attempts, symbolicated_in_app false, minified frame names).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not mention the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the token expired during the idle period with no silent refresh; it instead attributes the cause to a backend data issue.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' statusText wording).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "1. **Investigate the backend API response:** Confirm whether the `rows` property is missing from the API response. 2. **Check the Angular component:** Verify if the `sort` operation is being called on a data structure that is not properly initialized.",
+        "reason": "The suggested actions are 100+ repetitions of checking the rows property; none mention handling 401 centrally, fixing the Sentry environment, setting release/dist, uploading source maps, correcting the transaction name, or warning that a null guard would hide the problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis attributes the root cause to a backend data issue (missing rows property) rather than specifically to a missing null check before .sort; it does not present a null guard as the fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "**Environment:** Production (via Sentry)",
+        "reason": "The analysis states the environment as Production without flagging that all URLs point to the UAT host bank-uat.example.com.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis correctly identifies the screen as the 'Batch actions' screen and does not claim the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name a specific application source file, component, method, or line number as the fault location; it explicitly says the component cannot be determined.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The error is caused by a **missing or invalid `rows` property** in the data returned from a backend API call.",
+        "reason": "The tickets show the error is triggered by 401 authentication failures (all requests after the gap return 401 with response_body_size 0), not by a backend returning a malformed data structure. The 'rows' error appears only as a separate breadcrumb sentry.event, not as the cause of the main 'sort' TypeError."
+      },
+      {
+        "quote": "The `sort` operation in the Angular code is trying to access a property (`rows`) that does not exist in the data object, which results in the `TypeError`.",
+        "reason": "The actual error message is 'Cannot read properties of undefined (reading sort)', meaning .sort is being called on an undefined value. The analysis misreads this as accessing a 'rows' property, conflating the main event with a separate breadcrumb error."
+      },
+      {
+        "quote": "The error is a `TypeError: Cannot read properties of undefined (reading 'sort')` in the `polyfills.3e8c04b7a91d6f22.js` file, which is part of the Angular framework.",
+        "reason": "The Sentry event's metadata.location and the top in-app frame point to /6728.b4f17ce620a8d539.js (function ie.project), not to the polyfills file. The polyfills frames appear deeper in the stack as part of the RxJS error-propagation chain, not as the error location."
+      }
+    ]
+  }
+}

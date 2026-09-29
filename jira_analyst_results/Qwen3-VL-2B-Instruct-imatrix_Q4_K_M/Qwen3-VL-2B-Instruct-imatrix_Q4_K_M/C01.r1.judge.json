@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A bug in the mobile web transfer functionality where a customer's $250 transfer results in **two debits** and **one credit** due to a **retry mechanism that triggers a new transfer without idempotency**, causing the transaction to be processed twice. The issue occurs when the transfer times out and the user taps \"Retry,\" leading to a **duplicate debit** and **partial credit**.",
+      "reason": "The analysis clearly states that retrying after the ERR_TXN_504 timeout results in two debits and one credit."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects: 3.1.4 (fixed in 3.2.0)",
+      "reason": "The analysis states the bug affects 3.1.4, the fix targets 3.2.0, and the release date is 2026-09-24 (mentioned in the Aroha Walker comment section)."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The retry action sends a **new transfer request** without an **idempotency key**, causing the server to treat it as a **new transaction**. The **debit and credit are not in a single database transaction**, so the **first debit is committed** even though the **credit fails** due to timeout.",
+      "reason": "The analysis correctly identifies both root causes: no idempotency key on retry and debit/credit not in a single DB transaction, attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress",
+      "reason": "The analysis states the ticket is In Progress, assigned to Priya Nair, and PR #218 is waiting for code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Finance will need to **reverse the duplicate debits** for the 3 affected customers. Requested **Marcus** to raise this with **Finance Ops**.",
+      "reason": "The analysis mentions three affected customers, the need for manual reversal by Finance, and that Marcus was asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Requested **Marcus** to raise this with **Finance Ops**.",
+      "reason": "The analysis reports the request was made but does not explicitly note that the ticket does not confirm the reversal was actually raised or that customers were refunded; it only reports the ask without drawing the conclusion about the absence of confirmation."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Priya Nair** should **review PR #218** and **get code review** from team. 2. **Marcus Reid** should **coordinate with Finance Ops** to **reverse the duplicate debits** for the 3 affected customers.",
+      "reason": "The analysis lists getting PR #218 reviewed and coordinating with Finance Ops for customer reversals as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is open, pending review, and in progress; it never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug does NOT reproduce on desktop web and that desktop has no retry button, consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No test coverage for the retry logic in the **mobile web** environment.",
+      "reason": "The tickets contain no information about test coverage; this is an invented claim about the project's testing state."
+    },
+    {
+      "quote": "No **test cases** for the retry flow.",
+      "reason": "The tickets do not mention test cases or their absence; this is an unsupported assertion about the project."
+    },
+    {
+      "quote": "No **unit test** for the **transaction wrapping** logic.",
+      "reason": "The tickets do not discuss unit tests; this is an invented detail about the project's testing."
+    },
+    {
+      "quote": "No **UI behavior** for retry on mobile vs. desktop.",
+      "reason": "The tickets do not discuss UI behavior specifications; this is an unsupported claim about missing documentation."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 97.03
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A bug in the mobile web transfer functionality where a customer's $250 transfer results in **two debits** and **one credit** due to a **retry mechanism that triggers a new transfer without idempotency**, causing the transaction to be processed twice. The issue occurs when the transfer times out and the user taps \"Retry,\" leading to a **duplicate debit** and **partial credit**.",
+        "reason": "The analysis clearly states that retrying after the ERR_TXN_504 timeout results in two debits and one credit.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects: 3.1.4 (fixed in 3.2.0)",
+        "reason": "The analysis states the bug affects 3.1.4, the fix targets 3.2.0, and the release date is 2026-09-24 (mentioned in the Aroha Walker comment section).",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The retry action sends a **new transfer request** without an **idempotency key**, causing the server to treat it as a **new transaction**. The **debit and credit are not in a single database transaction**, so the **first debit is committed** even though the **credit fails** due to timeout.",
+        "reason": "The analysis correctly identifies both root causes: no idempotency key on retry and debit/credit not in a single DB transaction, attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress",
+        "reason": "The analysis states the ticket is In Progress, assigned to Priya Nair, and PR #218 is waiting for code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance will need to **reverse the duplicate debits** for the 3 affected customers. Requested **Marcus** to raise this with **Finance Ops**.",
+        "reason": "The analysis mentions three affected customers, the need for manual reversal by Finance, and that Marcus was asked to raise it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Requested **Marcus** to raise this with **Finance Ops**.",
+        "reason": "The analysis reports the request was made but does not explicitly note that the ticket does not confirm the reversal was actually raised or that customers were refunded; it only reports the ask without drawing the conclusion about the absence of confirmation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "1. **Priya Nair** should **review PR #218** and **get code review** from team. 2. **Marcus Reid** should **coordinate with Finance Ops** to **reverse the duplicate debits** for the 3 affected customers.",
+        "reason": "The analysis lists getting PR #218 reviewed and coordinating with Finance Ops for customer reversals as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is open, pending review, and in progress; it never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the bug does NOT reproduce on desktop web and that desktop has no retry button, consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No test coverage for the retry logic in the **mobile web** environment.",
+        "reason": "The tickets contain no information about test coverage; this is an invented claim about the project's testing state."
+      },
+      {
+        "quote": "No **test cases** for the retry flow.",
+        "reason": "The tickets do not mention test cases or their absence; this is an unsupported assertion about the project."
+      },
+      {
+        "quote": "No **unit test** for the **transaction wrapping** logic.",
+        "reason": "The tickets do not discuss unit tests; this is an invented detail about the project's testing."
+      },
+      {
+        "quote": "No **UI behavior** for retry on mobile vs. desktop.",
+        "reason": "The tickets do not discuss UI behavior specifications; this is an unsupported claim about missing documentation."
+      }
+    ]
+  }
+}

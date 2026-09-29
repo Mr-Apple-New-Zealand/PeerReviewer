@@ -1,0 +1,225 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+      "reason": "The analysis quotes the SmtpException and mentions the OutboxDispatcher, but omits status code 535, does not name EmailSender, and frames the SMTP error as a downstream consequence of the key-storage issue rather than the direct cause of the delivery failure."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The reporter's explanation is correct: the service is storing keys in a directory that is not persisted, and there is no XML encryptor configured. This means the keys are not encrypted and are not protected, leading to the failure in the email sending process.",
+      "reason": "The analysis explicitly endorses the reporter's explanation as correct and supported by the log, which is the opposite of what the checkpoint requires."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions the OutboxDispatcher failing repeatedly but never references the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, five attempts, or the head-of-queue blocking behaviour."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog (1412 \u2192 2089), the growth rate, or the implication that customers will keep missing receipts."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses the 14:00 timeframe, the fact that the log begins at 18:02:41, or that the previous container's log was not captured."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis notes the container was restarted at 18:02 but does not state that the 535 errors continued after the restart or that another restart would not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the mail provider disabled basic auth for the svc-notify account or that the fix is a change of authentication method/credentials; instead it points to key storage."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The recommended next actions (fix key storage, configure XML encryptor, test in staging) do not include confirming with the mail tenant, changing the authentication method, adding backoff/dead-letter, or retrieving the pre-18:02 log."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The log supports the reporter's explanation that the issue is due to a missing XML encryptor and non-persistent key storage. The next step is to fix the key storage and configure the XML encryptor to ensure that the keys are protected and the service can send emails.",
+      "reason": "The analysis explicitly endorses the reporter's DataProtection/XML-encryptor explanation as the cause of the failed notifications."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not introduce an SMTP error, code, or reason (rate limiting, TLS failure, mailbox-full) that the log does not show."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The issue is not a duplicate of any other ticket",
+      "reason": "The ticket export contains no information about other tickets or duplicates; the 'Links: None' field does not confirm the absence of duplicates, so this claim has no basis in the provided data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 149.57
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+        "reason": "The analysis quotes the SmtpException and mentions the OutboxDispatcher, but omits status code 535, does not name EmailSender, and frames the SMTP error as a downstream consequence of the key-storage issue rather than the direct cause of the delivery failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter's explanation is correct: the service is storing keys in a directory that is not persisted, and there is no XML encryptor configured. This means the keys are not encrypted and are not protected, leading to the failure in the email sending process.",
+        "reason": "The analysis explicitly endorses the reporter's explanation as correct and supported by the log, which is the opposite of what the checkpoint requires.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis mentions the OutboxDispatcher failing repeatedly but never references the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, five attempts, or the head-of-queue blocking behaviour.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog (1412 \u2192 2089), the growth rate, or the implication that customers will keep missing receipts.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis never addresses the 14:00 timeframe, the fact that the log begins at 18:02:41, or that the previous container's log was not captured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "",
+        "reason": "The analysis notes the container was restarted at 18:02 but does not state that the 535 errors continued after the restart or that another restart would not help.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the mail provider disabled basic auth for the svc-notify account or that the fix is a change of authentication method/credentials; instead it points to key storage.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "",
+        "reason": "The recommended next actions (fix key storage, configure XML encryptor, test in staging) do not include confirming with the mail tenant, changing the authentication method, adding backoff/dead-letter, or retrieving the pre-18:02 log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery, or the healthy check at 18:21:09.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "The log supports the reporter's explanation that the issue is due to a missing XML encryptor and non-persistent key storage. The next step is to fix the key storage and configure the XML encryptor to ensure that the keys are protected and the service can send emails.",
+        "reason": "The analysis explicitly endorses the reporter's DataProtection/XML-encryptor explanation as the cause of the failed notifications.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame the NATS reconnection, health check, or outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not introduce an SMTP error, code, or reason (rate limiting, TLS failure, mailbox-full) that the log does not show.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The issue is not a duplicate of any other ticket",
+        "reason": "The ticket export contains no information about other tickets or duplicates; the 'Links: None' field does not confirm the absence of duplicates, so this claim has no basis in the provided data."
+      }
+    ]
+  }
+}

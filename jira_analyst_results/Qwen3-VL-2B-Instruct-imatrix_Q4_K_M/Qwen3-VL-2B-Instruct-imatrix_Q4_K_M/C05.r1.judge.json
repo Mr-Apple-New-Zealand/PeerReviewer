@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Yes \u2014 BANK-425 is a duplicate of BANK-440. Both tickets describe the same problem: stale dashboard balance after a transfer due to caching.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440 because both report the same stale-balance-after-transfer issue on the web dashboard."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Close BANK-425 and BANK-440 \u2014 they are duplicates and already fixed.",
+      "reason": "The analysis is contradictory (says both are duplicates, then says they are not, then says close both) and never clearly recommends keeping one and closing the other; it ultimately says to close both, which is not the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate \u2014 it's about notifications, not the dashboard balance. \u2026 Root cause: Notification uses TransferRequested event, which is published before the debit is applied. \u2026 Status: In Progress, Unresolved, Low priority",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains it is a push-notification problem with a different cause (TransferRequested event before debit), and notes it is In Progress."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Hana Sato identifies that the balance is cached in local storage for 15 minutes and that the cache is not invalidated after a transfer. Fix: Clear the BalanceCache when a transfer succeeds.",
+      "reason": "The analysis correctly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions BANK-419 added the caching but never infers that it introduced the bug as a regression or recommends linking it to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the API returns the correct balance immediately after the transfer, not a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Close BANK-425 and BANK-440 \u2014 they are duplicates and already fixed.",
+      "reason": "Both tickets are Status: Open, Resolution: Unresolved. No fix has been implemented; Hana Sato only identified the fix in a comment. The tickets are not 'already fixed.'"
+    },
+    {
+      "quote": "BANK-425 should be closed \u2014 it's a duplicate of BANK-440 and already has a fix.",
+      "reason": "BANK-425 is Open/Unresolved; the fix has been identified but not applied. Saying it 'already has a fix' is contradicted by the ticket status."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.1
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Yes \u2014 BANK-425 is a duplicate of BANK-440. Both tickets describe the same problem: stale dashboard balance after a transfer due to caching.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440 because both report the same stale-balance-after-transfer issue on the web dashboard.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-425 and BANK-440 \u2014 they are duplicates and already fixed.",
+        "reason": "The analysis is contradictory (says both are duplicates, then says they are not, then says close both) and never clearly recommends keeping one and closing the other; it ultimately says to close both, which is not the expected recommendation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate \u2014 it's about notifications, not the dashboard balance. \u2026 Root cause: Notification uses TransferRequested event, which is published before the debit is applied. \u2026 Status: In Progress, Unresolved, Low priority",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains it is a push-notification problem with a different cause (TransferRequested event before debit), and notes it is In Progress.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato identifies that the balance is cached in local storage for 15 minutes and that the cache is not invalidated after a transfer. Fix: Clear the BalanceCache when a transfer succeeds.",
+        "reason": "The analysis correctly states the 15-minute BalanceCache in local storage is not invalidated after a transfer and the fix is to clear it when a transfer succeeds.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis mentions BANK-419 added the caching but never infers that it introduced the bug as a regression or recommends linking it to the bug tickets.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the API returns the correct balance immediately after the transfer, not a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Close BANK-425 and BANK-440 \u2014 they are duplicates and already fixed.",
+        "reason": "Both tickets are Status: Open, Resolution: Unresolved. No fix has been implemented; Hana Sato only identified the fix in a comment. The tickets are not 'already fixed.'"
+      },
+      {
+        "quote": "BANK-425 should be closed \u2014 it's a duplicate of BANK-440 and already has a fix.",
+        "reason": "BANK-425 is Open/Unresolved; the fix has been identified but not applied. Saying it 'already has a fix' is contradicted by the ticket status."
+      }
+    ]
+  }
+}

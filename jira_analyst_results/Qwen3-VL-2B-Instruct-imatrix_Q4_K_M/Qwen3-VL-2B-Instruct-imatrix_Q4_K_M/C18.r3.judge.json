@@ -1,0 +1,291 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "All these issues are caused by auto.function.angular.error_handler and are triggered when undefined is passed to methods that expect an array or object. This is a common pattern in Angular applications where data is not properly initialized or passed.",
+      "reason": "Groups only 4 of the 5 issues (omits BANKUI-3C8), attributes the cause to undefined data rather than the 401 rejection, and does not state that the 401 is the shared cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed due to overlap, nor does it identify the 44 users on BANKUI-3C8 as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 58 distinct users on BANKUI-5D6, does not note it is the highest user count in the list, and does not contrast it with the low event count of 63."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "First Seen: 2026-09-10",
+      "reason": "Mentions the date and the 404, but omits the specific times (21:11:36 vs 21:05:00), the ~6.5-minute gap, and the interpretation that open sessions are requesting old hashed bundles replaced by the deploy."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A Chrome extension is blocking a cross-origin frame. This is not a defect \u2014 it's a security policy issue.",
+      "reason": "Identifies it as a chrome extension issue and not a defect, mentions no app breadcrumbs, but does not cite the 4,812 events / 1 user contrast and recommends review rather than filtering."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses event count as a misleading ranking metric, never mentions BANKUI-3C8's 5,140 events as a logger recording a symptom, and never contrasts the two largest counts."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This was fixed in 4.6.0 \u2014 so it's not a defect \u2014 it's a known issue.",
+      "reason": "The analysis states BANKUI-1A7 is fixed and needs no action, completely missing that it was last seen 2026-09-11 (after the 4.7.0 deploy) and has regressed."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are not uploaded, so function names are minified \u2014 this means we cannot debug the issue directly. We must reproduce the error in a development environment to fix it.",
+      "reason": "Conveys that source maps are not uploaded, names are minified, and the issues cannot be traced to a component from the export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "They are not isolated \u2014 they are part of a larger failure chain (e.g., 401 responses \u2192 404 \u2192 chunk load error).",
+      "reason": "Touches on the 401 connection as a cause but does not infer sessions expiring without the app handling the rejection, does not frame it as an inference needing confirmation, and instead calls 401s 'expected behavior.'"
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. Prioritize fixing the Angular error handler (BANKUI-4A1, 4A2, 4A9, 4B3) \u2014 they are high-impact, recurring errors that affect multiple users and are not fixed in 4.7.0. 2. Fix the missing bundle (BANKUI-5D6) \u2014 this is a deployment issue, not a defect.",
+      "reason": "Reverses the priority order (401 cluster first, 5D6 second), omits BANKUI-3C8 from the cluster, does not mention reopening 1A7 or filtering 2F0 as alongside actions, and does not note that one HTTP-layer fix closes five issues."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-2F0 in the 'Not Defects' category and does not treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues under a single shared cause and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists individual user counts but never adds them together or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This was fixed in 4.6.0 \u2014 so it's not a defect \u2014 it's a known issue.",
+      "reason": "The analysis explicitly states BANKUI-1A7 is fixed and needs no action, contradicting the evidence that it was still occurring after the 4.7.0 deploy."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes 401s as 'expected behavior in the API layer' and does not characterize them as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps BANKUI-5D6 and BANKUI-1A7 in separate sections with their own root causes and does not group them into the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "They are not isolated \u2014 they are part of a larger failure chain (e.g., 401 responses \u2192 404 \u2192 chunk load error).",
+      "reason": "The tickets show 401s in breadcrumb summaries of the TypeError issues and a 404 in the ChunkLoadError, but there is no evidence establishing a causal chain from 401 to 404 to chunk load failure."
+    },
+    {
+      "quote": "The 401 responses are not a defect \u2014 they are expected behavior in the API layer.",
+      "reason": "The tickets do not characterize 401 responses as 'expected behavior'; they show them preceding unhandled errors across multiple endpoints, which is inconsistent with normal expected operation."
+    },
+    {
+      "quote": "They affect multiple users (41\u201344 users) and occur frequently (300+ events).",
+      "reason": "The user counts for the four grouped issues are 41, 39, 33, 31 (range 31\u201341, not 41\u201344), and only one issue (312 events) exceeds 300; the others are 289, 104, and 97."
+    },
+    {
+      "quote": "All point to main.7a2d95ef0c418bb3.js \u2014 the main Angular bundle.",
+      "reason": "BANKUI-4A1 and BANKUI-4A2 have lastFrame in /6728.b4f17ce620a8d539.js, not main.7a2d95ef0c418bb3.js; only 4A9 and 4B3 point to the main bundle."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 287.97
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "All these issues are caused by auto.function.angular.error_handler and are triggered when undefined is passed to methods that expect an array or object. This is a common pattern in Angular applications where data is not properly initialized or passed.",
+        "reason": "Groups only 4 of the 5 issues (omits BANKUI-3C8), attributes the cause to undefined data rather than the 401 rejection, and does not state that the 401 is the shared cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed due to overlap, nor does it identify the 44 users on BANKUI-3C8 as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the 58 distinct users on BANKUI-5D6, does not note it is the highest user count in the list, and does not contrast it with the low event count of 63.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "First Seen: 2026-09-10",
+        "reason": "Mentions the date and the 404, but omits the specific times (21:11:36 vs 21:05:00), the ~6.5-minute gap, and the interpretation that open sessions are requesting old hashed bundles replaced by the deploy.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "A Chrome extension is blocking a cross-origin frame. This is not a defect \u2014 it's a security policy issue.",
+        "reason": "Identifies it as a chrome extension issue and not a defect, mentions no app breadcrumbs, but does not cite the 4,812 events / 1 user contrast and recommends review rather than filtering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "",
+        "reason": "The analysis never discusses event count as a misleading ranking metric, never mentions BANKUI-3C8's 5,140 events as a logger recording a symptom, and never contrasts the two largest counts.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "This was fixed in 4.6.0 \u2014 so it's not a defect \u2014 it's a known issue.",
+        "reason": "The analysis states BANKUI-1A7 is fixed and needs no action, completely missing that it was last seen 2026-09-11 (after the 4.7.0 deploy) and has regressed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded, so function names are minified \u2014 this means we cannot debug the issue directly. We must reproduce the error in a development environment to fix it.",
+        "reason": "Conveys that source maps are not uploaded, names are minified, and the issues cannot be traced to a component from the export alone.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never mentions that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "They are not isolated \u2014 they are part of a larger failure chain (e.g., 401 responses \u2192 404 \u2192 chunk load error).",
+        "reason": "Touches on the 401 connection as a cause but does not infer sessions expiring without the app handling the rejection, does not frame it as an inference needing confirmation, and instead calls 401s 'expected behavior.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. Prioritize fixing the Angular error handler (BANKUI-4A1, 4A2, 4A9, 4B3) \u2014 they are high-impact, recurring errors that affect multiple users and are not fixed in 4.7.0. 2. Fix the missing bundle (BANKUI-5D6) \u2014 this is a deployment issue, not a defect.",
+        "reason": "Reverses the priority order (401 cluster first, 5D6 second), omits BANKUI-3C8 from the cluster, does not mention reopening 1A7 or filtering 2F0 as alongside actions, and does not note that one HTTP-layer fix closes five issues.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis places BANKUI-2F0 in the 'Not Defects' category and does not treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues under a single shared cause and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis lists individual user counts but never adds them together or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "This was fixed in 4.6.0 \u2014 so it's not a defect \u2014 it's a known issue.",
+        "reason": "The analysis explicitly states BANKUI-1A7 is fixed and needs no action, contradicting the evidence that it was still occurring after the 4.7.0 deploy.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes 401s as 'expected behavior in the API layer' and does not characterize them as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps BANKUI-5D6 and BANKUI-1A7 in separate sections with their own root causes and does not group them into the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "They are not isolated \u2014 they are part of a larger failure chain (e.g., 401 responses \u2192 404 \u2192 chunk load error).",
+        "reason": "The tickets show 401s in breadcrumb summaries of the TypeError issues and a 404 in the ChunkLoadError, but there is no evidence establishing a causal chain from 401 to 404 to chunk load failure."
+      },
+      {
+        "quote": "The 401 responses are not a defect \u2014 they are expected behavior in the API layer.",
+        "reason": "The tickets do not characterize 401 responses as 'expected behavior'; they show them preceding unhandled errors across multiple endpoints, which is inconsistent with normal expected operation."
+      },
+      {
+        "quote": "They affect multiple users (41\u201344 users) and occur frequently (300+ events).",
+        "reason": "The user counts for the four grouped issues are 41, 39, 33, 31 (range 31\u201341, not 41\u201344), and only one issue (312 events) exceeds 300; the others are 289, 104, and 97."
+      },
+      {
+        "quote": "All point to main.7a2d95ef0c418bb3.js \u2014 the main Angular bundle.",
+        "reason": "BANKUI-4A1 and BANKUI-4A2 have lastFrame in /6728.b4f17ce620a8d539.js, not main.7a2d95ef0c418bb3.js; only 4A9 and 4B3 point to the main bundle."
+      }
+    ]
+  }
+}

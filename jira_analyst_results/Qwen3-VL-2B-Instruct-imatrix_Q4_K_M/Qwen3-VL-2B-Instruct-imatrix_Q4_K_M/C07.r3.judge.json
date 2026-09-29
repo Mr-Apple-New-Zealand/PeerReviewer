@@ -1,0 +1,187 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The **JWT signing key** was rotated in the config deploy **OPS-81** at **09:30**.",
+      "reason": "The analysis clearly states the OPS-81 deploy was at 09:30 and identifies 09:31 as when errors first appeared on the dashboard."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "First Alert**: 09:47 (TransferErrorRate > 20%)",
+      "reason": "The analysis states the alert fired at 09:47 but never mentions the incident being declared at 09:52."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Rollback Executed**: 10:44\n  - **Recovery Complete**: 10:42",
+      "reason": "The analysis correctly identifies recovery at 10:42 but gives the rollback as 10:44 (completion, not the 10:31 start) and states resolution at 10:42 instead of 10:50."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to Detect**: **09:47 \u2013 09:31 = 16 minutes** (from when error rate first spiked to when the alert was triggered)",
+      "reason": "The analysis explicitly calculates 16 minutes from 09:31 to 09:47, matching the expected answer."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Recover: **~10 minutes** (rollback completed at 10:42, error rate back under 1%)",
+      "reason": "The analysis states ~10 minutes for time to recover, which is not any of the acceptable values (71 min from impact, 55 min from detection, or 79 min to resolution); it appears to measure from rollback start rather than impact or detection."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The **JWT signing key** was rotated in the config deploy **OPS-81** at **09:30**. The **Transactions API** still validated against the **old key** (not the new one). This caused **401 errors** (Signature validation failed) for all users.",
+      "reason": "The analysis conveys the full root cause including OPS-81, JWT key rotation, Transactions API validating against old key, 401 errors, and the IDX10503 code mentioned in the summary."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Perform a post-incident review on **2026-09-16** as planned.",
+      "reason": "The analysis states the post-incident review is on 2026-09-16, matching the ticket."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "Sam Okafor states that the database is healthy and slow queries are normal \u2014 this may be misleading if the slow queries are due to the key rotation.",
+      "reason": "The analysis questions Sam's assessment but does not name the database or slow queries as the cause or a contributing cause; it frames it as a conditional possibility about whether the queries are truly normal."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "Time to Recover: **~10 minutes** (rollback completed at 10:42, error rate back under 1%)",
+      "reason": "The ~10 minutes for recovery is approximately supported by the 10:31-to-10:42 pair (11 minutes), and the ~15 minutes for detection is approximately supported by 09:31-to-09:47 (16 minutes); neither is a fabricated time with no timestamp basis."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Resolved on 2026-09-11 10:42",
+      "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment and the ticket's updated timestamp); 10:42 is when the error rate recovered, not when the incident was formally resolved."
+    },
+    {
+      "quote": "64% error rate at 09:47",
+      "reason": "The 64% figure appears in Sam's comment at 09:52; the 09:47 alert was for TransferErrorRate > 20%, not specifically 64%."
+    },
+    {
+      "quote": "No communication between Auth and Transactions API was established at the time of the deploy",
+      "reason": "The ticket does not mention any communication protocol or its absence between the two services; this is an invented detail."
+    },
+    {
+      "quote": "No test or validation steps performed to ensure the key was updated",
+      "reason": "The ticket contains no information about whether tests or validation steps were performed or not."
+    },
+    {
+      "quote": "No documentation or CI/CD pipeline steps for key rotation",
+      "reason": "The ticket contains no information about documentation or CI/CD pipeline steps."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 286.88
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The **JWT signing key** was rotated in the config deploy **OPS-81** at **09:30**.",
+        "reason": "The analysis clearly states the OPS-81 deploy was at 09:30 and identifies 09:31 as when errors first appeared on the dashboard.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "First Alert**: 09:47 (TransferErrorRate > 20%)",
+        "reason": "The analysis states the alert fired at 09:47 but never mentions the incident being declared at 09:52.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Rollback Executed**: 10:44\n  - **Recovery Complete**: 10:42",
+        "reason": "The analysis correctly identifies recovery at 10:42 but gives the rollback as 10:44 (completion, not the 10:31 start) and states resolution at 10:42 instead of 10:50.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect**: **09:47 \u2013 09:31 = 16 minutes** (from when error rate first spiked to when the alert was triggered)",
+        "reason": "The analysis explicitly calculates 16 minutes from 09:31 to 09:47, matching the expected answer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover: **~10 minutes** (rollback completed at 10:42, error rate back under 1%)",
+        "reason": "The analysis states ~10 minutes for time to recover, which is not any of the acceptable values (71 min from impact, 55 min from detection, or 79 min to resolution); it appears to measure from rollback start rather than impact or detection.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The **JWT signing key** was rotated in the config deploy **OPS-81** at **09:30**. The **Transactions API** still validated against the **old key** (not the new one). This caused **401 errors** (Signature validation failed) for all users.",
+        "reason": "The analysis conveys the full root cause including OPS-81, JWT key rotation, Transactions API validating against old key, 401 errors, and the IDX10503 code mentioned in the summary.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Perform a post-incident review on **2026-09-16** as planned.",
+        "reason": "The analysis states the post-incident review is on 2026-09-16, matching the ticket.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "Sam Okafor states that the database is healthy and slow queries are normal \u2014 this may be misleading if the slow queries are due to the key rotation.",
+        "reason": "The analysis questions Sam's assessment but does not name the database or slow queries as the cause or a contributing cause; it frames it as a conditional possibility about whether the queries are truly normal.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "Time to Recover: **~10 minutes** (rollback completed at 10:42, error rate back under 1%)",
+        "reason": "The ~10 minutes for recovery is approximately supported by the 10:31-to-10:42 pair (11 minutes), and the ~15 minutes for detection is approximately supported by 09:31-to-09:47 (16 minutes); neither is a fabricated time with no timestamp basis.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Resolved on 2026-09-11 10:42",
+        "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment and the ticket's updated timestamp); 10:42 is when the error rate recovered, not when the incident was formally resolved."
+      },
+      {
+        "quote": "64% error rate at 09:47",
+        "reason": "The 64% figure appears in Sam's comment at 09:52; the 09:47 alert was for TransferErrorRate > 20%, not specifically 64%."
+      },
+      {
+        "quote": "No communication between Auth and Transactions API was established at the time of the deploy",
+        "reason": "The ticket does not mention any communication protocol or its absence between the two services; this is an invented detail."
+      },
+      {
+        "quote": "No test or validation steps performed to ensure the key was updated",
+        "reason": "The ticket contains no information about whether tests or validation steps were performed or not."
+      },
+      {
+        "quote": "No documentation or CI/CD pipeline steps for key rotation",
+        "reason": "The ticket contains no information about documentation or CI/CD pipeline steps."
+      }
+    ]
+  }
+}

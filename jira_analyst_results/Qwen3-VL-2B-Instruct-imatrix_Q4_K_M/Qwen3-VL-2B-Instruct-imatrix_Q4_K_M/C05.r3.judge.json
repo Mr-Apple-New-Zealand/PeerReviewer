@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "No, they are not duplicates. BANK-440 is about dashboard, BANK-425 is about home screen. They are related but distinct.",
+      "reason": "The analysis explicitly states BANK-425 is NOT a duplicate of BANK-440, directly contradicting the expected answer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANK-440 | Fix the cache invalidation in the dashboard. | BANK-425 | Fix the cache invalidation in the web front-end.",
+      "reason": "The analysis recommends fixing both tickets separately rather than closing one as a duplicate of the other."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is about mobile push notifications. Different components (web vs. mobile). Different issues: BANK-440: Balance not updating after transfer. MOB-88: Push notification shows pre-transfer balance. Are they duplicates? No, they are not duplicates.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes the different cause (TransferRequested vs TransferCompleted), and mentions Ravi Kumar is assigned."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BalanceCache is used and is cached for 15 minutes, and it is not invalidated after a transfer. Fix: Clear BalanceCache when a transfer succeeds.",
+      "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the root cause and the fix of clearing it on successful transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Who should act: Hana Sato (assigned to BANK-419, which is done, but may be a reference to the same issue).",
+      "reason": "The analysis mentions BANK-419 only as a reason to assign Hana Sato, without drawing the inference that BANK-419 introduced the bug as a regression or recommending linking it."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the duplicate tickets (BANK-440 and BANK-425) are both unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "The balance is not being updated in the UI after the transfer, despite the API returning the correct value.",
+      "reason": "The analysis correctly states the API returns the correct value and the issue is in the UI/caching layer."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Caching: The ticket mentions that the balance is cached in local storage (BalanceCache), which is not invalidated after a transfer.",
+      "reason": "This is stated under the BANK-440 section, but BANK-440's description does not mention BalanceCache or local storage caching. That detail appears only in BANK-425's comment by Hana Sato. The analysis falsely attributes this information to BANK-440's ticket."
+    },
+    {
+      "quote": "All tickets are open and unresolved.",
+      "reason": "MOB-88's status is 'In Progress', not 'Open'. The summary incorrectly states all tickets are open."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 173.87
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "No, they are not duplicates. BANK-440 is about dashboard, BANK-425 is about home screen. They are related but distinct.",
+        "reason": "The analysis explicitly states BANK-425 is NOT a duplicate of BANK-440, directly contradicting the expected answer.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-440 | Fix the cache invalidation in the dashboard. | BANK-425 | Fix the cache invalidation in the web front-end.",
+        "reason": "The analysis recommends fixing both tickets separately rather than closing one as a duplicate of the other.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is about mobile push notifications. Different components (web vs. mobile). Different issues: BANK-440: Balance not updating after transfer. MOB-88: Push notification shows pre-transfer balance. Are they duplicates? No, they are not duplicates.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes the different cause (TransferRequested vs TransferCompleted), and mentions Ravi Kumar is assigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BalanceCache is used and is cached for 15 minutes, and it is not invalidated after a transfer. Fix: Clear BalanceCache when a transfer succeeds.",
+        "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the root cause and the fix of clearing it on successful transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Who should act: Hana Sato (assigned to BANK-419, which is done, but may be a reference to the same issue).",
+        "reason": "The analysis mentions BANK-419 only as a reason to assign Hana Sato, without drawing the inference that BANK-419 introduced the bug as a regression or recommending linking it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never states that the duplicate tickets (BANK-440 and BANK-425) are both unassigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "The balance is not being updated in the UI after the transfer, despite the API returning the correct value.",
+        "reason": "The analysis correctly states the API returns the correct value and the issue is in the UI/caching layer.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Caching: The ticket mentions that the balance is cached in local storage (BalanceCache), which is not invalidated after a transfer.",
+        "reason": "This is stated under the BANK-440 section, but BANK-440's description does not mention BalanceCache or local storage caching. That detail appears only in BANK-425's comment by Hana Sato. The analysis falsely attributes this information to BANK-440's ticket."
+      },
+      {
+        "quote": "All tickets are open and unresolved.",
+        "reason": "MOB-88's status is 'In Progress', not 'Open'. The summary incorrectly states all tickets are open."
+      }
+    ]
+  }
+}

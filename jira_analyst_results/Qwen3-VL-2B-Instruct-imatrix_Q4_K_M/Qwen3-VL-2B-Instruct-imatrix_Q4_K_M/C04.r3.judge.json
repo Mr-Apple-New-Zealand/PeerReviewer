@@ -1,0 +1,165 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Yes, you can tell the customer this is fixed.",
+      "reason": "The analysis explicitly says support CAN tell the customer it is fixed, which is the opposite of the expected answer."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The test on staging with 3.1.4 (build 3.1.4.17) did not reproduce the issue \u2014 the SMTP log now shows \"Rejected: 550 5.1.3 Invalid recipient address\", indicating that the email provider is rejecting the email, not the service.",
+      "reason": "The analysis mischaracterizes Tom's retest as showing the issue was NOT reproduced, when in fact the email still did not arrive; it never states that reset emails to plus-addressed recipients still fail."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the SMTP log now shows \"Rejected: 550 5.1.3 Invalid recipient address\", indicating that the email provider is rejecting the email, not the service.",
+      "reason": "The error code is quoted, but it is framed as confirmation the fix works rather than as a different failure mode indicating the problem persists."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the email is now being rejected by the provider, not the service.",
+      "reason": "The analysis states the provider-rejection cause as established fact rather than as Tom's unconfirmed 'looks like' observation, so it fails the inference-presentation requirement."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that nobody reopened the ticket or raised a follow-up, nor that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Confirm with the customer that the issue is fixed \u2014 the email is now being rejected by the provider, not the service.",
+      "reason": "The suggested actions tell support to confirm the fix to the customer rather than reopening the ticket, assigning an owner, or giving a holding response."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "\u2705 Yes, you can tell the customer this is fixed. The fix has been merged and the issue is resolved \u2014 the email is now being rejected by the provider, not the service. The customer will receive the email in 3.1.4.",
+      "reason": "The analysis explicitly tells support they can confirm the fix to the customer, which is the trapped claim."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the ticket has been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The test on staging with 3.1.4 (build 3.1.4.17) did not reproduce the issue",
+      "reason": "Tom Becker's comment on 2026-09-10 explicitly states 'the reset email for test+qa1@example.com still does not arrive,' meaning the issue WAS reproduced."
+    },
+    {
+      "quote": "Test results on staging with 3.1.4 show that the issue is resolved",
+      "reason": "The ticket shows the email still does not arrive in 3.1.4 staging; the issue is not resolved."
+    },
+    {
+      "quote": "The customer will receive the email in 3.1.4.",
+      "reason": "Tom's retest on 3.1.4 (build 3.1.4.17) shows the email still does not arrive, directly contradicting this claim."
+    },
+    {
+      "quote": "The test on staging shows that the email provider is rejecting the email, which confirms the fix is working.",
+      "reason": "The SMTP rejection means the email is NOT being delivered; this is a continued failure, not confirmation the fix is working."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 82.27
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "Yes, you can tell the customer this is fixed.",
+        "reason": "The analysis explicitly says support CAN tell the customer it is fixed, which is the opposite of the expected answer.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The test on staging with 3.1.4 (build 3.1.4.17) did not reproduce the issue \u2014 the SMTP log now shows \"Rejected: 550 5.1.3 Invalid recipient address\", indicating that the email provider is rejecting the email, not the service.",
+        "reason": "The analysis mischaracterizes Tom's retest as showing the issue was NOT reproduced, when in fact the email still did not arrive; it never states that reset emails to plus-addressed recipients still fail.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "the SMTP log now shows \"Rejected: 550 5.1.3 Invalid recipient address\", indicating that the email provider is rejecting the email, not the service.",
+        "reason": "The error code is quoted, but it is framed as confirmation the fix works rather than as a different failure mode indicating the problem persists.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "the email is now being rejected by the provider, not the service.",
+        "reason": "The analysis states the provider-rejection cause as established fact rather than as Tom's unconfirmed 'looks like' observation, so it fails the inference-presentation requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "",
+        "reason": "The analysis never mentions that nobody reopened the ticket or raised a follow-up, nor that no one currently owns the remaining problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Confirm with the customer that the issue is fixed \u2014 the email is now being rejected by the provider, not the service.",
+        "reason": "The suggested actions tell support to confirm the fix to the customer rather than reopening the ticket, assigning an owner, or giving a holding response.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "\u2705 Yes, you can tell the customer this is fixed. The fix has been merged and the issue is resolved \u2014 the email is now being rejected by the provider, not the service. The customer will receive the email in 3.1.4.",
+        "reason": "The analysis explicitly tells support they can confirm the fix to the customer, which is the trapped claim.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the ticket has been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The test on staging with 3.1.4 (build 3.1.4.17) did not reproduce the issue",
+        "reason": "Tom Becker's comment on 2026-09-10 explicitly states 'the reset email for test+qa1@example.com still does not arrive,' meaning the issue WAS reproduced."
+      },
+      {
+        "quote": "Test results on staging with 3.1.4 show that the issue is resolved",
+        "reason": "The ticket shows the email still does not arrive in 3.1.4 staging; the issue is not resolved."
+      },
+      {
+        "quote": "The customer will receive the email in 3.1.4.",
+        "reason": "Tom's retest on 3.1.4 (build 3.1.4.17) shows the email still does not arrive, directly contradicting this claim."
+      },
+      {
+        "quote": "The test on staging shows that the email provider is rejecting the email, which confirms the fix is working.",
+        "reason": "The SMTP rejection means the email is NOT being delivered; this is a continued failure, not confirmation the fix is working."
+      }
+    ]
+  }
+}

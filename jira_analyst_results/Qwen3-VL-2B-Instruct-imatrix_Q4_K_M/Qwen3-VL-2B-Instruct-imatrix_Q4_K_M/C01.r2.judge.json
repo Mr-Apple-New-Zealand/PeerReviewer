@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A bug in the mobile web transfer functionality where a customer's $250 transfer is being debited twice and credited only once after a timeout. The issue occurs when the transfer request times out and the user taps \"Retry,\" leading to a duplicate debit.",
+      "reason": "The analysis clearly states that retrying after the timeout results in two debits and one credit."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects: Version 3.1.4 (fixing for 3.2.0)",
+      "reason": "The analysis states the affected version is 3.1.4, the fix targets 3.2.0, and the release date is 2026-09-24."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The retry action does not include an idempotency key, causing the server to treat it as a new transfer. 2. The debit and credit are not in a single database transaction, so the first debit (which is committed) remains active while the credit fails due to timeout.",
+      "reason": "Both root causes (missing idempotency key and lack of single DB transaction) are clearly stated."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress",
+      "reason": "The analysis states the status is In Progress, the assignee is Priya Nair, and PR #218 is waiting for code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Aroha Walker: Requested Finance to reverse the duplicate debits. - Requested Marcus to escalate to Finance Ops.",
+      "reason": "The analysis mentions the Finance reversal and Marcus being asked to escalate to Finance Ops, but does not specify that three customers are affected."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Escalate to Finance Ops to reverse the duplicate debits for affected customers.",
+      "reason": "The analysis implies the reversal hasn't been completed by listing it as a next action, but does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Complete PR #218 (wrap debit/credit in a single transaction with idempotency key). Ensure code review is completed before merging.",
+      "reason": "The analysis lists getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and waiting for code review, using future tense ('will be reviewed and merged') rather than claiming it has been merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug does not reproduce on desktop web, consistent with Tom Becker's confirmation."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Tom Becker (Staging Team)",
+      "reason": "The ticket does not identify Tom Becker's team or role; he simply commented confirming the bug on staging."
+    },
+    {
+      "quote": "Aroha Walker (Finance)",
+      "reason": "The ticket does not identify Aroha Walker as being in Finance; she raised the priority and asked Marcus to contact Finance Ops, suggesting a PM or product-owner role rather than a Finance role."
+    },
+    {
+      "quote": "Verify that the fix works on 3.1.4 staging and desktop web.",
+      "reason": "The fix is targeted at version 3.2.0, not 3.1.4; verifying a 3.2.0 fix on 3.1.4 staging is incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 232.97
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A bug in the mobile web transfer functionality where a customer's $250 transfer is being debited twice and credited only once after a timeout. The issue occurs when the transfer request times out and the user taps \"Retry,\" leading to a duplicate debit.",
+        "reason": "The analysis clearly states that retrying after the timeout results in two debits and one credit.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects: Version 3.1.4 (fixing for 3.2.0)",
+        "reason": "The analysis states the affected version is 3.1.4, the fix targets 3.2.0, and the release date is 2026-09-24.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The retry action does not include an idempotency key, causing the server to treat it as a new transfer. 2. The debit and credit are not in a single database transaction, so the first debit (which is committed) remains active while the credit fails due to timeout.",
+        "reason": "Both root causes (missing idempotency key and lack of single DB transaction) are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress",
+        "reason": "The analysis states the status is In Progress, the assignee is Priya Nair, and PR #218 is waiting for code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Aroha Walker: Requested Finance to reverse the duplicate debits. - Requested Marcus to escalate to Finance Ops.",
+        "reason": "The analysis mentions the Finance reversal and Marcus being asked to escalate to Finance Ops, but does not specify that three customers are affected.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Escalate to Finance Ops to reverse the duplicate debits for affected customers.",
+        "reason": "The analysis implies the reversal hasn't been completed by listing it as a next action, but does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Complete PR #218 (wrap debit/credit in a single transaction with idempotency key). Ensure code review is completed before merging.",
+        "reason": "The analysis lists getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops as next actions.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and waiting for code review, using future tense ('will be reviewed and merged') rather than claiming it has been merged or deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the bug does not reproduce on desktop web, consistent with Tom Becker's confirmation.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Tom Becker (Staging Team)",
+        "reason": "The ticket does not identify Tom Becker's team or role; he simply commented confirming the bug on staging."
+      },
+      {
+        "quote": "Aroha Walker (Finance)",
+        "reason": "The ticket does not identify Aroha Walker as being in Finance; she raised the priority and asked Marcus to contact Finance Ops, suggesting a PM or product-owner role rather than a Finance role."
+      },
+      {
+        "quote": "Verify that the fix works on 3.1.4 staging and desktop web.",
+        "reason": "The fix is targeted at version 3.2.0, not 3.1.4; verifying a 3.2.0 fix on 3.1.4 staging is incorrect."
+      }
+    ]
+  }
+}

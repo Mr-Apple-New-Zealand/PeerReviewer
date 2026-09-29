@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the config deploy OPS-81 occurred at 09:30 or that impact/errors started at approximately 09:31; the timeline begins at the 09:47 alert."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **09:47** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike |\n| **09:52** | Incident declared | Sam Okafor | Alert confirmed; transfer error rate at 64% |",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated in the timeline."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **10:31** | Sam Okafor rolls back the config deploy (OPS-81) | Sam Okafor | Prevents further propagation of the issue |\n| **10:42** | Rollback completes; transfer error rate drops below 1% | Sam Okafor | System stabilizes |\n| **10:50** | Incident resolved; root cause confirmed | Sam Okafor | Final resolution: key mismatch |",
+      "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**Time to Detect:** **~15 minutes**\n  - **Detection:** 09:47 (monitoring alert)\n  - **First Observation:** 09:52 (incident declared)\n  - **Time to Identify Root Cause:** 10:10 (after confirming the issue is API-level, not DB)\n  - **Total:** From 09:47 to 10:10 = **23 minutes**",
+      "reason": "The analysis does not calculate time to detect as 16 minutes from 09:31 to 09:47; it gives an unsupported ~15 minutes and a 23-minute figure from 09:47 to 10:10."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**Time to Recover:** **~15 minutes**\n  - **Rollback completed:** 10:42\n  - **System back to normal:** 10:42\n  - **Total:** From 10:42 to 10:50 = **8 minutes**",
+      "reason": "The analysis states ~15 minutes (unsupported) and 8 minutes (10:42 to 10:50), neither of which matches the acceptable values of 71, 55, or 79 minutes with a stated start point."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause of the incident was a **misconfiguration in the config deploy OPS-81**, which **rotated the JWT signing key in the Auth service** but **did not update the validation logic in the Transactions API**. As a result, the Transactions API continued to validate against the **old key**, causing **401 errors** (\"IDX10503: Signature validation failed\") for all users.",
+      "reason": "All key elements are present: OPS-81, JWT key rotation in Auth, Transactions API not updated, 401 errors with IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review: Scheduled for **2026-09-16** as indicated in the ticket.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rules out the database as the cause, attributing the slow-queries observation to Priya and noting Sam's rejection of it."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "**Time to Detect:** **~15 minutes**",
+      "reason": "No pair of timestamps in the ticket yields 15 minutes for either time to detect or time to recover; the stated ~15 minutes for both metrics is unsupported."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Resolved:** 2026-09-11 10:44",
+      "reason": "The ticket shows the resolution comment at 10:50 and the Updated field as 10:50; 10:44 was when the rollback completed, not when the incident was resolved."
+    },
+    {
+      "quote": "**Time to Identify Root Cause:** 10:10 (after confirming the issue is API-level, not DB)",
+      "reason": "Sam's explanation of the 401 errors and the key rotation (the actual root-cause identification) was posted at 10:24, not 10:10; at 10:10 Priya was asking about the database."
+    },
+    {
+      "quote": "| **10:10** | Sam Okafor confirms database is healthy | Sam Okafor | Rules out DB as root cause |",
+      "reason": "The 'database is healthy' statement was made by Sam at 10:24, not 10:10; at 10:10 Priya Nair was the one commenting about slow queries."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 139.95
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "",
+        "reason": "The analysis never states that the config deploy OPS-81 occurred at 09:30 or that impact/errors started at approximately 09:31; the timeline begins at the 09:47 alert.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "| **09:47** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike |\n| **09:52** | Incident declared | Sam Okafor | Alert confirmed; transfer error rate at 64% |",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are clearly stated in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "| **10:31** | Sam Okafor rolls back the config deploy (OPS-81) | Sam Okafor | Prevents further propagation of the issue |\n| **10:42** | Rollback completes; transfer error rate drops below 1% | Sam Okafor | System stabilizes |\n| **10:50** | Incident resolved; root cause confirmed | Sam Okafor | Final resolution: key mismatch |",
+        "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**Time to Detect:** **~15 minutes**\n  - **Detection:** 09:47 (monitoring alert)\n  - **First Observation:** 09:52 (incident declared)\n  - **Time to Identify Root Cause:** 10:10 (after confirming the issue is API-level, not DB)\n  - **Total:** From 09:47 to 10:10 = **23 minutes**",
+        "reason": "The analysis does not calculate time to detect as 16 minutes from 09:31 to 09:47; it gives an unsupported ~15 minutes and a 23-minute figure from 09:47 to 10:10.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "**Time to Recover:** **~15 minutes**\n  - **Rollback completed:** 10:42\n  - **System back to normal:** 10:42\n  - **Total:** From 10:42 to 10:50 = **8 minutes**",
+        "reason": "The analysis states ~15 minutes (unsupported) and 8 minutes (10:42 to 10:50), neither of which matches the acceptable values of 71, 55, or 79 minutes with a stated start point.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the incident was a **misconfiguration in the config deploy OPS-81**, which **rotated the JWT signing key in the Auth service** but **did not update the validation logic in the Transactions API**. As a result, the Transactions API continued to validate against the **old key**, causing **401 errors** (\"IDX10503: Signature validation failed\") for all users.",
+        "reason": "All key elements are present: OPS-81, JWT key rotation in Auth, Transactions API not updated, 401 errors with IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review: Scheduled for **2026-09-16** as indicated in the ticket.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rules out the database as the cause, attributing the slow-queries observation to Priya and noting Sam's rejection of it.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "**Time to Detect:** **~15 minutes**",
+        "reason": "No pair of timestamps in the ticket yields 15 minutes for either time to detect or time to recover; the stated ~15 minutes for both metrics is unsupported.",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Resolved:** 2026-09-11 10:44",
+        "reason": "The ticket shows the resolution comment at 10:50 and the Updated field as 10:50; 10:44 was when the rollback completed, not when the incident was resolved."
+      },
+      {
+        "quote": "**Time to Identify Root Cause:** 10:10 (after confirming the issue is API-level, not DB)",
+        "reason": "Sam's explanation of the 401 errors and the key rotation (the actual root-cause identification) was posted at 10:24, not 10:10; at 10:10 Priya was asking about the database."
+      },
+      {
+        "quote": "| **10:10** | Sam Okafor confirms database is healthy | Sam Okafor | Rules out DB as root cause |",
+        "reason": "The 'database is healthy' statement was made by Sam at 10:24, not 10:10; at 10:10 Priya Nair was the one commenting about slow queries."
+      }
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Yes \u2014 BANK-425 and BANK-440 are duplicates\n- Both describe the **same core issue**: balance not updating after a transfer.\n- Both are **about the same UI component** (dashboard/home screen).\n- Both are **in the same version** (3.1.4).",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Merge BANK-425 and BANK-440 into a **single ticket** (e.g., **BANK-440**) to avoid duplication.\n- **Keep MOB-88** as a separate ticket.\n- **Keep BANK-419** as a separate ticket (it's a task, not a bug).",
+      "reason": "The analysis recommends merging the two duplicates into one ticket (keeping BANK-440), which satisfies the 'keep one and close the other' requirement; the key allows either direction as long as the tickets are linked and the analysis is preserved, and Hana Sato's root-cause comment is referenced in the BANK-425 section."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is **a separate issue** \u2014 it's about **notifications**, not the dashboard balance.\n- **No direct link to BANK-440 or BANK-425**.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event before debit), and notes its In Progress status, though it does not name Ravi Kumar explicitly in the recommendation."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Hana Sato identifies that the balance is cached in local storage for 15 minutes and that **the cache should be cleared after a transfer**.",
+      "reason": "The analysis correctly identifies the 15-minute local-storage cache as the root cause and clearing it after a transfer as the fix, matching the expected point."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that BANK-419 introduced the bug as a regression; it frames BANK-419 as a task about caching that is 'not a duplicate' and 'already resolved,' without suggesting it caused the stale-balance issue or recommending it be linked."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned; it only reports status, priority, and description details."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a separate issue and should not be merged, never calling it a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'The API returns the correct balance immediately after the transfer,' consistent with the ticket, and never claims the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 193.52
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Yes \u2014 BANK-425 and BANK-440 are duplicates\n- Both describe the **same core issue**: balance not updating after a transfer.\n- Both are **about the same UI component** (dashboard/home screen).\n- Both are **in the same version** (3.1.4).",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Merge BANK-425 and BANK-440 into a **single ticket** (e.g., **BANK-440**) to avoid duplication.\n- **Keep MOB-88** as a separate ticket.\n- **Keep BANK-419** as a separate ticket (it's a task, not a bug).",
+        "reason": "The analysis recommends merging the two duplicates into one ticket (keeping BANK-440), which satisfies the 'keep one and close the other' requirement; the key allows either direction as long as the tickets are linked and the analysis is preserved, and Hana Sato's root-cause comment is referenced in the BANK-425 section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "This is **a separate issue** \u2014 it's about **notifications**, not the dashboard balance.\n- **No direct link to BANK-440 or BANK-425**.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event before debit), and notes its In Progress status, though it does not name Ravi Kumar explicitly in the recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato identifies that the balance is cached in local storage for 15 minutes and that **the cache should be cleared after a transfer**.",
+        "reason": "The analysis correctly identifies the 15-minute local-storage cache as the root cause and clearing it after a transfer as the fix, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that BANK-419 introduced the bug as a regression; it frames BANK-419 as a task about caching that is 'not a duplicate' and 'already resolved,' without suggesting it caused the stale-balance issue or recommending it be linked.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never mentions that either BANK-440 or BANK-425 is unassigned; it only reports status, priority, and description details.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a separate issue and should not be merged, never calling it a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'The API returns the correct balance immediately after the transfer,' consistent with the ticket, and never claims the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "| **09:30** | Config deploy (OPS-81) rotates JWT signing key for Auth service | Sam Okafor | Deployment of new JWT key in Auth service. |\n| **09:31** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike. |",
+      "reason": "The 09:30 deploy is correct and the 09:31 entry with 'Dashboard shows error rate spike' conveys impact started, but the action is mislabelled as 'Monitoring alert triggered' when the alert actually fired at 09:47."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The 09:47 alert is present in the timeline, but the incident declaration at 09:52 is never mentioned."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **10:31** | Sam Okafor rolls back the config deploy (OPS-81) | Sam Okafor | Rollback initiated to fix key mismatch. |\n| **10:42** | Rollback complete; transfer error rate < 1% | Sam Okafor | Error rate returns to normal. |\n| **10:50** | Incident resolved; root cause identified | Sam Okafor | Root cause: key rotation without update. |",
+      "reason": "All three events (rollback at 10:31, recovery below 1% at 10:42, resolution at 10:50) are correctly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Time to Detect**: **~15 minutes**\n  - **Detection**: 09:47 (alert triggered)\n  - **Observation**: 10:05 (support queue spike)\n  - **Root Cause Identified**: 10:31 (rollback initiated)\n  - **Conclusion**: The issue was detected within **15 minutes** of the alert being triggered",
+      "reason": "The correct TDD is 16 minutes (09:31 to 09:47); the analysis states 15 minutes and the explanation conflates detection with post-alert observation."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Time to Recover**: **~15 minutes**\n  - **Action**: Rollback of config deploy (OPS-81)\n  - **Result**: Error rate dropped below 1% by 10:42\n  - **Recovery**: 10:42 (after rollback)\n\n> **TTR = 15 minutes**",
+      "reason": "The correct TTR is 71 minutes (09:31\u219210:42) or 55 minutes (09:47\u219210:42); the analysis states 15 minutes, which does not correspond to any valid start-to-recovery interval."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Primary Cause**: The JWT signing key was rotated in a config deploy (OPS-81) **without updating the validation key** in the Transactions API.\n- **Impact**: The Transactions API still validates against the **old key**, resulting in **\"Signature validation failed\"** errors (IDX10503).",
+      "reason": "All key elements are present: OPS-81, JWT signing key rotation, Auth service, Transactions API validation key not updated, 401/IDX10503 error."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is correctly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow queries are mentioned only as Priya's suggestion at 10:10 and Sam's ruling-out at 10:24; they are never named as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "> **TDD = 15 minutes**\n\n---\n\n### **Time to Recover (TTR)**\n\n- **Time to Recover**: **~15 minutes**",
+      "reason": "15 minutes does not correspond to any pair of timestamps in the ticket (closest valid TDD is 16 min; valid TTR values are 71 or 55 min)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Resolved on**: 2026-09-11 10:42.",
+      "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment); 10:42 is when the error rate recovered, not when the incident was formally resolved."
+    },
+    {
+      "quote": "**No downtime**: The incident was resolved within 15 minutes of detection.",
+      "reason": "The incident lasted from 09:31 (impact) to 10:42 (recovery) or 10:50 (resolution), far exceeding 15 minutes from detection (09:47). Transfers were failing for ~71 minutes."
+    },
+    {
+      "quote": "| **09:31** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike. |",
+      "reason": "The ticket states the monitoring alert fired at 09:47; at 09:31 the dashboards showed errors starting, but no alert was triggered."
+    },
+    {
+      "quote": "**No impact on other systems**: The Auth service was updated, but the Transactions API remained vulnerable.",
+      "reason": "The ticket does not state that there was 'no impact on other systems' or describe the Transactions API as 'vulnerable'; this is an unsupported characterization."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 195.91
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "| **09:30** | Config deploy (OPS-81) rotates JWT signing key for Auth service | Sam Okafor | Deployment of new JWT key in Auth service. |\n| **09:31** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike. |",
+        "reason": "The 09:30 deploy is correct and the 09:31 entry with 'Dashboard shows error rate spike' conveys impact started, but the action is mislabelled as 'Monitoring alert triggered' when the alert actually fired at 09:47.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "",
+        "reason": "The 09:47 alert is present in the timeline, but the incident declaration at 09:52 is never mentioned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "| **10:31** | Sam Okafor rolls back the config deploy (OPS-81) | Sam Okafor | Rollback initiated to fix key mismatch. |\n| **10:42** | Rollback complete; transfer error rate < 1% | Sam Okafor | Error rate returns to normal. |\n| **10:50** | Incident resolved; root cause identified | Sam Okafor | Root cause: key rotation without update. |",
+        "reason": "All three events (rollback at 10:31, recovery below 1% at 10:42, resolution at 10:50) are correctly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**Time to Detect**: **~15 minutes**\n  - **Detection**: 09:47 (alert triggered)\n  - **Observation**: 10:05 (support queue spike)\n  - **Root Cause Identified**: 10:31 (rollback initiated)\n  - **Conclusion**: The issue was detected within **15 minutes** of the alert being triggered",
+        "reason": "The correct TDD is 16 minutes (09:31 to 09:47); the analysis states 15 minutes and the explanation conflates detection with post-alert observation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "**Time to Recover**: **~15 minutes**\n  - **Action**: Rollback of config deploy (OPS-81)\n  - **Result**: Error rate dropped below 1% by 10:42\n  - **Recovery**: 10:42 (after rollback)\n\n> **TTR = 15 minutes**",
+        "reason": "The correct TTR is 71 minutes (09:31\u219210:42) or 55 minutes (09:47\u219210:42); the analysis states 15 minutes, which does not correspond to any valid start-to-recovery interval.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "**Primary Cause**: The JWT signing key was rotated in a config deploy (OPS-81) **without updating the validation key** in the Transactions API.\n- **Impact**: The Transactions API still validates against the **old key**, resulting in **\"Signature validation failed\"** errors (IDX10503).",
+        "reason": "All key elements are present: OPS-81, JWT signing key rotation, Auth service, Transactions API validation key not updated, 401/IDX10503 error.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "**Post-incident review**: Scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is correctly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database/slow queries are mentioned only as Priya's suggestion at 10:10 and Sam's ruling-out at 10:24; they are never named as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "> **TDD = 15 minutes**\n\n---\n\n### **Time to Recover (TTR)**\n\n- **Time to Recover**: **~15 minutes**",
+        "reason": "15 minutes does not correspond to any pair of timestamps in the ticket (closest valid TDD is 16 min; valid TTR values are 71 or 55 min).",
+        "verdict": "violated"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Resolved on**: 2026-09-11 10:42.",
+        "reason": "The ticket shows the incident was resolved at 10:50 (Sam's 'Resolving' comment); 10:42 is when the error rate recovered, not when the incident was formally resolved."
+      },
+      {
+        "quote": "**No downtime**: The incident was resolved within 15 minutes of detection.",
+        "reason": "The incident lasted from 09:31 (impact) to 10:42 (recovery) or 10:50 (resolution), far exceeding 15 minutes from detection (09:47). Transfers were failing for ~71 minutes."
+      },
+      {
+        "quote": "| **09:31** | Monitoring alert triggered: TransferErrorRate > 20% | Sam Okafor | Dashboard shows error rate spike. |",
+        "reason": "The ticket states the monitoring alert fired at 09:47; at 09:31 the dashboards showed errors starting, but no alert was triggered."
+      },
+      {
+        "quote": "**No impact on other systems**: The Auth service was updated, but the Transactions API remained vulnerable.",
+        "reason": "The ticket does not state that there was 'no impact on other systems' or describe the Transactions API as 'vulnerable'; this is an unsupported characterization."
+      }
+    ]
+  }
+}

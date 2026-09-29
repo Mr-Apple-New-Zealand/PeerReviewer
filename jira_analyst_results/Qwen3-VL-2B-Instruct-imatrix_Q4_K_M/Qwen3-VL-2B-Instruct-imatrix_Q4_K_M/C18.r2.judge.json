@@ -1,0 +1,275 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis separates the four TypeErrors (Group 1) from BANKUI-3C8 (Group 2) and never identifies them as sharing a single cause (401 session rejection), nor does it note that each TypeError is preceded by 401 responses."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "312 + 289 + 104 + 97 = **702 events**, affecting **41+ users**.",
+      "reason": "The analysis does not state that user counts cannot be summed, does not cite the export's caveat, and does not identify 44 (BANKUI-3C8) as the best single estimate of reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-5D6 | ChunkLoadError: Loading chunk 6728 failed. (error: https://bank-uat.example.com/6728.b4f17ce620a8d539.js) | `/payments/batch/actions` | error | unresolved | 63 | 58 | 2026-09-10 21:11:36 | 2026-09-12 19:44:02",
+      "reason": "The analysis lists the 58 users and 63 events in the table but never states that 58 is the highest user count in the list or that by user impact it is the top item despite being nearly the quietest by events."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "First Seen: 2026-09-10\n- **Last Seen:** 2026-09-12\n- **Mechanism:** `ChunkLoadError` \u2014 loading chunk 6728 failed\n- **Cause:** The bundle `6728.b4f17ce620a8d539.js` is **not found** (404)\n- **Note:** This is a **bundle loading issue**, possibly due to **missing or corrupted assets**.",
+      "reason": "The analysis notes the 404 and a deployment issue but does not connect the first-seen time (21:11:36) to the 4.7.0 deploy (21:05:00) or explain the stale-session/hashed-bundle mechanism."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a **browser extension** issue \u2014 **not** a defect in the `bank-ui` app.\n- **Status:** unresolved \u2014 likely due to **browser extension misconfiguration**.",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine (4,812 events, 1 user, chrome-extension culprit) and says it is not a defect in the application."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "2. **BANKUI-3C8**  \n   - **Why?** High number of events (5,140), affects **44 users**.\n   - **Root Cause:** Server-side API returning 401.\n   - **Action:** Investigate **API backend** \u2014 **not** a UI defect.\n   - **Priority:** High \u2014 **urgent**.",
+      "reason": "The analysis does not state that event count is a misleading ranking metric; in fact it uses the 5,140 event count as justification for high priority on BANKUI-3C8, contradicting the point that the two largest counts are not the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-1A7 is **resolved** and was fixed in **4.6.0**, so it's not a current defect.",
+      "reason": "The analysis treats BANKUI-1A7 as resolved and not a current defect, completely missing that it was last seen on 2026-09-11 (after 4.7.0 deployed on 2026-09-10), indicating regression."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Source maps are not uploaded \u2014 this is a **known issue**.",
+      "reason": "The analysis mentions source maps are not uploaded but does not explain that this means every lastFrame is a minified name and that none of the issues can be traced to a specific component from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that total affected users cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the 401s represent sessions expiring without the app handling the rejection; it instead attributes the TypeErrors to 'missing or invalid data' and the 401 to a 'server-side API failure,' never connecting them as a session-expiration pattern."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. **BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3**  \n   - **Why?** These are **high-impact, frequent, and affect multiple users**.\n   - **Root Cause:** Angular error handler accessing undefined properties.\n   - **Action:** Fix the **data flow** in the `payments/batch/actions` and `settlements/run` components.\n   - **Priority:** High \u2014 **urgent**.",
+      "reason": "The analysis prioritises the four TypeErrors first and BANKUI-5D6 third (Medium), the opposite of the expected order (5D6 first for user impact, then the 401 cluster as one fix closing five issues); it also does not mention reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-2F0 at Low priority and explicitly identifies it as a browser extension issue, not treating its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors together under a shared cause (Angular error handler / undefined property access) and does not assign them separate causes or separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis says '41+ users' for Group 1 without explicitly summing the distinct-user counts across issues; it does not report 188 or 279."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7 is **resolved** and was fixed in **4.6.0**, so it's not a current defect.",
+      "reason": "The analysis explicitly states BANKUI-1A7 is fixed/resolved and needs no action, ignoring the evidence of regression (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10)."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issue as a 'server-side API failure' or 'server-side issue,' not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-5D6 in its own 'Group 3: Chunk Load Errors' and treats BANKUI-1A7 separately as resolved; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This is **not** a defect in the UI or client code \u2014 it's a **server-side API failure**.",
+      "reason": "The tickets show the 401 is logged by the app's own console error handler and the breadcrumbs show 401 responses from multiple API endpoints; the tickets give no basis for concluding this is a 'server-side API failure' rather than, e.g., expired client-side auth tokens. The analysis states this as fact, not as an inference."
+    },
+    {
+      "quote": "Status: unresolved \u2014 likely due to **API backend issues**.",
+      "reason": "The tickets do not identify the 401s as caused by API backend issues; the breadcrumbs show 401 responses from different endpoints which is more consistent with session/token expiration. While 'likely' hedges it, the specific attribution to 'API backend issues' has no basis in the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 308.1
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "",
+        "reason": "The analysis separates the four TypeErrors (Group 1) from BANKUI-3C8 (Group 2) and never identifies them as sharing a single cause (401 session rejection), nor does it note that each TypeError is preceded by 401 responses.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "312 + 289 + 104 + 97 = **702 events**, affecting **41+ users**.",
+        "reason": "The analysis does not state that user counts cannot be summed, does not cite the export's caveat, and does not identify 44 (BANKUI-3C8) as the best single estimate of reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6 | ChunkLoadError: Loading chunk 6728 failed. (error: https://bank-uat.example.com/6728.b4f17ce620a8d539.js) | `/payments/batch/actions` | error | unresolved | 63 | 58 | 2026-09-10 21:11:36 | 2026-09-12 19:44:02",
+        "reason": "The analysis lists the 58 users and 63 events in the table but never states that 58 is the highest user count in the list or that by user impact it is the top item despite being nearly the quietest by events.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "First Seen: 2026-09-10\n- **Last Seen:** 2026-09-12\n- **Mechanism:** `ChunkLoadError` \u2014 loading chunk 6728 failed\n- **Cause:** The bundle `6728.b4f17ce620a8d539.js` is **not found** (404)\n- **Note:** This is a **bundle loading issue**, possibly due to **missing or corrupted assets**.",
+        "reason": "The analysis notes the 404 and a deployment issue but does not connect the first-seen time (21:11:36) to the 4.7.0 deploy (21:05:00) or explain the stale-session/hashed-bundle mechanism.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "This is a **browser extension** issue \u2014 **not** a defect in the `bank-ui` app.\n- **Status:** unresolved \u2014 likely due to **browser extension misconfiguration**.",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine (4,812 events, 1 user, chrome-extension culprit) and says it is not a defect in the application.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "2. **BANKUI-3C8**  \n   - **Why?** High number of events (5,140), affects **44 users**.\n   - **Root Cause:** Server-side API returning 401.\n   - **Action:** Investigate **API backend** \u2014 **not** a UI defect.\n   - **Priority:** High \u2014 **urgent**.",
+        "reason": "The analysis does not state that event count is a misleading ranking metric; in fact it uses the 5,140 event count as justification for high priority on BANKUI-3C8, contradicting the point that the two largest counts are not the most valuable to fix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 is **resolved** and was fixed in **4.6.0**, so it's not a current defect.",
+        "reason": "The analysis treats BANKUI-1A7 as resolved and not a current defect, completely missing that it was last seen on 2026-09-11 (after 4.7.0 deployed on 2026-09-10), indicating regression.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded \u2014 this is a **known issue**.",
+        "reason": "The analysis mentions source maps are not uploaded but does not explain that this means every lastFrame is a minified name and that none of the issues can be traced to a specific component from this export alone.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that total affected users cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the 401s represent sessions expiring without the app handling the rejection; it instead attributes the TypeErrors to 'missing or invalid data' and the 401 to a 'server-side API failure,' never connecting them as a session-expiration pattern.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. **BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3**  \n   - **Why?** These are **high-impact, frequent, and affect multiple users**.\n   - **Root Cause:** Angular error handler accessing undefined properties.\n   - **Action:** Fix the **data flow** in the `payments/batch/actions` and `settlements/run` components.\n   - **Priority:** High \u2014 **urgent**.",
+        "reason": "The analysis prioritises the four TypeErrors first and BANKUI-5D6 third (Medium), the opposite of the expected order (5D6 first for user impact, then the 401 cluster as one fix closing five issues); it also does not mention reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis places BANKUI-2F0 at Low priority and explicitly identifies it as a browser extension issue, not treating its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors together under a shared cause (Angular error handler / undefined property access) and does not assign them separate causes or separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis says '41+ users' for Group 1 without explicitly summing the distinct-user counts across issues; it does not report 188 or 279.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7 is **resolved** and was fixed in **4.6.0**, so it's not a current defect.",
+        "reason": "The analysis explicitly states BANKUI-1A7 is fixed/resolved and needs no action, ignoring the evidence of regression (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10).",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issue as a 'server-side API failure' or 'server-side issue,' not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis places BANKUI-5D6 in its own 'Group 3: Chunk Load Errors' and treats BANKUI-1A7 separately as resolved; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This is **not** a defect in the UI or client code \u2014 it's a **server-side API failure**.",
+        "reason": "The tickets show the 401 is logged by the app's own console error handler and the breadcrumbs show 401 responses from multiple API endpoints; the tickets give no basis for concluding this is a 'server-side API failure' rather than, e.g., expired client-side auth tokens. The analysis states this as fact, not as an inference."
+      },
+      {
+        "quote": "Status: unresolved \u2014 likely due to **API backend issues**.",
+        "reason": "The tickets do not identify the 401s as caused by API backend issues; the breadcrumbs show 401 responses from different endpoints which is more consistent with session/token expiration. While 'likely' hedges it, the specific attribution to 'API backend issues' has no basis in the ticket data."
+      }
+    ]
+  }
+}
