@@ -48,6 +48,14 @@ cache does not grow with context the way the others do, and the real figure will
 be well below what a naive calculation gives. It needs measuring by loading the
 model and reading `/api/ps`.
 
+Confirmed from `ollama show` on 2026-09-29: architecture `gemma4`, 30.7B
+parameters, **context length 262144** — so no benchmark setting will come near its
+trained window. Its capabilities are `completion`, `tools` and `thinking`, and
+**not `vision`**. That is fine for the judge role, which never receives images, but
+as an analyst it would score 0 on C11, C12 and C13 — 35 of 195 checkpoints. Adding
+vision would mean rebuilding with the mmproj projector as a second `FROM` line, the
+way the Qwen3-VL Modelfiles do.
+
 ### What the numbers show
 
 **The KV cache, not the weights, decides what fits.** `Muse-Glimmer-30B` and
