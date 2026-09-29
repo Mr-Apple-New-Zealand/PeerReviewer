@@ -2,17 +2,53 @@
 # https://huggingface.co/Qwen/Qwen3.6-27B
 #
 # ############################################################################
-#   ollama create Qwen3.6-27B:Q4_K_S -f Modelfile.Qwen3.6-27B
+#   ollama create Qwen3.6-27B-VL:Q4_K_S -f Modelfile.Qwen3.6-27B
 #
-# CONFIRM THE FROM PATH BEFORE RUNNING THAT. The other text-model Modelfiles
-# here import from Ollama blob paths (/san/models/blobs/sha256-...) because
-# they were re-imported from existing tags. docs/CONFIG_SETTINGS.md records the
-# source as Qwen3.6-27B-f16:Q4_K_S.gguf - note there is no "-imatrix" in that
-# name, unlike its 3.8 sibling, which is why the tag is Qwen3.6-27B:Q4_K_S and
-# not ...-imatrix:Q4_K_S. Check before trusting the path:
+# The tag carries -VL because this build has the vision projector and the
+# existing `Qwen3.6-27B:Q4_K_S` does not. Keeping them apart means the earlier
+# judge-calibration result stays attributable to the build that produced it.
+# Note there is no "-imatrix" in either name: docs/CONFIG_SETTINGS.md records
+# the source as Qwen3.6-27B-f16:Q4_K_S.gguf, a plain quant, unlike its 3.8
+# sibling.
+#
+# THIS MODEL IS A VISION-LANGUAGE MODEL. The card calls it "a Causal Language
+# Model with Vision Encoder", with an Image-Text-to-Text pipeline type and
+# documented image and video input. An earlier version of this file treated it
+# as text-only and shipped a single FROM line; that was wrong, and a
+# single-FROM import is exactly how Gemma-4-31B came to have no 'vision'
+# capability.
+#
+# BOTH FROM lines are required. The first is the language model only: imported
+# alone it produces a text-only model. The second is the vision projector,
+# left at F16 and NOT quantized.
+#
+# CREATING THE mmproj FILE. It does not exist until you extract it from the
+# HuggingFace checkout - quantizing the language model does not produce one:
+#
+#   cd /san/geoff/Qwen2.5-VL/llama.cpp
+#   python convert_hf_to_gguf.py Qwen3.6-27B --mmproj --outtype f16
+#
+# That writes an mmproj-*.gguf beside the checkout. CHECK THE CASING IT EMITS -
+# the fleet disagrees with itself, and this is a different model family again:
+#
+#   find /san/geoff -iname '*mmproj*Qwen3.6*.gguf'
+#
+# Correct the second FROM below to whatever that prints. Leave it at F16:
+# quantizing the projector is not worth the 1-2 GB and degrades OCR of the
+# small UI text that cases C11, C12 and C13 turn on.
+#
+# CONFIRM THE FIRST FROM PATH TOO. The other text-model Modelfiles here import
+# from Ollama blob paths (/san/models/blobs/sha256-...) because they were
+# re-imported from existing tags:
 #   find /san -name 'Qwen3.6-27B-f16:Q4_K_S.gguf' 2>/dev/null
+#
+# AFTER CREATING: `ollama show` must list BOTH 'vision' and 'thinking'. Vision
+# missing means the projector did not import - the whole point of the second
+# line. Then have it read a test screenshot before benchmarking: the capability
+# list proves the projector loaded, not that it sees.
 # ############################################################################
 FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3.6-27B-f16:Q4_K_S.gguf
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3.6-27B/mmproj-Qwen3.6-27B-F16.gguf
 
 # --- WHY THIS MODEL WAS REJECTED AS THE JUDGE, AND THE CARD EXPLAINS IT -------
 # Tried as the judge for the ticket-analyst benchmark and dropped: it produced
@@ -54,10 +90,16 @@ FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3.6-27B-f16:Q4_K_S.gguf
 #     num_ctx 49152 -> 3.00 GiB   (uniform assumption gives 12.0 GiB)
 #     num_ctx 65536 -> 4.00 GiB   (uniform assumption gives 16.0 GiB)
 #
-# So expect roughly 20 GB resident at 64k, not 33.3. This card is the source
-# for the block pattern quoted in Modelfile.Qwen3.8-27B as well, since the 3.8
-# card gives head counts but not the arrangement. Confirm with
-# scripts/gguf_info.py and /api/ps before quoting a figure.
+# So expect roughly 20 GB resident at 64k from weights and cache, not 33.3.
+# This card is the source for the block pattern quoted in
+# Modelfile.Qwen3.8-27B as well, since the 3.8 card gives head counts but not
+# the arrangement. Confirm with scripts/gguf_info.py and /api/ps before quoting
+# a figure.
+#
+# ADD THE VISION ENCODER ON TOP OF THAT. The card does not state its parameter
+# count, so it cannot be estimated here the way Gemma-4's ~550M (~1.1 GB) and
+# Muse-Glimmer's ~1.8B ViT-G/14 (~3.6 GB) could. Read the size of the
+# mmproj-*.gguf produced above - at F16 the file size IS the figure to add.
 PARAMETER num_ctx 65536
 
 # --- Samplers: the card's THINKING-mode general row ---------------------------
