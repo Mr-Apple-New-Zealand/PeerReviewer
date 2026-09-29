@@ -1,0 +1,105 @@
+# Qwen3.8-27B, realigned to the model card.
+# https://huggingface.co/Qwen/Qwen3.8-27B
+#
+# ############################################################################
+# THIS IS THE JUDGE OF RECORD. Fifteen models on the ticket-analyst board were
+# scored by this tag, and their scores are only reproducible while it can be
+# rebuilt identically. Until now nothing recorded how it was built: its
+# required settings lived only in JUDGE_DEFAULTS in scripts/jira_benchmark.py
+# and in prose in docs/TICKET_ANALYST_RESULTS.md. This file closes that gap.
+#
+#   ollama create Qwen3.8-27B-imatrix:Q4_K_S -f Modelfile.Qwen3.8-27B
+#
+# CONFIRM THE FROM PATH BEFORE RUNNING THAT. The other text-model Modelfiles in
+# this directory import from Ollama blob paths (/san/models/blobs/sha256-...),
+# because they were re-imported from tags that already existed. The path below
+# follows the imatrix-quant convention used by the VL fleet instead, since the
+# filename matches that pattern exactly. Check before trusting it:
+#   find /san -name 'Qwen3.8-27B-f16-imatrix:Q4_K_S.gguf' 2>/dev/null
+# ############################################################################
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3.8-27B-f16-imatrix:Q4_K_S.gguf
+
+# --- Judge settings: WHAT THE HARNESS SENDS, AND WHY -------------------------
+# When this model is the judge, scripts/jira_benchmark.py overrides everything
+# below. Recorded here so the two cannot drift apart:
+#
+#   temperature   0        hardcoded in the judge call, not configurable
+#   num_predict   40960    from JUDGE_DEFAULTS
+#   think         medium   from JUDGE_DEFAULTS
+#
+# THE 'think medium' IS NOT OPTIONAL, AND THE CARD EXPLAINS WHY. Qwen3.8-27B
+# "will think by default", and its reasoning_effort levels are xhigh (THE
+# DEFAULT), medium and low. Left alone it reasons at xhigh, exhausts the
+# budget, and returns empty content with the text stranded in message.thinking
+# - the failure that made the harness need a judge smoke test. At medium it
+# still reasons, which is why num_predict is 40960 rather than something
+# smaller.
+#
+# That run is the only local judge measured as agreeing with Sonnet: +1.0 on
+# the 13 cases both graded, 1 ungrounded and 0 omitted verdicts in 54 calls,
+# and no retries needed. Its ungrounded count has since drifted to 3 and then 6
+# on later runs - still under 1.5% of 423 checkpoints, but worth watching.
+
+# --- Context and output -------------------------------------------------------
+# The card gives 262,144 natively, extensible to ~1M with YaRN rope scaling.
+# Nothing here needs either. 65536 matches the scorer benchmark's sampler table
+# so this model is settings-matched with the rest of that fleet.
+#
+# MEMORY: docs/CONFIG_SETTINGS.md OVERSTATES THIS MODEL BY ABOUT 13 GB, and the
+# card shows why. That table lists 33.3 GB resident at 64k - 15.8 GB of weights
+# plus ~17.5 GB of KV - computed with the fleet's uniform formula, which assumes
+# every layer holds a context-length cache. This model is hybrid and most layers
+# do not. From the card:
+#
+#   64 layers, arranged 16 x (3 x Gated DeltaNet -> 1 x Gated Attention)
+#   Gated DeltaNet is linear attention: constant state, does NOT grow with ctx
+#   Gated Attention: 4 KV heads x 256 head dim -> 4 KiB per token per layer
+#
+#   Only 16 of 64 layers hold a real cache:  16 x 4 KiB = 64 KiB/token
+#     num_ctx 49152 -> 3.00 GiB   (uniform assumption gives 12.0 GiB)
+#     num_ctx 65536 -> 4.00 GiB   (uniform assumption gives 16.0 GiB)
+#
+# So expect roughly 20 GB resident at 64k, not 33.3. The layer ratio is quoted
+# from the Qwen3.6-27B card, which documents the same architecture explicitly;
+# the 3.8 card gives the head counts but not the block pattern. Confirm with
+# scripts/gguf_info.py and by reading /api/ps before quoting a figure - the
+# same caution that applied to Gemma-4, where the naive calculation was five
+# times too high.
+PARAMETER num_ctx 65536
+
+# --- Samplers: the card's THINKING-mode row -----------------------------------
+# The card gives two sets, and this model thinks by default, so the thinking
+# row is the right one:
+#   thinking:     temperature 1.0, top_p 0.95, top_k 20, min_p 0.0,
+#                 presence_penalty 0.0, repetition_penalty 1.0
+#   non-thinking: temperature 0.7, top_p 0.80, top_k 20, min_p 0.0,
+#                 presence_penalty 1.5, repetition_penalty 1.0
+#
+# If this model is ever run with enable_thinking off, switch the whole row -
+# the non-thinking preset differs on three values, not just temperature.
+#
+# None of this applies in the judge role, which sends temperature 0 regardless.
+PARAMETER temperature 1.0
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+PARAMETER min_p 0.0
+PARAMETER presence_penalty 0.0
+PARAMETER repeat_penalty 1.0
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|endoftext|>"
+
+# --- Roles this model plays ---------------------------------------------------
+# 1. Judge of record for the ticket-analyst benchmark. The harness sends its own
+#    system prompt (jira_benchmark/judge_prompt.md), so the SYSTEM below is not
+#    used in that role.
+# 2. A scored model in the code-review scorer benchmark, where the SYSTEM below
+#    applies and matches its siblings in this directory.
+#
+# It has never been run as a ticket ANALYST. Worth doing: it is a 27B from the
+# same generation as the models that now lead the board, and the analyst SYSTEM
+# prompt would need swapping for the one in jira_benchmark/analyst_system_prompt.md.
+# Note it would then be judging nothing and being judged by itself - use
+# claude-sonnet-5 as the judge for that run, not the default.
+
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

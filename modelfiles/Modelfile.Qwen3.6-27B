@@ -1,0 +1,94 @@
+# Qwen3.6-27B, realigned to the model card.
+# https://huggingface.co/Qwen/Qwen3.6-27B
+#
+# ############################################################################
+#   ollama create Qwen3.6-27B:Q4_K_S -f Modelfile.Qwen3.6-27B
+#
+# CONFIRM THE FROM PATH BEFORE RUNNING THAT. The other text-model Modelfiles
+# here import from Ollama blob paths (/san/models/blobs/sha256-...) because
+# they were re-imported from existing tags. docs/CONFIG_SETTINGS.md records the
+# source as Qwen3.6-27B-f16:Q4_K_S.gguf - note there is no "-imatrix" in that
+# name, unlike its 3.8 sibling, which is why the tag is Qwen3.6-27B:Q4_K_S and
+# not ...-imatrix:Q4_K_S. Check before trusting the path:
+#   find /san -name 'Qwen3.6-27B-f16:Q4_K_S.gguf' 2>/dev/null
+# ############################################################################
+FROM /san/geoff/Qwen2.5-VL/llama.cpp/Qwen3.6-27B-f16:Q4_K_S.gguf
+
+# --- WHY THIS MODEL WAS REJECTED AS THE JUDGE, AND THE CARD EXPLAINS IT -------
+# Tried as the judge for the ticket-analyst benchmark and dropped: it produced
+# 148,000-176,500 characters of thinking and NO content at all, on four calls,
+# and its verdicts ran +8.8 against Sonnet with 9 omitted. It was recorded as
+# "lenient; runaway thinking" without a diagnosis.
+#
+# The card gives the diagnosis. Qwen3.6 "operates in thinking mode by default",
+# and unlike Qwen3.8-27B it documents NO reasoning effort levels - there is no
+# xhigh/medium/low control, only enable_thinking true or false. The harness was
+# passing think=medium, which works on the 3.8 and is what makes it usable as a
+# judge. On the 3.6 that setting has nothing to bind to, so thinking ran
+# unbounded until the budget was gone.
+#
+# If this model is ever revisited for a reasoning-heavy role, the only control
+# available is switching thinking OFF entirely, and the samplers must change
+# with it - see below. Do not expect a middle setting to exist.
+
+# --- Context and output -------------------------------------------------------
+# The card gives 262,144 natively, extensible to ~1,010,000. 65536 matches the
+# scorer benchmark's sampler table so this model is settings-matched with the
+# rest of that fleet.
+#
+# Recommended max output from the card: 32,768 tokens for most queries, 81,920
+# for hard maths and programming. The benchmark's 40,000 sits between the two.
+#
+# MEMORY: docs/CONFIG_SETTINGS.md OVERSTATES THIS MODEL BY ABOUT 13 GB, for the
+# same reason as its 3.8 sibling. That table lists 33.3 GB resident at 64k,
+# computed with the fleet's uniform formula, which assumes every layer holds a
+# context-length cache. This one is hybrid, and the card states the pattern
+# outright:
+#
+#   "16 x (3 x (Gated DeltaNet -> FFN) -> 1 x (Gated Attention -> FFN))"
+#
+#   Gated DeltaNet is linear attention: constant state, does NOT grow with ctx
+#   Gated Attention: 4 KV heads x 256 head dim -> 4 KiB per token per layer
+#
+#   Only 16 of 64 layers hold a real cache:  16 x 4 KiB = 64 KiB/token
+#     num_ctx 49152 -> 3.00 GiB   (uniform assumption gives 12.0 GiB)
+#     num_ctx 65536 -> 4.00 GiB   (uniform assumption gives 16.0 GiB)
+#
+# So expect roughly 20 GB resident at 64k, not 33.3. This card is the source
+# for the block pattern quoted in Modelfile.Qwen3.8-27B as well, since the 3.8
+# card gives head counts but not the arrangement. Confirm with
+# scripts/gguf_info.py and /api/ps before quoting a figure.
+PARAMETER num_ctx 65536
+
+# --- Samplers: the card's THINKING-mode general row ---------------------------
+# The card gives three sets, and this model thinks by default:
+#   thinking, general:  temperature 1.0, top_p 0.95, top_k 20, min_p 0.0,
+#                       presence_penalty 0.0, repetition_penalty 1.0
+#   thinking, precise coding: as above but temperature 0.6
+#   non-thinking:       temperature 0.7, top_p 0.80, top_k 20, min_p 0.0,
+#                       presence_penalty 1.5, repetition_penalty 1.0
+#
+# The general thinking row is set below. The coding row differs only in
+# temperature; the non-thinking preset differs on three values, so if thinking
+# is ever disabled, change the whole row rather than just the temperature.
+PARAMETER temperature 1.0
+PARAMETER top_p 0.95
+PARAMETER top_k 20
+PARAMETER min_p 0.0
+PARAMETER presence_penalty 0.0
+PARAMETER repeat_penalty 1.0
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|endoftext|>"
+
+# --- What this build is for ---------------------------------------------------
+# It appears in the code-review scorer benchmark, where the SYSTEM below
+# applies. It is not the ticket-analyst judge - that is
+# Qwen3.8-27B-imatrix:Q4_K_S - and on the evidence above it should not be tried
+# as one again without disabling thinking first.
+#
+# It has never been run as a ticket analyst. Its 3.8 sibling is the better
+# candidate there: same size and architecture, and it has a working reasoning
+# control.
+
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""

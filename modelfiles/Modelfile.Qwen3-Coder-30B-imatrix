@@ -1,0 +1,88 @@
+# Qwen3-Coder-30B-A3B-Instruct — card-aligned variant.
+# https://huggingface.co/Qwen/Qwen3-Coder-30B-A3B-Instruct
+#
+# ############################################################################
+# DO NOT APPLY THIS CASUALLY. This tag is the benchmark's SCORER
+# (AI_ASSISTANT_OLLAMA_MODEL_REVIEWER), named as "Scorer model" in every
+# scorecard. ai_code_review.yml puts it plainly: "The scorer is the measuring
+# instrument: keep it pinned low and unchanged even when the review sampler is
+# retuned, or scores stop being comparable."
+#
+# Both live changes below (repeat_penalty, SYSTEM) will move scores. Applying
+# this invalidates comparison with every existing scorecard, so it is only
+# worth doing as a deliberate re-baseline with the cohort re-run afterwards.
+# ############################################################################
+#
+# Built FROM the blob, not the tag, because a tag build re-inherits the SYSTEM
+# block and an empty SYSTEM """""" is ignored by ollama create -- verified.
+FROM /san/models/blobs/sha256-42514f966a3c4d0948103bfb50ca86a4cc11d91f78e908d4f084f0c2279cf7fd
+
+# --- Samplers -------------------------------------------------------------
+# This is a NON-thinking instruct model: "supports only non-thinking mode and
+# does not generate <think></think> blocks ... specifying enable_thinking=False
+# is no longer required." So there is one sampler row, not four, and the
+# harness's `think` field should stay unset for it.
+#
+# Already card-correct and unchanged: top_p 0.8, top_k 20, min_p 0.
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER min_p 0
+
+# The only genuine drift: card says repetition_penalty 1.05, build has 1.1.
+# The scoring payload sends only temperature / num_predict / num_ctx, so this
+# one IS live for every score the benchmark has ever produced.
+PARAMETER repeat_penalty 1.05
+
+# ChatML stops. The current build lists "<|im_start|>" twice -- harmless, but
+# deduplicated here.
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|endoftext|>"
+
+# Deployment tuning from the existing build, deliberately preserved.
+PARAMETER num_batch 512
+PARAMETER num_gpu 99
+
+# --- Inert for benchmark runs ---------------------------------------------
+# The workflow always sends temperature / num_ctx / num_predict in options.
+# 0.7 is the card value, replacing a hardcoded 0 (greedy). Both are overridden
+# by AI_ASSISTANT_SCORER_TEMPERATURE (default 0.3) in a scoring run.
+#
+# num_ctx drops from the native 262144 to the benchmark's 65536. Inert for the
+# harness, but it matters for `ollama run` and any direct caller: a 262144
+# window allocates an enormous KV cache, and the card itself warns "if you
+# encounter out-of-memory (OOM) issues, consider reducing the context length".
+PARAMETER temperature 0.7
+PARAMETER num_ctx 65536
+
+# --- No SYSTEM block ------------------------------------------------------
+# Previously: "You are an expert software engineer specializing in complex,
+# multi-file code analysis and generation. You have access to a large context
+# window. When provided with multiple files, analyze the relationships between
+# them before suggesting changes. Use precise, production-ready code."
+#
+# Reasonable for a reviewer or patcher; wrong for the role this tag actually
+# performs most often. As the SCORER its job is to grade a finished review
+# against ISSUES.md and emit a status table -- it is not analysing multiple
+# files, suggesting changes, or writing production-ready code. Task framing
+# belongs in scorer_prompt.md / review_prompt.md, which are SHA-tracked in
+# every scorecard; a Modelfile SYSTEM appears nowhere in the artefact.
+#
+# Removing it is the higher-risk half of this file: the scorer has been reading
+# this persona for every score on record.
+
+# --- Standard SYSTEM prompt (fleet-wide) ----------------------------------
+# Identical on every model in the benchmark, so the system prompt stops being an
+# uncontrolled variable. Before this, the fleet ran a mix: "/no_think Be concise
+# and skip chain-of-thought" on the six Qwen3.x builds, an expert-engineer
+# persona on Qwen3-Coder-30B, a "detailed answers" persona on Qwen3.5-122B and
+# Qwen3-32B, "Reasoning strength: high" on Muse-Glimmer-30B, and nothing at all
+# on Gemma-4-31B -- none of it recorded in any scorecard.
+#
+# A non-empty SYSTEM replaces an inherited one, so this works whether the FROM
+# line points at a blob or a tag. Keep it byte-identical across every model:
+# the moment one differs, cross-model comparison is confounded again.
+#
+# Task instructions do NOT belong here -- they live in review_prompt.md, which
+# is SHA-tracked in every scorecard. This line is persona only.
+SYSTEM """You are an expert computer programmer with an eye for detail, who loves to provide high quality answers."""
