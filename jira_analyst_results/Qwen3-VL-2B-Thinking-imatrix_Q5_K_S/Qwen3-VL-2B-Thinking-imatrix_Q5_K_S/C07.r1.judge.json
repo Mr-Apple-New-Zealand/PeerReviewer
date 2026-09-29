@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "config deploy at 09:30 (OPS-81) rotated the JWT signing key for Auth, but Transactions API still validates against old key",
+      "reason": "The analysis states the 09:30 deploy time but never mentions that errors/impact started at 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Incident declaration (09:52) was completed after rolling back OPS-81 (10:31\u201310:44), with error rate <1% at 10:42.",
+      "reason": "Both timestamps (09:47 alert, 09:52 declaration) are stated, but the analysis incorrectly places the declaration after the rollback, a material timeline error."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "rolling back OPS-81 (10:31\u201310:44), with error rate <1% at 10:42",
+      "reason": "Rollback start (10:31) and recovery (10:42) are present, but the 10:50 resolution time is never stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to detect: 5 minutes (alert at 09:47 \u2192 incident declaration at 09:52)",
+      "reason": "The correct time to detect is 16 minutes (09:31 impact start to 09:47 alert); the analysis uses the wrong start point and arrives at 5 minutes."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to recover: 50 minutes (incident declaration at 09:52 \u2192 error rate <1% at 10:42)",
+      "reason": "50 minutes from 09:52 to 10:42 matches none of the acceptable answers (71 from impact, 55 from detection, or 79 to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The issue stemmed from the Auth service rotating the JWT key without updating the Transactions API's validation configuration, causing signature validation failures (401 errors)",
+      "reason": "All key elements are present: OPS-81, JWT key rotation for Auth, Transactions API not updated, 401 errors, and the IDX10503 error text."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review (scheduled for 2026-09-16)",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the database was healthy and the slow queries were 'not root cause,' correctly ruling out the database."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (5 min: 09:47\u219209:52; 50 min: 09:52\u219210:42) are supported by actual timestamp pairs in the ticket, even though they use non-standard start points."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Incident declaration (09:52) was completed after rolling back OPS-81 (10:31\u201310:44)",
+      "reason": "The ticket shows the incident was declared at 09:52, well before the rollback began at 10:31; the analysis inverts the temporal order."
+    },
+    {
+      "quote": "Marcus Reid (supports with 09:05 comment)",
+      "reason": "Marcus Reid's comment in the ticket is timestamped 10:05, not 09:05."
+    },
+    {
+      "quote": "Review Jenkins pipeline steps (no ticket specified)",
+      "reason": "Jenkins is never mentioned anywhere in the ticket export; this is an invented tool reference."
+    },
+    {
+      "quote": "Duplicate of OPS-81 (linked to \"is caused by OPS-81\")",
+      "reason": "The link type is 'is caused by,' indicating a causal relationship, not a duplicate; calling it a duplicate misrepresents the ticket link."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 103.9
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "config deploy at 09:30 (OPS-81) rotated the JWT signing key for Auth, but Transactions API still validates against old key",
+        "reason": "The analysis states the 09:30 deploy time but never mentions that errors/impact started at 09:31.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Incident declaration (09:52) was completed after rolling back OPS-81 (10:31\u201310:44), with error rate <1% at 10:42.",
+        "reason": "Both timestamps (09:47 alert, 09:52 declaration) are stated, but the analysis incorrectly places the declaration after the rollback, a material timeline error.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "rolling back OPS-81 (10:31\u201310:44), with error rate <1% at 10:42",
+        "reason": "Rollback start (10:31) and recovery (10:42) are present, but the 10:50 resolution time is never stated.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 5 minutes (alert at 09:47 \u2192 incident declaration at 09:52)",
+        "reason": "The correct time to detect is 16 minutes (09:31 impact start to 09:47 alert); the analysis uses the wrong start point and arrives at 5 minutes.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 50 minutes (incident declaration at 09:52 \u2192 error rate <1% at 10:42)",
+        "reason": "50 minutes from 09:52 to 10:42 matches none of the acceptable answers (71 from impact, 55 from detection, or 79 to resolution).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The issue stemmed from the Auth service rotating the JWT key without updating the Transactions API's validation configuration, causing signature validation failures (401 errors)",
+        "reason": "All key elements are present: OPS-81, JWT key rotation for Auth, Transactions API not updated, 401 errors, and the IDX10503 error text.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review (scheduled for 2026-09-16)",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the database was healthy and the slow queries were 'not root cause,' correctly ruling out the database.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (5 min: 09:47\u219209:52; 50 min: 09:52\u219210:42) are supported by actual timestamp pairs in the ticket, even though they use non-standard start points.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Incident declaration (09:52) was completed after rolling back OPS-81 (10:31\u201310:44)",
+        "reason": "The ticket shows the incident was declared at 09:52, well before the rollback began at 10:31; the analysis inverts the temporal order."
+      },
+      {
+        "quote": "Marcus Reid (supports with 09:05 comment)",
+        "reason": "Marcus Reid's comment in the ticket is timestamped 10:05, not 09:05."
+      },
+      {
+        "quote": "Review Jenkins pipeline steps (no ticket specified)",
+        "reason": "Jenkins is never mentioned anywhere in the ticket export; this is an invented tool reference."
+      },
+      {
+        "quote": "Duplicate of OPS-81 (linked to \"is caused by OPS-81\")",
+        "reason": "The link type is 'is caused by,' indicating a causal relationship, not a duplicate; calling it a duplicate misrepresents the ticket link."
+      }
+    ]
+  }
+}

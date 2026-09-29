@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "After a 30-second timeout (\"ERR_TXN_504\"), tapping \"Retry\" caused the source account to be debited twice ($250 each), while savings was credited only once.",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome after retrying following the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Versions: Current version 3.1.4; fix target 3.2.0.",
+      "reason": "The analysis names both versions but omits the specific release date of 2026-09-24 stated in the ticket."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause involves retrying the transfer without idempotency key handling, leading to two debits and one credit instead of one each.",
+      "reason": "The analysis states the idempotency-key issue as root cause but only implies the atomicity problem (debit/credit not in one DB transaction) through the PR description and log evidence, rather than stating it explicitly as a root cause."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress\n- **Owner**: Priya Nair\n- **Blocking progress**: Unresolved; the ticket is actively being worked on but requires code review.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are clearly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Similar issues reported by 3 customers (support calls on 5, 6, 8 September), but no duplicate ticket linked (only a \"Finance will reverse\" comment).",
+      "reason": "The analysis identifies three affected customers, the need for Finance to reverse debits, and Marcus Reid being asked to escalate to Finance Ops, covering all key elements."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid (reporter):\n  1. **Escalate to Finance Ops** (as advised by Aroha Walker) to reverse duplicate debits for affected customers.",
+      "reason": "By listing the Finance escalation as a suggested next action, the analysis clearly implies the ticket does not confirm the reversal has been raised or the customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Wait for code review** of PR #218 (covers atomic transaction wrap and idempotency key).\n  2. **Document requirements**: Ensure test cases cover retry logic with timeout (e.g., \"credit timeout\" scenarios).\n- **Marcus Reid (reporter)**:\n  1. **Escalate to Finance Ops** (as advised by Aroha Walker) to reverse duplicate debits for affected customers.",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are explicitly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently describes PR #218 as 'waiting on code review' and never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention desktop web at all, let alone claim it is affected."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The root cause is unclear (e.g., \"why is the retry treated as a new transfer?\").",
+      "reason": "The ticket explicitly provides the root cause in Priya's comment: 'The Retry button calls POST /api/transaction/transfer again with no idempotency key, so the server treats it as a new transfer.' The analysis itself also states this in the Summary, making the 'unclear' claim contradicted by the ticket."
+    },
+    {
+      "quote": "Missing specification of \"what happens if the transaction fails during retry?\" (e.g., does the first debit persist?).",
+      "reason": "The ticket does specify this in Priya's comment: 'the debit and the credit are not in one database transaction, so when the credit times out the first debit stays committed.' The analysis incorrectly labels this as missing."
+    },
+    {
+      "quote": "no test coverage for edge cases (e.g., retrying after a credit timeout)",
+      "reason": "The ticket contains no information about test coverage; this is an unsupported claim about the state of the codebase."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 221.96
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "After a 30-second timeout (\"ERR_TXN_504\"), tapping \"Retry\" caused the source account to be debited twice ($250 each), while savings was credited only once.",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome after retrying following the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Versions: Current version 3.1.4; fix target 3.2.0.",
+        "reason": "The analysis names both versions but omits the specific release date of 2026-09-24 stated in the ticket.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The root cause involves retrying the transfer without idempotency key handling, leading to two debits and one credit instead of one each.",
+        "reason": "The analysis states the idempotency-key issue as root cause but only implies the atomicity problem (debit/credit not in one DB transaction) through the PR description and log evidence, rather than stating it explicitly as a root cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress\n- **Owner**: Priya Nair\n- **Blocking progress**: Unresolved; the ticket is actively being worked on but requires code review.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Similar issues reported by 3 customers (support calls on 5, 6, 8 September), but no duplicate ticket linked (only a \"Finance will reverse\" comment).",
+        "reason": "The analysis identifies three affected customers, the need for Finance to reverse debits, and Marcus Reid being asked to escalate to Finance Ops, covering all key elements.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid (reporter):\n  1. **Escalate to Finance Ops** (as advised by Aroha Walker) to reverse duplicate debits for affected customers.",
+        "reason": "By listing the Finance escalation as a suggested next action, the analysis clearly implies the ticket does not confirm the reversal has been raised or the customers refunded.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "1. **Wait for code review** of PR #218 (covers atomic transaction wrap and idempotency key).\n  2. **Document requirements**: Ensure test cases cover retry logic with timeout (e.g., \"credit timeout\" scenarios).\n- **Marcus Reid (reporter)**:\n  1. **Escalate to Finance Ops** (as advised by Aroha Walker) to reverse duplicate debits for affected customers.",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are explicitly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently describes PR #218 as 'waiting on code review' and never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not mention desktop web at all, let alone claim it is affected.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The root cause is unclear (e.g., \"why is the retry treated as a new transfer?\").",
+        "reason": "The ticket explicitly provides the root cause in Priya's comment: 'The Retry button calls POST /api/transaction/transfer again with no idempotency key, so the server treats it as a new transfer.' The analysis itself also states this in the Summary, making the 'unclear' claim contradicted by the ticket."
+      },
+      {
+        "quote": "Missing specification of \"what happens if the transaction fails during retry?\" (e.g., does the first debit persist?).",
+        "reason": "The ticket does specify this in Priya's comment: 'the debit and the credit are not in one database transaction, so when the credit times out the first debit stays committed.' The analysis incorrectly labels this as missing."
+      },
+      {
+        "quote": "no test coverage for edge cases (e.g., retrying after a credit timeout)",
+        "reason": "The ticket contains no information about test coverage; this is an unsupported claim about the state of the codebase."
+      }
+    ]
+  }
+}

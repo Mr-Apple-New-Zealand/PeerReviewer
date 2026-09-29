@@ -1,0 +1,283 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never groups the five 401-related issues together or identifies their shared cause; it only discusses BANKUI-3C8 and BANKUI-2F0 in isolation."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss distinct-user counts, the caveat about overlapping users, or the 44-user figure for BANKUI-3C8."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-5D6 is never mentioned in the analysis."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-5D6, its first-seen time, the 4.7.0 deployment, or the 404 bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0 is an external browser extension issue\u2014not our responsibility.",
+      "reason": "The analysis identifies BANKUI-2F0 as a browser extension issue not our responsibility, but does not mention the single-user count, the 4,812-event contrast, or the recommendation to filter rather than fix."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "We have identified two high-impact issues with the highest event counts (5140 and 4812) from the Sentry issue list, prioritized by severity.",
+      "reason": "The analysis does the opposite of the expected point: it uses event count as the primary ranking criterion and selects the two highest-count issues as the top priorities."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "BANKUI-1A7 is never mentioned in the analysis, so the regression and need to reopen are absent."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "These issues are caused by Angular framework errors in minified code, which directly affect user experience.",
+      "reason": "The analysis mentions 'minified code' but does not state that source maps are not uploaded or that the issues cannot be traced to a component from this export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss whether the user populations overlap or that total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer session expiration or unhandled 401 rejection as a likely cause; it simply labels BANKUI-3C8 as a defect in Angular error handling."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The two issues to address are BANKUI-3C8 (5140 events) and BANKUI-2F0 (4812 events).",
+      "reason": "The analysis selects the wrong two issues (BANKUI-3C8 and BANKUI-2F0) instead of BANKUI-5D6 and the 401 cluster, and does not mention reopening BANKUI-1A7 or filtering BANKUI-2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "We have identified two high-impact issues with the highest event counts (5140 and 4812) from the Sentry issue list, prioritized by severity. These issues are caused by Angular framework errors in minified code, which directly affect user experience. The two issues to address are BANKUI-3C8 (5140 events) and BANKUI-2F0 (4812 events).",
+      "reason": "The analysis places BANKUI-2F0 as one of the two top-priority issues to work on and explicitly uses its 4,812 event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not treat the list as eight separate defects nor assign separate causes to the four undefined-property issues (it does not mention them at all)."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add distinct-user counts across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-1A7 at all, so it does not state it is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 issue as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-5D6 or BANKUI-1A7, so it does not group them with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "These issues are caused by Angular framework errors in minified code, which directly affect user experience.",
+      "reason": "The tickets show the mechanism is 'auto.function.angular.error_handler' (Angular's error handler catching the error), but the actual errors are application-level (undefined property access, chunk load failure, 401 responses). Attributing the cause to 'Angular framework errors' mischaracterises the data."
+    },
+    {
+      "quote": "BANKUI-3C8 is a defect in our code (due to Angular error handling)",
+      "reason": "The ticket data shows BANKUI-3C8 has mechanism 'console', handled: true, and the breadcrumb summary says it is 'logged by the app's console error handler for every failed request.' It is a log of a 401 symptom, not a defect in Angular error handling."
+    },
+    {
+      "quote": "BANKUI-3C8: Payment batch actions (culprit: /api/settlements/Run/GetAllRunBookingsForCustomerOrder).",
+      "reason": "The culprit is an API endpoint for settlements run bookings, not 'Payment batch actions.' The analysis mislabels the component/area."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 138.28
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "",
+        "reason": "The analysis never groups the five 401-related issues together or identifies their shared cause; it only discusses BANKUI-3C8 and BANKUI-2F0 in isolation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis does not discuss distinct-user counts, the caveat about overlapping users, or the 44-user figure for BANKUI-3C8.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "BANKUI-5D6 is never mentioned in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-5D6, its first-seen time, the 4.7.0 deployment, or the 404 bundle signature.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 is an external browser extension issue\u2014not our responsibility.",
+        "reason": "The analysis identifies BANKUI-2F0 as a browser extension issue not our responsibility, but does not mention the single-user count, the 4,812-event contrast, or the recommendation to filter rather than fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "We have identified two high-impact issues with the highest event counts (5140 and 4812) from the Sentry issue list, prioritized by severity.",
+        "reason": "The analysis does the opposite of the expected point: it uses event count as the primary ranking criterion and selects the two highest-count issues as the top priorities.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "BANKUI-1A7 is never mentioned in the analysis, so the regression and need to reopen are absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "These issues are caused by Angular framework errors in minified code, which directly affect user experience.",
+        "reason": "The analysis mentions 'minified code' but does not state that source maps are not uploaded or that the issues cannot be traced to a component from this export.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss whether the user populations overlap or that total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis does not infer session expiration or unhandled 401 rejection as a likely cause; it simply labels BANKUI-3C8 as a defect in Angular error handling.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "The two issues to address are BANKUI-3C8 (5140 events) and BANKUI-2F0 (4812 events).",
+        "reason": "The analysis selects the wrong two issues (BANKUI-3C8 and BANKUI-2F0) instead of BANKUI-5D6 and the 401 cluster, and does not mention reopening BANKUI-1A7 or filtering BANKUI-2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "We have identified two high-impact issues with the highest event counts (5140 and 4812) from the Sentry issue list, prioritized by severity. These issues are caused by Angular framework errors in minified code, which directly affect user experience. The two issues to address are BANKUI-3C8 (5140 events) and BANKUI-2F0 (4812 events).",
+        "reason": "The analysis places BANKUI-2F0 as one of the two top-priority issues to work on and explicitly uses its 4,812 event count as evidence of impact.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis does not treat the list as eight separate defects nor assign separate causes to the four undefined-property issues (it does not mention them at all).",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add distinct-user counts across issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-1A7 at all, so it does not state it is fixed or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 issue as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-5D6 or BANKUI-1A7, so it does not group them with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "These issues are caused by Angular framework errors in minified code, which directly affect user experience.",
+        "reason": "The tickets show the mechanism is 'auto.function.angular.error_handler' (Angular's error handler catching the error), but the actual errors are application-level (undefined property access, chunk load failure, 401 responses). Attributing the cause to 'Angular framework errors' mischaracterises the data."
+      },
+      {
+        "quote": "BANKUI-3C8 is a defect in our code (due to Angular error handling)",
+        "reason": "The ticket data shows BANKUI-3C8 has mechanism 'console', handled: true, and the breadcrumb summary says it is 'logged by the app's console error handler for every failed request.' It is a log of a 401 symptom, not a defect in Angular error handling."
+      },
+      {
+        "quote": "BANKUI-3C8: Payment batch actions (culprit: /api/settlements/Run/GetAllRunBookingsForCustomerOrder).",
+        "reason": "The culprit is an API endpoint for settlements run bookings, not 'Payment batch actions.' The analysis mislabels the component/area."
+      }
+    ]
+  }
+}

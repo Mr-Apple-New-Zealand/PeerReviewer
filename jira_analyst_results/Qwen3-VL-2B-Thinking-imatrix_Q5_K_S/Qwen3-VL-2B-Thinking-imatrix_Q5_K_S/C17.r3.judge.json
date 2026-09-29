@@ -1,0 +1,333 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two-phase breadcrumb timeline, the ~4-hour gap, or the shift from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error message \"Cannot read properties of undefined (reading 'sort')\" indicates the code was trying to call the `sort()` method on an undefined array",
+      "reason": "The analysis treats the undefined dereference as the root cause rather than identifying the 401 responses as the underlying fault and the missing 401 handling as the defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' \u00d72, 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh call, its 200 status, its timing before the gap, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurs when data is being sorted on the Batch Actions screen in the Production environment",
+      "reason": "The analysis accepts the Production label without flagging that every URL points to bank-uat.example.com, the UAT host, and does not answer Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurred during a transaction with ID `/settlements/run/8214`",
+      "reason": "The analysis reports the transaction ID but does not flag the discrepancy between the transaction name and the actual page URL /payments/batch/actions, nor explain that the stale transaction misleads Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Multiple stack traces indicate this occurs in the `ie.project` function but the exact location in the application is unclear",
+      "reason": "The analysis acknowledges the stack is inconclusive but does not explain why: no mention of js_no_source errors, failed scraping_attempts, symbolicated_in_app being false, or the minified nature of the frames."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that 401 responses have body size 0, nor that the event cannot distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer token expiry during idle time; it lists 'improper array initialization, undefined data, or a bug in the sorting logic' as possibilities instead."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or that the 'in-app-only' label is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Add null checks for data arrays before attempting sorting operations",
+      "reason": "The analysis's next actions focus on null checks and reviewing ie.project; it does not recommend central 401 handling, fixing the Sentry environment, setting release/dist with source maps, or correcting the stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Add null checks for data arrays before attempting sorting operations\n3. **Implement validation** to ensure arrays exist before sorting operations are performed",
+      "reason": "The analysis presents the missing null check as the fix and the undefined array as the root cause, rather than as a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error occurs when data is being sorted on the Batch Actions screen in the Production environment",
+      "reason": "The analysis states the error occurs in Production without flagging that all URLs point to the UAT host bank-uat.example.com."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports the transaction ID as metadata ('during a transaction with ID /settlements/run/8214') without claiming the error occurred on that screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error is traced to the `ie.project` function in the main application entry point",
+      "reason": "The analysis names 'ie.project' as a function and '/6728.b4f17ce620a8d539.js' as a file location to review, treating minified stack-trace artifacts as real application code locations."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe activity during the gap or claim failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Steps to reproduce:\n  1. Navigate to the batch actions screen\n  2. Attempt to sort data using the sort function\n  3. The screen goes blank and requires a reload",
+      "reason": "The ticket explicitly states 'We do not have a reproduction.' The analysis invents specific reproduction steps that are not supported by any ticket data."
+    },
+    {
+      "quote": "The error is traced to the `ie.project` function in the main application entry point",
+      "reason": "In the Sentry event, ie.project is in /6728.b4f17ce620a8d539.js, not in main.7a2d95ef0c418bb3.js. The analysis misattributes the file."
+    },
+    {
+      "quote": "This occurs during the processing of an AJAX request to `/payments/batch/actions`",
+      "reason": "/payments/batch/actions is the page URL (request.url and url tag), not an API endpoint being called. The actual XHR calls are to /api/... endpoints. The analysis mischaracterises the page URL as an AJAX request target."
+    },
+    {
+      "quote": "particularly during data sorting operations",
+      "reason": "The tickets do not state that the user was performing a sort operation. The error message 'Cannot read properties of undefined (reading sort)' indicates code tried to access a .sort property on an undefined object; it does not confirm the user initiated a sort action."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 244.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two-phase breadcrumb timeline, the ~4-hour gap, or the shift from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error message \"Cannot read properties of undefined (reading 'sort')\" indicates the code was trying to call the `sort()` method on an undefined array",
+        "reason": "The analysis treats the undefined dereference as the root cause rather than identifying the 401 responses as the underlying fault and the missing 401 handling as the defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' \u00d72, 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh call, its 200 status, its timing before the gap, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "The error occurs when data is being sorted on the Batch Actions screen in the Production environment",
+        "reason": "The analysis accepts the Production label without flagging that every URL points to bank-uat.example.com, the UAT host, and does not answer Tom Becker's question.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "The error occurred during a transaction with ID `/settlements/run/8214`",
+        "reason": "The analysis reports the transaction ID but does not flag the discrepancy between the transaction name and the actual page URL /payments/batch/actions, nor explain that the stale transaction misleads Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Multiple stack traces indicate this occurs in the `ie.project` function but the exact location in the application is unclear",
+        "reason": "The analysis acknowledges the stack is inconclusive but does not explain why: no mention of js_no_source errors, failed scraping_attempts, symbolicated_in_app being false, or the minified nature of the frames.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that 401 responses have body size 0, nor that the event cannot distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer token expiry during idle time; it lists 'improper array initialization, undefined data, or a bug in the sorting logic' as possibilities instead.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention in_app flags, in_app_frame_mix, or that the 'in-app-only' label is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Add null checks for data arrays before attempting sorting operations",
+        "reason": "The analysis's next actions focus on null checks and reviewing ie.project; it does not recommend central 401 handling, fixing the Sentry environment, setting release/dist with source maps, or correcting the stale transaction name.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "Add null checks for data arrays before attempting sorting operations\n3. **Implement validation** to ensure arrays exist before sorting operations are performed",
+        "reason": "The analysis presents the missing null check as the fix and the undefined array as the root cause, rather than as a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "The error occurs when data is being sorted on the Batch Actions screen in the Production environment",
+        "reason": "The analysis states the error occurs in Production without flagging that all URLs point to the UAT host bank-uat.example.com.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis reports the transaction ID as metadata ('during a transaction with ID /settlements/run/8214') without claiming the error occurred on that screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "The error is traced to the `ie.project` function in the main application entry point",
+        "reason": "The analysis names 'ie.project' as a function and '/6728.b4f17ce620a8d539.js' as a file location to review, treating minified stack-trace artifacts as real application code locations.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe activity during the gap or claim failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Steps to reproduce:\n  1. Navigate to the batch actions screen\n  2. Attempt to sort data using the sort function\n  3. The screen goes blank and requires a reload",
+        "reason": "The ticket explicitly states 'We do not have a reproduction.' The analysis invents specific reproduction steps that are not supported by any ticket data."
+      },
+      {
+        "quote": "The error is traced to the `ie.project` function in the main application entry point",
+        "reason": "In the Sentry event, ie.project is in /6728.b4f17ce620a8d539.js, not in main.7a2d95ef0c418bb3.js. The analysis misattributes the file."
+      },
+      {
+        "quote": "This occurs during the processing of an AJAX request to `/payments/batch/actions`",
+        "reason": "/payments/batch/actions is the page URL (request.url and url tag), not an API endpoint being called. The actual XHR calls are to /api/... endpoints. The analysis mischaracterises the page URL as an AJAX request target."
+      },
+      {
+        "quote": "particularly during data sorting operations",
+        "reason": "The tickets do not state that the user was performing a sort operation. The error message 'Cannot read properties of undefined (reading sort)' indicates code tried to access a .sort property on an undefined object; it does not confirm the user initiated a sort action."
+      }
+    ]
+  }
+}

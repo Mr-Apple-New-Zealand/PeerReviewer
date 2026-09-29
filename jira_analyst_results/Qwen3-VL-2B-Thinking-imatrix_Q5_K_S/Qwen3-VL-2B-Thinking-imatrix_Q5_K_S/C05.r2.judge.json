@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-440 and BANK-425 are **not duplicates** but **related issues** requiring the same fix.",
+      "reason": "The analysis explicitly denies they are duplicates, calling them 'related issues' instead, though it does identify the shared root cause and same component."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Treat BANK-440 and BANK-425 as **one unified ticket** (e.g., \"Balance Update Caching\").",
+      "reason": "The analysis suggests unifying the tickets but does not explicitly recommend closing one as a duplicate, nor does it cite BANK-425's older date or existing root-cause analysis as the reason to keep it."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88 is **not a direct duplicate** (different context: notification vs. balance).",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a notification issue, in progress, and owned by Ravi Kumar, but does not explicitly state the cause is the TransferRequested event being used before the debit is applied."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Shared: `BalanceCache` in local storage **does not invalidate** post-transfer. **Solution**: Clear cache when transfer succeeds (seen in BANK-425's comment).",
+      "reason": "The analysis identifies BalanceCache in local storage, the lack of invalidation, and the fix, but omits the 15-minute duration that is part of the expected description."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that BANK-419 (which added the 15-minute cache in 3.1.4) probably introduced the bug as a regression, nor does it suggest linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open (Unresolved), Priority Medium, Owner Unassigned, Blocker: None\n- **BANK-425**: Open (Unresolved), Priority Medium, Owner Unassigned, Blocker: None",
+      "reason": "The analysis explicitly states both BANK-440 and BANK-425 are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'not a direct duplicate' and 'not directly related' to BANK-440/BANK-425."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the balance API returns a wrong or stale value; it attributes the issue to the client-side cache."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Deadline: Fix both by end of 3.1.4 (already shipped in BANK-419).",
+      "reason": "BANK-419 states the cache was 'shipped in 3.1.4' and is marked Done, so 3.1.4 is already released; setting a fix deadline for 'end of 3.1.4' contradicts the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 139.74
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 are **not duplicates** but **related issues** requiring the same fix.",
+        "reason": "The analysis explicitly denies they are duplicates, calling them 'related issues' instead, though it does identify the shared root cause and same component.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Treat BANK-440 and BANK-425 as **one unified ticket** (e.g., \"Balance Update Caching\").",
+        "reason": "The analysis suggests unifying the tickets but does not explicitly recommend closing one as a duplicate, nor does it cite BANK-425's older date or existing root-cause analysis as the reason to keep it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is **not a direct duplicate** (different context: notification vs. balance).",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, notes it is a notification issue, in progress, and owned by Ravi Kumar, but does not explicitly state the cause is the TransferRequested event being used before the debit is applied.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Shared: `BalanceCache` in local storage **does not invalidate** post-transfer. **Solution**: Clear cache when transfer succeeds (seen in BANK-425's comment).",
+        "reason": "The analysis identifies BalanceCache in local storage, the lack of invalidation, and the fix, but omits the 15-minute duration that is part of the expected description.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that BANK-419 (which added the 15-minute cache in 3.1.4) probably introduced the bug as a regression, nor does it suggest linking BANK-419 to the bug tickets.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open (Unresolved), Priority Medium, Owner Unassigned, Blocker: None\n- **BANK-425**: Open (Unresolved), Priority Medium, Owner Unassigned, Blocker: None",
+        "reason": "The analysis explicitly states both BANK-440 and BANK-425 are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'not a direct duplicate' and 'not directly related' to BANK-440/BANK-425.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the balance API returns a wrong or stale value; it attributes the issue to the client-side cache.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Deadline: Fix both by end of 3.1.4 (already shipped in BANK-419).",
+        "reason": "BANK-419 states the cache was 'shipped in 3.1.4' and is marked Done, so 3.1.4 is already released; setting a fix deadline for 'end of 3.1.4' contradicts the ticket data."
+      }
+    ]
+  }
+}

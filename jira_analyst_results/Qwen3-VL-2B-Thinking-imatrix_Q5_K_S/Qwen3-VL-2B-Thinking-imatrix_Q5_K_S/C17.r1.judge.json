@@ -1,0 +1,325 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two halves of the session, the ~4-hour gap, or the shift from 200s to 401s in the breadcrumbs."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This occurs because the system attempts to sort an array that does not exist or is undefined.",
+      "reason": "The analysis treats the undefined array as the root cause rather than identifying the 401 responses as the underlying fault and the TypeError as a symptom of missing 401 handling."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Environment: Production (Edge 153.0.0 browser on Windows >=10)",
+      "reason": "The analysis reports the environment as Production without flagging that all URLs point to bank-uat.example.com, the UAT host, indicating a Sentry environment misconfiguration."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Transaction ID: /settlements/run/8214",
+      "reason": "The analysis lists the transaction value but never notes the discrepancy with the actual request URL /payments/batch/actions or that the stale transaction name misdirects Sentry grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The exact code causing the undefined array isn't specified (only the polyfill chain)",
+      "reason": "The analysis acknowledges the stack doesn't pinpoint the code but does not explain why: missing source maps, three js_no_source errors, failed scraping_attempts, symbolicated_in_app false, or minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build or matching source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the 401 responses, their zero response_body_size, or the inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that the access token expired during the idle period with no silent refresh; it vaguely references the ticket's 'tab open a while' remark without drawing the token-expiry conclusion."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Implement a guard for array sorting operations",
+      "reason": "The analysis suggests a null guard and polyfill review but does not recommend handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or noting that a guard would only hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This occurs because the system attempts to sort an array that does not exist or is undefined.",
+      "reason": "The analysis presents the missing null check before .sort as the root cause and the guard as the fix, rather than as a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Environment: Production (Edge 153.0.0 browser on Windows >=10)",
+      "reason": "The analysis states the environment as Production without flagging that all URLs point to the UAT host, effectively treating it as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists the transaction value but does not state the error occurred on the /settlements/run/8214 screen; it correctly identifies the batch actions screen as the affected component."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Triggered by Angular polyfills (specifically polyfills.3e8c04b7a91d6f22.js)",
+      "reason": "The analysis names the polyfills bundle file as the location of the fault, but the minified, unsymbolicated stack does not support identifying any specific file or component as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Tom Becker's comment suggests it might be related to browser environment differences (Edge 153.0.0)",
+      "reason": "The analysis suggests the browser (Edge 153.0.0) may be the cause, which the tickets do not support; the 401 cascade is unrelated to browser version."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Tom Becker's comment suggests it might be related to browser environment differences (Edge 153.0.0)",
+      "reason": "Tom Becker's actual comment asks to confirm which environment (production vs UAT) the error is coming from; he does not suggest browser environment differences or Edge-specific issues."
+    },
+    {
+      "quote": "Likely related to polyfill code (angular 19, possibly Edge-specific polyfills)",
+      "reason": "The tickets show the polyfills frames are part of the Zone.js/rxjs error-propagation chain, not the source of the fault; the actual error originates in the application chunk 6728.b4f17ce620a8d539.js. There is no basis in the tickets for attributing the fault to polyfill code or Edge-specific polyfills."
+    },
+    {
+      "quote": "The error appears to be specific to the batch actions interface on the UI layer rather than a core functionality issue.",
+      "reason": "The tickets provide no basis for distinguishing 'UI layer' from 'core functionality'; the error is a 401-handling defect in the HTTP layer that affects any screen, not a UI-layer-specific issue."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 197.79
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two halves of the session, the ~4-hour gap, or the shift from 200s to 401s in the breadcrumbs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "This occurs because the system attempts to sort an array that does not exist or is undefined.",
+        "reason": "The analysis treats the undefined array as the root cause rather than identifying the 401 responses as the underlying fault and the TypeError as a symptom of missing 401 handling.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment: Production (Edge 153.0.0 browser on Windows >=10)",
+        "reason": "The analysis reports the environment as Production without flagging that all URLs point to bank-uat.example.com, the UAT host, indicating a Sentry environment misconfiguration.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "Transaction ID: /settlements/run/8214",
+        "reason": "The analysis lists the transaction value but never notes the discrepancy with the actual request URL /payments/batch/actions or that the stale transaction name misdirects Sentry grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The exact code causing the undefined array isn't specified (only the polyfill chain)",
+        "reason": "The analysis acknowledges the stack doesn't pinpoint the code but does not explain why: missing source maps, three js_no_source errors, failed scraping_attempts, symbolicated_in_app false, or minified frame names.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build or matching source maps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not mention the 401 responses, their zero response_body_size, or the inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that the access token expired during the idle period with no silent refresh; it vaguely references the ticket's 'tab open a while' remark without drawing the token-expiry conclusion.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or that this is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Implement a guard for array sorting operations",
+        "reason": "The analysis suggests a null guard and polyfill review but does not recommend handling 401 centrally, fixing the Sentry environment, setting release/dist with source maps, correcting the transaction name, or noting that a guard would only hide the symptom.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "This occurs because the system attempts to sort an array that does not exist or is undefined.",
+        "reason": "The analysis presents the missing null check before .sort as the root cause and the guard as the fix, rather than as a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "Environment: Production (Edge 153.0.0 browser on Windows >=10)",
+        "reason": "The analysis states the environment as Production without flagging that all URLs point to the UAT host, effectively treating it as a production incident.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis lists the transaction value but does not state the error occurred on the /settlements/run/8214 screen; it correctly identifies the batch actions screen as the affected component.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "Triggered by Angular polyfills (specifically polyfills.3e8c04b7a91d6f22.js)",
+        "reason": "The analysis names the polyfills bundle file as the location of the fault, but the minified, unsymbolicated stack does not support identifying any specific file or component as the fault location.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "Tom Becker's comment suggests it might be related to browser environment differences (Edge 153.0.0)",
+        "reason": "The analysis suggests the browser (Edge 153.0.0) may be the cause, which the tickets do not support; the 401 cascade is unrelated to browser version.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 responses as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity, requests, or errors during the four-hour gap, nor does it state failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Tom Becker's comment suggests it might be related to browser environment differences (Edge 153.0.0)",
+        "reason": "Tom Becker's actual comment asks to confirm which environment (production vs UAT) the error is coming from; he does not suggest browser environment differences or Edge-specific issues."
+      },
+      {
+        "quote": "Likely related to polyfill code (angular 19, possibly Edge-specific polyfills)",
+        "reason": "The tickets show the polyfills frames are part of the Zone.js/rxjs error-propagation chain, not the source of the fault; the actual error originates in the application chunk 6728.b4f17ce620a8d539.js. There is no basis in the tickets for attributing the fault to polyfill code or Edge-specific polyfills."
+      },
+      {
+        "quote": "The error appears to be specific to the batch actions interface on the UI layer rather than a core functionality issue.",
+        "reason": "The tickets provide no basis for distinguishing 'UI layer' from 'core functionality'; the error is a 401-handling defect in the HTTP layer that affects any screen, not a UI-layer-specific issue."
+      }
+    ]
+  }
+}

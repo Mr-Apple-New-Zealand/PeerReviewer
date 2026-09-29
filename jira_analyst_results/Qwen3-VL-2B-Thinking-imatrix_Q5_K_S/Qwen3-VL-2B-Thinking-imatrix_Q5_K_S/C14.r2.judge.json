@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Critical errors appearing repeatedly:\n  - `Dapr.Client.InvocationException: An exception occurred while invoking method: 'branchlocation/get?ID=71&includeDetails=False' on app-id: 'masterfile-api'`\n  - `System.Net.Http.HttpRequestException: Response status code does not indicate success: 403 (Forbidden)`",
+      "reason": "Identifies the 403 Dapr invocation error as critical but omits the second method (branchlocation/GetAll), the count of four, the specific commands aborted (AddPaymentRoutingRuleSecondaryCommand, BulkUpdateSecondaryBranchesCommand), and explicitly states there is 'No clear connection' to the user's reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`Conversion failed when converting the ****** value '******' to data type ******`",
+      "reason": "Mentions the conversion error text but does not name SearchPaymentRoutingRuleQueryHandler, does not cite SQL error 245, and does not state it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis quotes the masked error text but never draws the conclusion that the masking prevents identification of the offending column, value, or type, nor does it say the detail must come from the query or an unmasked log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetMonitorJobsQueryHandler, SQL execution timeouts, Error Number -2, the time window, or the recovery at all."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, the two failures, or the logging gap of missing individual validation messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The error log shows \"long-running request GetStatementLineQuery\" warnings (threshold of 10000ms) which could indicate a performance issue",
+      "reason": "Identifies the GetStatementLineQuery long-running warnings but does not state the count (fourteen), the rising trend from ~35s to ~73s, or that it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string with password logged at DBG level, nor identify it as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the pod restart (shutdown at 02:50:11, restart at 02:50:14) or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log contains normal startup messages and application events (e.g., \"Configuring web host\", \"Starting web host\")",
+      "reason": "Gestures at startup messages being routine but does not name the specific warnings (DataProtection key directory, XML encryptor, Overriding address, https port) or explicitly state they are not the cause of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The log shows multiple instances of `Request PaymentBatchClearCommand completed in ...`, followed by errors indicating \"The connection was aborted by the client\" and \"System.Threading.Tasks.TaskCanceledException\"",
+      "reason": "The analysis presents the TaskCanceledException as an error rather than routine noise, and does not identify the Service Permissions messages, ObjectMapper licence lines, or the 404 for pending payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that timestamps are time-of-day only with no date, that they are out of order, that sequence cannot be established, or that stack traces were trimmed making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not present the 403s as likely an access-control or Dapr configuration problem between the two services, does not note the calls never reach a handler, and does not frame it as an inference rather than a fault in payments code."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not provide a priority order, does not state the 403s come first because they block user action, and does not identify the credential as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection key or XML encryptor warnings."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reproduces the masked ****** text without naming a specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state elapsed times, durations, or an ordered sequence of events as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject names or treat them as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The log shows multiple instances of `Request PaymentBatchClearCommand completed in ...`, followed by errors indicating \"The connection was aborted by the client\" and \"System.Threading.Tasks.TaskCanceledException\"",
+      "reason": "The word 'followed by' implies a temporal sequence, but the log header states timestamps are time-of-day only with no date, and the timestamps are clearly out of order (e.g., 22:57:34 followed by 01:18:27), so no sequence can be established from this file."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 215.6
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "Critical errors appearing repeatedly:\n  - `Dapr.Client.InvocationException: An exception occurred while invoking method: 'branchlocation/get?ID=71&includeDetails=False' on app-id: 'masterfile-api'`\n  - `System.Net.Http.HttpRequestException: Response status code does not indicate success: 403 (Forbidden)`",
+        "reason": "Identifies the 403 Dapr invocation error as critical but omits the second method (branchlocation/GetAll), the count of four, the specific commands aborted (AddPaymentRoutingRuleSecondaryCommand, BulkUpdateSecondaryBranchesCommand), and explicitly states there is 'No clear connection' to the user's reported save failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "`Conversion failed when converting the ****** value '******' to data type ******`",
+        "reason": "Mentions the conversion error text but does not name SearchPaymentRoutingRuleQueryHandler, does not cite SQL error 245, and does not state it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "",
+        "reason": "The analysis quotes the masked error text but never draws the conclusion that the masking prevents identification of the offending column, value, or type, nor does it say the detail must come from the query or an unmasked log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "",
+        "reason": "The analysis does not mention GetMonitorJobsQueryHandler, SQL execution timeouts, Error Number -2, the time window, or the recovery at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, the two failures, or the logging gap of missing individual validation messages.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "The error log shows \"long-running request GetStatementLineQuery\" warnings (threshold of 10000ms) which could indicate a performance issue",
+        "reason": "Identifies the GetStatementLineQuery long-running warnings but does not state the count (fourteen), the rising trend from ~35s to ~73s, or that it is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string with password logged at DBG level, nor identify it as a credential exposure requiring rotation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the pod restart (shutdown at 02:50:11, restart at 02:50:14) or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "The log contains normal startup messages and application events (e.g., \"Configuring web host\", \"Starting web host\")",
+        "reason": "Gestures at startup messages being routine but does not name the specific warnings (DataProtection key directory, XML encryptor, Overriding address, https port) or explicitly state they are not the cause of the failures.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "The log shows multiple instances of `Request PaymentBatchClearCommand completed in ...`, followed by errors indicating \"The connection was aborted by the client\" and \"System.Threading.Tasks.TaskCanceledException\"",
+        "reason": "The analysis presents the TaskCanceledException as an error rather than routine noise, and does not identify the Service Permissions messages, ObjectMapper licence lines, or the 404 for pending payment 88213 as non-defects.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not mention that timestamps are time-of-day only with no date, that they are out of order, that sequence cannot be established, or that stack traces were trimmed making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "",
+        "reason": "The analysis does not present the 403s as likely an access-control or Dapr configuration problem between the two services, does not note the calls never reach a handler, and does not frame it as an inference rather than a fault in payments code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "",
+        "reason": "The analysis does not provide a priority order, does not state the 403s come first because they block user action, and does not identify the credential as a parallel security item.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not attribute the 403s, SQL errors, or failed saves to the DataProtection key or XML encryptor warnings.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis reproduces the masked ****** text without naming a specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state elapsed times, durations, or an ordered sequence of events as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject names or treat them as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The log shows multiple instances of `Request PaymentBatchClearCommand completed in ...`, followed by errors indicating \"The connection was aborted by the client\" and \"System.Threading.Tasks.TaskCanceledException\"",
+        "reason": "The word 'followed by' implies a temporal sequence, but the log header states timestamps are time-of-day only with no date, and the timestamps are clearly out of order (e.g., 22:57:34 followed by 01:18:27), so no sequence can be established from this file."
+      }
+    ]
+  }
+}

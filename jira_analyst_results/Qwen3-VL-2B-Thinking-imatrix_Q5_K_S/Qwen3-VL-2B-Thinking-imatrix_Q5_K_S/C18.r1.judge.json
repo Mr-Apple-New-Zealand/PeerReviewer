@@ -1,0 +1,291 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never groups the five 401-related issues as sharing a cause; it explicitly states 'Duplicates: None (all issues are distinct by culprit path)' and separates 3C8 from the undefined-property issues."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that user counts cannot be summed, nor does it identify 44 as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists 5D6 among 'lower events, product defects needing fix' without noting its 58 users is the highest user count in the list or contrasting it with its low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the timing of 5D6's firstSeen relative to the 4.7.0 deploy, nor does it explain the 404 on the bundle as a deploy-replacement signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0: Use browser extension chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js (blocks cross-origin frames).",
+      "reason": "It identifies the extension and no-app-breadcrumbs and says it's not a product defect, but omits the critical '1 user' detail and contradicts itself by also calling it a priority."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The highest event count issues (5140 and 4812) are BANKUI-3C8 (HTTP 401 errors) and BANKUI-2F0 (security error), which should be prioritized for the next sprint.",
+      "reason": "The analysis treats event count as the correct ranking and elevates both high-count issues to top priority, the opposite of the expected point."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-1A7 (resolved) may be irrelevant to current sprint.",
+      "reason": "The analysis dismisses 1A7 as irrelevant rather than flagging that its lastSeen (2026-09-11) postdates the 4.7.0 deploy, indicating a regression that should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Source maps are missing \u2192 can't debug BANKUI-4A1's minified code (lastFrame is invalid).",
+      "reason": "It mentions missing source maps and minified lastFrame but applies it only to BANKUI-4A1 rather than all issues, and gives no examples like ie.project or N.setRows."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address whether the user sets overlap between issues or that total affected users cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer session expiry as the cause; it instead suggests '401 errors might stem from external services,' which is a different and unsupported hypothesis."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "First: BANKUI-3C8 (5140 events) \u2192 Investigate server-side causes (401 responses) to reduce failed requests. Second: BANKUI-2F0 (4812 events) \u2192 Audit browser extensions for cross-origin frame blocks.",
+      "reason": "The analysis picks the two highest-event-count issues for the sprint slots instead of 5D6 and the 401 cluster, and does not mention reopening 1A7 or filtering 2F0 as non-sprint actions."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The highest event count issues (5140 and 4812) are BANKUI-3C8 (HTTP 401 errors) and BANKUI-2F0 (security error), which should be prioritized for the next sprint. These two are not product defects (caused by server/environment issues or third-party extensions), but their high event counts indicate severe production impact.",
+      "reason": "The analysis places BANKUI-2F0 at second priority and explicitly treats its 4,812 event count as evidence of 'severe production impact.'"
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Duplicates: None (all issues are distinct by culprit path).",
+      "reason": "The analysis explicitly states all issues are distinct and not duplicates, treating the four undefined-property issues and 3C8 as separate defects rather than one shared cause."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add user counts together or report any aggregate user total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7 (resolved) may be irrelevant to current sprint.",
+      "reason": "The analysis dismisses 1A7 as irrelevant, effectively stating it needs no action, rather than flagging the regression."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401 issue as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not group 5D6 or 1A7 with the 401 cluster; in fact it does not identify the 401 cluster at all."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "their high event counts indicate severe production impact",
+      "reason": "BANKUI-2F0 affects only 1 user per the export; 4,812 events from a single user's browser extension does not constitute 'severe production impact' in the way the phrase implies."
+    },
+    {
+      "quote": "payments/batch/actions (for BANKUI-4A1, 4A2, 4A9, 4B3, 5D6)",
+      "reason": "BANKUI-4A1's culprit is '/settlements/run/8214', not '/payments/batch/actions'; attributing it to that path is incorrect."
+    },
+    {
+      "quote": "No version-specific fixes for BANKUI-3C8 (resolvedInRelease=\"4.6.0\" but deployed in 4.7.0).",
+      "reason": "BANKUI-3C8 has no resolvedInRelease field in the export; that field belongs to BANKUI-1A7. The analysis misattributes 1A7's metadata to 3C8."
+    },
+    {
+      "quote": "Work on top-down by event count (highest events first).",
+      "reason": "The ticket states 'Last time we worked top down by event count and spent the sprint on something that turned out to affect one person,' describing it as a past failure, not an acceptance criterion or requirement."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 168.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "",
+        "reason": "The analysis never groups the five 401-related issues as sharing a cause; it explicitly states 'Duplicates: None (all issues are distinct by culprit path)' and separates 3C8 from the undefined-property issues.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis does not mention that user counts cannot be summed, nor does it identify 44 as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis lists 5D6 among 'lower events, product defects needing fix' without noting its 58 users is the highest user count in the list or contrasting it with its low event count.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the timing of 5D6's firstSeen relative to the 4.7.0 deploy, nor does it explain the 404 on the bundle as a deploy-replacement signature.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0: Use browser extension chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js (blocks cross-origin frames).",
+        "reason": "It identifies the extension and no-app-breadcrumbs and says it's not a product defect, but omits the critical '1 user' detail and contradicts itself by also calling it a priority.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "The highest event count issues (5140 and 4812) are BANKUI-3C8 (HTTP 401 errors) and BANKUI-2F0 (security error), which should be prioritized for the next sprint.",
+        "reason": "The analysis treats event count as the correct ranking and elevates both high-count issues to top priority, the opposite of the expected point.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 (resolved) may be irrelevant to current sprint.",
+        "reason": "The analysis dismisses 1A7 as irrelevant rather than flagging that its lastSeen (2026-09-11) postdates the 4.7.0 deploy, indicating a regression that should be reopened.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are missing \u2192 can't debug BANKUI-4A1's minified code (lastFrame is invalid).",
+        "reason": "It mentions missing source maps and minified lastFrame but applies it only to BANKUI-4A1 rather than all issues, and gives no examples like ie.project or N.setRows.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not address whether the user sets overlap between issues or that total affected users cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis does not infer session expiry as the cause; it instead suggests '401 errors might stem from external services,' which is a different and unsupported hypothesis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "First: BANKUI-3C8 (5140 events) \u2192 Investigate server-side causes (401 responses) to reduce failed requests. Second: BANKUI-2F0 (4812 events) \u2192 Audit browser extensions for cross-origin frame blocks.",
+        "reason": "The analysis picks the two highest-event-count issues for the sprint slots instead of 5D6 and the 401 cluster, and does not mention reopening 1A7 or filtering 2F0 as non-sprint actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "The highest event count issues (5140 and 4812) are BANKUI-3C8 (HTTP 401 errors) and BANKUI-2F0 (security error), which should be prioritized for the next sprint. These two are not product defects (caused by server/environment issues or third-party extensions), but their high event counts indicate severe production impact.",
+        "reason": "The analysis places BANKUI-2F0 at second priority and explicitly treats its 4,812 event count as evidence of 'severe production impact.'",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "Duplicates: None (all issues are distinct by culprit path).",
+        "reason": "The analysis explicitly states all issues are distinct and not duplicates, treating the four undefined-property issues and 3C8 as separate defects rather than one shared cause.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add user counts together or report any aggregate user total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7 (resolved) may be irrelevant to current sprint.",
+        "reason": "The analysis dismisses 1A7 as irrelevant, effectively stating it needs no action, rather than flagging the regression.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis does not describe the 401 issue as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis does not group 5D6 or 1A7 with the 401 cluster; in fact it does not identify the 401 cluster at all.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "their high event counts indicate severe production impact",
+        "reason": "BANKUI-2F0 affects only 1 user per the export; 4,812 events from a single user's browser extension does not constitute 'severe production impact' in the way the phrase implies."
+      },
+      {
+        "quote": "payments/batch/actions (for BANKUI-4A1, 4A2, 4A9, 4B3, 5D6)",
+        "reason": "BANKUI-4A1's culprit is '/settlements/run/8214', not '/payments/batch/actions'; attributing it to that path is incorrect."
+      },
+      {
+        "quote": "No version-specific fixes for BANKUI-3C8 (resolvedInRelease=\"4.6.0\" but deployed in 4.7.0).",
+        "reason": "BANKUI-3C8 has no resolvedInRelease field in the export; that field belongs to BANKUI-1A7. The analysis misattributes 1A7's metadata to 3C8."
+      },
+      {
+        "quote": "Work on top-down by event count (highest events first).",
+        "reason": "The ticket states 'Last time we worked top down by event count and spent the sprint on something that turned out to affect one person,' describing it as a past failure, not an acceptance criterion or requirement."
+      }
+    ]
+  }
+}

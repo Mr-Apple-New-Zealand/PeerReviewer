@@ -1,0 +1,171 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-405 (Enable mutual TLS for the partner payments API) is blocked by OPS-77 (Install Northwind Payments CA certificates in staging and production trust stores), which is waiting for the vendor to deliver the required CA bundle. Without the CA bundle, BANK-405 cannot proceed with end-to-end testing or release.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test can't run without the CA certs in staging, and OPS-77 is waiting for Northwind to deliver the bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "OPS-77's due date (2026-09-10) is near (only 2 days left), but Northwind has not delivered the CA bundle (no reply since 2026-09-05).",
+      "reason": "The analysis mentions the due date and Northwind's non-reply, but incorrectly states the due date is '2 days left' when it is 5 days past (today is 2026-09-15), and does not clearly state OPS-77 is overdue or cite the 2026-09-11 update date."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+      "reason": "The analysis gives the release date (2026-09-24) but omits the sprint end date (2026-09-22) and the two-day testing window Ravi needs after certificates arrive."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+      "reason": "The analysis conveys the risk but states it as established fact ('is delayed', 'cannot proceed') rather than as an inference or uncertainty, and does not note that nothing in the tickets commits Northwind to a delivery date."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that the code is complete, merged, or behind the MTLS_PARTNER feature flag (off by default)."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-405 (Enable mutual TLS for the partner payments API) is blocked by OPS-77 (Install Northwind Payments CA certificates in staging and production trust stores)",
+      "reason": "The analysis mentions production in the OPS-77 title but does not state the 1 October 2026 hard external deadline that Northwind requires mTLS by."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Escalation: If no response by 2026-09-10, escalate to partner manager (as Jo Tan did) to request formal timeline confirmation.",
+      "reason": "The analysis covers escalation through the partner manager with Jo Tan, but does not suggest planning for 3.2.0 to ship with the MTLS_PARTNER flag off as a fallback if certificates don't arrive in time."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states OPS-77 is waiting for the vendor and does not claim certificates have been received or that OPS-77 is done."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state a specific date by which Northwind has committed to deliver the bundle; the 2026-09-10 references are the OPS-77 due date or a suggested question to ask."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "OPS-77's due date (2026-09-10) is near (only 2 days left)",
+      "reason": "Today's date is 2026-09-15, so the due date of 2026-09-10 is 5 days in the past, not '2 days left.' This is a factual error about the timeline."
+    },
+    {
+      "quote": "no reply since 2026-09-05",
+      "reason": "Northwind did reply on 2026-09-05 (saying 'early next week' per Jo Tan's comment). The 'no reply' is since the chase on 2026-09-11, not since 2026-09-05."
+    },
+    {
+      "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+      "reason": "The tickets show the release is still scheduled for 2026-09-24; nothing indicates it has been rescheduled. Saying it 'is delayed' asserts a fact not supported by the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 135.88
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "BANK-405 (Enable mutual TLS for the partner payments API) is blocked by OPS-77 (Install Northwind Payments CA certificates in staging and production trust stores), which is waiting for the vendor to deliver the required CA bundle. Without the CA bundle, BANK-405 cannot proceed with end-to-end testing or release.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test can't run without the CA certs in staging, and OPS-77 is waiting for Northwind to deliver the bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "OPS-77's due date (2026-09-10) is near (only 2 days left), but Northwind has not delivered the CA bundle (no reply since 2026-09-05).",
+        "reason": "The analysis mentions the due date and Northwind's non-reply, but incorrectly states the due date is '2 days left' when it is 5 days past (today is 2026-09-15), and does not clearly state OPS-77 is overdue or cite the 2026-09-11 update date.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+        "reason": "The analysis gives the release date (2026-09-24) but omits the sprint end date (2026-09-22) and the two-day testing window Ravi needs after certificates arrive.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+        "reason": "The analysis conveys the risk but states it as established fact ('is delayed', 'cannot proceed') rather than as an inference or uncertainty, and does not note that nothing in the tickets commits Northwind to a delivery date.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "",
+        "reason": "The analysis never mentions that the code is complete, merged, or behind the MTLS_PARTNER feature flag (off by default).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "BANK-405 (Enable mutual TLS for the partner payments API) is blocked by OPS-77 (Install Northwind Payments CA certificates in staging and production trust stores)",
+        "reason": "The analysis mentions production in the OPS-77 title but does not state the 1 October 2026 hard external deadline that Northwind requires mTLS by.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Escalation: If no response by 2026-09-10, escalate to partner manager (as Jo Tan did) to request formal timeline confirmation.",
+        "reason": "The analysis covers escalation through the partner manager with Jo Tan, but does not suggest planning for 3.2.0 to ship with the MTLS_PARTNER flag off as a fallback if certificates don't arrive in time.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis consistently states OPS-77 is waiting for the vendor and does not claim certificates have been received or that OPS-77 is done.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis does not state a specific date by which Northwind has committed to deliver the bundle; the 2026-09-10 references are the OPS-77 due date or a suggested question to ask.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "OPS-77's due date (2026-09-10) is near (only 2 days left)",
+        "reason": "Today's date is 2026-09-15, so the due date of 2026-09-10 is 5 days in the past, not '2 days left.' This is a factual error about the timeline."
+      },
+      {
+        "quote": "no reply since 2026-09-05",
+        "reason": "Northwind did reply on 2026-09-05 (saying 'early next week' per Jo Tan's comment). The 'no reply' is since the chase on 2026-09-11, not since 2026-09-05."
+      },
+      {
+        "quote": "The 3.2.0 release (scheduled for 2026-09-24) is delayed due to this dependency.",
+        "reason": "The tickets show the release is still scheduled for 2026-09-24; nothing indicates it has been rescheduled. Saying it 'is delayed' asserts a fact not supported by the ticket data."
+      }
+    ]
+  }
+}

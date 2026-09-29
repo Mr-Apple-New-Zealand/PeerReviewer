@@ -1,0 +1,309 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the two-phase breadcrumb structure, the ~4-hour-10-minute gap, or the transition from 200s to 401s."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This occurs when an attempt is made to sort an array that is undefined or not properly populated, causing the screen to blank and requiring a reload.",
+      "reason": "The analysis treats the undefined array as the problem rather than identifying the 401 cascade as the root cause and the lack of 401 handling as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Environment: Production (from Sentry event)",
+      "reason": "The analysis reports the environment as Production without flagging the discrepancy with the bank-uat.example.com URL or answering Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the mismatch between the transaction/culprit (/settlements/run/8214) and the actual page URL (/payments/batch/actions), nor explain that the transaction name is stale."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "No specific code snippet from the batch actions screen",
+      "reason": "The analysis vaguely notes the trigger point is unclear but does not explain that source maps are missing, scraping failed, symbolicated_in_app is false, or that frames are minified."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not present the token-expiry-during-idle mechanism as an inference; it only vaguely references 'tab open for extended periods' from the ticket description."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' wording)."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or why the 'in-app-only' label is misleading."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Review data handling code: Inspect the JavaScript code that loads data from the endpoint, focusing on how array sorting is handled",
+      "reason": "The suggested actions focus on the undefined-array symptom rather than the 401 handling, Sentry environment fix, release/dist/source maps, or stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This occurs when an attempt is made to sort an array that is undefined or not properly populated, causing the screen to blank and requiring a reload.",
+      "reason": "The analysis frames the undefined array before .sort as the problem to fix (suggesting to check sorting handling and simulate undefined data) rather than identifying it as a symptom of missing 401 handling."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The error is happening in the production environment and affects users who have had the tab open for an extended period.",
+      "reason": "The analysis states the error is in production without flagging that all URLs point to bank-uat.example.com (UAT host)."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies the batch actions screen (/payments/batch/actions) as the location, not /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Error location: Occurs in polyfills.3e8c04b7a91d6f22.js (a JavaScript polyfill file)",
+      "reason": "The analysis names the polyfills file as the error location and suggests checking it as a potential cause, despite the stack being unsymbolicated and minified."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network, browser, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe activity during the gap or state that failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Triggered during XMLHttpRequest request to the /payments/batch/actions endpoint",
+      "reason": "/payments/batch/actions is the page URL (request.url and url tag), not an API endpoint called via XHR. The actual XHR requests in the breadcrumbs go to /api/... URLs such as /api/hq/SettlementAllocation/Query and /api/settlements/Run/GetAllRunBookingsForCustomerOrder."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 193.32
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never identifies the two-phase breadcrumb structure, the ~4-hour-10-minute gap, or the transition from 200s to 401s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "This occurs when an attempt is made to sort an array that is undefined or not properly populated, causing the screen to blank and requiring a reload.",
+        "reason": "The analysis treats the undefined array as the problem rather than identifying the 401 cascade as the root cause and the lack of 401 handling as the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or that they form one cascade.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh POST to /api/security/token/refresh or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment: Production (from Sentry event)",
+        "reason": "The analysis reports the environment as Production without flagging the discrepancy with the bank-uat.example.com URL or answering Tom Becker's question.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not note the mismatch between the transaction/culprit (/settlements/run/8214) and the actual page URL (/payments/batch/actions), nor explain that the transaction name is stale.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "No specific code snippet from the batch actions screen",
+        "reason": "The analysis vaguely notes the trigger point is unclear but does not explain that source maps are missing, scraping failed, symbolicated_in_app is false, or that frames are minified.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null or that this prevents tying the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss the 401 responses having response_body_size 0 or the inability to distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not present the token-expiry-during-idle mechanism as an inference; it only vaguely references 'tab open for extended periods' from the ticket description.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address any of the red herrings (780 KB response, Referer, browser/OS, '401 OK' wording).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flag, in_app_frame_mix, or why the 'in-app-only' label is misleading.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Review data handling code: Inspect the JavaScript code that loads data from the endpoint, focusing on how array sorting is handled",
+        "reason": "The suggested actions focus on the undefined-array symptom rather than the 401 handling, Sentry environment fix, release/dist/source maps, or stale transaction name.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "This occurs when an attempt is made to sort an array that is undefined or not properly populated, causing the screen to blank and requiring a reload.",
+        "reason": "The analysis frames the undefined array before .sort as the problem to fix (suggesting to check sorting handling and simulate undefined data) rather than identifying it as a symptom of missing 401 handling.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "The error is happening in the production environment and affects users who have had the tab open for an extended period.",
+        "reason": "The analysis states the error is in production without flagging that all URLs point to bank-uat.example.com (UAT host).",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis correctly identifies the batch actions screen (/payments/batch/actions) as the location, not /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "Error location: Occurs in polyfills.3e8c04b7a91d6f22.js (a JavaScript polyfill file)",
+        "reason": "The analysis names the polyfills file as the error location and suggests checking it as a potential cause, despite the stack being unsymbolicated and minified.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network, browser, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe activity during the gap or state that failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Triggered during XMLHttpRequest request to the /payments/batch/actions endpoint",
+        "reason": "/payments/batch/actions is the page URL (request.url and url tag), not an API endpoint called via XHR. The actual XHR requests in the breadcrumbs go to /api/... URLs such as /api/hq/SettlementAllocation/Query and /api/settlements/Run/GetAllRunBookingsForCustomerOrder."
+      }
+    ]
+  }
+}

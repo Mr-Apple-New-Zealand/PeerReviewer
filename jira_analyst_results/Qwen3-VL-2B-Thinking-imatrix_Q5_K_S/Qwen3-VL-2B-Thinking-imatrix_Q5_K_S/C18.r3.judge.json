@@ -1,0 +1,291 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Duplicates: None (all issues are unique; no overlap in causes).",
+      "reason": "The analysis explicitly states there is no overlap in causes and never groups the five 401-related issues together as sharing a common cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions distinct-user counts, the caveat about users appearing in multiple issues, or the 44-user figure for BANKUI-3C8."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention BANKUI-5D6's 58 distinct users or its significance as the top item by user impact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the timing of BANKUI-5D6 relative to the 4.7.0 deploy, the 404 on the bundle, or the open-sessions explanation."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Browser extension attempts to access cross-origin frame \u2192 blocks frame (security error).",
+      "reason": "The analysis identifies BANKUI-2F0 as a browser extension issue and not a client-code defect, but does not mention the single affected user and recommends 'fixing' (disabling) rather than filtering."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "prioritizing by event count",
+      "reason": "The analysis explicitly uses event count as its ranking criterion and selects the two highest-count issues, the opposite of recognising event count as misleading here."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BankUI-1A7 is resolved (handled: true) and not part of the \"unresolved\" list \u2192 does not need fix.",
+      "reason": "The analysis treats BANKUI-1A7 as resolved and needing no action, missing the regression indicated by its last-seen date after the 4.7.0 deploy."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No source maps for the project (per Ravi Kumar's note), so function names are minified \u2192 cannot diagnose deeper causes.",
+      "reason": "The analysis conveys that source maps are not uploaded, function names are minified, and issues cannot be traced to components from this export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or the inability to compute total affected users."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never infers that the 401s represent session expiration without app handling, nor does it note that confirmation would require full events."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Fix only the top 2 issues (BANKUI-3C8 and BANKUI-2F0) due to highest event counts.",
+      "reason": "The analysis recommends the two highest-event-count issues (3C8 and 2F0) rather than BANKUI-5D6 first and the 401 cluster second, and does not recommend reopening 1A7 or filtering 2F0."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Fix only the top 2 issues (BANKUI-3C8 and BANKUI-2F0) due to highest event counts. ... Why: Highest event counts (5140 vs. 4812), caused by server errors and browser extension",
+      "reason": "The analysis places BANKUI-2F0 at the top of the priority list and explicitly uses its 4,812 event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Duplicates: None (all issues are unique; no overlap in causes).",
+      "reason": "The analysis treats the issues as separate with no shared causes, giving the four undefined-property issues separate module-based groupings rather than a single 401 cause."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add distinct-user counts across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BankUI-1A7 is resolved (handled: true) and not part of the \"unresolved\" list \u2192 does not need fix.",
+      "reason": "The analysis explicitly states BANKUI-1A7 is resolved and needs no action, contradicting the regression evidence."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 as an authentication issue to be fixed on the server, not as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not group BANKUI-5D6 or BANKUI-1A7 into a 401 cluster; it does not identify such a cluster at all."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "There are 8 unresolved issues (7 active, 1 resolved)",
+      "reason": "The export contains 8 issues total: 7 unresolved and 1 resolved. Stating '8 unresolved' is factually incorrect."
+    },
+    {
+      "quote": "\"Handled: true\" for BANKUI-3C8 implies server-side issue; app is handling it but event count is high.",
+      "reason": "The 'handled' field in Sentry indicates the error was caught by the app's error handler (as opposed to being unhandled); it does not imply a server-side issue. The mechanism is 'console' and the breadcrumb says it is 'logged by the app's console error handler for every failed request.'"
+    },
+    {
+      "quote": "BankUI-1A7 is resolved (handled: true)",
+      "reason": "The JSON export clearly shows \"handled\": false for BANKUI-1A7, not true."
+    },
+    {
+      "quote": "Not defects in client code (unfixed).",
+      "reason": "The tickets show these as unhandled TypeErrors in the Angular app (mechanism: auto.function.angular.error_handler, handled: false). There is no basis in the export for concluding they are not client-code defects."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 152.01
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Duplicates: None (all issues are unique; no overlap in causes).",
+        "reason": "The analysis explicitly states there is no overlap in causes and never groups the five 401-related issues together as sharing a common cause.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions distinct-user counts, the caveat about users appearing in multiple issues, or the 44-user figure for BANKUI-3C8.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis does not mention BANKUI-5D6's 58 distinct users or its significance as the top item by user impact.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the timing of BANKUI-5D6 relative to the 4.7.0 deploy, the 404 on the bundle, or the open-sessions explanation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "Browser extension attempts to access cross-origin frame \u2192 blocks frame (security error).",
+        "reason": "The analysis identifies BANKUI-2F0 as a browser extension issue and not a client-code defect, but does not mention the single affected user and recommends 'fixing' (disabling) rather than filtering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "prioritizing by event count",
+        "reason": "The analysis explicitly uses event count as its ranking criterion and selects the two highest-count issues, the opposite of recognising event count as misleading here.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BankUI-1A7 is resolved (handled: true) and not part of the \"unresolved\" list \u2192 does not need fix.",
+        "reason": "The analysis treats BANKUI-1A7 as resolved and needing no action, missing the regression indicated by its last-seen date after the 4.7.0 deploy.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "No source maps for the project (per Ravi Kumar's note), so function names are minified \u2192 cannot diagnose deeper causes.",
+        "reason": "The analysis conveys that source maps are not uploaded, function names are minified, and issues cannot be traced to components from this export.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis does not discuss whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or the inability to compute total affected users.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis never infers that the 401s represent session expiration without app handling, nor does it note that confirmation would require full events.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Fix only the top 2 issues (BANKUI-3C8 and BANKUI-2F0) due to highest event counts.",
+        "reason": "The analysis recommends the two highest-event-count issues (3C8 and 2F0) rather than BANKUI-5D6 first and the 401 cluster second, and does not recommend reopening 1A7 or filtering 2F0.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "Fix only the top 2 issues (BANKUI-3C8 and BANKUI-2F0) due to highest event counts. ... Why: Highest event counts (5140 vs. 4812), caused by server errors and browser extension",
+        "reason": "The analysis places BANKUI-2F0 at the top of the priority list and explicitly uses its 4,812 event count as evidence of impact.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "Duplicates: None (all issues are unique; no overlap in causes).",
+        "reason": "The analysis treats the issues as separate with no shared causes, giving the four undefined-property issues separate module-based groupings rather than a single 401 cause.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add distinct-user counts across issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BankUI-1A7 is resolved (handled: true) and not part of the \"unresolved\" list \u2192 does not need fix.",
+        "reason": "The analysis explicitly states BANKUI-1A7 is resolved and needs no action, contradicting the regression evidence.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 as an authentication issue to be fixed on the server, not as an attack or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis does not group BANKUI-5D6 or BANKUI-1A7 into a 401 cluster; it does not identify such a cluster at all.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "There are 8 unresolved issues (7 active, 1 resolved)",
+        "reason": "The export contains 8 issues total: 7 unresolved and 1 resolved. Stating '8 unresolved' is factually incorrect."
+      },
+      {
+        "quote": "\"Handled: true\" for BANKUI-3C8 implies server-side issue; app is handling it but event count is high.",
+        "reason": "The 'handled' field in Sentry indicates the error was caught by the app's error handler (as opposed to being unhandled); it does not imply a server-side issue. The mechanism is 'console' and the breadcrumb says it is 'logged by the app's console error handler for every failed request.'"
+      },
+      {
+        "quote": "BankUI-1A7 is resolved (handled: true)",
+        "reason": "The JSON export clearly shows \"handled\": false for BANKUI-1A7, not true."
+      },
+      {
+        "quote": "Not defects in client code (unfixed).",
+        "reason": "The tickets show these as unhandled TypeErrors in the Angular app (mechanism: auto.function.angular.error_handler, handled: false). There is no basis in the export for concluding they are not client-code defects."
+      }
+    ]
+  }
+}

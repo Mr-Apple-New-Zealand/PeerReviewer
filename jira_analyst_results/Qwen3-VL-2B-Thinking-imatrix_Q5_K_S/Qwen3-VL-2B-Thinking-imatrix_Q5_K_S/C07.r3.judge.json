@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The incident ticket mentions \"the config deploy at 09:30 (OPS-81)\"",
+      "reason": "The analysis mentions the 09:30 deploy time for OPS-81 but never states that impact/errors started at about 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to detect: **5 minutes** (alert fired at 09:47; incident declared at 09:52)",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to recover: **55 minutes** (error rate <1% at 10:42, after rollback at 10:44)",
+      "reason": "The 10:42 recovery is stated, but the rollback start (10:31) is missing (10:44 is the completion time) and the 10:50 resolution time is not given."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to detect: **5 minutes** (alert fired at 09:47; incident declared at 09:52)",
+      "reason": "The analysis gives 5 minutes (alert-to-declaration) instead of the expected 16 minutes (impact start 09:31 to alert 09:47); the correct figure is absent."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to recover: **55 minutes** (error rate <1% at 10:42, after rollback at 10:44)",
+      "reason": "The 55-minute figure and 10:42 end-point are present, but the start point (09:47) is not explicitly stated, and the parenthetical incorrectly references 10:44."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause: JWT signing key rotation (OPS-81) in the config deploy, which updated the Auth service's token signature but **did not refresh the Transactions API's validation key**. This triggered \"IDX10503: Signature validation failed\" 401 errors.",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation key not updated, 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review is booked for 2026-09-16 (but no progress is shown).",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 5-minute figure is supported by the 09:47-to-09:52 timestamps in the ticket, and the 55-minute figure is supported by 09:47-to-10:42; no unsupported time values are stated."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "All users encountered transfer failures (error rate 64% at 09:47 NZST)",
+      "reason": "The ticket states the alert at 09:47 was for TransferErrorRate > 20%; the 64% figure was reported by Sam at 09:52, not at 09:47."
+    },
+    {
+      "quote": "error rate <1% at 10:42, after rollback at 10:44",
+      "reason": "This implies the 10:42 recovery occurred after the 10:44 rollback completion, which is temporally impossible; the ticket shows the error rate recovered at 10:42, before the rollback was declared complete at 10:44."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 222.05
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The incident ticket mentions \"the config deploy at 09:30 (OPS-81)\"",
+        "reason": "The analysis mentions the 09:30 deploy time for OPS-81 but never states that impact/errors started at about 09:31.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "Time to detect: **5 minutes** (alert fired at 09:47; incident declared at 09:52)",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Time to recover: **55 minutes** (error rate <1% at 10:42, after rollback at 10:44)",
+        "reason": "The 10:42 recovery is stated, but the rollback start (10:31) is missing (10:44 is the completion time) and the 10:50 resolution time is not given.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: **5 minutes** (alert fired at 09:47; incident declared at 09:52)",
+        "reason": "The analysis gives 5 minutes (alert-to-declaration) instead of the expected 16 minutes (impact start 09:31 to alert 09:47); the correct figure is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: **55 minutes** (error rate <1% at 10:42, after rollback at 10:44)",
+        "reason": "The 55-minute figure and 10:42 end-point are present, but the start point (09:47) is not explicitly stated, and the parenthetical incorrectly references 10:44.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Root cause: JWT signing key rotation (OPS-81) in the config deploy, which updated the Auth service's token signature but **did not refresh the Transactions API's validation key**. This triggered \"IDX10503: Signature validation failed\" 401 errors.",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validation key not updated, 401 IDX10503 errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review is booked for 2026-09-16 (but no progress is shown).",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The 5-minute figure is supported by the 09:47-to-09:52 timestamps in the ticket, and the 55-minute figure is supported by 09:47-to-10:42; no unsupported time values are stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "All users encountered transfer failures (error rate 64% at 09:47 NZST)",
+        "reason": "The ticket states the alert at 09:47 was for TransferErrorRate > 20%; the 64% figure was reported by Sam at 09:52, not at 09:47."
+      },
+      {
+        "quote": "error rate <1% at 10:42, after rollback at 10:44",
+        "reason": "This implies the 10:42 recovery occurred after the 10:44 rollback completion, which is temporally impossible; the ticket shows the error rate recovered at 10:42, before the rollback was declared complete at 10:44."
+      }
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-440 and BANK-425 both describe identical core issues: the web dashboard (home screen) fails to update balance immediately after a successful transfer, with symptoms including persistent old balance values and delayed updates.",
+      "reason": "The analysis identifies BANK-425 as a duplicate of BANK-440 and describes the shared web dashboard/home screen stale-balance-after-transfer issue, but does not mention version 3.1.4 in the duplicate identification."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Close BANK-425 and BANK-440 as duplicates (e.g., mark BANK-425 as \"Duplicate of BANK-440\" and remove BANK-440).",
+      "reason": "The analysis suggests merging/consolidating but is self-contradictory (says to close both, then says 'Do not close either ticket as Duplicate'), and does not cite BANK-425 being older or having Hana Sato's root-cause analysis as the reason to keep it."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "MOB-88: Separate issue (mobile push notifications) with no overlap.",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, a mobile push-notification issue, and in progress with Ravi Kumar, but does not mention the specific different cause (message built from TransferRequested event before debit is applied)."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Ensure the fix includes clearing `BalanceCache` after transfer success (as per Hana Sato's comment in BANK-425).",
+      "reason": "The analysis names BalanceCache and the fix (clear after transfer success) but omits the '15-minute' duration and 'local storage' specifics from the root-cause description."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANK-419: Already resolved and unrelated to these tickets.",
+      "reason": "The analysis explicitly states BANK-419 is unrelated and that all tickets are independent, directly contradicting the expected inference that BANK-419 introduced the bug as a regression."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Open (Status: Open), Owner: Unassigned, Blocking: None (No blockers per ticket data).  - **BANK-425**: Open (Status: Open), Owner: Unassigned, Blocking: None (No blockers per ticket data).",
+      "reason": "The analysis clearly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a separate issue with no overlap, not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the balance API returns a wrong or stale value; it attributes the issue to the frontend cache."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "BANK-419: Already resolved and unrelated to these tickets.",
+      "reason": "The tickets show BANK-419 added the 15-minute BalanceCache in 3.1.4, which Hana Sato identifies as the root cause of the BANK-440/BANK-425 bug, making it directly related rather than unrelated."
+    },
+    {
+      "quote": "No dependencies noted between tickets; all tickets are independent.",
+      "reason": "BANK-419 introduced the cache that causes the bug in BANK-440/BANK-425, so there is a clear causal dependency between them."
+    },
+    {
+      "quote": "BANK-440's symptoms (update only after logging out) contradict this fix.",
+      "reason": "There is no logical contradiction: clearing BalanceCache on transfer success would cause the balance to update immediately, eliminating the need to log out. The tickets provide no basis for this claimed contradiction."
+    },
+    {
+      "quote": "Both tickets reference the same root cause: failure to invalidate cache after transfers.",
+      "reason": "BANK-440's description does not mention any cache or root cause; only BANK-425's comment from Hana Sato identifies the BalanceCache issue. Saying both tickets 'reference' the root cause is not supported by the ticket text."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 148.43
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 both describe identical core issues: the web dashboard (home screen) fails to update balance immediately after a successful transfer, with symptoms including persistent old balance values and delayed updates.",
+        "reason": "The analysis identifies BANK-425 as a duplicate of BANK-440 and describes the shared web dashboard/home screen stale-balance-after-transfer issue, but does not mention version 3.1.4 in the duplicate identification.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Close BANK-425 and BANK-440 as duplicates (e.g., mark BANK-425 as \"Duplicate of BANK-440\" and remove BANK-440).",
+        "reason": "The analysis suggests merging/consolidating but is self-contradictory (says to close both, then says 'Do not close either ticket as Duplicate'), and does not cite BANK-425 being older or having Hana Sato's root-cause analysis as the reason to keep it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: Separate issue (mobile push notifications) with no overlap.",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, a mobile push-notification issue, and in progress with Ravi Kumar, but does not mention the specific different cause (message built from TransferRequested event before debit is applied).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Ensure the fix includes clearing `BalanceCache` after transfer success (as per Hana Sato's comment in BANK-425).",
+        "reason": "The analysis names BalanceCache and the fix (clear after transfer success) but omits the '15-minute' duration and 'local storage' specifics from the root-cause description.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419: Already resolved and unrelated to these tickets.",
+        "reason": "The analysis explicitly states BANK-419 is unrelated and that all tickets are independent, directly contradicting the expected inference that BANK-419 introduced the bug as a regression.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440: Open (Status: Open), Owner: Unassigned, Blocking: None (No blockers per ticket data).  - **BANK-425**: Open (Status: Open), Owner: Unassigned, Blocking: None (No blockers per ticket data).",
+        "reason": "The analysis clearly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a separate issue with no overlap, not a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the balance API returns a wrong or stale value; it attributes the issue to the frontend cache.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "BANK-419: Already resolved and unrelated to these tickets.",
+        "reason": "The tickets show BANK-419 added the 15-minute BalanceCache in 3.1.4, which Hana Sato identifies as the root cause of the BANK-440/BANK-425 bug, making it directly related rather than unrelated."
+      },
+      {
+        "quote": "No dependencies noted between tickets; all tickets are independent.",
+        "reason": "BANK-419 introduced the cache that causes the bug in BANK-440/BANK-425, so there is a clear causal dependency between them."
+      },
+      {
+        "quote": "BANK-440's symptoms (update only after logging out) contradict this fix.",
+        "reason": "There is no logical contradiction: clearing BalanceCache on transfer success would cause the balance to update immediately, eliminating the need to log out. The tickets provide no basis for this claimed contradiction."
+      },
+      {
+        "quote": "Both tickets reference the same root cause: failure to invalidate cache after transfers.",
+        "reason": "BANK-440's description does not mention any cache or root cause; only BANK-425's comment from Hana Sato identifies the BalanceCache issue. Saying both tickets 'reference' the root cause is not supported by the ticket text."
+      }
+    ]
+  }
+}

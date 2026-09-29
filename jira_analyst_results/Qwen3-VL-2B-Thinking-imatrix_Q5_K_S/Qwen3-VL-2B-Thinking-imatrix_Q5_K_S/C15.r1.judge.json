@@ -1,0 +1,233 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "repeated SMTP errors (535) due to authentication failures",
+      "reason": "The analysis identifies the SMTP 535 and 'authentication disabled' but omits the specific server response text '5.7.139 Authentication unsuccessful, basic authentication is disabled' and the code path (EmailSender/OutboxDispatcher), and incorrectly attributes the root cause to key storage rather than the SMTP authentication failure."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does the opposite of what is expected: it endorses the reporter's key-storage explanation as the cause rather than stating it is unsupported by the log."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog, the specific pending counts (1412\u21922089), or the rate of accumulation."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows the problem is reproducible after the container restart (18:02), and the issue is confirmed to be due to key storage configuration.",
+      "reason": "The analysis notes the problem persists after the 18:02 restart, implying another restart won't help, but does not explicitly state that the 535 rejections continue through 18:38:02 or draw the clear conclusion that restarting is futile."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never infers that the mail provider disabled basic auth for svc-notify@example.com or that the fix is a change of authentication method/credentials rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The suggested actions focus entirely on key storage and XML encryptor configuration; none of the expected actions (confirm with mail tenant, add backoff/dead-letter, retrieve pre-18:02 log) appear."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07, the healthy check at 18:21:09, or that neither is related to the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The issue stems from incorrect key storage in the ASP.NET DataProtection-Keys directory, which is not persisted across container restarts and lacks an XML encryptor.",
+      "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix or remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references SMTP status code 535 (authentication), which is present in the log; no fabricated error codes or reasons are stated."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Container restarts (18:02) due to log rotation.",
+      "reason": "The log header states the pod restarted at 18:02 but gives no reason; 'due to log rotation' is an invented cause not present in the ticket or log."
+    },
+    {
+      "quote": "Marcus Reid (assigned to \"fix key storage\")",
+      "reason": "The ticket lists Marcus Reid as the assignee of the ticket, but his comment asks 'Can someone from Platform fix the key storage,' meaning he is delegating the fix to Platform rather than being assigned to do it himself."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 117.28
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "repeated SMTP errors (535) due to authentication failures",
+        "reason": "The analysis identifies the SMTP 535 and 'authentication disabled' but omits the specific server response text '5.7.139 Authentication unsuccessful, basic authentication is disabled' and the code path (EmailSender/OutboxDispatcher), and incorrectly attributes the root cause to key storage rather than the SMTP authentication failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "",
+        "reason": "The analysis does the opposite of what is expected: it endorses the reporter's key-storage explanation as the cause rather than stating it is unsupported by the log.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis never mentions the 5-second retry interval, lack of backoff, no dead-letter path, outbox item 991204, or the head-of-queue blocking behaviour.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog, the specific pending counts (1412\u21922089), or the rate of accumulation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "The log shows the problem is reproducible after the container restart (18:02), and the issue is confirmed to be due to key storage configuration.",
+        "reason": "The analysis notes the problem persists after the 18:02 restart, implying another restart won't help, but does not explicitly state that the 535 rejections continue through 18:38:02 or draw the clear conclusion that restarting is futile.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "",
+        "reason": "The analysis never infers that the mail provider disabled basic auth for svc-notify@example.com or that the fix is a change of authentication method/credentials rather than a code change.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "",
+        "reason": "The suggested actions focus entirely on key storage and XML encryptor configuration; none of the expected actions (confirm with mail tenant, add backoff/dead-letter, retrieve pre-18:02 log) appear.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07, the healthy check at 18:21:09, or that neither is related to the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "The issue stems from incorrect key storage in the ASP.NET DataProtection-Keys directory, which is not persisted across container restarts and lacks an XML encryptor.",
+        "reason": "The analysis explicitly endorses the reporter's explanation that DataProtection key storage and the missing XML encryptor are causing the failed notifications.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix or remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references SMTP status code 535 (authentication), which is present in the log; no fabricated error codes or reasons are stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Container restarts (18:02) due to log rotation.",
+        "reason": "The log header states the pod restarted at 18:02 but gives no reason; 'due to log rotation' is an invented cause not present in the ticket or log."
+      },
+      {
+        "quote": "Marcus Reid (assigned to \"fix key storage\")",
+        "reason": "The ticket lists Marcus Reid as the assignee of the ticket, but his comment asks 'Can someone from Platform fix the key storage,' meaning he is delegating the fix to Platform rather than being assigned to do it himself."
+      }
+    ]
+  }
+}

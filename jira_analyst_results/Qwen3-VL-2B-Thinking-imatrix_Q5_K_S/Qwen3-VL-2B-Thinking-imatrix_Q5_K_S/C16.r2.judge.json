@@ -1,0 +1,255 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery Time | 281 ms (0.28s) | 35171 ms (35.17s) | 34.89s",
+      "reason": "The analysis gives a single before value (281 ms) and a single after value (35.17 s) rather than the full ranges (281\u2013319 ms before; ~34\u201373 s after), so the regression is only partially quantified."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis states an absolute difference of 34.89 s but never expresses the slowdown as a multiplicative factor (\u2248110\u00d7 to \u2248240\u00d7)."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows multiple \"Long-running request\" warnings for GetStatementLineQuery (35.17s, 35.17s, 44.335s)",
+      "reason": "It shows some progression (35 s \u2192 44 s) but omits the 69\u201373 s tail and the specific timestamps, so the worsening trend is only partially captured."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetAccountSummaryQuery Time | 3102 ms (3.1s) | 3188 ms (3.188s) | 0.088s",
+      "reason": "The numbers show the query is essentially unchanged, but the analysis never explicitly states that this contradicts Ravi Kumar's suggestion to start there."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned, so the analysis does not establish that the regression is specific to the statement line query rather than a general service slowdown."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The logs indicate the release (4.7.0) contains no specific changes to the statements API",
+      "reason": "The analysis repeats Tom Becker's claim as if the logs support it, and never mentions the ReindexStatementLines migration recorded in the after log, so the contradiction is entirely missed."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The ReindexStatementLines migration is never identified as the most likely place to investigate, nor is the coincidence-vs-causation distinction drawn."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The thread pool starvation suggests resource constraints, but there's no information about resource limits or configuration changes",
+      "reason": "The analysis treats thread-pool starvation as a separate resource-constraint issue rather than inferring it is a consequence of requests piling up behind the slow query, and does not connect it to the timing jump."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the short window lengths, different days, limited sample sizes, or the gap between the two windows, so the caveat that the regression size is indicative rather than measured is absent."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Verify the exact query execution plan for GetStatementLineQuery",
+      "reason": "It mentions checking the execution plan and names Tom Becker as owner, but does not reference the specific migration, does not recommend collecting a longer sample from both versions, and does not note that Tom currently believes it is not his team's change."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies GetStatementLineQuery as the regression and shows GetAccountSummaryQuery as essentially unchanged; it does not name the summary query as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration is never mentioned, so the analysis neither states it caused the slowdown as fact nor describes any schema change it made."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis gives an absolute difference (34.89 s) but does not state a multiplicative magnitude such as 'ten times' or 'twice as slow.'"
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name thread-pool starvation as the root cause of the slow query; it lists it as a separate observation about resource constraints."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Ravi Kumar (assignee) should analyze the GetAccountSummaryQuery performance",
+      "reason": "Ravi Kumar is a commenter on the ticket, not the assignee; Tom Becker is the assignee. The analysis misattributes the role."
+    },
+    {
+      "quote": "The logs indicate the release (4.7.0) contains no specific changes to the statements API",
+      "reason": "The after log explicitly records 'Applied 1 pending migration: 20260914_2100_ReindexStatementLines' at startup, which is a change touching the statements table; the logs do not support the claim that nothing in 4.7.0 touched statements."
+    },
+    {
+      "quote": "The log shows multiple \"Long-running request\" warnings for GetStatementLineQuery (35.17s, 35.17s, 44.335s)",
+      "reason": "The second long-running request in the log was 33 757 ms (\u224833.76 s), not 35.17 s; the value 44 335 ms is the eighth warning, not the third. The listed values do not match the log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 177.08
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery Time | 281 ms (0.28s) | 35171 ms (35.17s) | 34.89s",
+        "reason": "The analysis gives a single before value (281 ms) and a single after value (35.17 s) rather than the full ranges (281\u2013319 ms before; ~34\u201373 s after), so the regression is only partially quantified.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "",
+        "reason": "The analysis states an absolute difference of 34.89 s but never expresses the slowdown as a multiplicative factor (\u2248110\u00d7 to \u2248240\u00d7).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "The log shows multiple \"Long-running request\" warnings for GetStatementLineQuery (35.17s, 35.17s, 44.335s)",
+        "reason": "It shows some progression (35 s \u2192 44 s) but omits the 69\u201373 s tail and the specific timestamps, so the worsening trend is only partially captured.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery Time | 3102 ms (3.1s) | 3188 ms (3.188s) | 0.088s",
+        "reason": "The numbers show the query is essentially unchanged, but the analysis never explicitly states that this contradicts Ravi Kumar's suggestion to start there.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned, so the analysis does not establish that the regression is specific to the statement line query rather than a general service slowdown.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "The logs indicate the release (4.7.0) contains no specific changes to the statements API",
+        "reason": "The analysis repeats Tom Becker's claim as if the logs support it, and never mentions the ReindexStatementLines migration recorded in the after log, so the contradiction is entirely missed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "",
+        "reason": "The ReindexStatementLines migration is never identified as the most likely place to investigate, nor is the coincidence-vs-causation distinction drawn.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "The thread pool starvation suggests resource constraints, but there's no information about resource limits or configuration changes",
+        "reason": "The analysis treats thread-pool starvation as a separate resource-constraint issue rather than inferring it is a consequence of requests piling up behind the slow query, and does not connect it to the timing jump.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis never discusses the short window lengths, different days, limited sample sizes, or the gap between the two windows, so the caveat that the regression size is indicative rather than measured is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Verify the exact query execution plan for GetStatementLineQuery",
+        "reason": "It mentions checking the execution plan and names Tom Becker as owner, but does not reference the specific migration, does not recommend collecting a longer sample from both versions, and does not note that Tom currently believes it is not his team's change.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis correctly identifies GetStatementLineQuery as the regression and shows GetAccountSummaryQuery as essentially unchanged; it does not name the summary query as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The migration is never mentioned, so the analysis neither states it caused the slowdown as fact nor describes any schema change it made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The analysis gives an absolute difference (34.89 s) but does not state a multiplicative magnitude such as 'ten times' or 'twice as slow.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis does not name thread-pool starvation as the root cause of the slow query; it lists it as a separate observation about resource constraints.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Ravi Kumar (assignee) should analyze the GetAccountSummaryQuery performance",
+        "reason": "Ravi Kumar is a commenter on the ticket, not the assignee; Tom Becker is the assignee. The analysis misattributes the role."
+      },
+      {
+        "quote": "The logs indicate the release (4.7.0) contains no specific changes to the statements API",
+        "reason": "The after log explicitly records 'Applied 1 pending migration: 20260914_2100_ReindexStatementLines' at startup, which is a change touching the statements table; the logs do not support the claim that nothing in 4.7.0 touched statements."
+      },
+      {
+        "quote": "The log shows multiple \"Long-running request\" warnings for GetStatementLineQuery (35.17s, 35.17s, 44.335s)",
+        "reason": "The second long-running request in the log was 33 757 ms (\u224833.76 s), not 35.17 s; the value 44 335 ms is the eighth warning, not the third. The listed values do not match the log."
+      }
+    ]
+  }
+}

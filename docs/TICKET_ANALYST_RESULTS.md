@@ -20,7 +20,7 @@ step with it.
 
 ## Current standing
 
-Eleven models have been measured on the full eighteen cases with the judge of
+Twelve models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
@@ -34,6 +34,7 @@ record. Everything earlier is superseded — see below.
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | 60.6 | 19.5 | 7/162 | 0 | 37 | 32.5 |
 | **Qwen3-VL-4B-Instruct-imatrix** | Q4_K_M | 0.3 | 48.6 (48–50) | 59% | 58.6 | 22.6 | 13/162 | 2 | 57 | **7.9** |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | 0 | 15 | 56.3 |
+| Qwen3-VL-2B-Thinking-imatrix ³ | Q5_K_S | 1.0 | 26.7 (25–29) | 45% | 36.0 | 2.4 | 27/149 | 3 | 117 | 8.1 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 0 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 1 | 100 | 4.1 |
 
@@ -93,6 +94,48 @@ every trust measure (10 traps against 13, no invented keys against 2, 43
 unsupported against 57). The two 4B builds bracket the 8B-Instruct, which sits
 between them on quality at 9.4 GB. Below 8B, reasoning is worth its memory; see
 the next section.
+
+### The 2B is where the whole approach stops working
+
+`Qwen3-VL-2B-Thinking` is the first model in the benchmark that fails on its own
+terms rather than merely scoring badly, and it fails in three ways at once.
+
+**It runs away at the card temperature.** Temperature 1.0 fixed the 8B (9 lost
+cases → 0) and the 32B (3 → 0). It does not fix the 2B: 4 runs hit the 16,384
+cap and **3 returned empty content**, after 60,035, 67,994 and 72,564 characters
+of thinking. So the temperature fix has a size floor. Runaway reasoning is not
+purely a sampling artefact — below some size the model cannot terminate a chain
+of thought regardless of temperature, and there is no setting that rescues it.
+`Modelfile.Qwen3-VL-2B-Thinking` called this in advance ("THIS IS THE BUILD MOST
+EXPOSED TO RUNAWAY THINKING IN THE WHOLE FLEET"); the prediction was right.
+
+**It costs more memory than a model twice its size that scores twice as well.**
+
+| | 2B-Thinking | 4B-Instruct |
+|---|---|---|
+| Quality | 26.7 | **48.6** |
+| Resident | 8.1 GB | **7.9 GB** |
+| Output tokens a case | 5,794 | **1,198** |
+
+At `num_ctx` 49152 the KV cache is several times the weights of a 2B, so
+shrinking the model barely shrinks the footprint — the Thinking track's context
+requirement sets a floor of about 8 GB no matter how small the model is. The
+4B-Instruct **dominates it outright** on the Pareto definition: better on quality
+*and* memory. It is the only model on the board that another model strictly
+dominates.
+
+**It is the least trustworthy model measured.** 27 traps in 149 (18.1%, against
+the 3B's 12.3% and the 4B-Instruct's 8.0%), 117 unsupported claims — 2.3 per
+delivered analysis — and 3 invented keys. It also writes more than any other
+model in the benchmark at 5,794 output tokens a case. More output, less signal:
+it misses 43% of checkpoints, the worst rate on the board.
+
+On telemetry it is at the floor: **2.4** on C14–C18, with C15, C17 and C18 all
+scoring exactly 0.
+
+The conclusion for the fleet is simple. **Do not run Thinking builds below 4B.**
+The 4B-Thinking is the smallest that works, and even it only just justifies its
+11 GB against the 4B-Instruct's 7.9.
 
 ### What reasoning actually buys, measured at three sizes
 
@@ -183,7 +226,7 @@ Vision is a wash between the two 32Bs — C09/C11/C12/C13 at 77.8/50.0/71.4/61.9
 the Instruct build against 83.3/47.6/59.5/61.9 — and neither is close to Sonnet's
 94.5/76.2/80.9/97.6.
 
-### Temperature 1.0 is confirmed across the Thinking track
+### Temperature 1.0 fixes the Thinking track down to 4B, and no further
 
 The Thinking builds' empty-content failures at temperature 0.3 were a
 low-temperature artefact. The two builds measured at both temperatures:
@@ -199,11 +242,16 @@ low-temperature artefact. The two builds measured at both temperatures:
 comparable** with the 60.6 beside it — see Superseded measurements. The 0.3 column
 is listed for the failure count only.
 
-At 1.0 every Thinking build answers every case. The **4B-Thinking**, run at 1.0
-from the start, recorded **0 errors and 0 flags** — and it is the most verbose model
-in the benchmark at 3,897 output tokens a case, more than either larger Thinking
-build, without once reaching the 16,384 cap. The smallest reasoning build thinks the
-most and still never runs out, which is what a healthy temperature looks like.
+At 1.0 the 8B, 32B and 4B Thinking builds answer every case. The **4B-Thinking**
+recorded **0 errors and 0 flags** while generating 3,897 output tokens a case,
+more than either larger Thinking build, without once reaching the 16,384 cap.
+
+**The 2B is the exception, and it sets the floor.** At the same temperature 1.0 it
+hit the cap on 4 runs and returned empty content on 3, after 60k–74k characters of
+thinking. So temperature is not a universal fix: below about 4B the model cannot
+reliably terminate a chain of thought at any setting. Raising `num_predict` would
+not help either — 16,384 tokens is already more than four times what the working
+Thinking builds use.
 
 On the 8B, where a clean before-and-after exists, prose was unchanged
 (63.6 → 62.9) and the whole gain was telemetry plus no longer forfeiting nine runs.
@@ -241,8 +289,12 @@ recall. For output a human reads and acts on directly, take the 32B.
 ### Memory: flat from 8 GB to 56 GB
 
 Ordered by measured memory: 4.1 GB → 14.4, 7.1 GB → 24.5, **7.9 GB → 48.6**,
-9.4 GB → 49.7, **11.0 GB → 51.9**, 13.0 GB → **52.3**, 32.5 GB → 49.2,
-56.3 GB → 45.6.
+8.1 GB → 26.7, 9.4 GB → 49.7, **11.0 GB → 51.9**, 13.0 GB → **52.3**,
+32.5 GB → 49.2, 56.3 GB → 45.6.
+
+The 8.1 GB entry is the 2B-Thinking and is the one point that sits far below the
+line — 22 points under a model using less memory. Memory does not predict quality,
+but it does not excuse it either: see the 2B section above.
 
 The curve rises very steeply to about 8 GB and is then **flat or falling all the
 way to 56 GB**. Everything from the 4B to the 72B — a 7× span in memory and an
@@ -267,6 +319,14 @@ have the layer and KV-head counts the Modelfiles assume. That is worth confirmin
 with `scripts/gguf_info.py` rather than taking on faith, but it is no longer a
 guess.
 
+**Where the counts were guessed, the estimate missed.** The 2B-Thinking Modelfile
+predicted ~10 GB and measured **8.14**, because it assumed the 2B shared the
+4B/8B's 36 layers × 8 KV heads — which the file itself flagged as a guess. Working
+back from the measurement gives roughly 117 KiB/token rather than the assumed 144,
+so the 2B is shallower or carries fewer KV heads. The lesson is narrow and useful:
+the formula is sound, the architecture constants are what need reading off the
+file.
+
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The headline Quality is a mean over both
 and moves mostly with the telemetry cases, so it is not a good single number for
@@ -274,8 +334,9 @@ and moves mostly with the telemetry cases, so it is not a good single number for
 
 ## Runs still to do
 
-Six of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
-have usable scores; only the two 2B builds remain. Two things still limit what the
+Seven of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
+have usable scores; only the 2B-Instruct remains, plus `Gemma-4-31B-it` once it has
+been rebuilt with its vision projector. Two things still limit what the
 fleet can show:
 
 - **Quantization.** The Instruct track is matched at Q4_K_M imatrix apart from the
@@ -438,7 +499,8 @@ than patching per model.
 **Thinking builds can return nothing.** Reasoning counts against `num_predict`,
 and a model that runs out returns empty content with the text stranded in
 `message.thinking`. At temperature 0.3 the 32B lost 3 of 54 cases that way and the
-8B lost 9; at 1.0 both lost none. Such a case is recorded as an error and scored 0,
+8B lost 9; at 1.0 both lost none, and so did the 4B. **The 2B lost 3 at 1.0**, so
+treat temperature as a fix that works down to 4B and not below. Such a case is recorded as an error and scored 0,
 and is **not** retried — so a run can look complete while cases are missing. Read
 the warnings list first, and run Thinking builds at the card's temperature.
 

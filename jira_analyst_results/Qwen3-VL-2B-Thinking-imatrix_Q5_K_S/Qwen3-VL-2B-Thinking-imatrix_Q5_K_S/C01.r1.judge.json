@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A customer reported two debits to the source account (after a timeout) during a mobile web transfer, despite the expected single debit/credit transaction. This occurred when a 30-second latency was introduced between the API and database, triggering a retry that caused duplicate debits due to lack of idempotency and transaction isolation.",
+      "reason": "The analysis clearly states that retrying after the timeout causes two debits to the source while the expected outcome is a single debit/credit, conveying the core bug."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Transactions module (v3.1.4)",
+      "reason": "The analysis names the affected version (3.1.4) and mentions 2026-09-24 as the release date, but never explicitly states the fix version is 3.2.0."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "triggering a retry that caused duplicate debits due to lack of idempotency and transaction isolation",
+      "reason": "The analysis identifies both root causes: no idempotency key on retry and debit/credit not in a single transaction (reinforced by the PR #218 description)."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress (Unresolved)  - **Owner**: Priya Nair (assignee)  - **Blocking**: PR #218 (in progress) is pending code review; no resolution yet.",
+      "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are clearly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Aroha Walker notes Finance needs to reverse duplicates for affected customers.",
+      "reason": "The analysis mentions 3 customers and Finance reversal but does not state that Marcus Reid was specifically asked to raise the request with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Coordinate with Finance | Aroha Walker | Address reversal for 3 customers by 2026-09-24 (release date).",
+      "reason": "By listing the Finance reversal as a suggested next action, the analysis implies it has not yet been confirmed as done, but it does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Review PR #218 (which adds idempotency key support) and ensure it's merged. | **Confirm PR #218** | Priya Nair (assignee) | Wait for code review; if blocked, escalate to DevOps. | **Test on staging** | Marcus Reid (reporter) | Re-test with latency and retry to verify no duplicate debits. | **Coordinate with Finance** | Aroha Walker | Address reversal for 3 customers by 2026-09-24 (release date).",
+      "reason": "The next actions table includes getting PR #218 reviewed/merged and coordinating the customer reversals with Finance."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is pending code review and not yet merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states that Tom Becker confirmed it does not reproduce on desktop, not claiming desktop is affected."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The retry behavior isn't documented in the ticket (e.g., does tapping \"Retry\" reset the transaction ID or restart the request entirely?)",
+      "reason": "Priya's comment in the ticket explicitly documents the retry mechanism: 'The Retry button calls POST /api/transaction/transfer again with no idempotency key, so the server treats it as a new transfer.' The analysis's claim that this is undocumented contradicts the ticket content."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 112.53
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "A customer reported two debits to the source account (after a timeout) during a mobile web transfer, despite the expected single debit/credit transaction. This occurred when a 30-second latency was introduced between the API and database, triggering a retry that caused duplicate debits due to lack of idempotency and transaction isolation.",
+        "reason": "The analysis clearly states that retrying after the timeout causes two debits to the source while the expected outcome is a single debit/credit, conveying the core bug.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Transactions module (v3.1.4)",
+        "reason": "The analysis names the affected version (3.1.4) and mentions 2026-09-24 as the release date, but never explicitly states the fix version is 3.2.0.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "triggering a retry that caused duplicate debits due to lack of idempotency and transaction isolation",
+        "reason": "The analysis identifies both root causes: no idempotency key on retry and debit/credit not in a single transaction (reinforced by the PR #218 description).",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress (Unresolved)  - **Owner**: Priya Nair (assignee)  - **Blocking**: PR #218 (in progress) is pending code review; no resolution yet.",
+        "reason": "All three elements\u2014In Progress status, Priya Nair as assignee, and PR #218 waiting on code review\u2014are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Aroha Walker notes Finance needs to reverse duplicates for affected customers.",
+        "reason": "The analysis mentions 3 customers and Finance reversal but does not state that Marcus Reid was specifically asked to raise the request with Finance Ops.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Coordinate with Finance | Aroha Walker | Address reversal for 3 customers by 2026-09-24 (release date).",
+        "reason": "By listing the Finance reversal as a suggested next action, the analysis implies it has not yet been confirmed as done, but it does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Review PR #218 (which adds idempotency key support) and ensure it's merged. | **Confirm PR #218** | Priya Nair (assignee) | Wait for code review; if blocked, escalate to DevOps. | **Test on staging** | Marcus Reid (reporter) | Re-test with latency and retry to verify no duplicate debits. | **Coordinate with Finance** | Aroha Walker | Address reversal for 3 customers by 2026-09-24 (release date).",
+        "reason": "The next actions table includes getting PR #218 reviewed/merged and coordinating the customer reversals with Finance.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is pending code review and not yet merged or deployed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states that Tom Becker confirmed it does not reproduce on desktop, not claiming desktop is affected.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The retry behavior isn't documented in the ticket (e.g., does tapping \"Retry\" reset the transaction ID or restart the request entirely?)",
+        "reason": "Priya's comment in the ticket explicitly documents the retry mechanism: 'The Retry button calls POST /api/transaction/transfer again with no idempotency key, so the server treats it as a new transfer.' The analysis's claim that this is undocumented contradicts the ticket content."
+      }
+    ]
+  }
+}

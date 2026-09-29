@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 403 Forbidden from masterfile-api, Dapr, AddPaymentRoutingRuleSecondaryCommand, or BulkUpdateSecondaryBranchesCommand, and never connects any error to the user-reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Multiple instances of Conversion failed when converting ****** value to data type errors",
+      "reason": "The analysis mentions conversion errors but does not identify SearchPaymentRoutingRuleQueryHandler, error number 245, or the specific count of five."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The specific field types or values causing the conversion errors are unclear",
+      "reason": "The analysis acknowledges the details are unclear but does not explicitly state that the log masks them as ****** and that the detail must come from the query or an unmasked log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Execution Timeout Expired errors during GetMonitorJobsQuery",
+      "reason": "The analysis mentions the timeouts on GetMonitorJobsQuery but does not give the count (8), the time window, error number -2, or the key observation that it is a bounded episode that recovers."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetStatementLineQuery, the 10000ms threshold, the fourteen breaches, or the rising trend from ~35s to ~73s."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string with password logged at DBG level, nor the credential exposure or need to rotate the password."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not classify the startup warnings (DataProtection, XML encryptor, address override, https port) as routine noise unrelated to the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "TaskCanceledException occurs when connection is aborted",
+      "reason": "The analysis misidentifies the client-aborted TaskCanceledException as part of the failure pattern rather than routine noise, and does not mention the Service Permissions messages, ObjectMapper licence lines, or the 404 for pending payment 88213."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that timestamps lack dates, are out of order, or that stack traces were trimmed, making the log an incomplete and non-sequential record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the 403s, Dapr, or masterfile-api, so it cannot make the inference about an access-control or invocation-policy problem."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis provides no priority ordering of the specific issues; its suggested actions focus on investigating payment batch operations and database connections rather than prioritizing the 403s, SQL 245, GetStatementLineQuery, and credential exposure."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention DataProtection key or XML encryptor warnings at all, let alone attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 error; it keeps the description vague."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state specific elapsed times, durations, or an ordered sequence of events as if the timestamps were dated and sequential."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention NATS or the subject name 'payments.prod.requests.payments.errors' at all."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists multiple issues (conversion errors, timeouts, connection aborts) and does not claim the database was down, unreachable, or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "PaymentBatchGetSelectedQuery operation times out",
+      "reason": "The log shows PaymentBatchGetSelectedQuery completing successfully (in 3100ms, 2201ms, 3ms); the execution timeouts in the log are all on GetMonitorJobsQuery, not PaymentBatchGetSelectedQuery."
+    },
+    {
+      "quote": "the failure pattern is reproducible and needs investigation",
+      "reason": "The ticket states two users reported the issue but does not state it is reproducible; the analysis adds 'reproducible' as a fact without basis in the ticket or log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 130.51
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the 403 Forbidden from masterfile-api, Dapr, AddPaymentRoutingRuleSecondaryCommand, or BulkUpdateSecondaryBranchesCommand, and never connects any error to the user-reported save failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Multiple instances of Conversion failed when converting ****** value to data type errors",
+        "reason": "The analysis mentions conversion errors but does not identify SearchPaymentRoutingRuleQueryHandler, error number 245, or the specific count of five.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The specific field types or values causing the conversion errors are unclear",
+        "reason": "The analysis acknowledges the details are unclear but does not explicitly state that the log masks them as ****** and that the detail must come from the query or an unmasked log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Execution Timeout Expired errors during GetMonitorJobsQuery",
+        "reason": "The analysis mentions the timeouts on GetMonitorJobsQuery but does not give the count (8), the time window, error number -2, or the key observation that it is a bounded episode that recovers.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "The analysis does not mention GetStatementLineQuery, the 10000ms threshold, the fourteen breaches, or the rising trend from ~35s to ~73s.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string with password logged at DBG level, nor the credential exposure or need to rotate the password.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "",
+        "reason": "The analysis does not classify the startup warnings (DataProtection, XML encryptor, address override, https port) as routine noise unrelated to the failures.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "TaskCanceledException occurs when connection is aborted",
+        "reason": "The analysis misidentifies the client-aborted TaskCanceledException as part of the failure pattern rather than routine noise, and does not mention the Service Permissions messages, ObjectMapper licence lines, or the 404 for pending payment 88213.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that timestamps lack dates, are out of order, or that stack traces were trimmed, making the log an incomplete and non-sequential record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "",
+        "reason": "The analysis never mentions the 403s, Dapr, or masterfile-api, so it cannot make the inference about an access-control or invocation-policy problem.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "",
+        "reason": "The analysis provides no priority ordering of the specific issues; its suggested actions focus on investigating payment batch operations and database connections rather than prioritizing the 403s, SQL 245, GetStatementLineQuery, and credential exposure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis does not mention DataProtection key or XML encryptor warnings at all, let alone attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name a specific column, value, or data type for the SQL 245 error; it keeps the description vague.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state specific elapsed times, durations, or an ordered sequence of events as if the timestamps were dated and sequential.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention NATS or the subject name 'payments.prod.requests.payments.errors' at all.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis lists multiple issues (conversion errors, timeouts, connection aborts) and does not claim the database was down, unreachable, or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "PaymentBatchGetSelectedQuery operation times out",
+        "reason": "The log shows PaymentBatchGetSelectedQuery completing successfully (in 3100ms, 2201ms, 3ms); the execution timeouts in the log are all on GetMonitorJobsQuery, not PaymentBatchGetSelectedQuery."
+      },
+      {
+        "quote": "the failure pattern is reproducible and needs investigation",
+        "reason": "The ticket states two users reported the issue but does not state it is reproducible; the analysis adds 'reproducible' as a fact without basis in the ticket or log."
+      }
+    ]
+  }
+}

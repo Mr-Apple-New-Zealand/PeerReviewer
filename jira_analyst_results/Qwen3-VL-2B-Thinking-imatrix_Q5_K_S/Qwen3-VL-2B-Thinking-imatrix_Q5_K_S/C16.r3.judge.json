@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+      "reason": "The analysis mentions GetStatementLineQuery and some numbers but garbles them: 3297 ms is actually the GetAccountSummaryQuery time, the baseline of ~300 ms is never stated, and the 34\u201373 s range is not clearly conveyed."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+      "reason": "The analysis states a 3.4\u00d7 increase rather than the correct ~100\u00d7 or more, so the hundredfold magnitude is never conveyed."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "5+ request entries exceed 10s threshold (e.g., 35171ms).",
+      "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only notes that entries exceed the threshold."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "GetAccountSummaryQuery avg. time: 3402ms (2.1x increase).",
+      "reason": "The analysis claims a 2.1\u00d7 increase for GetAccountSummaryQuery and calls it 'the most critical bottleneck,' failing to state that it is effectively unchanged and not the regression."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand is never mentioned in the analysis."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No indication of whether migration scripts (e.g., 20260914_2100_ReindexStatementLines) impacted performance.",
+      "reason": "The analysis mentions both Tom Becker's claim and the migration name but does not explicitly state that the log showing the migration applied at 4.7.0 startup contradicts Tom's assertion."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "confirm if new migration scripts (20260914_2100_ReindexStatementLines) affect the API.",
+      "reason": "The analysis lists the migration as something to check but does not present it as the most likely place to look, nor does it note that the logs only show coincidence rather than causation."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "ThreadPool starvation detected (0:24:18); 31 work items queued, 0 threads available.",
+      "reason": "The analysis reports the event (with a wrong timestamp) but does not infer that it is a consequence of the slow query rather than an independent cause, nor does it connect it to the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "No log file showing \"pre-4.7.0\" performance (e.g., Sep 12\u201314) for comparison.",
+      "reason": "The analysis does not note the limited window size (~5\u20136 min), the small number of samples, or that the comparison is indicative rather than measured; instead it incorrectly claims no pre-4.7.0 log exists."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Review log metrics with codebase team; confirm if new migration scripts (20260914_2100_ReindexStatementLines) affect the API.",
+      "reason": "The analysis mentions checking the migration, collecting more data, and Tom Becker as owner, but does not specifically recommend checking the execution plan and indexes for the statement line query."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "with the latter being the most critical bottleneck.",
+      "reason": "The analysis names GetAccountSummaryQuery as the most critical bottleneck and claims a 2.1\u00d7 increase, effectively identifying it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state as fact that the migration caused the slowdown, nor does it describe what the migration did to the schema."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+      "reason": "The analysis states a 3.4\u00d7 increase, a magnitude the timings do not support (actual is ~100\u00d7 or more)."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports the ThreadPool starvation as a finding but does not name it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "GetAccountSummaryQuery avg. time: 3102ms (15.5s).",
+      "reason": "3102 ms equals 3.1 seconds, not 15.5 seconds; this is a calculation error."
+    },
+    {
+      "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+      "reason": "3297 ms is the GetAccountSummaryQuery reading, not GetStatementLineQuery; the attribution to the wrong query is a factual error not covered by the magnitude trap."
+    },
+    {
+      "quote": "ThreadPool starvation detected (0:24:18); 31 work items queued, 0 threads available.",
+      "reason": "The log timestamp for the ThreadPool starvation warning is 00:24:11, not 0:24:18."
+    },
+    {
+      "quote": "No log file showing \"pre-4.7.0\" performance (e.g., Sep 12\u201314) for comparison.",
+      "reason": "The before log (statements-api-before.log) is explicitly a pre-4.7.0 baseline from Sep 13; claiming no such log exists contradicts the provided data."
+    },
+    {
+      "quote": "Duplicate Ticket: No ticket tracking the same issue from pre-4.7.0 (e.g., PROJ-112).",
+      "reason": "PROJ-112 does not appear anywhere in the ticket export; it is an invented ticket key."
+    },
+    {
+      "quote": "addressing the 720+ ms latency spike in GetStatementLineQuery",
+      "reason": "The worst GetStatementLineQuery readings are 72,000+ ms (72+ seconds), not 720+ ms; this is a 100\u00d7 error."
+    },
+    {
+      "quote": "causing users to experience timeouts or 5+ minute load times when accessing statement data",
+      "reason": "The ticket states 'takes over a minute or times out'; '5+ minute load times' is not supported by the ticket text."
+    },
+    {
+      "quote": "API throttling due to unresponsive requests; customers report callbacks due to 5+ minute delays.",
+      "reason": "No mention of API throttling appears in the ticket or logs; this is an unsupported mechanism."
+    },
+    {
+      "quote": "Log analysis confirms requests exceed threshold (10s) at ~85% of the time window.",
+      "reason": "The logs show discrete timestamped entries; there is no basis for calculating that 85% of the time window was above threshold."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 211.37
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+        "reason": "The analysis mentions GetStatementLineQuery and some numbers but garbles them: 3297 ms is actually the GetAccountSummaryQuery time, the baseline of ~300 ms is never stated, and the 34\u201373 s range is not clearly conveyed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+        "reason": "The analysis states a 3.4\u00d7 increase rather than the correct ~100\u00d7 or more, so the hundredfold magnitude is never conveyed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "5+ request entries exceed 10s threshold (e.g., 35171ms).",
+        "reason": "The analysis does not describe the progressive worsening within the after window (35 s \u2192 44 s \u2192 69\u201373 s); it only notes that entries exceed the threshold.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery avg. time: 3402ms (2.1x increase).",
+        "reason": "The analysis claims a 2.1\u00d7 increase for GetAccountSummaryQuery and calls it 'the most critical bottleneck,' failing to state that it is effectively unchanged and not the regression.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand is never mentioned in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "No indication of whether migration scripts (e.g., 20260914_2100_ReindexStatementLines) impacted performance.",
+        "reason": "The analysis mentions both Tom Becker's claim and the migration name but does not explicitly state that the log showing the migration applied at 4.7.0 startup contradicts Tom's assertion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "confirm if new migration scripts (20260914_2100_ReindexStatementLines) affect the API.",
+        "reason": "The analysis lists the migration as something to check but does not present it as the most likely place to look, nor does it note that the logs only show coincidence rather than causation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "ThreadPool starvation detected (0:24:18); 31 work items queued, 0 threads available.",
+        "reason": "The analysis reports the event (with a wrong timestamp) but does not infer that it is a consequence of the slow query rather than an independent cause, nor does it connect it to the jump from ~44 s to ~69 s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "No log file showing \"pre-4.7.0\" performance (e.g., Sep 12\u201314) for comparison.",
+        "reason": "The analysis does not note the limited window size (~5\u20136 min), the small number of samples, or that the comparison is indicative rather than measured; instead it incorrectly claims no pre-4.7.0 log exists.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Review log metrics with codebase team; confirm if new migration scripts (20260914_2100_ReindexStatementLines) affect the API.",
+        "reason": "The analysis mentions checking the migration, collecting more data, and Tom Becker as owner, but does not specifically recommend checking the execution plan and indexes for the statement line query.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "with the latter being the most critical bottleneck.",
+        "reason": "The analysis names GetAccountSummaryQuery as the most critical bottleneck and claims a 2.1\u00d7 increase, effectively identifying it as the regression.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis does not state as fact that the migration caused the slowdown, nor does it describe what the migration did to the schema.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+        "reason": "The analysis states a 3.4\u00d7 increase, a magnitude the timings do not support (actual is ~100\u00d7 or more).",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis reports the ThreadPool starvation as a finding but does not name it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "GetAccountSummaryQuery avg. time: 3102ms (15.5s).",
+        "reason": "3102 ms equals 3.1 seconds, not 15.5 seconds; this is a calculation error."
+      },
+      {
+        "quote": "GetStatementLineQuery avg. time: 3297ms (3.4x increase; 35171ms \u2192 3297ms, 30+ ms).",
+        "reason": "3297 ms is the GetAccountSummaryQuery reading, not GetStatementLineQuery; the attribution to the wrong query is a factual error not covered by the magnitude trap."
+      },
+      {
+        "quote": "ThreadPool starvation detected (0:24:18); 31 work items queued, 0 threads available.",
+        "reason": "The log timestamp for the ThreadPool starvation warning is 00:24:11, not 0:24:18."
+      },
+      {
+        "quote": "No log file showing \"pre-4.7.0\" performance (e.g., Sep 12\u201314) for comparison.",
+        "reason": "The before log (statements-api-before.log) is explicitly a pre-4.7.0 baseline from Sep 13; claiming no such log exists contradicts the provided data."
+      },
+      {
+        "quote": "Duplicate Ticket: No ticket tracking the same issue from pre-4.7.0 (e.g., PROJ-112).",
+        "reason": "PROJ-112 does not appear anywhere in the ticket export; it is an invented ticket key."
+      },
+      {
+        "quote": "addressing the 720+ ms latency spike in GetStatementLineQuery",
+        "reason": "The worst GetStatementLineQuery readings are 72,000+ ms (72+ seconds), not 720+ ms; this is a 100\u00d7 error."
+      },
+      {
+        "quote": "causing users to experience timeouts or 5+ minute load times when accessing statement data",
+        "reason": "The ticket states 'takes over a minute or times out'; '5+ minute load times' is not supported by the ticket text."
+      },
+      {
+        "quote": "API throttling due to unresponsive requests; customers report callbacks due to 5+ minute delays.",
+        "reason": "No mention of API throttling appears in the ticket or logs; this is an unsupported mechanism."
+      },
+      {
+        "quote": "Log analysis confirms requests exceed threshold (10s) at ~85% of the time window.",
+        "reason": "The logs show discrete timestamped entries; there is no basis for calculating that 85% of the time window was above threshold."
+      }
+    ]
+  }
+}
