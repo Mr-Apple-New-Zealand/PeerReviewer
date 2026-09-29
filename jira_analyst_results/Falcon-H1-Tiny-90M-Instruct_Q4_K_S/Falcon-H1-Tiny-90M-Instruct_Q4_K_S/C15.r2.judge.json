@@ -1,0 +1,249 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The server responds with a status code of 535, indicating that the email was successfully sent to the customer.",
+      "reason": "The analysis misinterprets 535 as a success rather than an authentication failure, and never mentions SmtpException, 'basic authentication is disabled', EmailSender, or OutboxDispatcher."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Check XML Encryption: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+      "reason": "The analysis treats the DataProtection/XML-encryptor warnings as relevant issues to fix rather than stating they are routine startup warnings unrelated to the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Retry Loops: The outbox dispatcher should attempt multiple retries with a 5-second timeout to account for potential delays in receiving emails.",
+      "reason": "Mentions the 5-second interval but omits the no-backoff, no-dead-letter, and head-of-queue blocking details; frames it as a recommendation rather than an observation of the log."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the growing outbox backlog (1412\u21922089) or the rate of accumulation."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that the log begins at 18:02:41 and the previous container's log was not captured, so the 14:00 window is absent."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Restart the Notifications Pod: The current configuration should be reset to ensure the log persists.",
+      "reason": "Rather than stating that another restart will not help (the pod was already restarted at 18:02 and 535 errors continue), the analysis recommends restarting the pod."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions 'basic authentication is disabled', the svc-notify@example.com account, or suggests changing the authentication method as the fix."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "1. **Restart the Notifications Pod**: The current configuration should be reset to ensure the log persists. 2. **Check XML Encryption**: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+      "reason": "None of the correct next steps (confirm auth change with mail tenant, add backoff/dead-letter, retrieve pre-18:02 log) are present; the listed steps are incorrect."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor state that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Check XML Encryption: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+      "reason": "The analysis treats the DataProtection key storage and XML encryptor as relevant issues to fix, effectively endorsing the reporter's incorrect explanation."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the log shows events at 14:00 or covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Restart the Notifications Pod: The current configuration should be reset to ensure the log persists.",
+      "reason": "The analysis explicitly recommends restarting the pod as a next step, which the log shows will not resolve the 535 authentication errors."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not invent a different SMTP error code or reason (e.g., rate limiting, TLS failure, mailbox-full) not present in the log."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The number of calls has increased by 15% since the last update.",
+      "reason": "The ticket says 'Volume of calls is climbing' but provides no percentage figure; 15% is invented."
+    },
+    {
+      "quote": "The server responds with a status code of 535, indicating that the email was successfully sent to the customer.",
+      "reason": "The log shows 535 as an SmtpException with 'Authentication unsuccessful, basic authentication is disabled'\u2014it is a failure, not a successful send."
+    },
+    {
+      "quote": "The server is configured to forward these emails to the appropriate customer service email.",
+      "reason": "Nothing in the ticket or log states this; the log shows the service sending directly to customer addresses via SMTP, not forwarding to a 'customer service email.'"
+    },
+    {
+      "quote": "The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+      "reason": "The log warning says the key 'may be persisted to storage in unencrypted form'; it does not say it 'may require a secure connection.' This mischaracterises the warning."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 165.46
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The server responds with a status code of 535, indicating that the email was successfully sent to the customer.",
+        "reason": "The analysis misinterprets 535 as a success rather than an authentication failure, and never mentions SmtpException, 'basic authentication is disabled', EmailSender, or OutboxDispatcher.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "Check XML Encryption: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+        "reason": "The analysis treats the DataProtection/XML-encryptor warnings as relevant issues to fix rather than stating they are routine startup warnings unrelated to the SMTP failures.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "Retry Loops: The outbox dispatcher should attempt multiple retries with a 5-second timeout to account for potential delays in receiving emails.",
+        "reason": "Mentions the 5-second interval but omits the no-backoff, no-dead-letter, and head-of-queue blocking details; frames it as a recommendation rather than an observation of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the growing outbox backlog (1412\u21922089) or the rate of accumulation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not note that the log begins at 18:02:41 and the previous container's log was not captured, so the 14:00 window is absent.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Restart the Notifications Pod: The current configuration should be reset to ensure the log persists.",
+        "reason": "Rather than stating that another restart will not help (the pod was already restarted at 18:02 and 535 errors continue), the analysis recommends restarting the pod.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "",
+        "reason": "The analysis never mentions 'basic authentication is disabled', the svc-notify@example.com account, or suggests changing the authentication method as the fix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "1. **Restart the Notifications Pod**: The current configuration should be reset to ensure the log persists. 2. **Check XML Encryption**: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+        "reason": "None of the correct next steps (confirm auth change with mail tenant, add backoff/dead-letter, retrieve pre-18:02 log) are present; the listed steps are incorrect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07 or the healthy check at 18:21:09, nor state that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "Check XML Encryption: The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+        "reason": "The analysis treats the DataProtection key storage and XML encryptor as relevant issues to fix, effectively endorsing the reporter's incorrect explanation.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not claim the log shows events at 14:00 or covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "Restart the Notifications Pod: The current configuration should be reset to ensure the log persists.",
+        "reason": "The analysis explicitly recommends restarting the pod as a next step, which the log shows will not resolve the 535 authentication errors.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis does not invent a different SMTP error code or reason (e.g., rate limiting, TLS failure, mailbox-full) not present in the log.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The number of calls has increased by 15% since the last update.",
+        "reason": "The ticket says 'Volume of calls is climbing' but provides no percentage figure; 15% is invented."
+      },
+      {
+        "quote": "The server responds with a status code of 535, indicating that the email was successfully sent to the customer.",
+        "reason": "The log shows 535 as an SmtpException with 'Authentication unsuccessful, basic authentication is disabled'\u2014it is a failure, not a successful send."
+      },
+      {
+        "quote": "The server is configured to forward these emails to the appropriate customer service email.",
+        "reason": "Nothing in the ticket or log states this; the log shows the service sending directly to customer addresses via SMTP, not forwarding to a 'customer service email.'"
+      },
+      {
+        "quote": "The key 3c8e5a19-7b62-44d0-a8f1-9e2d47c6b085 is being stored in the /app/DataProtection-Keys directory, which may require a secure connection.",
+        "reason": "The log warning says the key 'may be persisted to storage in unencrypted form'; it does not say it 'may require a secure connection.' This mischaracterises the warning."
+      }
+    ]
+  }
+}

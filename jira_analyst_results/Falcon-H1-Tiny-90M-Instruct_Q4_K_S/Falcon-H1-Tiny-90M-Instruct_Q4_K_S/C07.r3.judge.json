@@ -1,0 +1,203 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deployment at 09:30 (OPS-81) is configured to sign JWT tokens with the new key",
+      "reason": "Both the 09:30 deploy time and the 09:31 impact start are stated, though the causal link is muddled."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2026-09-11 09:52: Sam Okafor reports the failure of the P1 transaction, indicating that the issue is affecting all users.",
+      "reason": "The 09:52 incident declaration is present, but the 09:47 alert firing is never mentioned."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are not correctly conveyed; 10:31 is mislabelled as errors starting and 10:42 appears as a nonsensical 'retry interval.'"
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-detect calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-recover calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The JWT signing key was rotated in the configuration deploy OPS-81, which resulted in the JWT signing key being invalidated by the Transactions API.",
+      "reason": "The core mechanism (key rotation in OPS-81 causing Transactions API to reject tokens) is present, but the 401 status and 'IDX10503: Signature validation failed' error text are absent, and the explanation is garbled."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No mention of a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database and slow queries are mentioned only as ruled out ('database is healthy, slow queries are typical'), not as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No unsupported time-to-detect or time-to-recover figures are stated."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Marcus Reid reports that the retry interval is 40+ calls in the last 15 minutes",
+      "reason": "The ticket says Marcus reported 'Support queue spiking, 40+ calls in the last 15 minutes.' There is no 'retry interval' in the ticket."
+    },
+    {
+      "quote": "with a significant number of errors starting at around 10:31",
+      "reason": "In the ticket, 10:31 is when Sam began the rollback, not when errors started. Errors started at 09:31."
+    },
+    {
+      "quote": "Priya Nair notes that the database is healthy, and the slow queries are typical for this time of day. The config deployment at 09:30 (OPS-81) is configured to sign JWT tokens with the new key, and the Auth service is functioning normally.",
+      "reason": "In the ticket, Priya Nair at 10:10 only asked 'Could it be the database?' The database-healthy ruling and the OPS-81 key-rotation explanation were from Sam Okafor at 10:24."
+    },
+    {
+      "quote": "This allowed the OPS-81 to validate against the old key, leading to a 20% error rate.",
+      "reason": "The ticket states the Transactions API still validated against the old key (not OPS-81), and the actual error rate was 64%, not 20% (20% was the alert threshold)."
+    },
+    {
+      "quote": "The incident team deployed an OPS-81 configuration to validate the JWT signing key, identifying and fixing the issue.",
+      "reason": "The ticket states the team rolled back the OPS-81 config deploy; they did not deploy a new configuration."
+    },
+    {
+      "quote": "The system was configured to retry the OPS-81 deployment for subsequent requests, with a retry interval of 10:42 minutes.",
+      "reason": "No retry logic or 'retry interval' exists in the ticket. 10:42 is the time the error rate dropped below 1%."
+    },
+    {
+      "quote": "The Auth service was configured to validate the JWT signing key against the old key, ensuring that the authentication status was still valid.",
+      "reason": "The ticket states it was the Transactions API that validated against the old key, not the Auth service."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 282.84
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The config deployment at 09:30 (OPS-81) is configured to sign JWT tokens with the new key",
+        "reason": "Both the 09:30 deploy time and the 09:31 impact start are stated, though the causal link is muddled.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "2026-09-11 09:52: Sam Okafor reports the failure of the P1 transaction, indicating that the issue is affecting all users.",
+        "reason": "The 09:52 incident declaration is present, but the 09:47 alert firing is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "",
+        "reason": "The rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are not correctly conveyed; 10:31 is mislabelled as errors starting and 10:42 appears as a nonsensical 'retry interval.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "",
+        "reason": "No time-to-detect calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "",
+        "reason": "No time-to-recover calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was rotated in the configuration deploy OPS-81, which resulted in the JWT signing key being invalidated by the Transactions API.",
+        "reason": "The core mechanism (key rotation in OPS-81 causing Transactions API to reject tokens) is present, but the 401 status and 'IDX10503: Signature validation failed' error text are absent, and the explanation is garbled.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "No mention of a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database and slow queries are mentioned only as ruled out ('database is healthy, slow queries are typical'), not as a cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "No unsupported time-to-detect or time-to-recover figures are stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Marcus Reid reports that the retry interval is 40+ calls in the last 15 minutes",
+        "reason": "The ticket says Marcus reported 'Support queue spiking, 40+ calls in the last 15 minutes.' There is no 'retry interval' in the ticket."
+      },
+      {
+        "quote": "with a significant number of errors starting at around 10:31",
+        "reason": "In the ticket, 10:31 is when Sam began the rollback, not when errors started. Errors started at 09:31."
+      },
+      {
+        "quote": "Priya Nair notes that the database is healthy, and the slow queries are typical for this time of day. The config deployment at 09:30 (OPS-81) is configured to sign JWT tokens with the new key, and the Auth service is functioning normally.",
+        "reason": "In the ticket, Priya Nair at 10:10 only asked 'Could it be the database?' The database-healthy ruling and the OPS-81 key-rotation explanation were from Sam Okafor at 10:24."
+      },
+      {
+        "quote": "This allowed the OPS-81 to validate against the old key, leading to a 20% error rate.",
+        "reason": "The ticket states the Transactions API still validated against the old key (not OPS-81), and the actual error rate was 64%, not 20% (20% was the alert threshold)."
+      },
+      {
+        "quote": "The incident team deployed an OPS-81 configuration to validate the JWT signing key, identifying and fixing the issue.",
+        "reason": "The ticket states the team rolled back the OPS-81 config deploy; they did not deploy a new configuration."
+      },
+      {
+        "quote": "The system was configured to retry the OPS-81 deployment for subsequent requests, with a retry interval of 10:42 minutes.",
+        "reason": "No retry logic or 'retry interval' exists in the ticket. 10:42 is the time the error rate dropped below 1%."
+      },
+      {
+        "quote": "The Auth service was configured to validate the JWT signing key against the old key, ensuring that the authentication status was still valid.",
+        "reason": "The ticket states it was the Transactions API that validated against the old key, not the Auth service."
+      }
+    ]
+  }
+}

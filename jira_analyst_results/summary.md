@@ -2,8 +2,8 @@
 
 | Setting | Value |
 |---|---|
-| generated | 2026-09-29T18:39:09 |
-| models | 12 |
+| generated | 2026-09-29T18:53:14 |
+| models | 13 |
 | cases_sha | ec04f03cff34 |
 | judge | Qwen3.8-27B-imatrix:Q4_K_S |
 | judge_effort | high |
@@ -15,7 +15,7 @@
 ## Headline
 
 - **Best quality:** claude-sonnet-5 at 88.4/100.
-- **Pareto front** (nothing else is better on both quality and memory; time is excluded because the server is shared): Qwen3-VL-8B-Thinking-imatrix:Q4_K_M, Qwen3-VL-4B-Thinking-imatrix:Q5_K_M, Qwen3-VL-8B-Instruct-imatrix:Q3_K_M, Qwen3-VL-4B-Instruct-imatrix:Q4_K_M, Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S, Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M.
+- **Pareto front** (nothing else is better on both quality and memory; time is excluded because the server is shared): Qwen3-VL-8B-Thinking-imatrix:Q4_K_M, Qwen3-VL-4B-Thinking-imatrix:Q5_K_M, Qwen3-VL-8B-Instruct-imatrix:Q3_K_M, Qwen3-VL-4B-Instruct-imatrix:Q4_K_M, Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S, Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M, Falcon-H1-Tiny-90M-Instruct:Q4_K_S.
 
 ## Ranking
 
@@ -33,6 +33,7 @@
 | 10 | Qwen3-VL-2B-Thinking-imatrix:Q5_K_S | 26.7 (25-29) | 45% | 27/149 | 3 | 117 | 8.1 | 44% | 4.2s | 25.2s | 283.1 | 5794 |  |
 | 11 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 24.5 (23-25) | 31% | 17/162 | 0 | 39 | 7.1 | 100% | 2.9s | 4.4s | 135.1 | 541 | yes |
 | 12 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 14.4 (12-18) | 26% | 20/162 | 1 | 100 | 4.1 | 100% | 2.8s | 2.4s | 225.4 | 489 | yes |
+| 13 | Falcon-H1-Tiny-90M-Instruct:Q4_K_S | 1.0 (0-2) | 7% | 7/144 | 0 | 134 | 0.4 | 100% | 0.8s | 27.6s | 8.5 | 259 | yes |
 
 ## Runs
 
@@ -52,6 +53,7 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 | Qwen3-VL-2B-Thinking-imatrix:Q5_K_S | 49 | 2026-09-29T03:05:16 | 49152 | 16384 | 1.0 | 3 | bddb236 | jira_analyst_results/Qwen3-VL-2B-Thinking-imatrix_Q5_K_S |
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 39 | 2026-09-27T10:11:04 | 32768 | 8192 | 0.3 | 3 | 044571b | jira_analyst_results/Qwen2.5-VL-7B-Instruct-imatrix_Q4_K_S |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 38 | 2026-09-27T08:35:06 | 32768 | 8192 | 0.3 | 3 | dde479a | jira_analyst_results/Qwen2.5-VL-3B-Instruct-imatrix_Q4_K_M |
+| Falcon-H1-Tiny-90M-Instruct:Q4_K_S | 50 | 2026-09-29T03:37:37 | 24576 | 2048 | 0.3 | 3 | bddb236 | jira_analyst_results/Falcon-H1-Tiny-90M-Instruct_Q4_K_S |
 
 ## Not ranked
 
@@ -73,6 +75,7 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 | Qwen3-VL-2B-Thinking-imatrix:Q5_K_S | 71 | 44 | 52 | 17 | 42 | 45 | 38 | 25 | 42 | 4 | 26 | 45 | 17 | 5 | 0 | 7 | 0 | 0 |
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 74 | 46 | 10 | 36 | 42 | 31 | 40 | 28 | 28 | 33 | 21 | 29 | 17 | 0 | 0 | 3 | 0 | 3 |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 40 | 40 | 2 | 0 | 19 | 21 | 38 | 25 | 31 | 12 | 5 | 17 | 2 | 3 | 0 | 0 | 0 | 3 |
+| Falcon-H1-Tiny-90M-Instruct:Q4_K_S | 2 | 8 | 0 | 0 | 0 | 5 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 Cases: C01 Well-specified bug: double debit on transfer retry; C02 Vague bug: is it ready for development?; C03 Story with conflicting scope decisions; C04 Closed as fixed, but QA says it still fails; C05 Duplicate detection across four tickets; C06 Release risk from an overdue external dependency; C07 Incident timeline, durations and root cause; C08 Long noisy ticket: current state, decisions and owner; C09 Key detail only in an attached screenshot; C10 Customer ticket with an embedded instruction to AI tools; C11 Error text only in an attached screenshot, and the screenshot is provided; C12 Annotated screenshot is the whole specification; C13 Wordless markup: a circle and an arrow asking for a control to move; C14 Triage a production pod log: real faults, routine noise, and what the log cannot say; C15 The reporter read the log and picked the wrong line; C16 Two logs, one regression: quantify it without over-claiming the cause; C17 A Sentry event whose headline error is the symptom, not the fault; C18 Eight Sentry issues, four causes: group them and prioritise by impact
 
@@ -80,6 +83,25 @@ Cases: C01 Well-specified bug: double debit on transfer retry; C02 Vague bug: is
 
 - claude-sonnet-5: claude-sonnet-5: temperature 0.3 not applied (Claude rejects it); num_ctx not applicable; times are wall clock including the network
 - claude-sonnet-5: judge had 1 ungrounded and 0 omitted verdicts (downgraded / defaulted).
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C11.r1: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C12.r1: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C13.r1: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C11.r2: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C12.r2: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C13.r2: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C11.r3: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C12.r3: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: C13.r3: model has no vision capability
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C11: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C12: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C13: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C11: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C12: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C13: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C11: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C12: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S C13: case needs vision; model has none
+- Falcon-H1-Tiny-90M-Instruct:Q4_K_S: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S, Qwen3-Coder-30B-imatrix:Q3_K_M, nomic-embed-text:latest, Qwen3-VL-2B-Thinking-imatrix:Q5_K_S); timings may be contended.
 - Qwen2.5-VL-32B-Instruct:Q5_K_M: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
 - Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
 - Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M: judge had 1 ungrounded and 0 omitted verdicts (downgraded / defaulted).

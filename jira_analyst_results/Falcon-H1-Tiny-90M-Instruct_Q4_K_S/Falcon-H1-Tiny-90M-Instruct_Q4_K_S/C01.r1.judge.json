@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The ticket shows that the cheque account was debited twice, and savings were credited once.",
+      "reason": "The double-debit/single-credit outcome is stated, but the causal link to retrying after the ERR_TXN_504 timeout is garbled and not clearly articulated."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Components: Transactions (3.1.4)",
+      "reason": "Versions 3.1.4 and 3.2.0 are mentioned, but the specific release date of 2026-09-24 is absent."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The analysis indicates that the two problems faced by the transaction are related to the \"Request timed out (ERR_TXN_504)\" button and the \"Retry\" retry option, which were not properly implemented.",
+      "reason": "The two root causes (no idempotency key on retry; debit and credit not in a single DB transaction) are not clearly identified as root causes; the analysis misattributes the problems to a 'button' and 'retry option' and only references the fix language later."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Status: In Progress",
+      "reason": "Only the In Progress status is stated; the assignee (Priya Nair), PR #218, and the code-review-waiting status are all missing."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The ticket also mentions that the three affected customers (support and finance) need to be manually reversed to resolve the duplicate debits.",
+      "reason": "Three customers and manual reversal are mentioned, but the role of Finance is garbled ('support and finance') and Marcus Reid being asked to raise it with Finance Ops is absent."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not explicitly note that the ticket does not confirm the reversal request has been raised or that customers have been refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No specific next actions (PR #218 review/merge, confirming reversals with Finance Ops) are identified; the analysis only vaguely references 'ongoing analysis and resolution.'"
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not assert that PR #218 has been merged or that the fix is deployed/released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim desktop web is affected."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "It indicates that the transaction has been completed successfully",
+      "reason": "The ticket describes a bug where the transfer fails (double debit, single credit); it is not a successful transaction."
+    },
+    {
+      "quote": "The \"Request timed out (ERR_TXN_504)\" button was toggled on.",
+      "reason": "There is no 'button' that was 'toggled on'; ERR_TXN_504 is an error message displayed to the customer after a 30-second timeout."
+    },
+    {
+      "quote": "The server tapped the \"Retry\" retry option.",
+      "reason": "The customer tapped Retry, not the server. The ticket states 'They tapped Retry.'"
+    },
+    {
+      "quote": "The ticket is a status update for the 3.2.0 mobile web version of the BANK-412 transaction.",
+      "reason": "The ticket is a bug report (Type: Bug) describing a double-debit issue in version 3.1.4, not a 'status update for the 3.2.0 mobile web version.'"
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 79.61
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "The ticket shows that the cheque account was debited twice, and savings were credited once.",
+        "reason": "The double-debit/single-credit outcome is stated, but the causal link to retrying after the ERR_TXN_504 timeout is garbled and not clearly articulated.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Components: Transactions (3.1.4)",
+        "reason": "Versions 3.1.4 and 3.2.0 are mentioned, but the specific release date of 2026-09-24 is absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The analysis indicates that the two problems faced by the transaction are related to the \"Request timed out (ERR_TXN_504)\" button and the \"Retry\" retry option, which were not properly implemented.",
+        "reason": "The two root causes (no idempotency key on retry; debit and credit not in a single DB transaction) are not clearly identified as root causes; the analysis misattributes the problems to a 'button' and 'retry option' and only references the fix language later.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress",
+        "reason": "Only the In Progress status is stated; the assignee (Priya Nair), PR #218, and the code-review-waiting status are all missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "The ticket also mentions that the three affected customers (support and finance) need to be manually reversed to resolve the duplicate debits.",
+        "reason": "Three customers and manual reversal are mentioned, but the role of Finance is garbled ('support and finance') and Marcus Reid being asked to raise it with Finance Ops is absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "",
+        "reason": "The analysis does not explicitly note that the ticket does not confirm the reversal request has been raised or that customers have been refunded.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "",
+        "reason": "No specific next actions (PR #218 review/merge, confirming reversals with Finance Ops) are identified; the analysis only vaguely references 'ongoing analysis and resolution.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis does not assert that PR #218 has been merged or that the fix is deployed/released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis does not claim desktop web is affected.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "It indicates that the transaction has been completed successfully",
+        "reason": "The ticket describes a bug where the transfer fails (double debit, single credit); it is not a successful transaction."
+      },
+      {
+        "quote": "The \"Request timed out (ERR_TXN_504)\" button was toggled on.",
+        "reason": "There is no 'button' that was 'toggled on'; ERR_TXN_504 is an error message displayed to the customer after a 30-second timeout."
+      },
+      {
+        "quote": "The server tapped the \"Retry\" retry option.",
+        "reason": "The customer tapped Retry, not the server. The ticket states 'They tapped Retry.'"
+      },
+      {
+        "quote": "The ticket is a status update for the 3.2.0 mobile web version of the BANK-412 transaction.",
+        "reason": "The ticket is a bug report (Type: Bug) describing a double-debit issue in version 3.1.4, not a 'status update for the 3.2.0 mobile web version.'"
+      }
+    ]
+  }
+}

@@ -20,7 +20,7 @@ step with it.
 
 ## Current standing
 
-Twelve models have been measured on the full eighteen cases with the judge of
+Thirteen models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
@@ -37,6 +37,7 @@ record. Everything earlier is superseded — see below.
 | Qwen3-VL-2B-Thinking-imatrix ³ | Q5_K_S | 1.0 | 26.7 (25–29) | 45% | 36.0 | 2.4 | 27/149 | 3 | 117 | 8.1 |
 | Qwen2.5-VL-7B-Instruct-imatrix | Q4_K_S | 0.3 | 24.5 (23–25) | 31% | 33.4 | 1.3 | 17/162 | 0 | 39 | 7.1 |
 | Qwen2.5-VL-3B-Instruct-imatrix | Q4_K_M | 0.3 | 14.4 (12–18) | 26% | 19.5 | 1.1 | 20/162 | 1 | 100 | 4.1 |
+| Falcon-H1-Tiny-90M-Instruct ⁴ | Q4_K_S | 0.3 | 1.0 (0–2) | 7% | 1.4 | 0.0 | 7/144 | 0 | 134 | **0.4** |
 
 All judged by `Qwen3.8-27B-imatrix:Q4_K_S`, 18 cases, 3 repeats. Judge grounding
 stayed acceptable: 0–6 ungrounded, 0–1 omitted.
@@ -136,6 +137,45 @@ scoring exactly 0.
 The conclusion for the fleet is simple. **Do not run Thinking builds below 4B.**
 The 4B-Thinking is the smallest that works, and even it only just justifies its
 11 GB against the 4B-Instruct's 7.9.
+
+### The floor, and two things it exposes
+
+`Falcon-H1-Tiny-90M` was run to find where the curve bottoms out. It scores
+**1.0** with **6.6% coverage**, non-zero on only 4 of 18 cases (C01 2, C02 8,
+C06 5, C09 3) and **exactly 0.0 across all five telemetry cases**. The curve does
+not taper toward zero — it falls off a cliff somewhere between 90M and 2B, and
+90M is already past it. That is the useful result, and it is the only one.
+
+Two things it exposes are worth more than the score.
+
+**Small does not mean fast.** At 8.5 output tok/s it is the *slowest* generator on
+the board — slower than the 72B at 14.7, and 26× slower than the 3B at 225.4,
+despite being 33× smaller:
+
+| Model | Params | Resident | Output tok/s |
+|---|---|---|---|
+| Qwen2.5-VL-3B | 3B | 4.1 GB | **225.4** |
+| Qwen2.5-VL-72B | 72B | 56.3 GB | 14.7 |
+| **Falcon-H1-Tiny-90M** | **0.09B** | **0.4 GB** | **8.5** |
+
+Falcon-H1 is a hybrid Mamba/attention architecture, and on this evidence the
+runtime has no optimised path for it — the whole "tiny model, instant answers"
+assumption fails. If a Falcon-H1 at a useful size is ever considered, benchmark
+its throughput before assuming the family is cheap to run.
+
+**It is on the Pareto front, and that is a flaw in the headline.** Nothing uses
+less than 0.4 GB, so nothing can dominate it, and `--compare` lists it alongside
+the 4B and 8B builds as though it were a sensible choice. **Being the smallest
+makes a model Pareto-optimal no matter how badly it scores.** The best-value pick
+is unaffected, because `--value-margin 5.0` requires a model to be within 5 points
+of the best. Read the front with that in mind, or add a quality floor to it.
+
+**It also writes the most unsupported claims in the benchmark** — 134, or 3.0 per
+delivered analysis, while covering 6.6% of the answer key. That combination is the
+signature of fluent nonsense: it produces confident ticket-analysis-shaped prose
+that is almost entirely untethered. Its 7 traps look low only because it rarely
+says anything specific enough to trip one, which is the same caution that applies
+to reading the 32B-Thinking's 1/162.
 
 ### What reasoning actually buys, measured at three sizes
 
@@ -441,7 +481,7 @@ result folders are no longer committed.
 | Qwen2.5-VL-32B-Instruct:Q5_K_M | 59.6 | 13 | Sonnet | Pre-C14; re-measured above |
 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 30.9 | 13 | Sonnet | Pre-C14 |
 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 16.0 | 18 | Sonnet | Was filed under a model name that does not exist (`...-2B-...`); re-measured above |
-| Falcon-H1-Tiny-90M-Instruct | 3.2 | 10 | Sonnet | Pre-C14, fewer cases |
+| Falcon-H1-Tiny-90M-Instruct | 3.2 | 10 | Sonnet | Pre-C14, fewer cases; re-measured above at 1.0 |
 | Qwen3-VL-32B-Thinking:Q5_K_M | 64.8 | 18 | Qwen3-Coder-30B | Judge produced 39 ungrounded verdicts; also temp 0.3, losing 3 of 54 cases. Re-measured above at 60.6 |
 | Qwen3-VL-8B-Thinking-imatrix:Q4_K_M | 47.3 | 18 | Qwen3.8-27B | Temp 0.3; lost 9 of 54 cases to runaway reasoning. Re-measured above at 52.3 |
 | Qwen3-VL-32B-Instruct-imatrix | — | 18 | — | Judging failed twice; also Q3_K_M weights under a Q4_K_M tag. Rebuilt and re-measured above at 62.5 |

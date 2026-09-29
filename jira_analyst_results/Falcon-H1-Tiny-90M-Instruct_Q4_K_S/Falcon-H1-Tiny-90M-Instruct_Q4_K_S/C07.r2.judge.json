@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the dashboards are showing errors at around 09:31",
+      "reason": "The analysis mentions the 09:31 impact start but never states that the OPS-81 config deploy occurred at 09:30."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2026-09-11 09:52: Sam Okafor identifies the failure in the P1 transaction.",
+      "reason": "The 09:52 incident declaration is present, but the 09:47 monitoring alert is never mentioned."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Sam Okafor confirms that the OPS-81 config deployment is being rolled back.",
+      "reason": "The rollback is placed at 10:24 instead of 10:31, and neither the 10:42 recovery nor the 10:50 resolution is mentioned."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-detect calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-recover or time-to-resolution calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The JWT signing key was moved to a different configuration, leading to the authentication service failing without updating it.",
+      "reason": "The root cause is vague, omits OPS-81, the 401 status, and the IDX10503 error code, and the timeline entry reverses which service uses the old vs. new key."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The incident was completed with a post-incident review scheduled for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is correctly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "This suggests that the issue is likely related to the database.",
+      "reason": "The analysis attributes the issue to the database, which Sam explicitly ruled out at 10:24, and does so as the analyst's own suggestion rather than an attributed or rejected opinion."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No unsupported time-to-detect or time-to-recover figures are stated."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Marcus Reid notes that the 401s status for the Transactions API is failing, with 40+ calls in the last 15 minutes.",
+      "reason": "Marcus Reid's actual comment was about the support queue spiking with 40+ calls; he did not mention 401s or the Transactions API."
+    },
+    {
+      "quote": "Priya Nair reports that the 401s status is still high, indicating that the issue is related to the configuration deployment settings.",
+      "reason": "Priya Nair's actual comment was about slow queries on the transactions table and a possible database issue; she did not mention 401s or configuration deployment settings."
+    },
+    {
+      "quote": "The Auth service is currently signing tokens with the old key, but the Transactions API still validates against it.",
+      "reason": "The ticket states the opposite: Auth started issuing tokens signed with the NEW key, while the Transactions API still validates against the OLD key."
+    },
+    {
+      "quote": "The incident was resolved by moving the JWT signing key to a different configuration, ensuring that the authentication service remained secure and reliable.",
+      "reason": "The ticket states the incident was resolved by rolling back the OPS-81 config deploy, not by 'moving the JWT signing key to a different configuration.'"
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 230.09
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "the dashboards are showing errors at around 09:31",
+        "reason": "The analysis mentions the 09:31 impact start but never states that the OPS-81 config deploy occurred at 09:30.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "2026-09-11 09:52: Sam Okafor identifies the failure in the P1 transaction.",
+        "reason": "The 09:52 incident declaration is present, but the 09:47 monitoring alert is never mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "Sam Okafor confirms that the OPS-81 config deployment is being rolled back.",
+        "reason": "The rollback is placed at 10:24 instead of 10:31, and neither the 10:42 recovery nor the 10:50 resolution is mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "",
+        "reason": "No time-to-detect calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "",
+        "reason": "No time-to-recover or time-to-resolution calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The JWT signing key was moved to a different configuration, leading to the authentication service failing without updating it.",
+        "reason": "The root cause is vague, omits OPS-81, the 401 status, and the IDX10503 error code, and the timeline entry reverses which service uses the old vs. new key.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "The incident was completed with a post-incident review scheduled for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is correctly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "This suggests that the issue is likely related to the database.",
+        "reason": "The analysis attributes the issue to the database, which Sam explicitly ruled out at 10:24, and does so as the analyst's own suggestion rather than an attributed or rejected opinion.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "No unsupported time-to-detect or time-to-recover figures are stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Marcus Reid notes that the 401s status for the Transactions API is failing, with 40+ calls in the last 15 minutes.",
+        "reason": "Marcus Reid's actual comment was about the support queue spiking with 40+ calls; he did not mention 401s or the Transactions API."
+      },
+      {
+        "quote": "Priya Nair reports that the 401s status is still high, indicating that the issue is related to the configuration deployment settings.",
+        "reason": "Priya Nair's actual comment was about slow queries on the transactions table and a possible database issue; she did not mention 401s or configuration deployment settings."
+      },
+      {
+        "quote": "The Auth service is currently signing tokens with the old key, but the Transactions API still validates against it.",
+        "reason": "The ticket states the opposite: Auth started issuing tokens signed with the NEW key, while the Transactions API still validates against the OLD key."
+      },
+      {
+        "quote": "The incident was resolved by moving the JWT signing key to a different configuration, ensuring that the authentication service remained secure and reliable.",
+        "reason": "The ticket states the incident was resolved by rolling back the OPS-81 config deploy, not by 'moving the JWT signing key to a different configuration.'"
+      }
+    ]
+  }
+}

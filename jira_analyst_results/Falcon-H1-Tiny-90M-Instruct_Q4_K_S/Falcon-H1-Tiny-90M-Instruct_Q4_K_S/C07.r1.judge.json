@@ -1,0 +1,179 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that OPS-81 was deployed at 09:30 or that impact started at 09:31; its timeline begins at 09:52."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The alert firing at 09:47 is never mentioned; the timeline starts at 09:52 without referencing the alert."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2026-09-11 10:44: Sam Okafor reports that the TransferErrorRate has been back to under 1% at 10:42 AM.",
+      "reason": "The 10:42 recovery is mentioned, but the rollback start at 10:31 and the resolution at 10:50 are absent."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-detect calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No time-to-recover calculation is provided anywhere in the analysis."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The root cause of the TransferErrorRate is likely related to the OPS-81 configuration deployment. The deployment was not properly configured to validate the JWT signing key, leading to a failure in token issuance.",
+      "reason": "It identifies OPS-81 and the JWT key but misstates the mechanism (says 'failure in token issuance' rather than the Transactions API rejecting tokens with 401 IDX10503) and omits the specific error and the key-mismatch between Auth and Transactions API."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No mention of a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name the database or slow queries as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No unsupported time-to-detect or time-to-recover figure is stated."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "2026-09-11 10:05: Marcus Reid notes that the 401s from the Transactions API are still active, indicating a persistent issue.",
+      "reason": "In the ticket, Marcus Reid's 10:05 comment is about the support queue spiking with 40+ calls; he does not mention 401s or the Transactions API."
+    },
+    {
+      "quote": "2026-09-11 10:10: Priya Nair reports that the TransactionAuth service is still failing, with token validation still failing.",
+      "reason": "In the ticket, Priya Nair's 10:10 comment asks about the database and mentions slow queries on the transactions table; she does not mention a 'TransactionAuth service' or token validation."
+    },
+    {
+      "quote": "2026-09-11 10:44: Marcus Reid notes that the 401s from the Transactions API are still active, and the JWTSigningKey is being updated. The OPS-81 config deployment is now functioning correctly.",
+      "reason": "There is no comment from Marcus Reid at 10:44; the 10:44 comment is from Sam Okafor reporting the rollback was complete and the error rate was under 1%."
+    },
+    {
+      "quote": "The incident highlights a persistent issue with token validation in Jira, specifically with the OPS-81 configuration.",
+      "reason": "The incident concerns a banking system's Auth and Transactions services; Jira is merely the ticketing platform. There is no 'persistent issue in Jira' described in the ticket."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 141.88
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "",
+        "reason": "The analysis never states that OPS-81 was deployed at 09:30 or that impact started at 09:31; its timeline begins at 09:52.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "",
+        "reason": "The alert firing at 09:47 is never mentioned; the timeline starts at 09:52 without referencing the alert.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "2026-09-11 10:44: Sam Okafor reports that the TransferErrorRate has been back to under 1% at 10:42 AM.",
+        "reason": "The 10:42 recovery is mentioned, but the rollback start at 10:31 and the resolution at 10:50 are absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "",
+        "reason": "No time-to-detect calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "",
+        "reason": "No time-to-recover calculation is provided anywhere in the analysis.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The root cause of the TransferErrorRate is likely related to the OPS-81 configuration deployment. The deployment was not properly configured to validate the JWT signing key, leading to a failure in token issuance.",
+        "reason": "It identifies OPS-81 and the JWT key but misstates the mechanism (says 'failure in token issuance' rather than the Transactions API rejecting tokens with 401 IDX10503) and omits the specific error and the key-mismatch between Auth and Transactions API.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "No mention of a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis does not name the database or slow queries as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "No unsupported time-to-detect or time-to-recover figure is stated.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "2026-09-11 10:05: Marcus Reid notes that the 401s from the Transactions API are still active, indicating a persistent issue.",
+        "reason": "In the ticket, Marcus Reid's 10:05 comment is about the support queue spiking with 40+ calls; he does not mention 401s or the Transactions API."
+      },
+      {
+        "quote": "2026-09-11 10:10: Priya Nair reports that the TransactionAuth service is still failing, with token validation still failing.",
+        "reason": "In the ticket, Priya Nair's 10:10 comment asks about the database and mentions slow queries on the transactions table; she does not mention a 'TransactionAuth service' or token validation."
+      },
+      {
+        "quote": "2026-09-11 10:44: Marcus Reid notes that the 401s from the Transactions API are still active, and the JWTSigningKey is being updated. The OPS-81 config deployment is now functioning correctly.",
+        "reason": "There is no comment from Marcus Reid at 10:44; the 10:44 comment is from Sam Okafor reporting the rollback was complete and the error rate was under 1%."
+      },
+      {
+        "quote": "The incident highlights a persistent issue with token validation in Jira, specifically with the OPS-81 configuration.",
+        "reason": "The incident concerns a banking system's Auth and Transactions services; Jira is merely the ticketing platform. There is no 'persistent issue in Jira' described in the ticket."
+      }
+    ]
+  }
+}

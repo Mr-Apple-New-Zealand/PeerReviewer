@@ -1,0 +1,341 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the breadcrumb timeline, the ~4-hour gap, or the 200-to-401 transition."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "The error occurred because the JSON payload was not properly formatted, leading to a `TypeError`.",
+      "reason": "The analysis attributes the error to a JSON formatting issue rather than identifying the missing 401 handling as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs or that they represent one defect."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the token refresh request or its timing relative to the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the mismatch between the Production environment tag and the UAT URL."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the stale transaction name /settlements/run/8214 versus the actual /payments/batch/actions URL."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the missing source maps, js_no_source errors, or minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that release and dist are null."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that 401 responses have zero body size, preventing determination of the rejection reason."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not offer any inference about token expiry during idle time."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not identify the red-herring details (780 KB response, Referer, browser, '401 OK' wording)."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flags or in_app_frame_mix."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis provides no actionable next steps or recommendations."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not propose a null check before .sort as the root cause or fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state the error occurred in production or treat it as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state the error occurred on the /settlements/run/8214 screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name a specific source file, component, method, or line number as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network, browser, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions issue, or outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe activity during a gap or continuous failures across one."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The ticket was created for a user to log in with their credentials.",
+      "reason": "The ticket is a bug report about the batch actions screen throwing a TypeError; it has nothing to do with a user logging in."
+    },
+    {
+      "quote": "The ticket was created to send a POST request to the Sentry API, which sends a PUT request to the appropriate endpoint.",
+      "reason": "The ticket is a Jira bug report with an attached Sentry event JSON; it does not describe sending POST or PUT requests to a Sentry API."
+    },
+    {
+      "quote": "The response was a `TypeError`, which was caught by the user's application and the Sentry API.",
+      "reason": "The Sentry event shows handled: false, meaning the error was unhandled; it was not 'caught' by the application."
+    },
+    {
+      "quote": "the error occurred because the JSON payload was not properly formatted, leading to a `TypeError`",
+      "reason": "The TypeError is 'Cannot read properties of undefined (reading sort)', caused by dereferencing an undefined response object after 401 failures, not by a JSON formatting issue."
+    },
+    {
+      "quote": "The user's application attempted to use the Sentry API to log in",
+      "reason": "The user was interacting with the batch actions screen; Sentry is the error-reporting SDK, not a login service."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 163.33
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never mentions the breadcrumb timeline, the ~4-hour gap, or the 200-to-401 transition.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The error occurred because the JSON payload was not properly formatted, leading to a `TypeError`.",
+        "reason": "The analysis attributes the error to a JSON formatting issue rather than identifying the missing 401 handling as the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs or that they represent one defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the token refresh request or its timing relative to the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "",
+        "reason": "The analysis does not address the mismatch between the Production environment tag and the UAT URL.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis does not mention the stale transaction name /settlements/run/8214 versus the actual /payments/batch/actions URL.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the missing source maps, js_no_source errors, or minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis does not mention that release and dist are null.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that 401 responses have zero body size, preventing determination of the rejection reason.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "",
+        "reason": "The analysis does not offer any inference about token expiry during idle time.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not identify the red-herring details (780 KB response, Referer, browser, '401 OK' wording).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flags or in_app_frame_mix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "",
+        "reason": "The analysis provides no actionable next steps or recommendations.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis does not propose a null check before .sort as the root cause or fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis does not state the error occurred in production or treat it as a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis does not state the error occurred on the /settlements/run/8214 screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name a specific source file, component, method, or line number as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network, browser, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions issue, or outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe activity during a gap or continuous failures across one.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The ticket was created for a user to log in with their credentials.",
+        "reason": "The ticket is a bug report about the batch actions screen throwing a TypeError; it has nothing to do with a user logging in."
+      },
+      {
+        "quote": "The ticket was created to send a POST request to the Sentry API, which sends a PUT request to the appropriate endpoint.",
+        "reason": "The ticket is a Jira bug report with an attached Sentry event JSON; it does not describe sending POST or PUT requests to a Sentry API."
+      },
+      {
+        "quote": "The response was a `TypeError`, which was caught by the user's application and the Sentry API.",
+        "reason": "The Sentry event shows handled: false, meaning the error was unhandled; it was not 'caught' by the application."
+      },
+      {
+        "quote": "the error occurred because the JSON payload was not properly formatted, leading to a `TypeError`",
+        "reason": "The TypeError is 'Cannot read properties of undefined (reading sort)', caused by dereferencing an undefined response object after 401 failures, not by a JSON formatting issue."
+      },
+      {
+        "quote": "The user's application attempted to use the Sentry API to log in",
+        "reason": "The user was interacting with the batch actions screen; Sentry is the error-reporting SDK, not a login service."
+      }
+    ]
+  }
+}

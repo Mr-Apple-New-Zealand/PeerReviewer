@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The tickets are duplicates of BANK-440.",
+      "reason": "The analysis vaguely states 'the tickets are duplicates of BANK-440' but never names BANK-425 specifically or explains the shared characteristics (web dashboard/home screen, stale balance after transfer, version 3.1.4)."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never recommends keeping one ticket and closing the other as a duplicate, never mentions Hana Sato's root-cause analysis, and never suggests linking the tickets."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not state that MOB-88 is not a duplicate, does not explain its different cause (TransferRequested event), and does not mention Ravi Kumar or its In Progress status."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "If the balance is still outdated, you can clear the \"BalanceCache\" by calling `BalanceCache:clear` on your app. This ensures that the cache is always active, and the API calls are processed accordingly.",
+      "reason": "The analysis mentions BalanceCache but does not explain the 15-minute local-storage cache, that it is not invalidated after a transfer, or that the fix is to clear it when a transfer succeeds; it instead gives a generic and incorrect instruction."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions BANK-419, never identifies it as the source of the 15-minute cache, and makes no inference about a regression or a link between the tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not specifically name MOB-88 as a duplicate of BANK-440; its vague 'the tickets' phrasing does not constitute a specific assertion about MOB-88."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim that the balance API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "you can clear the \"BalanceCache\" by calling `BalanceCache:clear` on your app",
+      "reason": "No ticket mentions a method or command called `BalanceCache:clear`; the tickets only state that the fix is to clear BalanceCache when a transfer succeeds, without specifying any API or method name."
+    },
+    {
+      "quote": "If the status is still \"Not Applicable\" or \"In Progress\", you can update it to \"Applied\" or \"Ready\".",
+      "reason": "None of the tickets use the status values 'Not Applicable', 'Applied', or 'Ready'; these are invented statuses with no basis in the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 154.9
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "The tickets are duplicates of BANK-440.",
+        "reason": "The analysis vaguely states 'the tickets are duplicates of BANK-440' but never names BANK-425 specifically or explains the shared characteristics (web dashboard/home screen, stale balance after transfer, version 3.1.4).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "",
+        "reason": "The analysis never recommends keeping one ticket and closing the other as a duplicate, never mentions Hana Sato's root-cause analysis, and never suggests linking the tickets.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "",
+        "reason": "The analysis does not state that MOB-88 is not a duplicate, does not explain its different cause (TransferRequested event), and does not mention Ravi Kumar or its In Progress status.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "If the balance is still outdated, you can clear the \"BalanceCache\" by calling `BalanceCache:clear` on your app. This ensures that the cache is always active, and the API calls are processed accordingly.",
+        "reason": "The analysis mentions BalanceCache but does not explain the 15-minute local-storage cache, that it is not invalidated after a transfer, or that the fix is to clear it when a transfer succeeds; it instead gives a generic and incorrect instruction.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "",
+        "reason": "The analysis never mentions BANK-419, never identifies it as the source of the 15-minute cache, and makes no inference about a regression or a link between the tickets.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis does not mention that the duplicate tickets are unassigned.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis does not specifically name MOB-88 as a duplicate of BANK-440; its vague 'the tickets' phrasing does not constitute a specific assertion about MOB-88.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis does not claim that the balance API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "you can clear the \"BalanceCache\" by calling `BalanceCache:clear` on your app",
+        "reason": "No ticket mentions a method or command called `BalanceCache:clear`; the tickets only state that the fix is to clear BalanceCache when a transfer succeeds, without specifying any API or method name."
+      },
+      {
+        "quote": "If the status is still \"Not Applicable\" or \"In Progress\", you can update it to \"Applied\" or \"Ready\".",
+        "reason": "None of the tickets use the status values 'Not Applicable', 'Applied', or 'Ready'; these are invented statuses with no basis in the ticket data."
+      }
+    ]
+  }
+}
