@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. Both describe **identical root cause** (cache not invalidated after transfer) and **exact solution** (clear `BalanceCache` on transfer success).",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard/home screen balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Action**: Close as duplicate of BANK-425. Link BANK-440 to BANK-425. **Why**: Identical issue and fix described in BANK-425; no need for separate ticket.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with the tickets linked."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88: In Progress, assigned to Ravi Kumar. Blocked by incorrect event source (TransferRequested instead of TransferCompleted).",
+      "reason": "The analysis identifies MOB-88 as a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted event), in progress with Ravi Kumar, and explicitly calls it 'unrelated.'"
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both describe **identical root cause** (cache not invalidated after transfer) and **exact solution** (clear `BalanceCache` on transfer success).",
+      "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the cause and clearing it on transfer success as the fix, consistent with Hana Sato's comment."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-425 requires a change to cache invalidation (which BANK-419 implemented but did not fully address).",
+      "reason": "The analysis connects BANK-419 to the bug but states the relationship as fact rather than as a likely regression, and does not explicitly recommend linking BANK-419 to the bug tickets as a regression source."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-440**: Open, unassigned, no fix version. Blocked by missing cache invalidation logic.  \n- **BANK-425**: Open, unassigned.",
+      "reason": "The analysis explicitly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'unrelated' and does not call it a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'The API returns the correct new balance immediately' and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 87.27
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. Both describe **identical root cause** (cache not invalidated after transfer) and **exact solution** (clear `BalanceCache` on transfer success).",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both involve the web dashboard/home screen balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "**Action**: Close as duplicate of BANK-425. Link BANK-440 to BANK-425. **Why**: Identical issue and fix described in BANK-425; no need for separate ticket.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with the tickets linked.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: In Progress, assigned to Ravi Kumar. Blocked by incorrect event source (TransferRequested instead of TransferCompleted).",
+        "reason": "The analysis identifies MOB-88 as a mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted event), in progress with Ravi Kumar, and explicitly calls it 'unrelated.'",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Both describe **identical root cause** (cache not invalidated after transfer) and **exact solution** (clear `BalanceCache` on transfer success).",
+        "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the cause and clearing it on transfer success as the fix, consistent with Hana Sato's comment.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-425 requires a change to cache invalidation (which BANK-419 implemented but did not fully address).",
+        "reason": "The analysis connects BANK-419 to the bug but states the relationship as fact rather than as a likely regression, and does not explicitly recommend linking BANK-419 to the bug tickets as a regression source.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "**BANK-440**: Open, unassigned, no fix version. Blocked by missing cache invalidation logic.  \n- **BANK-425**: Open, unassigned.",
+        "reason": "The analysis explicitly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'unrelated' and does not call it a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'The API returns the correct new balance immediately' and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

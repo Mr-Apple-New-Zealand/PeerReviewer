@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Marcus Reid (reporter) **cannot** tell the customer it's fixed. The issue remains unresolved, and the customer must be informed it's still broken.",
+      "reason": "The analysis clearly states support should not tell the customer it is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: Done (set to Done on 2026-09-03). Resolution: Fixed (set to Fixed on 2026-09-03). Blocking: The retest by Tom Becker on 2026-09-10 confirmed the reset email still fails with SMTP error Rejected: 550 5.1.3 Invalid recipient address, contradicting the \"Fixed\" resolution.",
+      "reason": "The analysis conveys the Done/Fixed status, Tom Becker's 2026-09-10 retest on 3.1.4 staging, and that reset emails to plus-addressed recipients still fail."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The retest by Tom Becker on 2026-09-10 confirmed the reset email still fails with SMTP error `Rejected: 550 5.1.3 Invalid recipient address`, contradicting the \"Fixed\" resolution.",
+      "reason": "The analysis explicitly quotes the different SMTP error code from the log."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The fix (PR #201) *removed* regex rejection of plus signs, but the issue now originates from the SMTP server (not the application), meaning the fix was incomplete.",
+      "reason": "The analysis states the provider-rejection cause as established fact in the Ambiguities section rather than as a tentative inference, even though it also labels a similar statement as 'Key inference' elsewhere."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Reopen ticket: Priya Nair (assignee) must investigate why the SMTP server rejects plus signs (e.g., check provider documentation for email format rules). Update ticket status to In Progress and resolution to Unresolved to reflect the issue persists.",
+      "reason": "The analysis implies the ticket needs reopening and an owner assigned through its suggested actions, but never explicitly states that nobody reopened the ticket or that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reopen ticket: Priya Nair (assignee) must investigate why the SMTP server rejects plus signs... Marcus Reid (reporter) cannot tell the customer it's fixed. The issue remains unresolved, and the customer must be informed it's still broken. Action: Delay customer update until root cause is resolved",
+      "reason": "The analysis recommends reopening the ticket, assigning Priya Nair to investigate the provider rejection, and giving the customer a holding response rather than confirming a fix."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is not fixed and that support cannot confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests the ticket should be reopened but does not claim it has already been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 115.46
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "Marcus Reid (reporter) **cannot** tell the customer it's fixed. The issue remains unresolved, and the customer must be informed it's still broken.",
+        "reason": "The analysis clearly states support should not tell the customer it is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "Status: Done (set to Done on 2026-09-03). Resolution: Fixed (set to Fixed on 2026-09-03). Blocking: The retest by Tom Becker on 2026-09-10 confirmed the reset email still fails with SMTP error Rejected: 550 5.1.3 Invalid recipient address, contradicting the \"Fixed\" resolution.",
+        "reason": "The analysis conveys the Done/Fixed status, Tom Becker's 2026-09-10 retest on 3.1.4 staging, and that reset emails to plus-addressed recipients still fail.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "The retest by Tom Becker on 2026-09-10 confirmed the reset email still fails with SMTP error `Rejected: 550 5.1.3 Invalid recipient address`, contradicting the \"Fixed\" resolution.",
+        "reason": "The analysis explicitly quotes the different SMTP error code from the log.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "The fix (PR #201) *removed* regex rejection of plus signs, but the issue now originates from the SMTP server (not the application), meaning the fix was incomplete.",
+        "reason": "The analysis states the provider-rejection cause as established fact in the Ambiguities section rather than as a tentative inference, even though it also labels a similar statement as 'Key inference' elsewhere.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "Reopen ticket: Priya Nair (assignee) must investigate why the SMTP server rejects plus signs (e.g., check provider documentation for email format rules). Update ticket status to In Progress and resolution to Unresolved to reflect the issue persists.",
+        "reason": "The analysis implies the ticket needs reopening and an owner assigned through its suggested actions, but never explicitly states that nobody reopened the ticket or that no one currently owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Reopen ticket: Priya Nair (assignee) must investigate why the SMTP server rejects plus signs... Marcus Reid (reporter) cannot tell the customer it's fixed. The issue remains unresolved, and the customer must be informed it's still broken. Action: Delay customer update until root cause is resolved",
+        "reason": "The analysis recommends reopening the ticket, assigning Priya Nair to investigate the provider rejection, and giving the customer a holding response rather than confirming a fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is not fixed and that support cannot confirm the fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis suggests the ticket should be reopened but does not claim it has already been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log shows repeated SMTP errors for payment-receipt notifications that fail with \"Authentication unsuccessful, basic authentication is disabled\" status code 535.",
+      "reason": "The analysis conveys the SMTP auth failure (SmtpException, 535, server response text) as the cause of delivery failure, but does not mention that the error is raised from EmailSender and OutboxDispatcher."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter claims \"keys are effectively junk\" causing failures, but log shows **SMTP authentication issues** rather than key storage problems",
+      "reason": "The analysis clearly states the reporter's explanation is not supported, identifies the data protection lines as mere warnings unrelated to the actual SMTP authentication failure, and draws the correct conclusion."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Outbox item reached 5 delivery attempts without dead-letter path",
+      "reason": "The analysis mentions 5 delivery attempts and no dead-letter path but omits the 5-second retry interval, the lack of backoff, the specific item 991204, and the consequence that one failing item blocks the queue behind it."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the growing outbox backlog (1412 to 2089), the growth rate, or the implication that customers will keep missing receipts until the auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not acknowledge that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the reporter's suggestion to restart the pod (comment by Priya Nair) shows no progress",
+      "reason": "The analysis mentions the restart suggestion in passing but does not make the key argument that the pod was already restarted at 18:02 and the same 535 errors continue through 18:38, so another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Verify SMTP configuration: Confirm credentials for svc-notify@example.com and authentication method",
+      "reason": "The analysis points toward checking credentials and authentication method for svc-notify@example.com, aligning with the inference, but does not explicitly frame it as a suggestion that the mail provider turned off basic auth, nor does it state the fix is a change of auth method rather than code."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Verify SMTP configuration: Confirm credentials for svc-notify@example.com and authentication method",
+      "reason": "The analysis covers confirming SMTP auth credentials and method, but omits adding backoff and a dead-letter path to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, or the healthy check at 18:21:09, nor does it note that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation, stating the real failure is SMTP authentication."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Payment-receipt emails fail to send with SMTP error 535 after 14:00, as shown in the log",
+      "reason": "The analysis implies the log documents the 14:00 timeframe, but the log begins at 18:02:41 and the previous container's log was not captured, so it does not cover the 14:00 start."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not recommend restarting the pod as a fix; it mentions the restart suggestion only in the context of it showing no progress."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only cites the SMTP error and code actually present in the log (535, authentication unsuccessful); it does not invent rate limiting, TLS failure, or mailbox-full responses."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "the reporter's suggestion to restart the pod (comment by Priya Nair) shows no progress",
+      "reason": "The restart suggestion was made by Priya Nair, not the reporter (Marcus Reid); the analysis misattributes it to the reporter while simultaneously naming Priya Nair, creating a factual contradiction."
+    },
+    {
+      "quote": "No information about the current SMTP configuration",
+      "reason": "The attached log explicitly contains SMTP configuration details: 'SMTP host smtp.example.com:587, user svc-notify@example.com, StartTls=True', so the claim that there is no information about the current SMTP configuration is contradicted by the ticket's own attachment."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 172.83
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The log shows repeated SMTP errors for payment-receipt notifications that fail with \"Authentication unsuccessful, basic authentication is disabled\" status code 535.",
+        "reason": "The analysis conveys the SMTP auth failure (SmtpException, 535, server response text) as the cause of delivery failure, but does not mention that the error is raised from EmailSender and OutboxDispatcher.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter claims \"keys are effectively junk\" causing failures, but log shows **SMTP authentication issues** rather than key storage problems",
+        "reason": "The analysis clearly states the reporter's explanation is not supported, identifies the data protection lines as mere warnings unrelated to the actual SMTP authentication failure, and draws the correct conclusion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "Outbox item reached 5 delivery attempts without dead-letter path",
+        "reason": "The analysis mentions 5 delivery attempts and no dead-letter path but omits the 5-second retry interval, the lack of backoff, the specific item 991204, and the consequence that one failing item blocks the queue behind it.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "The analysis does not mention the growing outbox backlog (1412 to 2089), the growth rate, or the implication that customers will keep missing receipts until the auth is fixed.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis does not acknowledge that the log begins at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is not covered by this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "the reporter's suggestion to restart the pod (comment by Priya Nair) shows no progress",
+        "reason": "The analysis mentions the restart suggestion in passing but does not make the key argument that the pod was already restarted at 18:02 and the same 535 errors continue through 18:38, so another restart will not help.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "Verify SMTP configuration: Confirm credentials for svc-notify@example.com and authentication method",
+        "reason": "The analysis points toward checking credentials and authentication method for svc-notify@example.com, aligning with the inference, but does not explicitly frame it as a suggestion that the mail provider turned off basic auth, nor does it state the fix is a change of auth method rather than code.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Verify SMTP configuration: Confirm credentials for svc-notify@example.com and authentication method",
+        "reason": "The analysis covers confirming SMTP auth credentials and method, but omits adding backoff and a dead-letter path to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS connection loss at 18:07:12, its recovery at 18:07:13, or the healthy check at 18:21:09, nor does it note that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation, stating the real failure is SMTP authentication.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "Payment-receipt emails fail to send with SMTP error 535 after 14:00, as shown in the log",
+        "reason": "The analysis implies the log documents the 14:00 timeframe, but the log begins at 18:02:41 and the previous container's log was not captured, so it does not cover the 14:00 start.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis does not recommend restarting the pod as a fix; it mentions the restart suggestion only in the context of it showing no progress.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS reconnection, the health check, or the outbox poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only cites the SMTP error and code actually present in the log (535, authentication unsuccessful); it does not invent rate limiting, TLS failure, or mailbox-full responses.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "the reporter's suggestion to restart the pod (comment by Priya Nair) shows no progress",
+        "reason": "The restart suggestion was made by Priya Nair, not the reporter (Marcus Reid); the analysis misattributes it to the reporter while simultaneously naming Priya Nair, creating a factual contradiction."
+      },
+      {
+        "quote": "No information about the current SMTP configuration",
+        "reason": "The attached log explicitly contains SMTP configuration details: 'SMTP host smtp.example.com:587, user svc-notify@example.com, StartTls=True', so the claim that there is no information about the current SMTP configuration is contradicted by the ticket's own attachment."
+      }
+    ]
+  }
+}

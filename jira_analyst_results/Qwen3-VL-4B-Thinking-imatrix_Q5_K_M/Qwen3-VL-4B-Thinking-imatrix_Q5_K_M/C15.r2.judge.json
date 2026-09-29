@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The application log shows multiple SMTP authentication failures (status code 535) with the specific error: \"Authentication unsuccessful, basic authentication is disabled.\"",
+      "reason": "Conveys the SMTP auth failure with code 535 and the error text, but omits the 5.7.139 prefix, the SmtpException class name, and the EmailSender/OutboxDispatcher source."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The reporter claims key storage is the root cause, but the log shows a specific authentication error.",
+      "reason": "Partially rejects the reporter's explanation but does not identify the warnings as routine ASP.NET Core startup messages unrelated to SMTP, and later hedges by suggesting key storage 'could be causing credential loss.'"
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis only mentions 'multiple retry attempts' without the 5-second interval, no backoff, no dead-letter path, outbox item 991204, five attempts, or the head-of-queue blocking."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "No mention of the growing outbox backlog (1412\u21922089), the rate of growth, or the implication that customers will keep missing receipts."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis repeats the 14:00 claim from the ticket but never notes that the log starts at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Pod restarted at 18:02 but issue persists as shown in the log",
+      "reason": "Notes the restart at 18:02 did not resolve the issue, but hedges by suggesting someone should 'confirm if restarting the pod would help' rather than clearly stating another restart will not help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check if the SMTP server requires a specific authentication method beyond basic authentication (the log shows StartTLS is enabled but authentication is failing)",
+      "reason": "Touches on the authentication method issue and names svc-notify@example.com, but frames it as a question to investigate rather than an inference that the mail provider disabled basic auth, and does not conclude the fix is outside the notification code."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus Reid should verify the SMTP credentials (svc-notify@example.com) and ensure they're valid and properly configured",
+      "reason": "Partially covers the SMTP auth fix but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS reconnection at 18:07, the health check at 18:21, or that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is 'related to SMTP authentication rather than key management' and frames any key-storage connection as an open question to investigate, not as the confirmed cause."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis repeats the ticket's 14:00 claim but does not state what the log shows at 14:00 or claim the log covers the start of the outage."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis notes the restart was already tried and did not resolve the issue; it does not recommend a restart as the fix or a likely remedy."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention NATS, the health check, or the outbox poll interval as causes of the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The only SMTP error details cited (535, 'Authentication unsuccessful, basic authentication is disabled', StartTLS) all appear in the log; no fabricated error codes or reasons are introduced."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 130.87
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The application log shows multiple SMTP authentication failures (status code 535) with the specific error: \"Authentication unsuccessful, basic authentication is disabled.\"",
+        "reason": "Conveys the SMTP auth failure with code 535 and the error text, but omits the 5.7.139 prefix, the SmtpException class name, and the EmailSender/OutboxDispatcher source.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter claims key storage is the root cause, but the log shows a specific authentication error.",
+        "reason": "Partially rejects the reporter's explanation but does not identify the warnings as routine ASP.NET Core startup messages unrelated to SMTP, and later hedges by suggesting key storage 'could be causing credential loss.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "",
+        "reason": "The analysis only mentions 'multiple retry attempts' without the 5-second interval, no backoff, no dead-letter path, outbox item 991204, five attempts, or the head-of-queue blocking.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "",
+        "reason": "No mention of the growing outbox backlog (1412\u21922089), the rate of growth, or the implication that customers will keep missing receipts.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "",
+        "reason": "The analysis repeats the 14:00 claim from the ticket but never notes that the log starts at 18:02:41, that the previous container's log was not captured, or that the 14:00 window is absent from this file.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Pod restarted at 18:02 but issue persists as shown in the log",
+        "reason": "Notes the restart at 18:02 did not resolve the issue, but hedges by suggesting someone should 'confirm if restarting the pod would help' rather than clearly stating another restart will not help.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "Check if the SMTP server requires a specific authentication method beyond basic authentication (the log shows StartTLS is enabled but authentication is failing)",
+        "reason": "Touches on the authentication method issue and names svc-notify@example.com, but frames it as a question to investigate rather than an inference that the mail provider disabled basic auth, and does not conclude the fix is outside the notification code.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Marcus Reid should verify the SMTP credentials (svc-notify@example.com) and ensure they're valid and properly configured",
+        "reason": "Partially covers the SMTP auth fix but omits adding backoff/dead-letter to the dispatcher and retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS reconnection at 18:07, the health check at 18:21, or that neither is part of the failure.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is 'related to SMTP authentication rather than key management' and frames any key-storage connection as an open question to investigate, not as the confirmed cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis repeats the ticket's 14:00 claim but does not state what the log shows at 14:00 or claim the log covers the start of the outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis notes the restart was already tried and did not resolve the issue; it does not recommend a restart as the fix or a likely remedy.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not mention NATS, the health check, or the outbox poll interval as causes of the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The only SMTP error details cited (535, 'Authentication unsuccessful, basic authentication is disabled', StartTLS) all appear in the log; no fabricated error codes or reasons are introduced.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

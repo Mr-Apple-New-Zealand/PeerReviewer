@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service.",
+      "reason": "The analysis states the deploy was at 09:30 and references errors starting around 09:31, matching the expected point."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The incident was declared at 09:52 with a 64% error rate",
+      "reason": "The analysis states the incident was declared at 09:52 and the time-to-detect line references 09:47 as the alert time, covering both required timestamps."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "resolved at 10:50 after a rollback",
+      "reason": "The analysis gives the recovery time (10:42) and resolution time (10:50) but never states that the rollback started at 10:31."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Time to detect: 16 minutes (09:31\u201309:47).",
+      "reason": "The analysis explicitly states 16 minutes from 09:31 to 09:47, matching the expected value."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to recover: 50 minutes (09:52\u201310:42).",
+      "reason": "The analysis uses 09:52 (incident declaration) as the start point, yielding 50 minutes, which is not one of the acceptable options (71 min from 09:31, 55 min from 09:47, or 79 min to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service, but Transactions API continued using old key \u2192 signature validation failures (401 errors).",
+      "reason": "The analysis correctly identifies OPS-81, the JWT key rotation for Auth, the Transactions API not being updated, and the 401 IDX10503 error, covering all elements of the root cause."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Conduct review on 2026-09-16 to analyze root cause and prevent recurrence.",
+      "reason": "The analysis mentions the post-incident review on 2026-09-16, matching the expected point."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the slow queries only to note they were 'dismissed as non-issue by Sam Okafor,' not as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (16 min from 09:31\u201309:47 and 50 min from 09:52\u201310:42) are supported by pairs of timestamps present in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 94.07
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service.",
+        "reason": "The analysis states the deploy was at 09:30 and references errors starting around 09:31, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "The incident was declared at 09:52 with a 64% error rate",
+        "reason": "The analysis states the incident was declared at 09:52 and the time-to-detect line references 09:47 as the alert time, covering both required timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "resolved at 10:50 after a rollback",
+        "reason": "The analysis gives the recovery time (10:42) and resolution time (10:50) but never states that the rollback started at 10:31.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to detect: 16 minutes (09:31\u201309:47).",
+        "reason": "The analysis explicitly states 16 minutes from 09:31 to 09:47, matching the expected value.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to recover: 50 minutes (09:52\u201310:42).",
+        "reason": "The analysis uses 09:52 (incident declaration) as the start point, yielding 50 minutes, which is not one of the acceptable options (71 min from 09:31, 55 min from 09:47, or 79 min to resolution).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service, but Transactions API continued using old key \u2192 signature validation failures (401 errors).",
+        "reason": "The analysis correctly identifies OPS-81, the JWT key rotation for Auth, the Transactions API not being updated, and the 401 IDX10503 error, covering all elements of the root cause.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Conduct review on 2026-09-16 to analyze root cause and prevent recurrence.",
+        "reason": "The analysis mentions the post-incident review on 2026-09-16, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the slow queries only to note they were 'dismissed as non-issue by Sam Okafor,' not as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (16 min from 09:31\u201309:47 and 50 min from 09:52\u201310:42) are supported by pairs of timestamps present in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

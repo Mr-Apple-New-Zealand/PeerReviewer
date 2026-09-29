@@ -1,0 +1,283 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Issues `BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, and `BANKUI-4B3` all share a common root cause (401 responses from backend), but the ticket does not confirm if this is a single defect or multiple.",
+      "reason": "Identifies four of the five issues sharing a 401 cause but omits BANKUI-3C8 from the group and hedges with 'may be part of a single defect.'"
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never highlights that BANKUI-5D6 affects 58 users (the most of any issue) or that it is the top item by user impact despite low event count; instead it deprioritises it."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not connect BANKUI-5D6's first-seen time to the 4.7.0 deployment or explain the open-session/hashed-bundle mechanism."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`BANKUI-2F0` is a Chrome extension error (non-defect) and may be blocked by browser environment.",
+      "reason": "Correctly identifies it as a browser extension, one user, non-defect, and out-of-scope, but does not cite the specific evidence (culprit/top frame in extension script, no app breadcrumbs)."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Event count alone is unreliable (e.g., `BANKUI-2F0` has 4,812 events but affects only 1 user; `BANKUI-3C8` has 5,140 events but is non-critical).",
+      "reason": "Clearly states event count is misleading and identifies both top-count issues as not the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+      "reason": "The analysis incorrectly states BANKUI-1A7 is not in the export (it is), and never notes the regression (last seen 2026-09-11, after 4.7.0) or recommends reopening."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Ravi Kumar's comment confirms source maps are missing for `bank-ui`, preventing code context from Sentry data (minified function names only).",
+      "reason": "Conveys that source maps are absent, names are minified, and code paths cannot be traced from the export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or that total affected users cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not infer that sessions are expiring without the app handling the rejection; it only suggests 'backend auth misconfiguration' and hedges with 'may be part of a single defect.'"
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Prioritize the top two event-count crashes (`BANKUI-4A1` [312 events] and `BANKUI-4A2` [289 events]) as they are the only critical defects (causing crashes; `handled: false`).",
+      "reason": "The analysis picks the two highest event-count crashes rather than BANKUI-5D6 and the 401 cluster, and does not recommend reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly identifies BANKUI-2F0 as a non-defect affecting one user and uses it as an example of why event count is misleading; it does not prioritise it."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four undefined-property issues under a shared 401 cause and does not assign them separate causes or fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not add user counts together or report any summed user total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+      "reason": "The analysis states BANKUI-1A7 is resolved and implies no action is needed, without flagging the regression."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as backend auth responses, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis keeps BANKUI-5D6 and BANKUI-1A7 separate from the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+      "reason": "BANKUI-1A7 is present in the attached JSON export (status: resolved, lastSeen 2026-09-11); the claim that it is 'not included in the current export' is factually wrong."
+    },
+    {
+      "quote": "Sprint planning is stalled because the team lacks a clear prioritization method beyond event count.",
+      "reason": "The ticket says the reporter needs to know which two issues to pick; it does not state that sprint planning is 'stalled.' This is an unsupported characterisation of the team's state."
+    },
+    {
+      "quote": "as they are the only critical defects (causing crashes; `handled: false`)",
+      "reason": "BANKUI-5D6 (ChunkLoadError) also has handled: false and is a crash; calling 4A1 and 4A2 'the only critical defects' contradicts the data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 194.86
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Issues `BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, and `BANKUI-4B3` all share a common root cause (401 responses from backend), but the ticket does not confirm if this is a single defect or multiple.",
+        "reason": "Identifies four of the five issues sharing a 401 cause but omits BANKUI-3C8 from the group and hedges with 'may be part of a single defect.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "",
+        "reason": "The analysis never highlights that BANKUI-5D6 affects 58 users (the most of any issue) or that it is the top item by user impact despite low event count; instead it deprioritises it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not connect BANKUI-5D6's first-seen time to the 4.7.0 deployment or explain the open-session/hashed-bundle mechanism.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "`BANKUI-2F0` is a Chrome extension error (non-defect) and may be blocked by browser environment.",
+        "reason": "Correctly identifies it as a browser extension, one user, non-defect, and out-of-scope, but does not cite the specific evidence (culprit/top frame in extension script, no app breadcrumbs).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "Event count alone is unreliable (e.g., `BANKUI-2F0` has 4,812 events but affects only 1 user; `BANKUI-3C8` has 5,140 events but is non-critical).",
+        "reason": "Clearly states event count is misleading and identifies both top-count issues as not the most valuable to fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+        "reason": "The analysis incorrectly states BANKUI-1A7 is not in the export (it is), and never notes the regression (last seen 2026-09-11, after 4.7.0) or recommends reopening.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Ravi Kumar's comment confirms source maps are missing for `bank-ui`, preventing code context from Sentry data (minified function names only).",
+        "reason": "Conveys that source maps are absent, names are minified, and code paths cannot be traced from the export.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never discusses whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster or that total affected users cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "",
+        "reason": "The analysis does not infer that sessions are expiring without the app handling the rejection; it only suggests 'backend auth misconfiguration' and hedges with 'may be part of a single defect.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Prioritize the top two event-count crashes (`BANKUI-4A1` [312 events] and `BANKUI-4A2` [289 events]) as they are the only critical defects (causing crashes; `handled: false`).",
+        "reason": "The analysis picks the two highest event-count crashes rather than BANKUI-5D6 and the 401 cluster, and does not recommend reopening BANKUI-1A7.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly identifies BANKUI-2F0 as a non-defect affecting one user and uses it as an example of why event count is misleading; it does not prioritise it.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four undefined-property issues under a shared 401 cause and does not assign them separate causes or fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis does not add user counts together or report any summed user total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+        "reason": "The analysis states BANKUI-1A7 is resolved and implies no action is needed, without flagging the regression.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401s as backend auth responses, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis keeps BANKUI-5D6 and BANKUI-1A7 separate from the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "`BANKUI-1A7` is resolved (in `4.6.0`), but not included in the current export.",
+        "reason": "BANKUI-1A7 is present in the attached JSON export (status: resolved, lastSeen 2026-09-11); the claim that it is 'not included in the current export' is factually wrong."
+      },
+      {
+        "quote": "Sprint planning is stalled because the team lacks a clear prioritization method beyond event count.",
+        "reason": "The ticket says the reporter needs to know which two issues to pick; it does not state that sprint planning is 'stalled.' This is an unsupported characterisation of the team's state."
+      },
+      {
+        "quote": "as they are the only critical defects (causing crashes; `handled: false`)",
+        "reason": "BANKUI-5D6 (ChunkLoadError) also has handled: false and is a crash; calling 4A1 and 4A2 'the only critical defects' contradicts the data."
+      }
+    ]
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy at 09:30 rotated the Auth service's JWT signing key",
+      "reason": "The analysis states the config deploy was at 09:30 and that transfer errors began at 09:31, matching the expected facts."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fired for \"TransferErrorRate > 20%\"\n- **09:52**: Incident declared (error rate 64%) by Sam Okafor",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31: Rollback of OPS-81 initiated\n- **10:42**: Transfer error rate drops below 1%\n- **10:44**: Rollback complete (per Sam Okafor)\n- **10:50**: Ticket marked resolved (status: Resolved, resolution: Fixed)",
+      "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Time to Detect\n- **5 minutes**: From monitoring alert at 09:47 to incident declaration at 09:52",
+      "reason": "The analysis calculates time to detect as 5 minutes (alert to declaration) rather than the expected 16 minutes (impact start 09:31 to alert 09:47)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Time to Recover\n- **50 minutes**: From incident declaration at 09:52 to error rate stabilizing at 10:42",
+      "reason": "The analysis uses 09:52 (incident declaration) as the start point yielding 50 minutes, which does not match any of the acceptable start points (09:31 impact start or 09:47 detection) listed in the key."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy at 09:30 rotated the Auth service's JWT signing key, but the Transactions API continued validating against the *old key*. This caused 401s (\"IDX10503: Signature validation failed\") in transfers.",
+      "reason": "All elements of the root cause are present: OPS-81, JWT key rotation for Auth, Transactions API still on old key, 401 with IDX10503."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention a post-incident review or the date 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the database/slow-query suspicion to Priya Nair and explicitly notes Sam ruled it out, not presenting it as the cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both stated times (5 min: 09:47\u219209:52; 50 min: 09:52\u219210:42) are supported by actual timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 87.76
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "The config deploy at 09:30 rotated the Auth service's JWT signing key",
+        "reason": "The analysis states the config deploy was at 09:30 and that transfer errors began at 09:31, matching the expected facts.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fired for \"TransferErrorRate > 20%\"\n- **09:52**: Incident declared (error rate 64%) by Sam Okafor",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Rollback of OPS-81 initiated\n- **10:42**: Transfer error rate drops below 1%\n- **10:44**: Rollback complete (per Sam Okafor)\n- **10:50**: Ticket marked resolved (status: Resolved, resolution: Fixed)",
+        "reason": "Rollback at 10:31, recovery below 1% at 10:42, and resolution at 10:50 are all present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Time to Detect\n- **5 minutes**: From monitoring alert at 09:47 to incident declaration at 09:52",
+        "reason": "The analysis calculates time to detect as 5 minutes (alert to declaration) rather than the expected 16 minutes (impact start 09:31 to alert 09:47).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Time to Recover\n- **50 minutes**: From incident declaration at 09:52 to error rate stabilizing at 10:42",
+        "reason": "The analysis uses 09:52 (incident declaration) as the start point yielding 50 minutes, which does not match any of the acceptable start points (09:31 impact start or 09:47 detection) listed in the key.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "The config deploy at 09:30 rotated the Auth service's JWT signing key, but the Transactions API continued validating against the *old key*. This caused 401s (\"IDX10503: Signature validation failed\") in transfers.",
+        "reason": "All elements of the root cause are present: OPS-81, JWT key rotation for Auth, Transactions API still on old key, 401 with IDX10503.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis does not mention a post-incident review or the date 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis attributes the database/slow-query suspicion to Priya Nair and explicitly notes Sam ruled it out, not presenting it as the cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "Both stated times (5 min: 09:47\u219209:52; 50 min: 09:52\u219210:42) are supported by actual timestamp pairs in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

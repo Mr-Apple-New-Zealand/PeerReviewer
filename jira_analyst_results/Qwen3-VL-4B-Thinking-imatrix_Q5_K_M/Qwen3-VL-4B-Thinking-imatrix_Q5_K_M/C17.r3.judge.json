@@ -1,0 +1,325 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never describes the two-phase breadcrumb structure, the ~4-hour-10-minute gap, or the specific timestamps where 200s end and 401s begin."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "This occurs when the system attempts to sort data but the array is undefined, causing the UI to become unresponsive.",
+      "reason": "The analysis treats the sort error as the primary fault rather than a symptom of unhandled 401s, and never identifies the missing 401 handling (no redirect, no guard) as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or frame this as a single cascade rather than multiple bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never identifies the single token refresh at 03:12:46 (200) or notes that no refresh was attempted after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No indication of whether this is production or UAT environment (tags show \"Production\" but URL points to UAT instance)",
+      "reason": "The analysis notes the tag/URL discrepancy but treats it as an open question rather than concluding the environment is misconfigured and that this answers Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or contrasts it with the actual request URL /payments/batch/actions."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or the minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0 or that the event cannot distinguish token expiry from revocation or server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The attached Sentry event shows a sequence of 401 Unauthorized errors after the initial sort error, which could indicate session expiry or token refresh issues that might be correlated with the error.",
+      "reason": "It gestures at session expiry as a possibility but does not connect the specific evidence chain (successful refresh before the gap, the 4-hour idle period, all 401s immediately after) and misstates the sequence (401s precede the sort error, not follow it)."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or why that flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **Confirm environment**: Check whether the error actually occurred in Production vs. UAT as noted in the ticket (URL shows UAT instance but tags say \"Production\").",
+      "reason": "The analysis only vaguely touches on confirming the environment and session management; it omits central 401 handling, fixing the Sentry environment config, setting release/dist with source maps, correcting the stale transaction name, and the warning that a null guard would hide the symptom."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "4. **Verify data handling**: Look for missing null/undefined checks in the sorting logic to prevent this error.",
+      "reason": "The analysis presents the missing null check as the fix and the undefined array as the cause, rather than identifying it as a defensive measure over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the UAT URL discrepancy and does not assert the error occurred in production without qualification."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never mentions /settlements/run/8214 or attributes the error to that screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific source file, component, method, or line number as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any activity during the gap or claim failures ran continuously across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The attached Sentry event shows a sequence of 401 Unauthorized errors after the initial sort error",
+      "reason": "The breadcrumbs show the 401 errors beginning at timestamp ~1789197802, while the main 'sort' event has timestamp 1789197830.606; the 401s precede the sort error, not follow it."
+    },
+    {
+      "quote": "requiring urgent attention due to high priority and production impact",
+      "reason": "The URL in the event is bank-uat.example.com (UAT), not a production host; the analysis itself flags the environment discrepancy elsewhere, so asserting 'production impact' as fact is unsupported."
+    },
+    {
+      "quote": "Check if the 401 errors relate to authentication issues that might be triggered after the sort error.",
+      "reason": "The data shows the 401s occur before the sort error in the breadcrumb timeline; the sort error is a consequence of the 401s, not a trigger for them."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 143.7
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "",
+        "reason": "The analysis never describes the two-phase breadcrumb structure, the ~4-hour-10-minute gap, or the specific timestamps where 200s end and 401s begin.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "This occurs when the system attempts to sort data but the array is undefined, causing the UI to become unresponsive.",
+        "reason": "The analysis treats the sort error as the primary fault rather than a symptom of unhandled 401s, and never identifies the missing 401 handling (no redirect, no guard) as the underlying defect.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "",
+        "reason": "The analysis does not mention the four earlier sentry.event breadcrumbs ('rows' twice, 'returnProperties', 'length') or frame this as a single cascade rather than multiple bugs.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never identifies the single token refresh at 03:12:46 (200) or notes that no refresh was attempted after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "No indication of whether this is production or UAT environment (tags show \"Production\" but URL points to UAT instance)",
+        "reason": "The analysis notes the tag/URL discrepancy but treats it as an open question rather than concluding the environment is misconfigured and that this answers Tom Becker's question.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or contrasts it with the actual request URL /payments/batch/actions.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the missing source maps, js_no_source errors, failed scraping attempts, symbolicated_in_app being false, or the minified frame names.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0 or that the event cannot distinguish token expiry from revocation or server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The attached Sentry event shows a sequence of 401 Unauthorized errors after the initial sort error, which could indicate session expiry or token refresh issues that might be correlated with the error.",
+        "reason": "It gestures at session expiry as a possibility but does not connect the specific evidence chain (successful refresh before the gap, the 4-hour idle period, all 401s immediately after) and misstates the sequence (401s precede the sort error, not follow it).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not discuss the in_app flags, the in_app_frame_mix 'in-app-only' metadata, or why that flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "1. **Confirm environment**: Check whether the error actually occurred in Production vs. UAT as noted in the ticket (URL shows UAT instance but tags say \"Production\").",
+        "reason": "The analysis only vaguely touches on confirming the environment and session management; it omits central 401 handling, fixing the Sentry environment config, setting release/dist with source maps, correcting the stale transaction name, and the warning that a null guard would hide the symptom.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "4. **Verify data handling**: Look for missing null/undefined checks in the sorting logic to prevent this error.",
+        "reason": "The analysis presents the missing null check as the fix and the undefined array as the cause, rather than identifying it as a defensive measure over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis flags the UAT URL discrepancy and does not assert the error occurred in production without qualification.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis never mentions /settlements/run/8214 or attributes the error to that screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis does not name any specific source file, component, method, or line number as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or OS.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis does not describe the 401s as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis does not describe any activity during the gap or claim failures ran continuously across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The attached Sentry event shows a sequence of 401 Unauthorized errors after the initial sort error",
+        "reason": "The breadcrumbs show the 401 errors beginning at timestamp ~1789197802, while the main 'sort' event has timestamp 1789197830.606; the 401s precede the sort error, not follow it."
+      },
+      {
+        "quote": "requiring urgent attention due to high priority and production impact",
+        "reason": "The URL in the event is bank-uat.example.com (UAT), not a production host; the analysis itself flags the environment discrepancy elsewhere, so asserting 'production impact' as fact is unsupported."
+      },
+      {
+        "quote": "Check if the 401 errors relate to authentication issues that might be triggered after the sort error.",
+        "reason": "The data shows the 401s occur before the sort error in the breadcrumb timeline; the sort error is a consequence of the 401s, not a trigger for them."
+      }
+    ]
+  }
+}

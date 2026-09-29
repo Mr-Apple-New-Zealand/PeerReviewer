@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:31: Dashboard errors begin (reported in initial comment)",
+      "reason": "The analysis states OPS-81 was at 09:30 and errors began at 09:31, matching the expected point."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47: Monitoring alert fired: \"TransferErrorRate > 20%\"\n- 09:52: Incident declared; error rate at 64% (Sam Okafor)",
+      "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "10:31: Sam Okafor initiates rollback of OPS-81 config deploy\n- 10:42: Transfer error rate drops below 1%\n- 10:44: Rollback complete (Sam Okafor)",
+      "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the 10:50 resolution time is missing."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**5 minutes** (09:47 to 09:52).",
+      "reason": "The analysis calculates time to detect as 5 minutes (alert to declaration) rather than the correct 16 minutes (impact start 09:31 to alert 09:47)."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "**50 minutes** (09:52 to 10:42).",
+      "reason": "The analysis uses 09:52 (incident declaration) as the start point, yielding 50 minutes, which does not match any acceptable option (71 min from 09:31, 55 min from 09:47, or 79 min to resolution)."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service, but Transactions API continued validating against the old key, causing \"IDX10503: Signature validation failed\" 401 errors.",
+      "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validating against old key, 401, and the specific error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the post-incident review booked for 2026-09-16."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database/slow queries are only mentioned as Priya Nair's suggestion in the timeline; the root cause is correctly identified as the JWT key rotation."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated times (5 min from 09:47\u201309:52, 50 min from 09:52\u201310:42) are both supported by actual timestamp pairs in the ticket, even though they are the wrong metrics."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "No other tickets referenced.",
+      "reason": "The ticket explicitly links to OPS-81 via 'Links: is caused by OPS-81', so another ticket is referenced."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.13
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:31: Dashboard errors begin (reported in initial comment)",
+        "reason": "The analysis states OPS-81 was at 09:30 and errors began at 09:31, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47: Monitoring alert fired: \"TransferErrorRate > 20%\"\n- 09:52: Incident declared; error rate at 64% (Sam Okafor)",
+        "reason": "Both the 09:47 alert and 09:52 incident declaration are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31: Sam Okafor initiates rollback of OPS-81 config deploy\n- 10:42: Transfer error rate drops below 1%\n- 10:44: Rollback complete (Sam Okafor)",
+        "reason": "Rollback start (10:31) and recovery below 1% (10:42) are present, but the 10:50 resolution time is missing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "**5 minutes** (09:47 to 09:52).",
+        "reason": "The analysis calculates time to detect as 5 minutes (alert to declaration) rather than the correct 16 minutes (impact start 09:31 to alert 09:47).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "**50 minutes** (09:52 to 10:42).",
+        "reason": "The analysis uses 09:52 (incident declaration) as the start point, yielding 50 minutes, which does not match any acceptable option (71 min from 09:31, 55 min from 09:47, or 79 min to resolution).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Config deploy (OPS-81) at 09:30 rotated JWT signing key for Auth service, but Transactions API continued validating against the old key, causing \"IDX10503: Signature validation failed\" 401 errors.",
+        "reason": "All key elements are present: OPS-81, JWT key rotation, Auth service, Transactions API validating against old key, 401, and the specific error code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the post-incident review booked for 2026-09-16.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The database/slow queries are only mentioned as Priya Nair's suggestion in the timeline; the root cause is correctly identified as the JWT key rotation.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "The stated times (5 min from 09:47\u201309:52, 50 min from 09:52\u201310:42) are both supported by actual timestamp pairs in the ticket, even though they are the wrong metrics.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "No other tickets referenced.",
+        "reason": "The ticket explicitly links to OPS-81 via 'Links: is caused by OPS-81', so another ticket is referenced."
+      }
+    ]
+  }
+}

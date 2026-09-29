@@ -1,0 +1,275 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-3C8 (401 HTTP error) appears as a precursor to TypeErrors (BANKUI-4A1\u20134B3), with breadcrumbs indicating it \"preceded\" these errors.",
+      "reason": "The analysis groups the five issues and identifies the 401 as the common precursor, but does not articulate the specific mechanism (four screens failing after session rejection plus the console logger recording the 401 itself)."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that distinct-user counts cannot be summed, nor does it identify 44 (BANKUI-3C8) as the best single estimate of cluster reach."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-5D6 (63 events, 58 users) has higher user impact than BANKUI-4A1 (312 events, 41 users), but event count is lower.",
+      "reason": "The analysis correctly identifies 58 users on 63 events as the highest user impact despite low event count, calling it 'Highest user impact (58 users).'"
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note the timing correlation with the 4.7.0 deploy (21:05 vs 21:11), does not mention the 404 on the bundle, and does not identify the open-session/hashed-bundle signature; it actually says 'no info on when it was introduced.'"
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Flag BANKUI-2F0 as non-defect: It's caused by a chrome extension (not bank-ui code), as confirmed by the culprit path (chrome-extension://...). Report this as non-defect in the ticket comments to exclude from sprint planning.",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine, notes no app breadcrumbs, and recommends filtering rather than fixing."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-3C8 (401 error) is the top event count issue (5,140 events), but it's handled (handled: true), meaning it doesn't crash the app.",
+      "reason": "The analysis notes the top two event counts are misleading (3C8 is handled, 2F0 is a non-defect) but still prioritises 3C8 as the first fix, so it does not fully commit to 'neither is the most valuable thing to fix.'"
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis dismisses BANKUI-1A7 as 'irrelevant' and 'resolved' without noting the lastSeen date (2026-09-11) post-dates the 4.7.0 deploy, and does not identify a regression or recommend reopening."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps missing prevents code-level diagnosis (as noted in the comment: \"we still have not uploaded source maps...\").",
+      "reason": "The analysis states source maps are missing, gives a minified lastFrame example (ie.project), and notes this prevents tracing to a specific component."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that total affected users cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It's likely the root cause of the TypeErrors (BANKUI-4A1\u20134B3), but this isn't confirmed.",
+      "reason": "The analysis presents the 401-as-trigger as a likelihood ('likely') and suggests confirming via breadcrumbs, but does not specifically frame it as sessions expiring without the app handling rejection, nor note the different endpoints or that a full event would be needed."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Prioritize BANKUI-3C8 and BANKUI-5D6: BANKUI-3C8: Highest event count (5,140) and likely root cause of the TypeErrors (BANKUI-4A1\u20134B3).",
+      "reason": "The analysis picks the right two items but reverses the order (3C8 first, 5D6 second), does not mention reopening BANKUI-1A7, and bases the 3C8 priority on event count rather than the 'one fix closes five issues' rationale."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags BANKUI-2F0 as a non-defect to exclude from sprint planning and does not treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the TypeErrors with BANKUI-3C8 as a linked cluster and explicitly says 'Do not treat them as separate issues for sprint planning.'"
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7 (resolved) is irrelevant for prioritization but noted as resolved in 4.6.0.",
+      "reason": "The analysis states BANKUI-1A7 is 'resolved' and 'irrelevant,' effectively saying it needs no action, which matches the trap of treating it as fixed/resolved."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 as an HTTP error and potential authentication issue, never as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats BANKUI-5D6 as a separate issue with a different potential cause (CDN/build) and does not group it or BANKUI-1A7 into the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Resolving it would fix multiple crashes (event count: 798 total)",
+      "reason": "The sum of the four TypeError event counts is 312 + 289 + 104 + 97 = 802, not 798. This is an incorrect calculation."
+    },
+    {
+      "quote": "it's a bank-ui code issue (handled: true = app fault)",
+      "reason": "The data does not support equating 'handled: true' with 'app fault.' In Sentry, 'handled' means the error was caught by the application's error handler; the 401 could originate from a backend authentication service, not from bank-ui code."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 245.88
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "BANKUI-3C8 (401 HTTP error) appears as a precursor to TypeErrors (BANKUI-4A1\u20134B3), with breadcrumbs indicating it \"preceded\" these errors.",
+        "reason": "The analysis groups the five issues and identifies the 401 as the common precursor, but does not articulate the specific mechanism (four screens failing after session rejection plus the console logger recording the 401 itself).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never mentions that distinct-user counts cannot be summed, nor does it identify 44 (BANKUI-3C8) as the best single estimate of cluster reach.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "BANKUI-5D6 (63 events, 58 users) has higher user impact than BANKUI-4A1 (312 events, 41 users), but event count is lower.",
+        "reason": "The analysis correctly identifies 58 users on 63 events as the highest user impact despite low event count, calling it 'Highest user impact (58 users).'",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "",
+        "reason": "The analysis does not note the timing correlation with the 4.7.0 deploy (21:05 vs 21:11), does not mention the 404 on the bundle, and does not identify the open-session/hashed-bundle signature; it actually says 'no info on when it was introduced.'",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "Flag BANKUI-2F0 as non-defect: It's caused by a chrome extension (not bank-ui code), as confirmed by the culprit path (chrome-extension://...). Report this as non-defect in the ticket comments to exclude from sprint planning.",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension on one user's machine, notes no app breadcrumbs, and recommends filtering rather than fixing.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "BANKUI-3C8 (401 error) is the top event count issue (5,140 events), but it's handled (handled: true), meaning it doesn't crash the app.",
+        "reason": "The analysis notes the top two event counts are misleading (3C8 is handled, 2F0 is a non-defect) but still prioritises 3C8 as the first fix, so it does not fully commit to 'neither is the most valuable thing to fix.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "",
+        "reason": "The analysis dismisses BANKUI-1A7 as 'irrelevant' and 'resolved' without noting the lastSeen date (2026-09-11) post-dates the 4.7.0 deploy, and does not identify a regression or recommend reopening.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps missing prevents code-level diagnosis (as noted in the comment: \"we still have not uploaded source maps...\").",
+        "reason": "The analysis states source maps are missing, gives a minified lastFrame example (ie.project), and notes this prevents tracing to a specific component.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster, nor states that total affected users cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "It's likely the root cause of the TypeErrors (BANKUI-4A1\u20134B3), but this isn't confirmed.",
+        "reason": "The analysis presents the 401-as-trigger as a likelihood ('likely') and suggests confirming via breadcrumbs, but does not specifically frame it as sessions expiring without the app handling rejection, nor note the different endpoints or that a full event would be needed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Prioritize BANKUI-3C8 and BANKUI-5D6: BANKUI-3C8: Highest event count (5,140) and likely root cause of the TypeErrors (BANKUI-4A1\u20134B3).",
+        "reason": "The analysis picks the right two items but reverses the order (3C8 first, 5D6 second), does not mention reopening BANKUI-1A7, and bases the 3C8 priority on event count rather than the 'one fix closes five issues' rationale.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly flags BANKUI-2F0 as a non-defect to exclude from sprint planning and does not treat its event count as evidence of impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the TypeErrors with BANKUI-3C8 as a linked cluster and explicitly says 'Do not treat them as separate issues for sprint planning.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7 (resolved) is irrelevant for prioritization but noted as resolved in 4.6.0.",
+        "reason": "The analysis states BANKUI-1A7 is 'resolved' and 'irrelevant,' effectively saying it needs no action, which matches the trap of treating it as fixed/resolved.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 as an HTTP error and potential authentication issue, never as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis treats BANKUI-5D6 as a separate issue with a different potential cause (CDN/build) and does not group it or BANKUI-1A7 into the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Resolving it would fix multiple crashes (event count: 798 total)",
+        "reason": "The sum of the four TypeError event counts is 312 + 289 + 104 + 97 = 802, not 798. This is an incorrect calculation."
+      },
+      {
+        "quote": "it's a bank-ui code issue (handled: true = app fault)",
+        "reason": "The data does not support equating 'handled: true' with 'app fault.' In Sentry, 'handled' means the error was caught by the application's error handler; the 401 could originate from a backend authentication service, not from bank-ui code."
+      }
+    ]
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Mobile web transfer retries after a timeout (ERR_TXN_504) cause the source account to be debited twice while the destination is credited once.",
+      "reason": "The analysis clearly states the double-debit, single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Transactions component in **3.1.4** (current version).",
+      "reason": "The analysis names 3.1.4 as the affected version and references the 3.2.0 release target of 2026-09-24 in the next actions section."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The root cause is the retry button resubmitting without idempotency keys and lacking transactional integrity.",
+      "reason": "Both parts of the root cause (no idempotency key on retry, debit/credit not in a single transaction) are conveyed."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Status**: In Progress (updated 2026-09-12 16:40)  - **Owner**: Priya Nair (current assignee)  - **Blocking**: PR #218 for the fix is pending code review.",
+      "reason": "All three elements\u2014status In Progress, assignee Priya Nair, and PR #218 waiting on code review\u2014are explicitly stated."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Escalate finance reversal request to Finance Ops immediately (per Aroha Walker's comment) to reverse duplicate debits for three customers.",
+      "reason": "The analysis identifies three affected customers, the need for manual Finance reversal, and Marcus Reid's role in raising it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No explicit criteria for rollback of duplicate debits (though finance reversal is mentioned).",
+      "reason": "The analysis implies the reversal hasn't been completed by listing it as a next action, but does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Accelerate code review for PR #218 to meet 3.2.0 release target (2026-09-24).  - **Marcus Reid**:  - Escalate finance reversal request to Finance Ops immediately (per Aroha Walker's comment) to reverse duplicate debits for three customers.",
+      "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are present."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is 'pending code review' and does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'desktop does not reproduce due to disabled submit button,' consistent with the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This results in duplicate debits and partial transaction success (1 debit, 1 credit instead of 1 debit, 1 credit)",
+      "reason": "The parenthetical is self-contradictory and misstates the actual outcome; the ticket records the actual result as two debits and one credit, not '1 debit, 1 credit.' The analysis's own first sentence correctly says 'debited twice while the destination is credited once,' making this parenthetical a factual error."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.28
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "Mobile web transfer retries after a timeout (ERR_TXN_504) cause the source account to be debited twice while the destination is credited once.",
+        "reason": "The analysis clearly states the double-debit, single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Transactions component in **3.1.4** (current version).",
+        "reason": "The analysis names 3.1.4 as the affected version and references the 3.2.0 release target of 2026-09-24 in the next actions section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "The root cause is the retry button resubmitting without idempotency keys and lacking transactional integrity.",
+        "reason": "Both parts of the root cause (no idempotency key on retry, debit/credit not in a single transaction) are conveyed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "**Status**: In Progress (updated 2026-09-12 16:40)  - **Owner**: Priya Nair (current assignee)  - **Blocking**: PR #218 for the fix is pending code review.",
+        "reason": "All three elements\u2014status In Progress, assignee Priya Nair, and PR #218 waiting on code review\u2014are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Escalate finance reversal request to Finance Ops immediately (per Aroha Walker's comment) to reverse duplicate debits for three customers.",
+        "reason": "The analysis identifies three affected customers, the need for manual Finance reversal, and Marcus Reid's role in raising it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "No explicit criteria for rollback of duplicate debits (though finance reversal is mentioned).",
+        "reason": "The analysis implies the reversal hasn't been completed by listing it as a next action, but does not explicitly state that the ticket does not confirm the reversal has been raised or customers refunded.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Accelerate code review for PR #218 to meet 3.2.0 release target (2026-09-24).  - **Marcus Reid**:  - Escalate finance reversal request to Finance Ops immediately (per Aroha Walker's comment) to reverse duplicate debits for three customers.",
+        "reason": "Both next actions\u2014getting PR #218 reviewed/merged and confirming customer reversals with Finance Ops\u2014are present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is 'pending code review' and does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'desktop does not reproduce due to disabled submit button,' consistent with the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This results in duplicate debits and partial transaction success (1 debit, 1 credit instead of 1 debit, 1 credit)",
+        "reason": "The parenthetical is self-contradictory and misstates the actual outcome; the ticket records the actual result as two debits and one credit, not '1 debit, 1 credit.' The analysis's own first sentence correctly says 'debited twice while the destination is credited once,' making this parenthetical a factual error."
+      }
+    ]
+  }
+}

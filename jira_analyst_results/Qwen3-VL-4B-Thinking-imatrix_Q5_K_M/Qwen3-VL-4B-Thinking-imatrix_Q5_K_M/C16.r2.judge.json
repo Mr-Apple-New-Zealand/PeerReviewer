@@ -1,0 +1,247 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetStatementLineQuery (core to statements page) increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+      "reason": "The before range (280-320ms \u2248 281-319ms) and after range (35-73s \u2248 34-73s) are both conveyed with correct values."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+      "reason": "The analysis states '10-25x slower' but the actual magnitude is roughly 110x at the start and ~240x at the worst reading; this is a material error in the quantification."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis gives a flat range (35-73s) but does not describe the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s) with timestamps."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery increased from 3,100-3,340ms (3.1s) to 3,188ms (3.2s) - barely changed",
+      "reason": "The analysis conveys that GetAccountSummaryQuery is effectively unchanged and not the regression, and quotes Ravi's suggestion, implicitly contradicting it."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "ExportStatementCommand (1840ms before, 1902ms after) is never mentioned, so the point that the regression is specific to the statement line query and not a general slowdown is not made."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tom Becker states: \"Nothing in 4.7.0 touched statements. The release was notifications and the admin screens. I don't think this is us.\"",
+      "reason": "Both Tom's claim and the migration are present in the analysis, but the explicit contradiction (the log records the migration applied at 4.7.0 start, contradicting Tom) is not drawn."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check if the \"reindex statement lines\" migration (20260914_2100_ReindexStatementLines) caused the performance issue",
+      "reason": "The migration is identified as something to check, but it is not framed as the most likely cause based on coincidence, nor is the limitation that the logs only show co-occurrence made explicit."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "Unknown cause of thread pool starvation (wasn't present in previous logs)",
+      "reason": "The analysis does not infer that the thread pool starvation is a consequence of requests piling up behind the slow query; it leaves the cause as unknown."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the limitations of the comparison (short ~5-minute windows, different days, small sample sizes, indicative rather than measured)."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check if the \"reindex statement lines\" migration (20260914_2100_ReindexStatementLines) caused the performance issue",
+      "reason": "Some next actions are suggested (check the migration, focus on the query) and Tom Becker's belief is noted, but 'check execution plan and indexes' and 'collect a longer sample from both versions' are absent."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says GetAccountSummaryQuery is 'barely changed' and 'only slightly slower,' not naming it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration is mentioned only as something to check ('Check if... caused'), not stated as the established cause, and no schema details are described."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+      "reason": "The timings support roughly 100-240x slowdown, not 10-25x; this magnitude is not supported by the data."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name thread pool starvation as the root cause; it says the cause is unknown."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No trend, build-up, or measurements between the two windows are described."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Acceptance criteria: Statement page loads within 10 seconds",
+      "reason": "No acceptance criteria are stated anywhere in the ticket; this is invented."
+    },
+    {
+      "quote": "This is contrary to the stable performance seen in version 4.6.3 where requests completed in under 300ms.",
+      "reason": "The before log shows GetAccountSummaryQuery at 2987-3341ms and ExportStatementCommand at 1840ms, so not all requests completed in under 300ms; the generalisation is inaccurate."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 192.52
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "GetStatementLineQuery (core to statements page) increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+        "reason": "The before range (280-320ms \u2248 281-319ms) and after range (35-73s \u2248 34-73s) are both conveyed with correct values.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+        "reason": "The analysis states '10-25x slower' but the actual magnitude is roughly 110x at the start and ~240x at the worst reading; this is a material error in the quantification.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "",
+        "reason": "The analysis gives a flat range (35-73s) but does not describe the progressive worsening within the after window (35s \u2192 44s \u2192 69-73s) with timestamps.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery increased from 3,100-3,340ms (3.1s) to 3,188ms (3.2s) - barely changed",
+        "reason": "The analysis conveys that GetAccountSummaryQuery is effectively unchanged and not the regression, and quotes Ravi's suggestion, implicitly contradicting it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "",
+        "reason": "ExportStatementCommand (1840ms before, 1902ms after) is never mentioned, so the point that the regression is specific to the statement line query and not a general slowdown is not made.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "Tom Becker states: \"Nothing in 4.7.0 touched statements. The release was notifications and the admin screens. I don't think this is us.\"",
+        "reason": "Both Tom's claim and the migration are present in the analysis, but the explicit contradiction (the log records the migration applied at 4.7.0 start, contradicting Tom) is not drawn.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "Check if the \"reindex statement lines\" migration (20260914_2100_ReindexStatementLines) caused the performance issue",
+        "reason": "The migration is identified as something to check, but it is not framed as the most likely cause based on coincidence, nor is the limitation that the logs only show co-occurrence made explicit.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "Unknown cause of thread pool starvation (wasn't present in previous logs)",
+        "reason": "The analysis does not infer that the thread pool starvation is a consequence of requests piling up behind the slow query; it leaves the cause as unknown.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the limitations of the comparison (short ~5-minute windows, different days, small sample sizes, indicative rather than measured).",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "Check if the \"reindex statement lines\" migration (20260914_2100_ReindexStatementLines) caused the performance issue",
+        "reason": "Some next actions are suggested (check the migration, focus on the query) and Tom Becker's belief is noted, but 'check execution plan and indexes' and 'collect a longer sample from both versions' are absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly says GetAccountSummaryQuery is 'barely changed' and 'only slightly slower,' not naming it as the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The migration is mentioned only as something to check ('Check if... caused'), not stated as the established cause, and no schema details are described.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "increased from 280-320ms (0.3s) in version 4.6.3 to 35-73 seconds (10-25x slower) in 4.7.0",
+        "reason": "The timings support roughly 100-240x slowdown, not 10-25x; this magnitude is not supported by the data.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis does not name thread pool starvation as the root cause; it says the cause is unknown.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "No trend, build-up, or measurements between the two windows are described.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Acceptance criteria: Statement page loads within 10 seconds",
+        "reason": "No acceptance criteria are stated anywhere in the ticket; this is invented."
+      },
+      {
+        "quote": "This is contrary to the stable performance seen in version 4.6.3 where requests completed in under 300ms.",
+        "reason": "The before log shows GetAccountSummaryQuery at 2987-3341ms and ExportStatementCommand at 1840ms, so not all requests completed in under 300ms; the generalisation is inaccurate."
+      }
+    ]
+  }
+}

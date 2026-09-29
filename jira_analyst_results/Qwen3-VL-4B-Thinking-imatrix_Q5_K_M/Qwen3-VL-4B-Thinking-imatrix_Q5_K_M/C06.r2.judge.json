@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "blocked by OPS-77.   - **Blocking issue**: OPS-77 (Install Northwind CA certificates) is stuck at *Waiting for vendor* (due: 2026-09-10).",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, that the end-to-end test cannot proceed until CA certificates are in the staging trust store, and that OPS-77 is waiting for Northwind."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "due: 2026-09-10",
+      "reason": "The analysis states the due date (2026-09-10), the last update date (2026-09-11), that Northwind has not replied, and that the partner manager was asked to escalate, covering all required elements."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "3.2.0 release (scheduled 2026-09-24)",
+      "reason": "The analysis mentions the release date (2026-09-24), sprint end (2026-09-22), and Ravi's two-day testing requirement, all three elements present."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "If Northwind delays the CA bundle, 3.2.0 release (scheduled 2026-09-24) **will not include this fix**.",
+      "reason": "The analysis presents the risk conditionally ('If Northwind delays\u2026') and explicitly notes under 'Missing info' that there is no specific deadline for CA bundle delivery, conveying uncertainty and lack of commitment."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The API code is complete and merged behind a feature flag (MTLS_PARTNER)",
+      "reason": "The analysis states the code is complete, merged, and behind the MTLS_PARTNER flag, but omits the detail that the flag is off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that OPS-77 covers production as well as staging, and never references Northwind's 1 October 2026 hard deadline for mTLS."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan must **escalate with Northwind's partner manager** (as per comment) and **provide a firm deadline** for the CA bundle.",
+      "reason": "The escalation through the partner manager is covered, but the analysis does not suggest planning for 3.2.0 to ship with the MTLS_PARTNER flag off as a contingency; instead it implies the release simply won't ship."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states OPS-77 is stuck and waiting for the vendor; it never claims certificates have been received or installed."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly lists 'Specific deadline for CA bundle delivery from Northwind' as missing info and only quotes Northwind's vague 'early next week' without asserting it as a committed date."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 131.41
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "blocked by OPS-77.   - **Blocking issue**: OPS-77 (Install Northwind CA certificates) is stuck at *Waiting for vendor* (due: 2026-09-10).",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, that the end-to-end test cannot proceed until CA certificates are in the staging trust store, and that OPS-77 is waiting for Northwind.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "due: 2026-09-10",
+        "reason": "The analysis states the due date (2026-09-10), the last update date (2026-09-11), that Northwind has not replied, and that the partner manager was asked to escalate, covering all required elements.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "3.2.0 release (scheduled 2026-09-24)",
+        "reason": "The analysis mentions the release date (2026-09-24), sprint end (2026-09-22), and Ravi's two-day testing requirement, all three elements present.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "If Northwind delays the CA bundle, 3.2.0 release (scheduled 2026-09-24) **will not include this fix**.",
+        "reason": "The analysis presents the risk conditionally ('If Northwind delays\u2026') and explicitly notes under 'Missing info' that there is no specific deadline for CA bundle delivery, conveying uncertainty and lack of commitment.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "The API code is complete and merged behind a feature flag (MTLS_PARTNER)",
+        "reason": "The analysis states the code is complete, merged, and behind the MTLS_PARTNER flag, but omits the detail that the flag is off by default.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "",
+        "reason": "The analysis never mentions that OPS-77 covers production as well as staging, and never references Northwind's 1 October 2026 hard deadline for mTLS.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan must **escalate with Northwind's partner manager** (as per comment) and **provide a firm deadline** for the CA bundle.",
+        "reason": "The escalation through the partner manager is covered, but the analysis does not suggest planning for 3.2.0 to ship with the MTLS_PARTNER flag off as a contingency; instead it implies the release simply won't ship.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis consistently states OPS-77 is stuck and waiting for the vendor; it never claims certificates have been received or installed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis explicitly lists 'Specific deadline for CA bundle delivery from Northwind' as missing info and only quotes Northwind's vague 'early next week' without asserting it as a committed date.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -20,7 +20,7 @@ step with it.
 
 ## Current standing
 
-Ten models have been measured on the full eighteen cases with the judge of
+Eleven models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
@@ -30,6 +30,7 @@ record. Everything earlier is superseded — see below.
 | Qwen3-VL-32B-Thinking | Q5_K_M | 1.0 | 60.6 (60–61) | 66% | 72.5 | 29.8 | **1/162** | 0 | 51 | — ² |
 | Qwen3-VL-8B-Thinking-imatrix | Q4_K_M | 1.0 | 52.3 (48–54) | 60% | 62.9 | 24.7 | 7/162 | 0 | 59 | 13.0 |
 | Qwen3-VL-8B-Instruct-imatrix | Q3_K_M | 0.3 | 49.7 (48–52) | 63% | 57.9 | 28.4 | 19/162 | 1 | 67 | **9.4** |
+| **Qwen3-VL-4B-Thinking-imatrix** | Q5_K_M | 1.0 | 51.9 (50–54) | 58% | 64.6 | 18.8 | 10/162 | 0 | 43 | 11.0 |
 | Qwen2.5-VL-32B-Instruct | Q5_K_M | 0.3 | 49.2 (49–50) | 54% | 60.6 | 19.5 | 7/162 | 0 | 37 | 32.5 |
 | **Qwen3-VL-4B-Instruct-imatrix** | Q4_K_M | 0.3 | 48.6 (48–50) | 59% | 58.6 | 22.6 | 13/162 | 2 | 57 | **7.9** |
 | Qwen2.5-VL-72B-Instruct | Q4_K_S | 0.3 | 45.6 (45–47) | 48% | 58.7 | 11.7 | 8/162 | 0 | 15 | 56.3 |
@@ -86,61 +87,67 @@ Sonnet. Its checkpoint mix is the most hedged of any model measured: 33% found,
 So it is a first-pass triage model, not an output-to-a-human model. At 8.4s a
 case, running it three times and comparing is still cheaper than one 32B pass.
 
-### Reasoning does not pay at 32B — the size-matched comparison
+**Its Thinking sibling is the better 4B if you have the memory.** 51.9 against
+48.6, at 11.0 GB against 7.9 and 27.0s a case against 8.4 — and it is tidier on
+every trust measure (10 traps against 13, no invented keys against 2, 43
+unsupported against 57). The two 4B builds bracket the 8B-Instruct, which sits
+between them on quality at 9.4 GB. Below 8B, reasoning is worth its memory; see
+the next section.
 
-This is the run that settles a question the board could not answer before, and it
-reverses what the previous write-up concluded from an unmatched pair. Same family,
-same size, same cases, same judge:
+### What reasoning actually buys, measured at three sizes
 
-| | 32B-Instruct | 32B-Thinking |
-|---|---|---|
-| Quality | **62.5** | 60.6 |
-| C01–C13 (prose) | **72.50** | 72.47 |
-| C14–C18 (telemetry) | **36.4** | 29.8 |
-| Coverage | **69%** | 66% |
-| Found / partial / missed | **193 / 160 / 70** | 180 / 155 / 88 |
-| Traps tripped | 8/162 | **1/162** |
-| Invented ticket keys | **5** | **0** |
-| Unsupported per analysis | **0.72** | 0.94 |
-| Output tokens a case | **894** | 2,849 |
-| Time a case | **84.9s** | 1m 49s |
+Three size-matched Instruct/Thinking pairs have now been run. The pattern is the
+same at every size, and it is not the one the earlier write-up claimed:
 
-**On prose the two are indistinguishable — 72.50 against 72.47.** Not close:
-identical to two decimal places over 13 cases and 3 repeats. Whatever the
-reasoning track is doing, it is not helping this model read a ticket.
+| Size | Prose (C01–C13) Δ | Telemetry (C14–C18) Δ | Overall Δ | Traps, Instruct → Thinking |
+|---|---|---|---|---|
+| 4B | **+6.0** | −3.8 | +3.3 | 13 → **10** |
+| 8B | **+5.0** | −3.7 | +2.6 | 19 → **7** |
+| 32B | **−0.0** | −6.6 | **−1.9** | 8 → **1** |
 
-**On telemetry the Instruct build wins by 6.6, using a third of the tokens.** The
-earlier claim in this file that "reasoning pays at 32B" compared the 32B-Thinking
-against the *8B*-Instruct, so it was measuring size, not reasoning. With size held
-constant the effect disappears and then reverses.
+Δ is Thinking minus Instruct, so positive means reasoning helped.
 
-**But the telemetry gain splits by case type, and that is the real finding:**
+**Reasoning costs you on telemetry at every size** — −3.7 to −6.6, without
+exception, and the penalty is largest at 32B where the Instruct build is
+strongest. Logs and Sentry exports reward exhaustive extraction, and the reasoning
+budget does not buy more of it.
 
-| Case | Instruct | Thinking | Diff |
-|---|---|---|---|
-| C14 log triage | **39.8** | 19.2 | **+20.6** |
-| C15 log, wrong hypothesis | **53.7** | 35.2 | **+18.5** |
-| C16 two logs, one regression | **53.3** | 45.0 | +8.3 |
-| C17 Sentry event, symptom vs fault | 14.1 | **17.9** | −3.8 |
-| C18 Sentry, group and prioritise | 21.2 | **31.8** | −10.6 |
+**Its prose benefit shrinks to nothing as the model grows** — +6.0 at 4B, +5.0 at
+8B, and −0.03 at 32B, where the two builds are identical to two decimal places
+over 13 cases and 3 repeats. Reasoning behaves like a **substitute for
+parameters** on prose analysis: worth several points to a 4B, worth nothing to a
+32B.
 
-The three **log** cases go heavily to the direct model; both **Sentry** cases go to
-the reasoning one. That is a coherent split rather than noise: log triage rewards
-exhaustive extraction — find every fault, name every handler, notice what is
-routine — while C17 and C18 are inference problems, working out that the headline
-error is a symptom, or that eight issues share four causes. Reasoning helps where
-the work is deduction and hurts where the work is enumeration.
+**Reasoning always reduces traps** — 13→10, 19→7, 8→1 — monotonically, and the
+32B-Thinking's 1/162 is the best record on the board, Sonnet's 4/162 included. It
+also cut invented keys to zero in all three pairs (the Instruct builds produced
+2, 1 and 5).
 
-**The Instruct build pays for its recall in trustworthiness.** It invented **five
-ticket keys** — `BANK-376`, `BANK-378`, `BANK-399`, `BANK-499`, `BANK-500`, on
-C03, C04 and C18 — the worst record in the field. These are not obvious
-placeholders; they look exactly like the real keys in the cases, which makes them
-more dangerous than a wrong fact. It also trips 8 traps against the Thinking
-build's 1.
+So the net effect flips with size. Below about 8B, take the Thinking build: it is
+better overall and more careful. At 32B, take the Instruct build unless a
+confident false statement is expensive, in which case the Thinking build's
+discipline is worth 1.9 points of quality and three times the tokens.
 
-So the size-matched answer is: **reasoning buys carefulness, not accuracy.** Pick
-the Instruct build for recall and speed, the Thinking build if a confident false
-statement is expensive.
+**The confound, and which way it cuts.** No pair is quant-matched, and in all
+three the *Thinking* build carries the higher quant (Q4→Q5, Q3→Q4, Q4→Q5). That
+means:
+
+- the telemetry penalty is **robust, probably understated** — the reasoning builds
+  lose despite a quantization advantage
+- the prose gain at 4B and 8B is **partly quantization**, so treat +6.0 and +5.0 as
+  upper bounds. Note it is not simply proportional to the quant gap: the 8B pair
+  has the widest gap (Q3_K_M against Q4_K_M) and the smaller prose gain
+- the trap reduction is **not explainable by quant** in either direction, and is
+  the most consistent effect in the table
+
+Temperature also differs by track (0.3 Instruct, 1.0 Thinking) by design, since
+the cards ask for different values. On the 8B, where both temperatures were
+measured, prose was unchanged (63.6 → 62.9), so temperature is not what is driving
+the prose column.
+
+Standardising the Thinking track on Q4_K_M imatrix would remove the confound and
+cost ~0.2 GB a build. It is the single change that would make this table
+conclusive rather than strongly indicative.
 
 ### The gap to the ceiling
 
@@ -176,10 +183,10 @@ Vision is a wash between the two 32Bs — C09/C11/C12/C13 at 77.8/50.0/71.4/61.9
 the Instruct build against 83.3/47.6/59.5/61.9 — and neither is close to Sonnet's
 94.5/76.2/80.9/97.6.
 
-### Temperature 1.0 is confirmed at two sizes
+### Temperature 1.0 is confirmed across the Thinking track
 
 The Thinking builds' empty-content failures at temperature 0.3 were a
-low-temperature artefact. Both builds, same change:
+low-temperature artefact. The two builds measured at both temperatures:
 
 | | 8B at 0.3 | 8B at 1.0 | 32B at 0.3 | 32B at 1.0 |
 |---|---|---|---|---|
@@ -192,10 +199,21 @@ low-temperature artefact. Both builds, same change:
 comparable** with the 60.6 beside it — see Superseded measurements. The 0.3 column
 is listed for the failure count only.
 
-At 1.0 both builds answer every case. On the 8B, where a clean before-and-after
-exists, prose was unchanged (63.6 → 62.9) and the whole gain was telemetry plus no
-longer forfeiting nine runs. Raising `num_predict` is the wrong lever: more budget
-buys more looping.
+At 1.0 every Thinking build answers every case. The **4B-Thinking**, run at 1.0
+from the start, recorded **0 errors and 0 flags** — and it is the most verbose model
+in the benchmark at 3,897 output tokens a case, more than either larger Thinking
+build, without once reaching the 16,384 cap. The smallest reasoning build thinks the
+most and still never runs out, which is what a healthy temperature looks like.
+
+On the 8B, where a clean before-and-after exists, prose was unchanged
+(63.6 → 62.9) and the whole gain was telemetry plus no longer forfeiting nine runs.
+Raising `num_predict` is the wrong lever: more budget buys more looping.
+
+**The mirror image is now visible on the Instruct track.** The 4B-Instruct at 0.3
+hit `num_predict` on 4 of 54 runs, the first Instruct build ever to do so — see the
+caveats. Its Thinking sibling at 1.0 hit it zero times while generating three times
+as many tokens. The fleet's 0.3 is below every card in it, and 4B is where that
+starts to bite.
 
 **Runs at different temperatures are ranked together**, with the temperature shown
 in its own column here and in the generated Runs table. `--compare` does not treat
@@ -223,7 +241,8 @@ recall. For output a human reads and acts on directly, take the 32B.
 ### Memory: flat from 8 GB to 56 GB
 
 Ordered by measured memory: 4.1 GB → 14.4, 7.1 GB → 24.5, **7.9 GB → 48.6**,
-9.4 GB → 49.7, 13.0 GB → **52.3**, 32.5 GB → 49.2, 56.3 GB → 45.6.
+9.4 GB → 49.7, **11.0 GB → 51.9**, 13.0 GB → **52.3**, 32.5 GB → 49.2,
+56.3 GB → 45.6.
 
 The curve rises very steeply to about 8 GB and is then **flat or falling all the
 way to 56 GB**. Everything from the 4B to the 72B — a 7× span in memory and an
@@ -239,6 +258,15 @@ step up at ~30 GB — which is a different recommendation from "8 GB is enough".
 That distinction rests entirely on two numbers nobody has read off the server, so
 re-running those two to capture memory remains the highest-value small task.
 
+**The estimates are probably good, though.** The 4B-Thinking is the first chance to
+check the Modelfiles' KV arithmetic against a measurement: predicted 11.05 GB
+(2.9 GB weights + 1.4 GB vision + 6.75 GiB KV at 49152), **measured 11.04**. The
+formula — layers × KV heads × head_dim × 2 × 2 bytes — holds to 0.01 GB on this
+fleet, so the 32B figures should be good to about a gigabyte provided those builds
+have the layer and KV-head counts the Modelfiles assume. That is worth confirming
+with `scripts/gguf_info.py` rather than taking on faith, but it is no longer a
+guess.
+
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The headline Quality is a mean over both
 and moves mostly with the telemetry cases, so it is not a good single number for
@@ -246,8 +274,8 @@ and moves mostly with the telemetry cases, so it is not a good single number for
 
 ## Runs still to do
 
-Five of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
-have usable scores; the 4B-Thinking and both 2B builds remain. Two things still limit what the
+Six of the eight Qwen3-VL Modelfiles (2B/4B/8B/32B × Instruct and Thinking) now
+have usable scores; only the two 2B builds remain. Two things still limit what the
 fleet can show:
 
 - **Quantization.** The Instruct track is matched at Q4_K_M imatrix apart from the
