@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "There is a gap of approximately 5.5 hours between the last successful activity (timestamp `1789182813.637`) and the next interaction (timestamp `1789197802.055`).",
+      "reason": "The analysis identifies the two-phase split and the 401s after the gap, but states the gap as 'approximately 5.5 hours' when the timestamps it itself cites yield roughly 4 hours 10 minutes, a material error."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The defect is a lack of error handling or null-checking in the frontend data processing logic. The code assumes that the API response will always contain a valid array to be sorted, even when the request fails due to authentication issues.",
+      "reason": "It correctly identifies the 401 as the trigger and the TypeError as a consequence, but frames the defect as a missing null-check rather than the absence of central 401 handling with a redirect to sign-in."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The UI attempted to process these failed responses, triggering multiple `TypeErrors` for missing properties: `rows`, `returnProperties`, and finally `length` and `sort`.",
+      "reason": "It lists the errors in sequence but does not note that 'rows' appears twice, does not explicitly state they are from the same cascade, and does not recommend treating them as one defect rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the token refresh call to /api/security/token/refresh, its 200 status, or the absence of any refresh after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "There is a conflict in the data. The Sentry tags and `_dsc` field list the environment as `\"Production\"`, but the URL for all requests is `https://bank-uat.example.com`, which indicates a UAT (User Acceptance Testing) environment.",
+      "reason": "It clearly identifies the Production-vs-UAT discrepancy and recommends resolving it so alerts route correctly, which captures the core point."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or notes that it is stale relative to the actual /payments/batch/actions URL."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The stack trace is minified (e.g., `ie.project` in `6728.b4f17ce620a8d539.js`) and the Sentry event notes `symbolicator_type: missing_source`. The exact line of code cannot be determined.",
+      "reason": "It captures the main point (minified, missing source, cannot identify) but omits the three scraping_attempts failures, the reason (Sentry cannot resolve the internal UAT host), and symbolicated_in_app being false."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "While the Sentry event strongly suggests session timeout as the trigger, the team has not yet officially pinned down the reproduction steps.",
+      "reason": "It presents the token-expiry-during-idle mechanism with appropriate hedging ('strongly suggests'), but does not articulate the full evidence chain (successful refresh before the gap, no refresh after, immediate 401s)."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the point that the 'in-app-only' label is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Implement guards/null-checks around `.sort()` and other property accesses (`rows`, `returnProperties`, `length`) to prevent the UI from going blank on API failures.",
+      "reason": "It recommends the null guard as the primary fix and mentions the environment fix, but omits central 401 handling with sign-in redirect, setting release/dist and uploading source maps, correcting the stale transaction name, and the point that a null guard alone would hide the problem."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The defect is a lack of error handling or null-checking in the frontend data processing logic. The code assumes that the API response will always contain a valid array to be sorted, even when the request fails due to authentication issues.",
+      "reason": "The analysis names the missing null-check as the root cause and primary fix rather than as a defensive band-aid over the real 401-handling defect."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the UAT host and the Production-vs-UAT discrepancy rather than treating it as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently refers to the batch actions screen and /payments/batch/actions, never claiming the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the minified name ie.project but explicitly states the exact line cannot be determined and does not name a specific application component or method as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis attributes the 401s to session expiry, not to an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly identifies the gap as a period of inactivity and does not describe any activity or errors during it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "There is a gap of approximately 5.5 hours between the last successful activity (timestamp `1789182813.637`) and the next interaction (timestamp `1789197802.055`).",
+      "reason": "The two timestamps the analysis itself cites differ by 14,988 seconds (\u2248 4 hours 6 minutes), not 5.5 hours (19,800 seconds). Even using the correct first post-gap timestamp (1789197792.375), the gap is \u2248 4 hours 10 minutes."
+    },
+    {
+      "quote": "the next interaction (timestamp `1789197802.055`)",
+      "reason": "The first breadcrumb after the gap is at timestamp 1789197792.375 (a ui.click on a value icon), not 1789197802.055, which is the third post-gap interaction."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 208.81
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "There is a gap of approximately 5.5 hours between the last successful activity (timestamp `1789182813.637`) and the next interaction (timestamp `1789197802.055`).",
+        "reason": "The analysis identifies the two-phase split and the 401s after the gap, but states the gap as 'approximately 5.5 hours' when the timestamps it itself cites yield roughly 4 hours 10 minutes, a material error.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The defect is a lack of error handling or null-checking in the frontend data processing logic. The code assumes that the API response will always contain a valid array to be sorted, even when the request fails due to authentication issues.",
+        "reason": "It correctly identifies the 401 as the trigger and the TypeError as a consequence, but frames the defect as a missing null-check rather than the absence of central 401 handling with a redirect to sign-in.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "The UI attempted to process these failed responses, triggering multiple `TypeErrors` for missing properties: `rows`, `returnProperties`, and finally `length` and `sort`.",
+        "reason": "It lists the errors in sequence but does not note that 'rows' appears twice, does not explicitly state they are from the same cascade, and does not recommend treating them as one defect rather than separate bugs.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "",
+        "reason": "The analysis never mentions the token refresh call to /api/security/token/refresh, its 200 status, or the absence of any refresh after the gap.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "There is a conflict in the data. The Sentry tags and `_dsc` field list the environment as `\"Production\"`, but the URL for all requests is `https://bank-uat.example.com`, which indicates a UAT (User Acceptance Testing) environment.",
+        "reason": "It clearly identifies the Production-vs-UAT discrepancy and recommends resolving it so alerts route correctly, which captures the core point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis never mentions the transaction/culprit value /settlements/run/8214 or notes that it is stale relative to the actual /payments/batch/actions URL.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "The stack trace is minified (e.g., `ie.project` in `6728.b4f17ce620a8d539.js`) and the Sentry event notes `symbolicator_type: missing_source`. The exact line of code cannot be determined.",
+        "reason": "It captures the main point (minified, missing source, cannot identify) but omits the three scraping_attempts failures, the reason (Sentry cannot resolve the internal UAT host), and symbolicated_in_app being false.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "",
+        "reason": "The analysis does not note that all 401 responses have response_body_size 0, nor that the event cannot distinguish token expiry from revocation or a server-side session drop.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "While the Sentry event strongly suggests session timeout as the trigger, the team has not yet officially pinned down the reproduction steps.",
+        "reason": "It presents the token-expiry-during-idle mechanism with appropriate hedging ('strongly suggests'), but does not articulate the full evidence chain (successful refresh before the gap, no refresh after, immediate 401s).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB response, the Referer, the browser/OS, or the '401 OK' statusText wording as non-faults.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions in_app flags, in_app_frame_mix, or the point that the 'in-app-only' label is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Implement guards/null-checks around `.sort()` and other property accesses (`rows`, `returnProperties`, `length`) to prevent the UI from going blank on API failures.",
+        "reason": "It recommends the null guard as the primary fix and mentions the environment fix, but omits central 401 handling with sign-in redirect, setting release/dist and uploading source maps, correcting the stale transaction name, and the point that a null guard alone would hide the problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "The defect is a lack of error handling or null-checking in the frontend data processing logic. The code assumes that the API response will always contain a valid array to be sorted, even when the request fails due to authentication issues.",
+        "reason": "The analysis names the missing null-check as the root cause and primary fix rather than as a defensive band-aid over the real 401-handling defect.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis explicitly flags the UAT host and the Production-vs-UAT discrepancy rather than treating it as a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis consistently refers to the batch actions screen and /payments/batch/actions, never claiming the error occurred on /settlements/run/8214.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis mentions the minified name ie.project but explicitly states the exact line cannot be determined and does not name a specific application component or method as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, network speed, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis attributes the 401s to session expiry, not to an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis correctly identifies the gap as a period of inactivity and does not describe any activity or errors during it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "There is a gap of approximately 5.5 hours between the last successful activity (timestamp `1789182813.637`) and the next interaction (timestamp `1789197802.055`).",
+        "reason": "The two timestamps the analysis itself cites differ by 14,988 seconds (\u2248 4 hours 6 minutes), not 5.5 hours (19,800 seconds). Even using the correct first post-gap timestamp (1789197792.375), the gap is \u2248 4 hours 10 minutes."
+      },
+      {
+        "quote": "the next interaction (timestamp `1789197802.055`)",
+        "reason": "The first breadcrumb after the gap is at timestamp 1789197792.375 (a ui.click on a value icon), not 1789197802.055, which is the third post-gap interaction."
+      }
+    ]
+  }
+}

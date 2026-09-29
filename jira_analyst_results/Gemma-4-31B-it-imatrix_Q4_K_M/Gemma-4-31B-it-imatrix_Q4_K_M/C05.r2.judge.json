@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. ... Both report stale balances on the web interface after transfers in version 3.1.4.",
+      "reason": "The analysis explicitly identifies BANK-425 as a duplicate of BANK-440 and notes both report stale web balances after transfers on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Close as a duplicate of BANK-425. ... BANK-425: Assign to Hana Sato to implement the fix described in the comments. ... This should be the primary ticket for the fix.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88: No action required; already in progress. ... Relation: Distinct issue. ... This affects push notifications on mobile (iOS/Android), whereas BANK-440 is specific to the web dashboard. The root cause is different (incorrect event trigger: TransferRequested vs TransferCompleted).",
+      "reason": "The analysis correctly identifies MOB-88 as a distinct mobile push-notification issue with a different root cause (TransferRequested vs TransferCompleted) and notes it is already in progress, though it omits Ravi Kumar's name."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Hana Sato identified the root cause: BalanceCache in local storage is not invalidated after a transfer.",
+      "reason": "The analysis identifies the BalanceCache in local storage not being invalidated as the root cause, but omits the 15-minute duration and does not explicitly state the fix (clear BalanceCache when a transfer succeeds), only referencing 'the fix described in the comments.'"
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Dependency: The issue is an inference-based side effect of the caching implemented in BANK-419. ... This was the task to implement balance caching in version 3.1.4 to reduce API load, which created the stale data behavior reported in BANK-440 and BANK-425.",
+      "reason": "The analysis correctly infers that BANK-419 introduced the bug and labels it as inference-based, but does not recommend linking BANK-419 to the bug tickets, instead saying 'No action required; already closed.'"
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Owner: Unassigned ... Blocking Progress: No owner assigned.",
+      "reason": "The analysis explicitly states BANK-440 is unassigned but does not explicitly state BANK-425 is also unassigned; it only implies this by recommending assignment to Hana Sato."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is a 'Distinct issue' and does not claim it is a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'The underlying API is confirmed to be returning the correct value,' consistent with the ticket, and does not claim the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 131.71
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. ... Both report stale balances on the web interface after transfers in version 3.1.4.",
+        "reason": "The analysis explicitly identifies BANK-425 as a duplicate of BANK-440 and notes both report stale web balances after transfers on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-440: Close as a duplicate of BANK-425. ... BANK-425: Assign to Hana Sato to implement the fix described in the comments. ... This should be the primary ticket for the fix.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88: No action required; already in progress. ... Relation: Distinct issue. ... This affects push notifications on mobile (iOS/Android), whereas BANK-440 is specific to the web dashboard. The root cause is different (incorrect event trigger: TransferRequested vs TransferCompleted).",
+        "reason": "The analysis correctly identifies MOB-88 as a distinct mobile push-notification issue with a different root cause (TransferRequested vs TransferCompleted) and notes it is already in progress, though it omits Ravi Kumar's name.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Hana Sato identified the root cause: BalanceCache in local storage is not invalidated after a transfer.",
+        "reason": "The analysis identifies the BalanceCache in local storage not being invalidated as the root cause, but omits the 15-minute duration and does not explicitly state the fix (clear BalanceCache when a transfer succeeds), only referencing 'the fix described in the comments.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Dependency: The issue is an inference-based side effect of the caching implemented in BANK-419. ... This was the task to implement balance caching in version 3.1.4 to reduce API load, which created the stale data behavior reported in BANK-440 and BANK-425.",
+        "reason": "The analysis correctly infers that BANK-419 introduced the bug and labels it as inference-based, but does not recommend linking BANK-419 to the bug tickets, instead saying 'No action required; already closed.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Owner: Unassigned ... Blocking Progress: No owner assigned.",
+        "reason": "The analysis explicitly states BANK-440 is unassigned but does not explicitly state BANK-425 is also unassigned; it only implies this by recommending assignment to Hana Sato.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is a 'Distinct issue' and does not claim it is a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'The underlying API is confirmed to be returning the correct value,' consistent with the ticket, and does not claim the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

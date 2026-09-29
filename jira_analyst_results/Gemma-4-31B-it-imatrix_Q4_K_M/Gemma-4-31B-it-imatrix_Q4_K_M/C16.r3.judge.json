@@ -1,0 +1,229 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Baseline (v4.6.3): Average response time was approximately 300ms (range: 281ms \u2013 319ms). Post-Release (v4.7.0): Response times increased to between 33,757ms (~33.7s) and 72,974ms (~73s).",
+      "reason": "The analysis correctly states the baseline range (281\u2013319 ms) and the post-release range (~34 s to ~73 s), matching the expected values."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This represents a minimum increase of ~112x and a maximum increase of ~243x in latency.",
+      "reason": "The analysis quantifies the slowdown as roughly 112\u00d7 to 243\u00d7, consistent with the expected ~110\u00d7 to ~240\u00d7."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Response times increased to between 33,757ms (~33.7s) and 72,974ms (~73s).",
+      "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (\u224835 s at 00:20:43, \u224844 s by 00:24:05, 69\u201373 s from 00:24:21 onward)."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "GetAccountSummaryQuery: Performance remained stable at approximately 3.0s \u2013 3.4s in both versions. \u2026 Ravi Kumar's suggestion that the GetAccountSummaryQuery is the cause is incorrect; that query's performance is consistent across both versions.",
+      "reason": "The analysis states the query is unchanged, gives the correct range, and explicitly contradicts Ravi Kumar's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand: Performance remained stable at approximately 1.8s \u2013 1.9s. \u2026 The regression is isolated to GetStatementLineQuery.",
+      "reason": "The analysis notes ExportStatementCommand is unchanged and that the regression is specific to the statement line query, not a general slowdown."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This contradicts Tom Becker's claim that nothing in 4.7.0 touched statements, as the logs show a statement-related migration (ReindexStatementLines) was applied during the 4.7.0 startup.",
+      "reason": "The analysis names the migration, ties it to the 4.7.0 startup, and explicitly states it contradicts Tom Becker's claim."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The logs show a correlation between the ReindexStatementLines migration and the performance drop, but they do not explicitly prove the migration caused the slowness.",
+      "reason": "The analysis notes the correlation and the inability to prove causation, but does not explicitly frame the migration as 'the most likely place to look'; it remains neutral rather than presenting a directional inference."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It is unclear if the ThreadPool starvation is a result of the slow GetStatementLineQuery occupying all available threads, or if a separate threading issue is causing the queries to slow down.",
+      "reason": "The analysis hedges between the starvation being a consequence or an independent cause rather than presenting it as likely a consequence, and does not mention the temporal alignment with the jump from ~44 s to ~69 s."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not discuss the short duration of the windows, the different days, the small sample size, or the fact that the regression magnitude is indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis provides no specific next actions (checking execution plans/indexes, collecting longer samples) and does not note that the ticket is assigned to Tom Becker who currently believes it is not his team's change."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts the suggestion that it is the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state the migration caused the slowdown as fact and does not describe any schema changes the migration made."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated magnitudes (~112\u00d7 and ~243\u00d7) are supported by the log timings."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis presents the starvation as possibly a consequence or possibly an independent issue; it does not assert it as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 145.5
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "quote": "Baseline (v4.6.3): Average response time was approximately 300ms (range: 281ms \u2013 319ms). Post-Release (v4.7.0): Response times increased to between 33,757ms (~33.7s) and 72,974ms (~73s).",
+        "reason": "The analysis correctly states the baseline range (281\u2013319 ms) and the post-release range (~34 s to ~73 s), matching the expected values.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P2",
+        "quote": "This represents a minimum increase of ~112x and a maximum increase of ~243x in latency.",
+        "reason": "The analysis quantifies the slowdown as roughly 112\u00d7 to 243\u00d7, consistent with the expected ~110\u00d7 to ~240\u00d7.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P3",
+        "quote": "Response times increased to between 33,757ms (~33.7s) and 72,974ms (~73s).",
+        "reason": "The analysis gives the overall range but does not describe the progressive worsening within the window (\u224835 s at 00:20:43, \u224844 s by 00:24:05, 69\u201373 s from 00:24:21 onward).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P4",
+        "quote": "GetAccountSummaryQuery: Performance remained stable at approximately 3.0s \u2013 3.4s in both versions. \u2026 Ravi Kumar's suggestion that the GetAccountSummaryQuery is the cause is incorrect; that query's performance is consistent across both versions.",
+        "reason": "The analysis states the query is unchanged, gives the correct range, and explicitly contradicts Ravi Kumar's suggestion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P5",
+        "quote": "ExportStatementCommand: Performance remained stable at approximately 1.8s \u2013 1.9s. \u2026 The regression is isolated to GetStatementLineQuery.",
+        "reason": "The analysis notes ExportStatementCommand is unchanged and that the regression is specific to the statement line query, not a general slowdown.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-P6",
+        "quote": "This contradicts Tom Becker's claim that nothing in 4.7.0 touched statements, as the logs show a statement-related migration (ReindexStatementLines) was applied during the 4.7.0 startup.",
+        "reason": "The analysis names the migration, ties it to the 4.7.0 startup, and explicitly states it contradicts Tom Becker's claim.",
+        "verdict": "found"
+      },
+      {
+        "id": "C16-I1",
+        "quote": "The logs show a correlation between the ReindexStatementLines migration and the performance drop, but they do not explicitly prove the migration caused the slowness.",
+        "reason": "The analysis notes the correlation and the inability to prove causation, but does not explicitly frame the migration as 'the most likely place to look'; it remains neutral rather than presenting a directional inference.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-I2",
+        "quote": "It is unclear if the ThreadPool starvation is a result of the slow GetStatementLineQuery occupying all available threads, or if a separate threading issue is causing the queries to slow down.",
+        "reason": "The analysis hedges between the starvation being a consequence or an independent cause rather than presenting it as likely a consequence, and does not mention the temporal alignment with the jump from ~44 s to ~69 s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C16-P7",
+        "quote": "",
+        "reason": "The analysis does not discuss the short duration of the windows, the different days, the small sample size, or the fact that the regression magnitude is indicative rather than measured.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-P8",
+        "quote": "",
+        "reason": "The analysis provides no specific next actions (checking execution plans/indexes, collecting longer samples) and does not note that the ticket is assigned to Tom Becker who currently believes it is not his team's change.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C16-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is stable and contradicts the suggestion that it is the regression.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T2",
+        "quote": "",
+        "reason": "The analysis does not state the migration caused the slowdown as fact and does not describe any schema changes the migration made.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T3",
+        "quote": "",
+        "reason": "The stated magnitudes (~112\u00d7 and ~243\u00d7) are supported by the log timings.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T4",
+        "quote": "",
+        "reason": "The analysis presents the starvation as possibly a consequence or possibly an independent issue; it does not assert it as the root cause of the slow query.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C16-T5",
+        "quote": "",
+        "reason": "The analysis does not describe any trend, build-up, or measurements over the days between the two log windows.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

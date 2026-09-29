@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440.\n\n### Duplicate Analysis: BANK-440 and BANK-425\nThese tickets describe the same issue: the web dashboard fails to reflect the updated balance after a money transfer in version 3.1.4.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both about the web dashboard balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440\n* **Action:** Mark as a duplicate of BANK-425 and close.\n* **Reason:** BANK-425 was reported earlier (2026-09-05 vs 2026-09-13) and already contains the root cause analysis.\n\n**BANK-425**\n* **Action:** Keep open; assign to Hana Sato.",
+      "reason": "The analysis recommends keeping BANK-425 (older, has root-cause analysis) and closing BANK-440 as a duplicate, matching the expected recommendation."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88\n* **Action:** Keep as \"In Progress\" for Ravi Kumar.\n* **Reason:** This is a separate issue affecting mobile push notifications and the event-driven architecture (TransferRequested vs TransferCompleted), unrelated to the web dashboard's local storage cache.",
+      "reason": "The analysis correctly identifies MOB-88 as a separate mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted) and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both tickets are reporting the side effect of the caching mechanism implemented in BANK-419 (which introduced a 15-minute local storage cache for the balance). This is confirmed by Hana Sato's comment in BANK-425, which explicitly identifies the BalanceCache as the root cause.",
+      "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the root cause and states the fix is to clear it upon successful transfer, matching the expected point."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inference: Both tickets are reporting the side effect of the caching mechanism implemented in BANK-419 (which introduced a 15-minute local storage cache for the balance).",
+      "reason": "The analysis presents the regression inference correctly and labels it as such, but does not explicitly recommend linking BANK-419 to the bug tickets."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never explicitly states that both duplicate tickets are unassigned; it only implies BANK-425 is unassigned by recommending assignment to Hana Sato."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly calls MOB-88 a 'separate issue' and 'unrelated to the web dashboard's local storage cache,' never claiming it is a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'BANK-440 notes that the API returns the correct value,' never claiming the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 83.43
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440.\n\n### Duplicate Analysis: BANK-440 and BANK-425\nThese tickets describe the same issue: the web dashboard fails to reflect the updated balance after a money transfer in version 3.1.4.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, both about the web dashboard balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-440\n* **Action:** Mark as a duplicate of BANK-425 and close.\n* **Reason:** BANK-425 was reported earlier (2026-09-05 vs 2026-09-13) and already contains the root cause analysis.\n\n**BANK-425**\n* **Action:** Keep open; assign to Hana Sato.",
+        "reason": "The analysis recommends keeping BANK-425 (older, has root-cause analysis) and closing BANK-440 as a duplicate, matching the expected recommendation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88\n* **Action:** Keep as \"In Progress\" for Ravi Kumar.\n* **Reason:** This is a separate issue affecting mobile push notifications and the event-driven architecture (TransferRequested vs TransferCompleted), unrelated to the web dashboard's local storage cache.",
+        "reason": "The analysis correctly identifies MOB-88 as a separate mobile push-notification issue with a different cause (TransferRequested vs TransferCompleted) and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "Both tickets are reporting the side effect of the caching mechanism implemented in BANK-419 (which introduced a 15-minute local storage cache for the balance). This is confirmed by Hana Sato's comment in BANK-425, which explicitly identifies the BalanceCache as the root cause.",
+        "reason": "The analysis identifies the 15-minute BalanceCache in local storage as the root cause and states the fix is to clear it upon successful transfer, matching the expected point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "Inference: Both tickets are reporting the side effect of the caching mechanism implemented in BANK-419 (which introduced a 15-minute local storage cache for the balance).",
+        "reason": "The analysis presents the regression inference correctly and labels it as such, but does not explicitly recommend linking BANK-419 to the bug tickets.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "",
+        "reason": "The analysis never explicitly states that both duplicate tickets are unassigned; it only implies BANK-425 is unassigned by recommending assignment to Hana Sato.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly calls MOB-88 a 'separate issue' and 'unrelated to the web dashboard's local storage cache,' never claiming it is a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'BANK-440 notes that the API returns the correct value,' never claiming the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -30,7 +30,7 @@ is what you actually pull and run.
 | `Qwen3-Coder-Next` | Qwen3-Coder-Next-f16-imatrix:Q5_K_S.gguf      | `Qwen3-Coder-Next-imatrix:Q5_K_S`      | 55.0 GB | 61.4 GB       | no           |
 | `MiniMax-M2.7`     | MiniMax-M2.7-bf16:Q3_K_S.gguf                 | `MiniMax-M2.7:Q3_K_S`                  | 98.7 GB | 115.3 GB      | no           |
 | `Qwen3.5-4B`       | Qwen3.5-4B-f16-imatrix:Q5_K_S.gguf            | `Qwen3.5-4B-imatrix:Q5_K_S`            | 3.0 GB  | 11.6 GB       | no           |
-| `Gemma-4-31B`      | Gemma-4-31B-it-f16-imatrix:Q4_K_M.gguf        | `Gemma-4-31B-it-imatrix:Q4_K_M`        | 18.7 GB | see note ¹    | no           |
+| `Gemma-4-31B`      | Gemma-4-31B-it-f16-imatrix:Q4_K_M.gguf        | `Gemma-4-31B-it-imatrix:Q4_K_M`        | 18.7 GB | **22.7** ¹    | no           |
 | `Qwen3.5-9B`       | Qwen3.5-9B-f16-imatrix:Q4_K_S.gguf            | `Qwen3.5-9B-imatrix:Q4_K_S`            | 5.4 GB  | **14.0 GB**   | no           |
 | `Qwen3-Coder-30B`  | Qwen3-Coder-30B-imatrix:Q3_K_M                | `Qwen3-Coder-30B-imatrix:Q3_K_M`       | 14.7 GB | 21.2 GB       | no           |
 | `Devstral-2-123B`  | Devstral-2-123B-Instruct-2512-f16:Q4_K_M.gguf | `Devstral-2-123B-Instruct-2512:Q4_K_M` | 74.9 GB | 98.5 GB       | no           |
@@ -47,6 +47,14 @@ metadata reports no `head_count_kv`, so the formula above does not apply. Its KV
 cache does not grow with context the way the others do, and the real figure will
 be well below what a naive calculation gives. It needs measuring by loading the
 model and reading `/api/ps`.
+
+**Now measured: 22.68 GB at num_ctx 49152**, with the vision projector imported
+(run 52, 2026-09-29). Weights are 18.7 GB and the vision encoder ~1.1 GB, so cache
+and overhead come to roughly 2.9 GB — against the ~14 GiB a uniform 60-layer model
+would need at that context. The prediction that the real figure would be far below
+a naive calculation was right, by a factor of about five. The figure in the table
+is at 49152, not the 65536 the rest of the column uses; the difference is small
+here because only the global layers hold a context-length cache.
 
 Confirmed from `ollama show` on 2026-09-29: architecture `gemma4`, 30.7B
 parameters, **context length 262144** — so no benchmark setting will come near its

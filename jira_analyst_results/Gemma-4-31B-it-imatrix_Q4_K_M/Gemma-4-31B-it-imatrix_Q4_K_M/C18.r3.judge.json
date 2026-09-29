@@ -1,0 +1,257 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Group 1: Authorization Failures and Unhandled Responses\n*   **Root Issue:** `BANKUI-3C8` (Http failure response: 401 OK).\n*   **Downstream Effects:** `BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, and `BANKUI-4B3`.\n*   **Inference:** These TypeErrors (reading 'sort', 'rows', 'returnProperties', 'length') are likely caused by the UI attempting to perform operations on data that was never returned because the API request failed with a 401.",
+      "reason": "The analysis groups all five issues (3C8 plus the four TypeErrors) under one cause, names each, and notes the 401 responses preceding the crashes."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This cluster affects approximately 44 users across multiple features.",
+      "reason": "The analysis uses 44 as the cluster's user count (correct) but never explains that the export's note says the same user can appear in more than one issue, so the counts cannot be summed."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This should be the top priority as it affects the highest number of distinct users (58) and represents a total failure to load required application code.",
+      "reason": "The analysis identifies 58 users and calls it the top priority by user impact, but does not mention the 63-event count or contrast it with other issues' event counts."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The error first appeared on 2026-09-10, which is the exact date version 4.7.0 was deployed. Users are likely attempting to load a JS chunk from the previous version (v4.6.0) that is no longer available on the server (resulting in a 404).",
+      "reason": "The analysis connects the first-seen date to the 4.7.0 deploy and the 404, but omits the specific timestamps (21:11:36 vs 21:05:00) and the 'six and a half minutes' detail that makes the causal link precise."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0: This is not a software defect. The culprit is a Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js) and it only affects a single user.",
+      "reason": "The analysis correctly identifies it as a non-defect caused by a Chrome extension on one user, but omits the 4,812-event count, the absence of application breadcrumbs, and the explicit recommendation to filter rather than fix."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that event count is a misleading ranking metric, never names the two largest counts (5,140 and 4,812), and never explains why neither is the most valuable fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "BANKUI-1A7 is listed in the export but is already marked as resolved in release 4.6.0; it should be ignored for the current triage.",
+      "reason": "The analysis misses the regression entirely (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10) and recommends ignoring the issue rather than reopening it."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the team is lacking source maps for this project (confirmed by Ravi Kumar), which means function names in the Sentry logs are minified (e.g., ie.project, q.render).",
+      "reason": "The analysis states source maps are not uploaded, gives examples of minified names, and notes this makes it harder to pinpoint the exact code, conveying the point that issues cannot be traced to components from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inference: These TypeErrors (reading 'sort', 'rows', 'returnProperties', 'length') are likely caused by the UI attempting to perform operations on data that was never returned because the API request failed with a 401. The breadcrumb summaries for all four TypeErrors explicitly mention 401 responses immediately preceding the crash.",
+      "reason": "Presented as an inference with 'likely,' and correctly ties the four TypeErrors to preceding 401 responses, but does not specifically frame it as 'sessions expiring without the application handling the rejection,' does not note the different endpoints, and does not caveat that confirming would require a full event."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **BANKUI-5D6 (ChunkLoadError):** This should be the top priority as it affects the highest number of distinct users (58) and represents a total failure to load required application code.\n2. **The 401 Error Cluster (BANKUI-3C8 and related TypeErrors):** This cluster affects approximately 44 users across multiple features. Fixing the root cause (how the app handles 401 responses) will resolve five separate Sentry issues simultaneously.",
+      "reason": "The two sprint picks and their justifications are correct, but the 'alongside' actions are wrong: the analysis says to ignore BANKUI-1A7 rather than reopen it, and does not explicitly say to mute/filter BANKUI-2F0."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly classifies BANKUI-2F0 as a non-defect and does not use its event count as evidence of impact or place it near the top of the priority list."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors as downstream effects of the 401 issue under a single root cause, not as separate defects with separate fixes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses 'approximately 44 users' for the cluster and does not sum the distinct-user counts across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "BANKUI-1A7 is listed in the export but is already marked as resolved in release 4.6.0; it should be ignored for the current triage.",
+      "reason": "The analysis states BANKUI-1A7 is resolved and should be ignored, which is equivalent to saying it needs no action, directly violating the trap."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401 issues as authorization failures and unhandled responses, not as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places BANKUI-5D6 in a separate 'Deployment Version Mismatch' group and mentions BANKUI-1A7 only under 'Resolved Issues,' neither grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 189.38
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Group 1: Authorization Failures and Unhandled Responses\n*   **Root Issue:** `BANKUI-3C8` (Http failure response: 401 OK).\n*   **Downstream Effects:** `BANKUI-4A1`, `BANKUI-4A2`, `BANKUI-4A9`, and `BANKUI-4B3`.\n*   **Inference:** These TypeErrors (reading 'sort', 'rows', 'returnProperties', 'length') are likely caused by the UI attempting to perform operations on data that was never returned because the API request failed with a 401.",
+        "reason": "The analysis groups all five issues (3C8 plus the four TypeErrors) under one cause, names each, and notes the 401 responses preceding the crashes.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "This cluster affects approximately 44 users across multiple features.",
+        "reason": "The analysis uses 44 as the cluster's user count (correct) but never explains that the export's note says the same user can appear in more than one issue, so the counts cannot be summed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "This should be the top priority as it affects the highest number of distinct users (58) and represents a total failure to load required application code.",
+        "reason": "The analysis identifies 58 users and calls it the top priority by user impact, but does not mention the 63-event count or contrast it with other issues' event counts.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "The error first appeared on 2026-09-10, which is the exact date version 4.7.0 was deployed. Users are likely attempting to load a JS chunk from the previous version (v4.6.0) that is no longer available on the server (resulting in a 404).",
+        "reason": "The analysis connects the first-seen date to the 4.7.0 deploy and the 404, but omits the specific timestamps (21:11:36 vs 21:05:00) and the 'six and a half minutes' detail that makes the causal link precise.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0: This is not a software defect. The culprit is a Chrome extension (chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js) and it only affects a single user.",
+        "reason": "The analysis correctly identifies it as a non-defect caused by a Chrome extension on one user, but omits the 4,812-event count, the absence of application breadcrumbs, and the explicit recommendation to filter rather than fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "",
+        "reason": "The analysis never states that event count is a misleading ranking metric, never names the two largest counts (5,140 and 4,812), and never explains why neither is the most valuable fix.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 is listed in the export but is already marked as resolved in release 4.6.0; it should be ignored for the current triage.",
+        "reason": "The analysis misses the regression entirely (last seen 2026-09-11, after 4.7.0 deployed 2026-09-10) and recommends ignoring the issue rather than reopening it.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "the team is lacking source maps for this project (confirmed by Ravi Kumar), which means function names in the Sentry logs are minified (e.g., ie.project, q.render).",
+        "reason": "The analysis states source maps are not uploaded, gives examples of minified names, and notes this makes it harder to pinpoint the exact code, conveying the point that issues cannot be traced to components from this export alone.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never mentions that the export does not indicate whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Inference: These TypeErrors (reading 'sort', 'rows', 'returnProperties', 'length') are likely caused by the UI attempting to perform operations on data that was never returned because the API request failed with a 401. The breadcrumb summaries for all four TypeErrors explicitly mention 401 responses immediately preceding the crash.",
+        "reason": "Presented as an inference with 'likely,' and correctly ties the four TypeErrors to preceding 401 responses, but does not specifically frame it as 'sessions expiring without the application handling the rejection,' does not note the different endpoints, and does not caveat that confirming would require a full event.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "1. **BANKUI-5D6 (ChunkLoadError):** This should be the top priority as it affects the highest number of distinct users (58) and represents a total failure to load required application code.\n2. **The 401 Error Cluster (BANKUI-3C8 and related TypeErrors):** This cluster affects approximately 44 users across multiple features. Fixing the root cause (how the app handles 401 responses) will resolve five separate Sentry issues simultaneously.",
+        "reason": "The two sprint picks and their justifications are correct, but the 'alongside' actions are wrong: the analysis says to ignore BANKUI-1A7 rather than reopen it, and does not explicitly say to mute/filter BANKUI-2F0.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly classifies BANKUI-2F0 as a non-defect and does not use its event count as evidence of impact or place it near the top of the priority list.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors as downstream effects of the 401 issue under a single root cause, not as separate defects with separate fixes.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis uses 'approximately 44 users' for the cluster and does not sum the distinct-user counts across issues.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "BANKUI-1A7 is listed in the export but is already marked as resolved in release 4.6.0; it should be ignored for the current triage.",
+        "reason": "The analysis states BANKUI-1A7 is resolved and should be ignored, which is equivalent to saying it needs no action, directly violating the trap.",
+        "verdict": "violated"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401 issues as authorization failures and unhandled responses, not as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis places BANKUI-5D6 in a separate 'Deployment Version Mismatch' group and mentions BANKUI-1A7 only under 'Resolved Issues,' neither grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

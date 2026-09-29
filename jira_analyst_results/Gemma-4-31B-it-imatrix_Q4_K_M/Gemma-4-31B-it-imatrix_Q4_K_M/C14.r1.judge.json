@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The primary cause of the failed saves reported in OPS-92 is a critical integration failure between the payments-api and the masterfile-api. The payments-api is receiving 403 Forbidden responses when attempting to call the branchlocation endpoints, which prevents secondary branches from being saved or bulk-updated.",
+      "reason": "Identifies the 403 to masterfile-api on both branchlocation endpoints, names both commands, and connects it to the user-reported failure as the primary/most serious issue, though it omits the count of four occurrences."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SQL Conversion Errors: SearchPaymentRoutingRuleQuery is failing with Microsoft.Data.SqlClient.SqlException: \"Conversion failed when converting the ****** value '******' to data type ******\" (Error Number: 245).",
+      "reason": "Correctly identifies the query, error text, and error number 245, but does not state that it occurs five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SQL Conversion Details: The specific values and data types causing the conversion failure are masked as ****** in the log output.",
+      "reason": "Conveys that the masking prevents identification of the offending column, value, and type from this log file."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Execution Timeouts: GetMonitorJobsQueryHandler is triggering Microsoft.Data.SqlClient.SqlException: \"Execution Timeout Expired\" (Error Number: -2).",
+      "reason": "Identifies the handler and error but does not note the eight occurrences, the 22:26\u201322:29 window, the recovery from 22:36 onward, or that it is a bounded episode rather than a permanent failure."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Validation Errors: ApplicationValidationException during UpdatePaymentRoutingRuleCommand (likely invalid user input).",
+      "reason": "Identifies the exception and command but misses the key point that individual validation messages are never logged (a logging gap) and instead speculates about the cause."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Performance Degradation: GetStatementLineQuery is consistently exceeding the 10s threshold, with some requests taking up to 72.9 seconds.",
+      "reason": "Names the query, threshold, and max duration, but omits the count (14), the rising trend from ~35 s to ~73 s, and that it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the connection string with password logged at DBG level or the credential-exposure risk."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Startup Warnings: Warnings regarding DataProtection-Keys not being persisted, missing XML encryptors, and failure to determine the HTTPS port for redirect.",
+      "reason": "Lists the startup warnings under 'Routine Noise (Ignore),' clearly indicating they are not the cause of the failures, though it omits the 'Overriding address(es)' warning."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Client Cancellations: System.Threading.Tasks.TaskCanceledException at [21:11:02] caused by the client aborting the connection.",
+      "reason": "Only identifies the TaskCanceledException as non-defect; the repeated 'Service Permissions' messages, ObjectMapper licence lines, and the 404 for pending payment 88213 are all absent."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not note that timestamps are time-of-day only, out of order, or that stack traces were trimmed, making elapsed times and sequence undeterminable."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the 'Forbidden' error points to the Platform/Identity or Masterfile teams, while the timeouts and conversion errors point to the Database team.",
+      "reason": "Suggests the 403 is a permissions/configuration issue on the Platform/Masterfile side rather than a payments code fault, but frames it as 'the logs do not show why' and does not explicitly infer it is an access-control or Dapr invocation-policy problem rather than a code defect."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. Platform/Masterfile Team: Investigate why payments-api is receiving 403 Forbidden when calling masterfile-api (branchlocation endpoints). (Highest Priority).",
+      "reason": "Correctly places the 403s as highest priority and database issues second, but omits the credential-in-log as a parallel security item and does not explicitly include GetStatementLineQuery in the priority ordering."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places the DataProtection and XML encryptor warnings under 'Routine Noise (Ignore)' and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values and types are masked as ****** and does not name any specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state any elapsed time, duration, or ordered sequence across the log as if timestamps were dated and sequential."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly calls it 'a split issue' and attributes different failures to different teams; it does not claim the database was down or the single cause."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 262.07
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "The primary cause of the failed saves reported in OPS-92 is a critical integration failure between the payments-api and the masterfile-api. The payments-api is receiving 403 Forbidden responses when attempting to call the branchlocation endpoints, which prevents secondary branches from being saved or bulk-updated.",
+        "reason": "Identifies the 403 to masterfile-api on both branchlocation endpoints, names both commands, and connects it to the user-reported failure as the primary/most serious issue, though it omits the count of four occurrences.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "SQL Conversion Errors: SearchPaymentRoutingRuleQuery is failing with Microsoft.Data.SqlClient.SqlException: \"Conversion failed when converting the ****** value '******' to data type ******\" (Error Number: 245).",
+        "reason": "Correctly identifies the query, error text, and error number 245, but does not state that it occurs five times.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "SQL Conversion Details: The specific values and data types causing the conversion failure are masked as ****** in the log output.",
+        "reason": "Conveys that the masking prevents identification of the offending column, value, and type from this log file.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Execution Timeouts: GetMonitorJobsQueryHandler is triggering Microsoft.Data.SqlClient.SqlException: \"Execution Timeout Expired\" (Error Number: -2).",
+        "reason": "Identifies the handler and error but does not note the eight occurrences, the 22:26\u201322:29 window, the recovery from 22:36 onward, or that it is a bounded episode rather than a permanent failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "Validation Errors: ApplicationValidationException during UpdatePaymentRoutingRuleCommand (likely invalid user input).",
+        "reason": "Identifies the exception and command but misses the key point that individual validation messages are never logged (a logging gap) and instead speculates about the cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "Performance Degradation: GetStatementLineQuery is consistently exceeding the 10s threshold, with some requests taking up to 72.9 seconds.",
+        "reason": "Names the query, threshold, and max duration, but omits the count (14), the rising trend from ~35 s to ~73 s, and that it is still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis never mentions the connection string with password logged at DBG level or the credential-exposure risk.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the single pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Startup Warnings: Warnings regarding DataProtection-Keys not being persisted, missing XML encryptors, and failure to determine the HTTPS port for redirect.",
+        "reason": "Lists the startup warnings under 'Routine Noise (Ignore),' clearly indicating they are not the cause of the failures, though it omits the 'Overriding address(es)' warning.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Client Cancellations: System.Threading.Tasks.TaskCanceledException at [21:11:02] caused by the client aborting the connection.",
+        "reason": "Only identifies the TaskCanceledException as non-defect; the repeated 'Service Permissions' messages, ObjectMapper licence lines, and the 404 for pending payment 88213 are all absent.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not note that timestamps are time-of-day only, out of order, or that stack traces were trimmed, making elapsed times and sequence undeterminable.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "the 'Forbidden' error points to the Platform/Identity or Masterfile teams, while the timeouts and conversion errors point to the Database team.",
+        "reason": "Suggests the 403 is a permissions/configuration issue on the Platform/Masterfile side rather than a payments code fault, but frames it as 'the logs do not show why' and does not explicitly infer it is an access-control or Dapr invocation-policy problem rather than a code defect.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "1. Platform/Masterfile Team: Investigate why payments-api is receiving 403 Forbidden when calling masterfile-api (branchlocation endpoints). (Highest Priority).",
+        "reason": "Correctly places the 403s as highest priority and database issues second, but omits the credential-in-log as a parallel security item and does not explicitly include GetStatementLineQuery in the priority ordering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis places the DataProtection and XML encryptor warnings under 'Routine Noise (Ignore)' and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values and types are masked as ****** and does not name any specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state any elapsed time, duration, or ordered sequence across the log as if timestamps were dated and sequential.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or treat it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly calls it 'a split issue' and attributes different failures to different teams; it does not claim the database was down or the single cause.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

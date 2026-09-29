@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The primary cause of the failed saves reported in OPS-92 is a **403 Forbidden** error returned by the `masterfile-api` when the Payments API attempts to verify branch locations.",
+      "reason": "Identifies the 403, both endpoints, both commands, and the link to user-reported failures, but does not state the error appears four times or give the full query string with ID=71."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "SearchPaymentRoutingRuleQuery is crashing with `Microsoft.Data.SqlClient.SqlException`: \"Conversion failed when converting the ****** value '******' to data type ******\".",
+      "reason": "Identifies the correct error message and query handler but does not state the specific SQL error number 245 or the exact count of five occurrences."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The exact values causing the SQL \"Conversion failed\" error are masked as `******` in the logs.",
+      "reason": "Notes the masking but does not explicitly state that the offending column, value, and type cannot be identified from this file, nor suggest that the detail must come from the query or an unmasked log."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetMonitorJobsQuery is intermittently failing with \"Execution Timeout Expired\". **Evidence:** Repeated `SqlException` (Error Number: -2) between 22:26 and 22:29.",
+      "reason": "Identifies the correct error, error number, and time window, but does not state the count of eight, the recovery from 22:36:47 onward, or the conclusion that it is a bounded episode rather than a permanent failure."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "GetStatementLineQuery is consistently exceeding the 10s threshold, taking up to 72 seconds. **Evidence:** Multiple `WRN` entries between 00:20 and 00:24.",
+      "reason": "Identifies the correct query, threshold, and approximate maximum, but does not state the count of fourteen, the starting point of ~35 seconds, or that the times are still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the database connection string, the exposed password, or the credential exposure at all."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Startup Warnings: ASP.NET DataProtection-Keys persistence warnings and HTTPS redirect port failures.",
+      "reason": "Correctly categorises some startup warnings as routine noise, but omits the 'No XML encryptor configured' and 'Overriding address(es)' warnings listed in the key."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Routine Heartbeats: Repeated \"Service Permissions found and sent on the event bus\" messages.",
+      "reason": "Covers the Service Permissions messages and the TaskCanceledException as non-defects, but omits the ObjectMapper licence lines and the 404 for pending payment 88213."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inference: This is a permissions or authentication failure between the Payments API and the Masterfile API, not a database issue.",
+      "reason": "Presented as an inference and correctly identifies a permissions/auth issue between the two services, but does not specify Dapr configuration or invocation policy, nor explain that the calls never reach a handler and fail consistently on both methods."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**High Severity: Masterfile-API Integration (Root Cause of OPS-92)**",
+      "reason": "Correctly places the 403 first and the SQL conversion error second, but omits the credential exposure as a parallel security item and does not explicitly group the SQL 245 and GetStatementLineQuery as the next tier together."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places DataProtection warnings in 'Routine Noise (Ignore)' and does not attribute the 403s, SQL errors, or failed saves to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error; it correctly notes the values are masked."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state elapsed times, durations, or an ordered sequence across the file as if timestamps were dated and in order."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention NATS subjects or treat 'payments.prod.requests.payments.errors' as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it explicitly says the 403 is 'not a database issue.'"
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "taking up to 72 seconds",
+      "reason": "The log shows the maximum GetStatementLineQuery duration as 72974 ms, which is approximately 73 seconds, not 72."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 192.75
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "The primary cause of the failed saves reported in OPS-92 is a **403 Forbidden** error returned by the `masterfile-api` when the Payments API attempts to verify branch locations.",
+        "reason": "Identifies the 403, both endpoints, both commands, and the link to user-reported failures, but does not state the error appears four times or give the full query string with ID=71.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "SearchPaymentRoutingRuleQuery is crashing with `Microsoft.Data.SqlClient.SqlException`: \"Conversion failed when converting the ****** value '******' to data type ******\".",
+        "reason": "Identifies the correct error message and query handler but does not state the specific SQL error number 245 or the exact count of five occurrences.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The exact values causing the SQL \"Conversion failed\" error are masked as `******` in the logs.",
+        "reason": "Notes the masking but does not explicitly state that the offending column, value, and type cannot be identified from this file, nor suggest that the detail must come from the query or an unmasked log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "GetMonitorJobsQuery is intermittently failing with \"Execution Timeout Expired\". **Evidence:** Repeated `SqlException` (Error Number: -2) between 22:26 and 22:29.",
+        "reason": "Identifies the correct error, error number, and time window, but does not state the count of eight, the recovery from 22:36:47 onward, or the conclusion that it is a bounded episode rather than a permanent failure.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "",
+        "reason": "The analysis does not mention UpdatePaymentRoutingRuleCommand, ApplicationValidationException, or the logging gap of missing individual validation messages at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "GetStatementLineQuery is consistently exceeding the 10s threshold, taking up to 72 seconds. **Evidence:** Multiple `WRN` entries between 00:20 and 00:24.",
+        "reason": "Identifies the correct query, threshold, and approximate maximum, but does not state the count of fourteen, the starting point of ~35 seconds, or that the times are still rising at the end of the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis does not mention the database connection string, the exposed password, or the credential exposure at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "",
+        "reason": "The analysis does not mention the pod restart at 02:50:11/02:50:14 or explain why startup warnings appear twice.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Startup Warnings: ASP.NET DataProtection-Keys persistence warnings and HTTPS redirect port failures.",
+        "reason": "Correctly categorises some startup warnings as routine noise, but omits the 'No XML encryptor configured' and 'Overriding address(es)' warnings listed in the key.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Routine Heartbeats: Repeated \"Service Permissions found and sent on the event bus\" messages.",
+        "reason": "Covers the Service Permissions messages and the TaskCanceledException as non-defects, but omits the ObjectMapper licence lines and the 404 for pending payment 88213.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "",
+        "reason": "The analysis does not mention that the log records time-of-day only with no date, that timestamps are out of order, or that stack traces were trimmed making it an incomplete record.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Inference: This is a permissions or authentication failure between the Payments API and the Masterfile API, not a database issue.",
+        "reason": "Presented as an inference and correctly identifies a permissions/auth issue between the two services, but does not specify Dapr configuration or invocation policy, nor explain that the calls never reach a handler and fail consistently on both methods.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "**High Severity: Masterfile-API Integration (Root Cause of OPS-92)**",
+        "reason": "Correctly places the 403 first and the SQL conversion error second, but omits the credential exposure as a parallel security item and does not explicitly group the SQL 245 and GetStatementLineQuery as the next tier together.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis places DataProtection warnings in 'Routine Noise (Ignore)' and does not attribute the 403s, SQL errors, or failed saves to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis does not name any specific column, value, or data type for the SQL 245 error; it correctly notes the values are masked.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis does not state elapsed times, durations, or an ordered sequence across the file as if timestamps were dated and in order.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention NATS subjects or treat 'payments.prod.requests.payments.errors' as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis does not claim the database was down, unreachable, or the single cause of all failures; it explicitly says the 403 is 'not a database issue.'",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "taking up to 72 seconds",
+        "reason": "The log shows the maximum GetStatementLineQuery duration as 72974 ms, which is approximately 73 seconds, not 72."
+      }
+    ]
+  }
+}
