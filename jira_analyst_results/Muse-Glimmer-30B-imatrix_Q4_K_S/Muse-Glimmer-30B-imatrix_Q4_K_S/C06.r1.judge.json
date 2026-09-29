@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "It is blocked by OPS-77 which is still Waiting for vendor and is already past its due date. Code is complete behind a flag but the end-to-end test cannot be run until Northwind's CA certificates are installed in staging.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until certs are in staging, and OPS-77 is waiting for Northwind to send the bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Today is 2026-09-15. OPS-77 due date has passed with no vendor response recorded.",
+      "reason": "The analysis states the due date (2026-09-10), that it is overdue as of 2026-09-15, and quotes the 2026-09-11 comment about no reply and escalation to the partner manager."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Release 3.2.0 is scheduled 2026-09-24. Ravi needs ~two days after certs are in staging for test + fixes. With no certs as of 2026-09-15, the window is very tight.",
+      "reason": "The analysis states the release date, sprint end (2026-09-22), and the two-day testing requirement after certificates arrive."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: It is likely BANK-405 will miss 3.2.0 unless Northwind provides the CA bundle immediately, based on the two-day test estimate and the current 9-day gap to release. This is an inference from the stated dates and dependency, not a confirmed status.",
+      "reason": "The analysis presents the risk as an explicit inference (labelled 'Inference:', uses 'likely'), notes the dependency on Northwind, and mentions 'no ETA for CA bundle delivery' covering the lack of a committed date."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Ravi Kumar 2026-09-08: code done and merged behind feature flag MTLS_PARTNER off by default; cannot run end-to-end test until Northwind CA certificates are in staging trust store, that is OPS-77.",
+      "reason": "The analysis clearly states the code is complete, merged, behind the MTLS_PARTNER feature flag, and off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-405 is to enable mutual TLS for the partner payments API for Northwind Payments, required from 1 October 2026, with release target 3.2.0 scheduled 2026-09-24. Acceptance is rejection of calls without a valid Northwind client certificate and a passing end-to-end test in staging against Northwind's sandbox. The story is blocked on OPS-77 to install the Northwind Payments CA bundle in staging then production.",
+      "reason": "The analysis states staging then production and the 1 October 2026 requirement, but does not explicitly draw the conclusion that this constitutes a hard external deadline beyond the release date."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Jo Tan to obtain a firm ETA from Northwind via the partner manager escalation and update OPS-77 with the vendor response.",
+      "reason": "The escalation through the partner manager (Jo Tan) for a firm date is clearly stated, but the specific contingency of shipping 3.2.0 with the MTLS_PARTNER flag off is only vaguely referenced as 'assess a contingency' without naming the flag-off approach."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently states OPS-77 is still waiting for vendor."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state a specific committed delivery date from Northwind; it quotes 'early next week' as an unconfirmed vendor comment and explicitly notes 'no ETA for CA bundle delivery.'"
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 105.08
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "It is blocked by OPS-77 which is still Waiting for vendor and is already past its due date. Code is complete behind a flag but the end-to-end test cannot be run until Northwind's CA certificates are installed in staging.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the e2e test can't run until certs are in staging, and OPS-77 is waiting for Northwind to send the bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "Today is 2026-09-15. OPS-77 due date has passed with no vendor response recorded.",
+        "reason": "The analysis states the due date (2026-09-10), that it is overdue as of 2026-09-15, and quotes the 2026-09-11 comment about no reply and escalation to the partner manager.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Release 3.2.0 is scheduled 2026-09-24. Ravi needs ~two days after certs are in staging for test + fixes. With no certs as of 2026-09-15, the window is very tight.",
+        "reason": "The analysis states the release date, sprint end (2026-09-22), and the two-day testing requirement after certificates arrive.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "Inference: It is likely BANK-405 will miss 3.2.0 unless Northwind provides the CA bundle immediately, based on the two-day test estimate and the current 9-day gap to release. This is an inference from the stated dates and dependency, not a confirmed status.",
+        "reason": "The analysis presents the risk as an explicit inference (labelled 'Inference:', uses 'likely'), notes the dependency on Northwind, and mentions 'no ETA for CA bundle delivery' covering the lack of a committed date.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "Ravi Kumar 2026-09-08: code done and merged behind feature flag MTLS_PARTNER off by default; cannot run end-to-end test until Northwind CA certificates are in staging trust store, that is OPS-77.",
+        "reason": "The analysis clearly states the code is complete, merged, behind the MTLS_PARTNER feature flag, and off by default.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "BANK-405 is to enable mutual TLS for the partner payments API for Northwind Payments, required from 1 October 2026, with release target 3.2.0 scheduled 2026-09-24. Acceptance is rejection of calls without a valid Northwind client certificate and a passing end-to-end test in staging against Northwind's sandbox. The story is blocked on OPS-77 to install the Northwind Payments CA bundle in staging then production.",
+        "reason": "The analysis states staging then production and the 1 October 2026 requirement, but does not explicitly draw the conclusion that this constitutes a hard external deadline beyond the release date.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan to obtain a firm ETA from Northwind via the partner manager escalation and update OPS-77 with the vendor response.",
+        "reason": "The escalation through the partner manager (Jo Tan) for a firm date is clearly stated, but the specific contingency of shipping 3.2.0 with the MTLS_PARTNER flag off is only vaguely referenced as 'assess a contingency' without naming the flag-off approach.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis never claims the certificates have been received, installed, or that OPS-77 is done; it consistently states OPS-77 is still waiting for vendor.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis does not state a specific committed delivery date from Northwind; it quotes 'early next week' as an unconfirmed vendor comment and explicitly notes 'no ETA for CA bundle delivery.'",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

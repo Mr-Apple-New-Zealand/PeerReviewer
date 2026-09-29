@@ -2,8 +2,8 @@
 
 | Setting | Value |
 |---|---|
-| generated | 2026-09-30T09:46:35 |
-| models | 15 |
+| generated | 2026-09-30T12:43:24 |
+| models | 16 |
 | cases_sha | ec04f03cff34 |
 | judge | Qwen3.8-27B-imatrix:Q4_K_S |
 | judge_effort | high |
@@ -15,27 +15,28 @@
 ## Headline
 
 - **Best quality:** claude-sonnet-5 at 88.4/100.
-- **Pareto front** (nothing else is better on both quality and memory; time is excluded because the server is shared): Gemma-4-31B-it-imatrix:Q4_K_M, Qwen3-VL-8B-Thinking-imatrix:Q4_K_M, Qwen3-VL-4B-Thinking-imatrix:Q5_K_M, Qwen3-VL-8B-Instruct-imatrix:Q3_K_M, Qwen3-VL-4B-Instruct-imatrix:Q4_K_M, Qwen3-VL-2B-Instruct-imatrix:Q4_K_M, Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M, Falcon-H1-Tiny-90M-Instruct:Q4_K_S.
+- **Pareto front** (nothing else is better on both quality and memory; time is excluded because the server is shared): Muse-Glimmer-30B-imatrix:Q4_K_S, Qwen3-VL-8B-Thinking-imatrix:Q4_K_M, Qwen3-VL-4B-Thinking-imatrix:Q5_K_M, Qwen3-VL-8B-Instruct-imatrix:Q3_K_M, Qwen3-VL-4B-Instruct-imatrix:Q4_K_M, Qwen3-VL-2B-Instruct-imatrix:Q4_K_M, Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M, Falcon-H1-Tiny-90M-Instruct:Q4_K_S.
 
 ## Ranking
 
 | # | Model | Quality | Coverage | Traps hit | Invented keys | Unsupported | Resident GB | On GPU | Cold load | Time / case | Out tok/s | Out tok / case | Pareto |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | claude-sonnet-5 | 88.4 (87-91) | 90% | 4/162 | 0 | 13 | - | - | - | 29.2s | - | 2574 |  |
-| 2 | Gemma-4-31B-it-imatrix:Q4_K_M | 66.7 (65-69) | 68% | 3/162 | 0 | 11 | 22.7 | 91% | 8.0s | 4m 51s | 5.3 | 1230 | yes |
-| 3 | Qwen3-VL-32B-Instruct-imatrix:Q4_K_M | 62.5 (59-65) | 69% | 8/162 | 5 | 39 | - | - | 4.9s | 1m 25s | 11.3 | 894 |  |
-| 4 | Qwen3-VL-32B-Thinking:Q5_K_M | 60.6 (60-61) | 66% | 1/162 | 0 | 51 | - | - | 6.8s | 1m 49s | 28.4 | 2849 |  |
-| 5 | Qwen3-VL-8B-Thinking-imatrix:Q4_K_M | 52.3 (48-54) | 60% | 7/162 | 0 | 59 | 13.0 | 100% | 2.3s | 26.6s | 118.0 | 2885 | yes |
-| 6 | Qwen3-VL-4B-Thinking-imatrix:Q5_K_M | 51.9 (50-54) | 58% | 10/162 | 0 | 43 | 11.0 | 100% | 2.9s | 27.0s | 164.1 | 3897 | yes |
-| 7 | Qwen3-VL-8B-Instruct-imatrix:Q3_K_M | 49.7 (48-52) | 63% | 19/162 | 1 | 67 | 9.4 | 100% | 2.9s | 7.3s | 137.4 | 815 | yes |
-| 8 | Qwen2.5-VL-32B-Instruct:Q5_K_M | 49.2 (49-50) | 54% | 7/162 | 0 | 37 | 32.5 | 100% | 5.7s | 33.9s | 28.5 | 887 |  |
-| 9 | Qwen3-VL-4B-Instruct-imatrix:Q4_K_M | 48.6 (48-50) | 59% | 13/162 | 2 | 57 | 7.9 | 100% | 1.5s | 8.4s | 185.0 | 1198 | yes |
-| 10 | Qwen2.5-VL-72B-Instruct:Q4_K_S | 45.6 (45-47) | 48% | 8/162 | 0 | 15 | 56.3 | 100% | 7.8s | 55.2s | 14.7 | 480 |  |
-| 11 | Qwen3-VL-2B-Thinking-imatrix:Q5_K_S | 26.7 (25-29) | 45% | 27/149 | 3 | 117 | 8.1 | 44% | 4.2s | 25.2s | 283.1 | 5794 |  |
-| 12 | Qwen3-VL-2B-Instruct-imatrix:Q4_K_M | 25.3 (21-31) | 40% | 30/162 | 1 | 114 | 5.4 | 100% | 2.6s | 28.6s | 289.4 | 1946 | yes |
-| 13 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 24.5 (23-25) | 31% | 17/162 | 0 | 39 | 7.1 | 100% | 2.9s | 4.4s | 135.1 | 541 |  |
-| 14 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 14.4 (12-18) | 26% | 20/162 | 1 | 100 | 4.1 | 100% | 2.8s | 2.4s | 225.4 | 489 | yes |
-| 15 | Falcon-H1-Tiny-90M-Instruct:Q4_K_S | 1.0 (0-2) | 7% | 7/144 | 0 | 134 | 0.4 | 100% | 0.8s | 27.6s | 8.5 | 259 | yes |
+| 2 | Muse-Glimmer-30B-imatrix:Q4_K_S | 82.8 (82-84) | 84% | 1/162 | 0 | 13 | 16.7 | 100% | 5.6s | 51.2s | 40.4 | 2022 | yes |
+| 3 | Gemma-4-31B-it-imatrix:Q4_K_M | 66.7 (65-69) | 68% | 3/162 | 0 | 11 | 22.7 | 91% | 8.0s | 4m 51s | 5.3 | 1230 |  |
+| 4 | Qwen3-VL-32B-Instruct-imatrix:Q4_K_M | 62.5 (59-65) | 69% | 8/162 | 5 | 39 | - | - | 4.9s | 1m 25s | 11.3 | 894 |  |
+| 5 | Qwen3-VL-32B-Thinking:Q5_K_M | 60.6 (60-61) | 66% | 1/162 | 0 | 51 | - | - | 6.8s | 1m 49s | 28.4 | 2849 |  |
+| 6 | Qwen3-VL-8B-Thinking-imatrix:Q4_K_M | 52.3 (48-54) | 60% | 7/162 | 0 | 59 | 13.0 | 100% | 2.3s | 26.6s | 118.0 | 2885 | yes |
+| 7 | Qwen3-VL-4B-Thinking-imatrix:Q5_K_M | 51.9 (50-54) | 58% | 10/162 | 0 | 43 | 11.0 | 100% | 2.9s | 27.0s | 164.1 | 3897 | yes |
+| 8 | Qwen3-VL-8B-Instruct-imatrix:Q3_K_M | 49.7 (48-52) | 63% | 19/162 | 1 | 67 | 9.4 | 100% | 2.9s | 7.3s | 137.4 | 815 | yes |
+| 9 | Qwen2.5-VL-32B-Instruct:Q5_K_M | 49.2 (49-50) | 54% | 7/162 | 0 | 37 | 32.5 | 100% | 5.7s | 33.9s | 28.5 | 887 |  |
+| 10 | Qwen3-VL-4B-Instruct-imatrix:Q4_K_M | 48.6 (48-50) | 59% | 13/162 | 2 | 57 | 7.9 | 100% | 1.5s | 8.4s | 185.0 | 1198 | yes |
+| 11 | Qwen2.5-VL-72B-Instruct:Q4_K_S | 45.6 (45-47) | 48% | 8/162 | 0 | 15 | 56.3 | 100% | 7.8s | 55.2s | 14.7 | 480 |  |
+| 12 | Qwen3-VL-2B-Thinking-imatrix:Q5_K_S | 26.7 (25-29) | 45% | 27/149 | 3 | 117 | 8.1 | 44% | 4.2s | 25.2s | 283.1 | 5794 |  |
+| 13 | Qwen3-VL-2B-Instruct-imatrix:Q4_K_M | 25.3 (21-31) | 40% | 30/162 | 1 | 114 | 5.4 | 100% | 2.6s | 28.6s | 289.4 | 1946 | yes |
+| 14 | Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S | 24.5 (23-25) | 31% | 17/162 | 0 | 39 | 7.1 | 100% | 2.9s | 4.4s | 135.1 | 541 |  |
+| 15 | Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M | 14.4 (12-18) | 26% | 20/162 | 1 | 100 | 4.1 | 100% | 2.8s | 2.4s | 225.4 | 489 | yes |
+| 16 | Falcon-H1-Tiny-90M-Instruct:Q4_K_S | 1.0 (0-2) | 7% | 7/144 | 0 | 134 | 0.4 | 100% | 0.8s | 27.6s | 8.5 | 259 | yes |
 
 ## Runs
 
@@ -44,6 +45,7 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 | Model | Run | Started | num_ctx | num_predict | Temp | Repeats | Harness | Folder |
 |---|---|---|---|---|---|---|---|---|
 | claude-sonnet-5 | 45 | 2026-09-28T04:04:31 | 32768 | 8192 | 0.3 | 3 | b7527da | jira_analyst_results/claude-sonnet-5 |
+| Muse-Glimmer-30B-imatrix:Q4_K_S | 53 | 2026-09-29T21:07:29 | 49152 | 16384 | 1.0 | 3 | b1c29df | jira_analyst_results/Muse-Glimmer-30B-imatrix_Q4_K_S |
 | Gemma-4-31B-it-imatrix:Q4_K_M | 52 | 2026-09-29T06:01:13 | 49152 | 16384 | 1.0 | 3 | b1c29df | jira_analyst_results/Gemma-4-31B-it-imatrix_Q4_K_M |
 | Qwen3-VL-32B-Instruct-imatrix:Q4_K_M | 46 | 2026-09-28T07:42:37 | 32768 | 8192 | 0.3 | 3 | b7527da | jira_analyst_results/Qwen3-VL-32B-Instruct-imatrix_Q4_K_M |
 | Qwen3-VL-32B-Thinking:Q5_K_M | 44 | 2026-09-28T03:26:07 | 49152 | 16384 | 1.0 | 3 | 30835b7 | jira_analyst_results/Qwen3-VL-32B-Thinking_Q5_K_M |
@@ -68,6 +70,7 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 | Model | C01 | C02 | C03 | C04 | C05 | C06 | C07 | C08 | C09 | C10 | C11 | C12 | C13 | C14 | C15 | C16 | C17 | C18 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | claude-sonnet-5 | 100 | 98 | 98 | 92 | 97 | 90 | 95 | 97 | 94 | 100 | 76 | 81 | 98 | 73 | 89 | 87 | 59 | 67 |
+| Muse-Glimmer-30B-imatrix:Q4_K_S | 98 | 88 | 93 | 89 | 97 | 90 | 100 | 97 | 97 | 96 | 71 | 71 | 74 | 62 | 93 | 77 | 40 | 59 |
 | Gemma-4-31B-it-imatrix:Q4_K_M | 90 | 81 | 64 | 89 | 81 | 74 | 86 | 83 | 80 | 79 | 50 | 64 | 57 | 42 | 50 | 63 | 24 | 41 |
 | Qwen3-VL-32B-Instruct-imatrix:Q4_K_M | 90 | 75 | 71 | 56 | 78 | 71 | 62 | 86 | 78 | 92 | 50 | 71 | 62 | 40 | 54 | 53 | 14 | 21 |
 | Qwen3-VL-32B-Thinking:Q5_K_M | 93 | 77 | 67 | 80 | 81 | 71 | 76 | 61 | 83 | 83 | 48 | 60 | 62 | 19 | 35 | 45 | 18 | 32 |
@@ -110,6 +113,8 @@ Cases: C01 Well-specified bug: double debit on transfer retry; C02 Vague bug: is
 - Falcon-H1-Tiny-90M-Instruct:Q4_K_S: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S, Qwen3-Coder-30B-imatrix:Q3_K_M, nomic-embed-text:latest, Qwen3-VL-2B-Thinking-imatrix:Q5_K_S); timings may be contended.
 - Gemma-4-31B-it-imatrix:Q4_K_M: only 91% on GPU - part of the model ran on CPU, so its times reflect spill, not the model.
 - Gemma-4-31B-it-imatrix:Q4_K_M: other models were resident at start (Qwen3-VL-2B-Instruct-imatrix:Q4_K_M, Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
+- Muse-Glimmer-30B-imatrix:Q4_K_S: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
+- Muse-Glimmer-30B-imatrix:Q4_K_S: judge had 2 ungrounded and 0 omitted verdicts (downgraded / defaulted).
 - Qwen2.5-VL-32B-Instruct:Q5_K_M: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
 - Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M: other models were resident at start (Qwen3.8-27B-imatrix:Q4_K_S); timings may be contended.
 - Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M: judge had 1 ungrounded and 0 omitted verdicts (downgraded / defaulted).

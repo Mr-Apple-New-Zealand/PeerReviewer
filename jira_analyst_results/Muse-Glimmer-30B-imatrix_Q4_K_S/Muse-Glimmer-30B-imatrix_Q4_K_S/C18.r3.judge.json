@@ -1,0 +1,257 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Likely downstream: BANKUI-4A1 and BANKUI-4A2 both have lastFrame in /6728.b4f17ce620a8d539.js",
+      "reason": "The analysis does group all five under the 401 cascade, but also assigns 4A1 and 4A2 a second possible cause (the chunk failure), muddying the single-cause grouping the key expects."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that distinct-user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+      "reason": "The analysis correctly identifies 58 users on 63 events and places it as the first workstream, conveying that by user impact it is the top item despite low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Chunk 6728 failure started ~6 minutes after 4.7.0 deploy. Inference: deployment artefact/CDN issue for /6728.b4f17ce620a8d539.js.",
+      "reason": "The timing and 404 are correct, but the explanation is a generic 'deployment artefact/CDN issue' rather than the specific signature of open sessions requesting hashed bundles that the deploy replaced."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0 SecurityError: Blocked a frame with origin \"https://bank-uat.example.com\" from accessing a cross-origin frame culprit chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js, events 4812, users 1. Breadcrumb: no app breadcrumbs; every event is from the same browser session. This is a browser extension, not a bank-ui defect.",
+      "reason": "All key elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, explicitly not a defect, and the recommendation to not work on it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Event count is misleading: BANKUI-3C8 and BANKUI-2F0 have very high events but BANKUI-3C8 is handled console logging and BANKUI-2F0 is 1 user.",
+      "reason": "The analysis explicitly calls event count misleading and explains why neither of the two highest-count issues is the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-1A7 is marked resolved in 4.6.0 but still has lastSeen 2026-09-11T23:06:18Z within the export period. Conflict between status and observed events.",
+      "reason": "The analysis identifies the conflict between resolved status and post-deploy events but stops at 'confirm status' rather than concluding it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are not uploaded per Ravi Kumar comment, so lastFrame values are minified e.g. ie.project, q.render, making root cause confirmation difficult.",
+      "reason": "The analysis states source maps are missing, gives examples of minified names, and notes that root cause confirmation is difficult, conveying that issues cannot be traced to components from this export alone."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in the ChunkLoadError overlap with the 44 in the 401 cluster or that the total affected-user count cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "401s appear across multiple API endpoints: /api/settlements/Run/GetAllRunBookingsForCustomerOrder, /api/settlements/CustomerOrder/Search, /api/hq/SettlementAllocation/InvokeAction, /api/payments/PaymentBatch/Actions. It is not clear if this is a token refresh issue, session expiry, or an API change introduced in 4.7.0.",
+      "reason": "The analysis mentions session expiry as one of three undifferentiated possibilities rather than specifically inferring sessions expiring without the app handling the rejection, and does not note that confirming would require a full event."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm status of BANKUI-1A7 \u2013 if it is truly resolved in 4.6.0, verify why events are still appearing on 2026-09-11.",
+      "reason": "The two workstreams (5D6 first, then 401 cluster) and the 2F0 exclusion are correct, but the 1A7 action is 'confirm status' rather than 'reopen,' making the recommendation incomplete."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes BANKUI-2F0 from work and calls its event count misleading, never placing it near the top of priority."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors together under the 401 cascade; the additional chunk observation is labelled 'Likely' and does not constitute a separate definitive cause or fix."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never adds distinct-user counts across issues or reports a combined total."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis questions the resolved status of BANKUI-1A7 and asks to verify why events are still appearing; it does not state it is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as an authentication cascade and considers token refresh, session expiry, or API change; it never calls it an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 is in its own 'Deployment / chunk failure' group and BANKUI-1A7 is in 'Resolved'; neither is placed in the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 284.1
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "Likely downstream: BANKUI-4A1 and BANKUI-4A2 both have lastFrame in /6728.b4f17ce620a8d539.js",
+        "reason": "The analysis does group all five under the 401 cascade, but also assigns 4A1 and 4A2 a second possible cause (the chunk failure), muddying the single-cause grouping the key expects.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never states that distinct-user counts cannot be summed or that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+        "reason": "The analysis correctly identifies 58 users on 63 events and places it as the first workstream, conveying that by user impact it is the top item despite low event count.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "Chunk 6728 failure started ~6 minutes after 4.7.0 deploy. Inference: deployment artefact/CDN issue for /6728.b4f17ce620a8d539.js.",
+        "reason": "The timing and 404 are correct, but the explanation is a generic 'deployment artefact/CDN issue' rather than the specific signature of open sessions requesting hashed bundles that the deploy replaced.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 SecurityError: Blocked a frame with origin \"https://bank-uat.example.com\" from accessing a cross-origin frame culprit chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js, events 4812, users 1. Breadcrumb: no app breadcrumbs; every event is from the same browser session. This is a browser extension, not a bank-ui defect.",
+        "reason": "All key elements are present: 4812 events, 1 user, chrome-extension culprit, no app breadcrumbs, explicitly not a defect, and the recommendation to not work on it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "Event count is misleading: BANKUI-3C8 and BANKUI-2F0 have very high events but BANKUI-3C8 is handled console logging and BANKUI-2F0 is 1 user.",
+        "reason": "The analysis explicitly calls event count misleading and explains why neither of the two highest-count issues is the most valuable to fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 is marked resolved in 4.6.0 but still has lastSeen 2026-09-11T23:06:18Z within the export period. Conflict between status and observed events.",
+        "reason": "The analysis identifies the conflict between resolved status and post-deploy events but stops at 'confirm status' rather than concluding it has regressed and should be reopened.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded per Ravi Kumar comment, so lastFrame values are minified e.g. ie.project, q.render, making root cause confirmation difficult.",
+        "reason": "The analysis states source maps are missing, gives examples of minified names, and notes that root cause confirmation is difficult, conveying that issues cannot be traced to components from this export alone.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in the ChunkLoadError overlap with the 44 in the 401 cluster or that the total affected-user count cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "401s appear across multiple API endpoints: /api/settlements/Run/GetAllRunBookingsForCustomerOrder, /api/settlements/CustomerOrder/Search, /api/hq/SettlementAllocation/InvokeAction, /api/payments/PaymentBatch/Actions. It is not clear if this is a token refresh issue, session expiry, or an API change introduced in 4.7.0.",
+        "reason": "The analysis mentions session expiry as one of three undifferentiated possibilities rather than specifically inferring sessions expiring without the app handling the rejection, and does not note that confirming would require a full event.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Confirm status of BANKUI-1A7 \u2013 if it is truly resolved in 4.6.0, verify why events are still appearing on 2026-09-11.",
+        "reason": "The two workstreams (5D6 first, then 401 cluster) and the 2F0 exclusion are correct, but the 1A7 action is 'confirm status' rather than 'reopen,' making the recommendation incomplete.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly excludes BANKUI-2F0 from work and calls its event count misleading, never placing it near the top of priority.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors together under the 401 cascade; the additional chunk observation is labelled 'Likely' and does not constitute a separate definitive cause or fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis never adds distinct-user counts across issues or reports a combined total.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis questions the resolved status of BANKUI-1A7 and asks to verify why events are still appearing; it does not state it is fixed or needs no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401s as an authentication cascade and considers token refresh, session expiry, or API change; it never calls it an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "BANKUI-5D6 is in its own 'Deployment / chunk failure' group and BANKUI-1A7 is in 'Resolved'; neither is placed in the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

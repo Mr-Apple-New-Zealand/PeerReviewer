@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No. BANK-377 is marked Done / Fixed but retest evidence shows the issue is not resolved, so the customer should not be told it is fixed yet.",
+      "reason": "The analysis clearly and directly answers 'No' and states the customer should not be told it is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked Done / Fixed in 3.1.4 after a regex change in EmailService. However a later retest on staging with 3.1.4 reports the email still does not arrive",
+      "reason": "All required specifics are present: Done/Fixed, 3.1.4, Tom Becker's 2026-09-10 retest on staging, plus-addressed emails still not arriving."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP log: \"Rejected: 550 5.1.3 Invalid recipient address\".",
+      "reason": "The exact SMTP error code and message from the ticket is quoted verbatim."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference, based on the comments: The regex fix may have removed the internal rejection, but the email provider is now rejecting plus-addressed recipients. This is a hidden dependency not addressed in the current fix.",
+      "reason": "Presented explicitly as an inference, attributes the likely cause to the email provider (distinct from the regex fix), and notes it is based on Tom's comment rather than confirmed."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Conflict between ticket fields and comments: Status Done / Fixed vs Tom Becker's failed retest on 2026-09-10.",
+      "reason": "The analysis notes the conflict and suggests reopening, but does not explicitly state that nobody reopened the ticket or that no one currently owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Update BANK-377 status from Done to re-open / In Progress to reflect the open provider rejection.",
+      "reason": "Covers reopening, assigning Priya Nair to investigate the provider rejection, and instructing Marcus Reid not to confirm the fix to the customer."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says 'No' and 'the customer should not be told it is fixed yet'; it never asserts the issue is fixed."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis suggests reopening as a next action but never claims the ticket has already been reopened or that a follow-up ticket exists."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 65.0
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "No. BANK-377 is marked Done / Fixed but retest evidence shows the issue is not resolved, so the customer should not be told it is fixed yet.",
+        "reason": "The analysis clearly and directly answers 'No' and states the customer should not be told it is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket is marked Done / Fixed in 3.1.4 after a regex change in EmailService. However a later retest on staging with 3.1.4 reports the email still does not arrive",
+        "reason": "All required specifics are present: Done/Fixed, 3.1.4, Tom Becker's 2026-09-10 retest on staging, plus-addressed emails still not arriving.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "SMTP log: \"Rejected: 550 5.1.3 Invalid recipient address\".",
+        "reason": "The exact SMTP error code and message from the ticket is quoted verbatim.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "Inference, based on the comments: The regex fix may have removed the internal rejection, but the email provider is now rejecting plus-addressed recipients. This is a hidden dependency not addressed in the current fix.",
+        "reason": "Presented explicitly as an inference, attributes the likely cause to the email provider (distinct from the regex fix), and notes it is based on Tom's comment rather than confirmed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "Conflict between ticket fields and comments: Status Done / Fixed vs Tom Becker's failed retest on 2026-09-10.",
+        "reason": "The analysis notes the conflict and suggests reopening, but does not explicitly state that nobody reopened the ticket or that no one currently owns the remaining problem.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Update BANK-377 status from Done to re-open / In Progress to reflect the open provider rejection.",
+        "reason": "Covers reopening, assigning Priya Nair to investigate the provider rejection, and instructing Marcus Reid not to confirm the fix to the customer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly says 'No' and 'the customer should not be told it is fixed yet'; it never asserts the issue is fixed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis suggests reopening as a next action but never claims the ticket has already been reopened or that a follow-up ticket exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

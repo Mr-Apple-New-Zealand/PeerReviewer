@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 \u2013 Config deploy OPS-81 rotates the JWT signing key for the Auth service. Ticket links BANK-450 as caused by OPS-81.\n* ~09:31 \u2013 Errors start. Sam Okafor notes at 09:52: \"The dashboards show errors starting at around 09:31.\"",
+      "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 \u2013 Monitoring alert fires: TransferErrorRate > 20%.\n* 09:52 \u2013 Incident declared by Sam Okafor.",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 \u2013 Sam Okafor: \"Rolling back the OPS-81 config deploy.\"\n* 10:42 \u2013 Transfer error rate back under 1%.\n* 10:44 \u2013 Sam Okafor: \"Rollback complete.\"\n* 10:50 \u2013 Incident resolved.",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Detection lag \u2248 16 minutes, 09:31 to 09:47.",
+      "reason": "The 16-minute detection time with the correct start and end timestamps is stated."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "From alert to service recovery: alert 09:47 \u2192 error rate <1% at 10:42 = 55 minutes.\n* From incident declaration to service recovery: incident declared 09:52 \u2192 error rate <1% at 10:42 = 50 minutes.\n* Total incident duration from first observed errors to recovery: ~09:31 to 10:42 \u2248 1 hour 11 minutes.",
+      "reason": "The 55-minute recovery from detection (09:47\u219210:42) and the 71-minute (1h11m) recovery from impact start (09:31\u219210:42) are both stated with their start points."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause stated in BANK-450 at 10:50: the JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against. Auth issued tokens signed with the new key while Transactions API continued to validate against the old key, causing 401 \"IDX10503: Signature validation failed\" and transfer failures.",
+      "reason": "The root cause is fully stated with the deploy, the key mismatch, and the specific 401 error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:50 \u2013 Incident resolved. Post-incident review booked for 2026-09-16.",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only reports Priya's suggestion as a timeline entry and does not name the database or slow queries as the cause or a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All stated times (16 min detect, 55 min recover from alert, 50 min from declaration, 71 min from impact) are supported by pairs of timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 60.73
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:30 \u2013 Config deploy OPS-81 rotates the JWT signing key for the Auth service. Ticket links BANK-450 as caused by OPS-81.\n* ~09:31 \u2013 Errors start. Sam Okafor notes at 09:52: \"The dashboards show errors starting at around 09:31.\"",
+        "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 \u2013 Monitoring alert fires: TransferErrorRate > 20%.\n* 09:52 \u2013 Incident declared by Sam Okafor.",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 \u2013 Sam Okafor: \"Rolling back the OPS-81 config deploy.\"\n* 10:42 \u2013 Transfer error rate back under 1%.\n* 10:44 \u2013 Sam Okafor: \"Rollback complete.\"\n* 10:50 \u2013 Incident resolved.",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Detection lag \u2248 16 minutes, 09:31 to 09:47.",
+        "reason": "The 16-minute detection time with the correct start and end timestamps is stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "From alert to service recovery: alert 09:47 \u2192 error rate <1% at 10:42 = 55 minutes.\n* From incident declaration to service recovery: incident declared 09:52 \u2192 error rate <1% at 10:42 = 50 minutes.\n* Total incident duration from first observed errors to recovery: ~09:31 to 10:42 \u2248 1 hour 11 minutes.",
+        "reason": "The 55-minute recovery from detection (09:47\u219210:42) and the 71-minute (1h11m) recovery from impact start (09:31\u219210:42) are both stated with their start points.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Root cause stated in BANK-450 at 10:50: the JWT signing key was rotated in config deploy OPS-81 without updating the key the Transactions API validates against. Auth issued tokens signed with the new key while Transactions API continued to validate against the old key, causing 401 \"IDX10503: Signature validation failed\" and transfer failures.",
+        "reason": "The root cause is fully stated with the deploy, the key mismatch, and the specific 401 error code.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "10:50 \u2013 Incident resolved. Post-incident review booked for 2026-09-16.",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis only reports Priya's suggestion as a timeline entry and does not name the database or slow queries as the cause or a contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "All stated times (16 min detect, 55 min recover from alert, 50 min from declaration, 71 min from impact) are supported by pairs of timestamps in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

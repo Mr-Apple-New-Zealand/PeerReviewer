@@ -20,13 +20,14 @@ step with it.
 
 ## Current standing
 
-Fifteen models have been measured on the full eighteen cases with the judge of
+Sixteen models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
 |---|---|---|---|---|---|---|---|---|---|---|
 | **claude-sonnet-5** ¹ | — | n/a | **88.4 (87–91)** | **90%** | **93.6** | **74.9** | 4/162 | 0 | **13** | — |
-| **Gemma-4-31B-it-imatrix** | Q4_K_M | 1.0 | **66.7 (65–69)** | 68% | **75.3** | **44.2** | **3/162** | 0 | **11** | 22.7 |
+| **Muse-Glimmer-30B-imatrix** | Q4_K_S | 1.0 | **82.8 (82–84)** | **84%** | **89.3** | **65.9** | **1/162** | 0 | **13** | **16.7** |
+| Gemma-4-31B-it-imatrix | Q4_K_M | 1.0 | 66.7 (65–69) | 68% | 75.3 | 44.2 | 3/162 | 0 | **11** | 22.7 |
 | Qwen3-VL-32B-Instruct-imatrix | Q4_K_M | 0.3 | 62.5 (59–65) | **69%** | 72.5 | 36.4 | 8/162 | **5** | 39 | — ² |
 | Qwen3-VL-32B-Thinking | Q5_K_M | 1.0 | 60.6 (60–61) | 66% | 72.5 | 29.8 | **1/162** | 0 | 51 | — ² |
 | Qwen3-VL-8B-Thinking-imatrix | Q4_K_M | 1.0 | 52.3 (48–54) | 60% | 62.9 | 24.7 | 7/162 | 0 | 59 | 13.0 |
@@ -62,67 +63,70 @@ the Instruct build (~19.8 GB weights, ~1.4 GB vision, 8 GiB KV at 32768) and
 49152). Both are estimates. Measuring them is the most useful small thing left
 to do.
 
-### The plateau was a Qwen ceiling, not a local one
+### A local model gets within 6 points of the ceiling, at 16.7 GB
 
-`Gemma-4-31B-it` is the first analyst on the board from outside the Qwen family,
-and it was run to test whether "local models top out around 62" was a real limit
-or an artefact of measuring one lineage nine times. It is an artefact.
+`Muse-Glimmer-30B` scores **82.8**, sixteen points clear of the next best local
+model and **5.6 short of claude-sonnet-5**. It does this at **16.67 GB, entirely
+on GPU**, in 51 seconds a case. Nothing else on this board is close to that
+combination.
 
-**66.7, the new local leader**, 4.2 points clear of the best Qwen with
-non-overlapping confidence intervals (65.3–68.7 against 59.2–64.7). But the margin
-is the least interesting part.
+| | Sonnet | Muse-Glimmer-30B | Gemma-4-31B |
+|---|---|---|---|
+| Quality | **88.4** | 82.8 | 66.7 |
+| Coverage | **90%** | 84% | 68% |
+| Prose C01–C13 | **93.6** | 89.3 | 75.3 |
+| Telemetry C14–C18 | **74.9** | 65.9 | 44.2 |
+| Traps tripped | 4/162 | **1/162** | 3/162 |
+| Unsupported | **13** | **13** | 11 |
+| Found / missed | **343 / 22** | 285 / 26 | 189 / 69 |
+| Resident | — | **16.7 GB** | 22.7 GB |
+| Time a case | 29.2s | 51.2s | 4m 51s |
 
-**It finds no more than the best Qwen. It simply asserts far less that is wrong.**
+**It misses almost nothing.** 26 of 423 checkpoints against Sonnet's 22 — within
+four. What separates them is conversion, not recall: Sonnet turns 81% of
+checkpoints into full credit where Muse manages 67%, with 112 partials against
+Sonnet's 58. Muse sees nearly everything Sonnet sees and states it less
+definitively.
 
-| | Gemma-4-31B | Qwen3-VL-32B-Instruct |
-|---|---|---|
-| Raw checkpoint credit | 64.2% | **64.5%** |
-| Quality | **66.7** | 62.5 |
-| Traps tripped | **3/162** | 8/162 |
-| Invented ticket keys | **0** | 5 |
-| Unsupported per analysis | **0.20** | 0.72 |
+**It ties Sonnet on unsupported claims and beats it on traps** — 13 each, and
+1/162 against 4/162. It is the second local model to beat the reference on
+trustworthiness and the first to do so while also covering 84% of the answer key.
+The caution that applied to the 32B-Thinking's 1/162 does not apply here: that
+model earned its trap record by saying little, and this one did not.
 
-The raw credit is identical to within a third of a point — Gemma actually finds
-*slightly less*. The entire 4.2-point difference is penalties it does not incur.
+**It dominates Gemma-4 outright** — better on quality and memory both, so Gemma
+leaves the Pareto front after one run on it. It is also **5.7× faster**: a full
+54-case run takes about 46 minutes against Gemma's 4.4 hours, and it stays at
+100% on GPU where Gemma spilled to 91%.
 
-**It is the first local model to beat Sonnet on trustworthiness, and it beats it
-on every measure of it:** 3 traps against 4, 11 unsupported claims against 13,
-0 invented keys against 0. That has not happened before on this board.
+**Telemetry is where the result is most surprising.** 65.9 on C14–C18 against the
+previous local best of 44.2. C15 reaches **93**, C16 77, and even C17 — the case
+that defeats everything, where no other local model exceeded 24 — reaches 40.
+Sonnet's 58.9 on C17 is no longer far off.
 
-The honest qualification: Sonnet covers 90% of the answer key to Gemma's 68%, so
-it has far more opportunity to be wrong and still is not. Per *point found* Sonnet
-remains ahead — 0.038 unsupported claims per point against Gemma's 0.058. Gemma is
-not more accurate than Sonnet; it is more disciplined than anything else local
-while finding as much as the best of them.
+#### Two things to be honest about
 
-**It is also the best local model on telemetry by a wide margin** — 44.2 on
-C14–C18, against 36.4 for the best Qwen and 74.9 for Sonnet. C17, the case that
-defeats everything, moves from 14.1/17.9 to 24.1.
+**This needs confirming with a different judge.** A 16-point jump is larger than
+anything else on this board, and it was graded by a local judge. The judge's own
+sheet was clean for this run (2 ungrounded, 0 omitted), and traps and invented
+keys are computed independently of it, so there is no visible anomaly. But the
+protocol this file already recommends for a surprising result is
+`mode: rejudge` against `claude-sonnet-5` on the committed folder — cheap, since
+it does not re-run the analyst. **Treat 82.8 as provisional until that is done.**
 
-**Vision works, and is unremarkable.** The rebuild with the mmproj projector
-succeeded — C09 80.5, C11 50.0, C12 64.3, C13 57.1, against the Qwen 32B-Instruct's
-77.8/50.0/71.4/61.9. Comparable, not better. The rebuild was necessary to make the
-run meaningful, not to make it win.
+**The memory prediction in its Modelfile was too high.** It estimated ~20–21 GB
+(16.1 GB weights + ~3.6 GB vision encoder + 0.69 GiB KV); measured **16.67 GB**.
+The KV arithmetic is probably sound — it was computed from the card's own head
+counts — so the vision encoder is much smaller than the card's ~1.8B ViT-G/14
+implies at F16, or the language weights are smaller than the GGUF size suggests.
+This also supersedes the 19.6 GB figure in CONFIG_SETTINGS, which predates the
+projector and has no recorded `num_ctx`.
 
-**The cost is time, and it is severe.** 4m 51s a case at 5.3 output tok/s — the
-slowest per-case figure on the board, slower than the 72B. A full 54-case run takes
-about **4.4 hours** against the Qwen 32B-Instruct's 75 minutes. It also ran at
-90.6% on GPU, so some of that is spill, but not most of it. If throughput matters
-more than 4 points and a much better trust record, the Qwen 32B-Instruct is still
-the pick.
+### The 4B is the best value under 10 GB
 
-**It closes an open question in CONFIG_SETTINGS.** Its resident size has been
-unknown since the model was added, because the sliding-window architecture makes
-the fleet's KV formula inapplicable. Measured: **22.68 GB at num_ctx 49152**.
-Weights are 18.7 GB and the vision encoder ~1.1 GB, so the cache and overhead come
-to roughly 2.9 GB — against the ~14 GiB a uniform 60-layer model would need. The
-note's prediction that the real figure would be "well below what a naive
-calculation gives" was right.
-
-### The 4B is the value result of the whole benchmark
-
-`Qwen3-VL-4B-Instruct` scores **48.6 at 7.9 GB resident** — and that number only
-means something next to what it is level with:
+`Qwen3-VL-4B-Instruct` scores **48.6 at 7.9 GB resident**. Muse-Glimmer has since
+taken the overall value crown at 16.7 GB, so this is now the sub-10 GB pick rather
+than the board's best return — but within that bracket it is still the clear one:
 
 | Model | Quality | Resident | Time / case |
 |---|---|---|---|
@@ -328,28 +332,33 @@ for the next small Instruct build that matters: **run it at 0.7, not 0.3.**
 
 ### The gap to the ceiling
 
-Sonnet scores **88.4 against 66.7** — 21.7 points, down from 36.1 when the 8B led.
-The composition still differs in kind:
+Sonnet scores **88.4 against 82.8** — 5.6 points, down from 36.1 when the 8B led.
+The composition of that remaining gap is narrow and specific:
 
-| | Sonnet | 32B-Instruct | 32B-Thinking | 8B-Thinking |
+| | Sonnet | Muse-Glimmer | Gemma-4 | Qwen3-VL-32B-I |
 |---|---|---|---|---|
-| Found (full credit) | **343 (81%)** | 193 (46%) | 180 (43%) | 147 (35%) |
-| Partial (half credit) | 58 (14%) | 160 (38%) | 155 (37%) | 166 (39%) |
-| Missed | **22 (5%)** | 70 (17%) | 88 (21%) | 110 (26%) |
+| Found (full credit) | **343 (81%)** | 285 (67%) | 189 (45%) | 193 (46%) |
+| Partial (half credit) | 58 (14%) | 112 (26%) | 165 (39%) | 160 (38%) |
+| Missed | **22 (5%)** | 26 (6%) | 69 (16%) | 70 (17%) |
 
-Every local model's score is carried by partial credit; Sonnet's is carried by
-points it actually made. The local leader gets full credit on 46% of checkpoints
-against Sonnet's 81%.
+**The "local models live on partial credit" reading no longer holds generally.**
+It is still true of everything below Muse — Gemma and the Qwen 32Bs convert
+under half their checkpoints to full credit. But Muse misses only four more
+checkpoints than Sonnet out of 423. Its deficit is conversion: 26% partials
+against Sonnet's 14%. It finds the material and hedges on it.
 
-**Sonnet is also the most trustworthy, not merely the most thorough.** 13
-unsupported claims against 39 and 51, no invented keys, and 4 traps. Per genuine
-finding the gap is starker: 0.04 unsupported claims per point found, against 0.20
-for the 32B-Instruct and 0.28 for the 32B-Thinking. The usual recall-against-trust
-trade-off does not appear — it finds more *and* asserts less that is unsupported.
+**Sonnet is no longer the most trustworthy model on the board either.** Muse ties
+it on unsupported claims (13 each) and beats it on traps (1 against 4). Per point
+found Sonnet is still ahead — 0.038 unsupported per point against Muse's 0.046 —
+but that margin is now within the noise of two runs, where against the Qwen 32Bs
+(0.20 and 0.28) it was an order of magnitude.
+
+What is left of the gap is **telemetry and definiteness**: 9.0 points on C14–C18
+against 4.3 on the prose cases, and a 12-point spread in full-credit conversion.
 
 ### The telemetry cases are still the gap
 
-C14–C18: **44.2** against Sonnet's 74.9. On the prose cases the spread is 93.6
+C14–C18: **65.9** against Sonnet's 74.9. On the prose cases the spread is 93.6
 against 72.5, a factor of 1.3; on logs and Sentry exports it is a factor of 2.1 —
 down from 2.5, but still the widest part of the board.
 
@@ -420,58 +429,35 @@ The 8B finds substantially more and is wrong more often; the 32B finds less and 
 right about more of it. For a pipeline with a verification step, take the 8B's
 recall. For output a human reads and acts on directly, take the 32B.
 
-### Memory: two steps, then a generation gap
+### Memory: it predicts nothing, and the best model is mid-range
 
 Ordered by measured memory: 0.4 GB → 1.0, 4.1 GB → 14.4, 5.4 GB → 25.3,
 7.1 GB → 24.5, **7.9 GB → 48.6**, 8.1 GB → 26.7, 9.4 GB → 49.7,
-**11.0 GB → 51.9**, 13.0 GB → 52.3, **22.7 GB → 66.7**, 32.5 GB → 49.2,
-56.3 GB → 45.6.
+**11.0 GB → 51.9**, 13.0 GB → 52.3, **16.7 GB → 82.8**, 22.7 GB → 66.7,
+32.5 GB → 49.2, 56.3 GB → 45.6.
 
-Two steps and one apparent collapse:
+**The peak is at 16.7 GB, and the curve falls on both sides of it.** The best
+local model uses less memory than the 22.7 GB model that scores 16 points lower,
+less than half of what the 32.5 GB model uses for 33 points less, and under a
+third of the 56.3 GB model's for 37 points less.
 
-- **5.4 GB → 7.9 GB is worth 23 points**, the steepest step on the board
-- **13.0 GB → 22.7 GB is worth 14 points**, which is where the earlier
-  "flat above 8 GB" reading was wrong — it was flat because nothing above 13 GB had
-  been measured except two older-generation models
-- **above 22.7 GB it falls**, but the 32.5 GB and 56.3 GB entries are both
-  Qwen2.5-VL, a generation behind everything above them. That is a generation
-  effect, not a memory one, and the board has no current-generation model measured
-  above 22.7 GB to say otherwise
+That kills the framing earlier versions of this file used. There is no plateau, no
+step function and no threshold worth quoting. The useful statements are narrower:
 
-The 8.1 GB entry is the 2B-Thinking and is the one point that sits far below the
-line — 22 points under a model using less memory. Memory does not predict quality,
-but it does not excuse it either: see the 2B section above.
+- **Below about 8 GB, size still binds.** 5.4 GB → 7.9 GB is worth 23 points, the
+  steepest step on the board, and the 2B tier does not work at all.
+- **Between 8 and 13 GB the Qwen fleet sits on a shelf** at 48.6–52.3, spanning a
+  7× range in parameters for four points.
+- **Above 13 GB, memory tells you nothing.** 16.7 GB → 82.8, 22.7 GB → 66.7,
+  32.5 GB → 49.2, 56.3 GB → 45.6. Architecture, generation and training dominate
+  so completely that footprint is not a useful proxy for anything.
 
-The curve rises very steeply to about 8 GB and is then **flat or falling all the
-way to 56 GB**. Everything from the 4B to the 72B — a 7× span in memory and an
-18× span in parameters — lands between 45.6 and 52.3, which is barely wider than
-a single model's run-to-run range. The 4B result is what makes this sharp: it is
-not that big models disappoint, it is that a 7.9 GB model reaches the same plateau.
+The practical consequence: **stop sizing this job by memory.** A 16.7 GB model
+scores within 6 points of a frontier API model, and the three larger models
+measured are all worse. Spending more than about 17 GB has no evidence behind it.
 
-**Two exceptions sit above the plateau and neither has been measured.** The 32B
-Instruct and Thinking builds score 62.5 and 60.6, roughly 10 points clear of
-everything else, and both are missing their `/api/ps` figure. If their estimates
-(~29 GB and ~35 GB) hold, the real shape is a plateau from 8–13 GB and a second
-step up at ~30 GB — which is a different recommendation from "8 GB is enough".
-That distinction rests entirely on two numbers nobody has read off the server, so
-re-running those two to capture memory remains the highest-value small task.
-
-**The estimates are probably good, though.** The 4B-Thinking is the first chance to
-check the Modelfiles' KV arithmetic against a measurement: predicted 11.05 GB
-(2.9 GB weights + 1.4 GB vision + 6.75 GiB KV at 49152), **measured 11.04**. The
-formula — layers × KV heads × head_dim × 2 × 2 bytes — holds to 0.01 GB on this
-fleet, so the 32B figures should be good to about a gigabyte provided those builds
-have the layer and KV-head counts the Modelfiles assume. That is worth confirming
-with `scripts/gguf_info.py` rather than taking on faith, but it is no longer a
-guess.
-
-**Where the counts were guessed, the estimate missed.** The 2B-Thinking Modelfile
-predicted ~10 GB and measured **8.14**, because it assumed the 2B shared the
-4B/8B's 36 layers × 8 KV heads — which the file itself flagged as a guess. Working
-back from the measurement gives roughly 117 KiB/token rather than the assumed 144,
-so the 2B is shallower or carries fewer KV heads. The lesson is narrow and useful:
-the formula is sound, the architecture constants are what need reading off the
-file.
+The 8.1 GB entry is the 2B-Thinking, the one point far below its neighbours — 22
+points under a model using less memory. See the 2B section.
 
 **Read the two case groups separately.** C01–C13 are prose ticket analysis;
 C14–C18 attach logs and Sentry telemetry. The headline Quality is a mean over both
@@ -480,38 +466,37 @@ and moves mostly with the telemetry cases, so it is not a good single number for
 
 ## Runs still to do
 
-**The Qwen3-VL fleet is complete** — all eight builds (2B/4B/8B/32B × Instruct and
-Thinking) have scores against the judge of record. What remains is outside that
-fleet:
+Every model that was queued has now been run: the eight Qwen3-VL builds, the four
+Qwen2.5-VL builds, Falcon-H1-Tiny as a floor, and both non-Qwen candidates. What
+remains is verification, not coverage.
 
-- `Gemma-4-31B-it`, once rebuilt with its vision projector
-- `Muse-Glimmer-30B`, likewise — its Modelfile is written and its KV arithmetic
-  worked out, but its reasoning strength is set in the system prompt rather than by
-  Ollama, which is a mechanism nothing else here uses
+**1. Re-judge Muse-Glimmer with Sonnet.** This is the only outstanding item that
+changes what the board says. 82.8 is sixteen points above the next model and was
+graded by a local judge; `mode: rejudge` with `results_dir` pointing at the
+committed folder and `judge: claude-sonnet-5` confirms or corrects it without
+re-running the analyst. Until then the headline result is provisional.
 
-`Gemma-4-31B-it` has now been run, and it answered the question those two were for:
-the ceiling was a Qwen ceiling. `Muse-Glimmer-30B` is the remaining one, and it is
-still worth doing — a second non-Qwen data point, at a similar size, with a KV cache
-seventeen times smaller than the Qwen 32B's. Its Modelfile is written; its reasoning
-strength is set in the system prompt rather than by Ollama, which nothing else here
-does. Two things still limit what the
-fleet can show:
+**2. Re-run the two Qwen3-VL 32B builds to capture memory.** Both lost their
+`/api/ps` figures, so neither can be placed on the Pareto front. Lower priority
+now — Muse dominates both on quality by 20+ points, so their footprints no longer
+affect any recommendation. Worth doing only to close the gap in the table.
 
-- **Quantization.** The Instruct track is matched at Q4_K_M imatrix apart from the
-  8B at Q3_K_M. The Thinking track runs three quants and the 32B has no imatrix,
-  so no size has a quant-matched Instruct/Thinking pair. The 32B comparison above
-  is the closest available — Q4_K_M imatrix against Q5_K_M plain — and note the
-  direction: the Thinking build carries the *higher* quant, so quantization does
-  not explain its loss.
-- **Context per family.** Qwen2.5-VL runs at 32768 / 8192, Qwen3-VL Instruct at
-  32768 / 8192 and Qwen3-VL Thinking at 49152 / 16384. The trained-window guard
-  refuses a run above the model's own window.
+**3. Qwen3.8-27B and Qwen3.6-27B as analysts.** Both turned out to be
+vision-language models rather than text-only, and both now have Modelfiles with
+the projector step. The 3.8 is the more interesting: same generation as the
+leaders, and it would be the third non-Qwen-VL architecture tried. **Judge it with
+Sonnet, not the default** — the default judge *is* Qwen3.8-27B.
 
-Priorities, in order: **re-run the two 32B builds to capture their memory**, since
-the whole value story now hangs on unmeasured numbers; then the 4B pair, which is
-where a usable size curve would start to show.
+**4. The analyst prompt A/B**, still unstarted. The prompt is written for prose
+ticket grooming and a third of the cases are not that; the capable models fill
+"acceptance criteria" on C14–C18 regardless. Worth testing on C14–C18 from a
+branch before rebuilding the board, and now cheaper to justify than it was, since
+Muse's 65.9 on those cases shows there is real headroom to recover.
 
----
+Still unresolved from the fleet itself: no Instruct/Thinking pair is
+quant-matched, so the reasoning table remains strongly indicative rather than
+conclusive. Standardising the Thinking track on Q4_K_M imatrix would fix it for
+~0.2 GB a build.
 
 ## The judge
 

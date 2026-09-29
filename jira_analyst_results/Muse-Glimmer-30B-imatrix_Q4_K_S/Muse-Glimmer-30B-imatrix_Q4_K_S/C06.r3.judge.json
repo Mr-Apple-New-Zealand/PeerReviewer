@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Blocked by OPS-77. Last update 2026-09-12 17:20.\n  * Code done and merged behind flag MTLS_PARTNER.\n  * Cannot run end-to-end test until Northwind CA certificates are in staging trust store.",
+      "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test cannot run until Northwind CA certificates are in the staging trust store, and OPS-77 is waiting for Northwind to send the CA bundle."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Due date 2026-09-10, which is past. Last update 2026-09-11 10:05.\n  * Needs CA bundle from Northwind to import into staging then production trust stores.\n  * CA bundle requested 2026-09-05, Northwind said \"early next week\". No reply on chase 2026-09-11, escalation requested via partner manager.",
+      "reason": "The analysis states the due date (2026-09-10), that it is past, the last update date (2026-09-11), that Northwind has not replied, and that the partner manager was asked to escalate."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Ravi Kumar needs ~2 days of test/fix time after the dependency is unblocked. Release 3.2.0 is scheduled for 2026-09-24 and Sprint 38 closes 2026-09-22.",
+      "reason": "The analysis states the release date (2026-09-24), sprint end (2026-09-22), and Ravi's ~2-day testing window after certificates arrive."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: Even if the CA bundle arrived today 2026-09-15, the 2-day test/fix window puts completion at ~2026-09-17, leaving only a few days before Sprint 38 ends 2026-09-22 and release 2026-09-24. This is tight and assumes no further issues.",
+      "reason": "The analysis presents the risk as a labelled inference, noting the tight timeline, the vendor dependency with no committed date, and the uncertainty of making the release."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "with code merged behind feature flag MTLS_PARTNER off by default",
+      "reason": "The analysis clearly states the code is complete and merged behind the MTLS_PARTNER feature flag, off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Production trust store installation is described as second step after staging, but no owner timeline or acceptance criteria is recorded. Mutual TLS is required from 1 Oct 2026.",
+      "reason": "The analysis notes that OPS-77 covers staging then production, and that Northwind requires mTLS from 1 October 2026, establishing a hard external deadline beyond the release."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Jo Tan to provide a concrete status on the partner manager escalation and a firm ETA for the CA bundle from Northwind, and confirm the installation plan for staging then production.",
+      "reason": "The analysis recommends escalating through the partner manager (Jo Tan) for a firm delivery date and separately suggests shipping 3.2.0 with MTLS_PARTNER off by default if the certificates do not arrive in time."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the certificates have been received or installed, nor does it state OPS-77 is done; it correctly reports the status as 'Waiting for vendor'."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis quotes Northwind's vague 'early next week' as their stated response but explicitly notes 'no delivery date' and does not assert a specific committed delivery date."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 121.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "quote": "Blocked by OPS-77. Last update 2026-09-12 17:20.\n  * Code done and merged behind flag MTLS_PARTNER.\n  * Cannot run end-to-end test until Northwind CA certificates are in staging trust store.",
+        "reason": "The analysis clearly states BANK-405 is blocked by OPS-77, the end-to-end test cannot run until Northwind CA certificates are in the staging trust store, and OPS-77 is waiting for Northwind to send the CA bundle.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P2",
+        "quote": "Due date 2026-09-10, which is past. Last update 2026-09-11 10:05.\n  * Needs CA bundle from Northwind to import into staging then production trust stores.\n  * CA bundle requested 2026-09-05, Northwind said \"early next week\". No reply on chase 2026-09-11, escalation requested via partner manager.",
+        "reason": "The analysis states the due date (2026-09-10), that it is past, the last update date (2026-09-11), that Northwind has not replied, and that the partner manager was asked to escalate.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P3",
+        "quote": "Ravi Kumar needs ~2 days of test/fix time after the dependency is unblocked. Release 3.2.0 is scheduled for 2026-09-24 and Sprint 38 closes 2026-09-22.",
+        "reason": "The analysis states the release date (2026-09-24), sprint end (2026-09-22), and Ravi's ~2-day testing window after certificates arrive.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-I1",
+        "quote": "Inference: Even if the CA bundle arrived today 2026-09-15, the 2-day test/fix window puts completion at ~2026-09-17, leaving only a few days before Sprint 38 ends 2026-09-22 and release 2026-09-24. This is tight and assumes no further issues.",
+        "reason": "The analysis presents the risk as a labelled inference, noting the tight timeline, the vendor dependency with no committed date, and the uncertainty of making the release.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P4",
+        "quote": "with code merged behind feature flag MTLS_PARTNER off by default",
+        "reason": "The analysis clearly states the code is complete and merged behind the MTLS_PARTNER feature flag, off by default.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P5",
+        "quote": "Production trust store installation is described as second step after staging, but no owner timeline or acceptance criteria is recorded. Mutual TLS is required from 1 Oct 2026.",
+        "reason": "The analysis notes that OPS-77 covers staging then production, and that Northwind requires mTLS from 1 October 2026, establishing a hard external deadline beyond the release.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-P6",
+        "quote": "Jo Tan to provide a concrete status on the partner manager escalation and a firm ETA for the CA bundle from Northwind, and confirm the installation plan for staging then production.",
+        "reason": "The analysis recommends escalating through the partner manager (Jo Tan) for a firm delivery date and separately suggests shipping 3.2.0 with MTLS_PARTNER off by default if the certificates do not arrive in time.",
+        "verdict": "found"
+      },
+      {
+        "id": "C06-T1",
+        "quote": "",
+        "reason": "The analysis does not claim the certificates have been received or installed, nor does it state OPS-77 is done; it correctly reports the status as 'Waiting for vendor'.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C06-T2",
+        "quote": "",
+        "reason": "The analysis quotes Northwind's vague 'early next week' as their stated response but explicitly notes 'no delivery date' and does not assert a specific committed delivery date.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP errors from 18:02:48 onward, e.g.: Sending 'payment-receipt' to customer 41082 failed. System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled. SMTP status code: 535",
+      "reason": "The analysis clearly identifies the SMTP 535 authentication failure with the exact server response as the cause of undelivered emails, though it does not explicitly name EmailSender and OutboxDispatcher as the raising classes."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter's diagnosis in the comments is not supported by the log. \u2026 Inference: The Data Protection warnings are present but they do not explain the observed failures. The log's errors are SMTP 535 authentication failures. \u2026 No Data Protection-related errors or failures are logged.",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection explanation and states the warnings do not explain the SMTP failures, conveying that they are unrelated to delivery."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "18:03:08 WRN Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+      "reason": "The analysis quotes the exact warning and later recommends implementing backoff and dead-lettering to prevent head-of-line blocking, fully conveying the point."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "18:02:48 INF Outbox dispatcher: 1412 messages pending. \u2026 Pending grows to 2089 by 18:39:48. \u2026 queue increasing ~677 messages in ~37 minutes. \u2026 Customer impact is ongoing and growing queue suggests backlog will accumulate.",
+      "reason": "The analysis provides the exact pending counts, the growth rate, and states customer impact is ongoing, conveying that customers will keep missing receipts until the auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Startup warnings at 18:02:41 after pod restart at 18:02: \u2026 Missing: \u2026 timeline of any SMTP credential/policy change around 14:00",
+      "reason": "The analysis acknowledges the log starts at 18:02 and lists the 14:00 timeline as missing, but does not explicitly state that the log cannot confirm what happened at 14:00 or that the previous container's log was not captured."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "pod restart at 18:02 did not help per Priya Nair comment at 18:45. \u2026 Do not restart the pod again. Priya Nair should hold on restart attempts. \u2026 Restarting will not fix authentication.",
+      "reason": "The analysis clearly states the 18:02 restart did not resolve the issue and explicitly advises against further restarts, noting the same 535 errors persist."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Check with Platform / Email Ops for any SMTP policy change or credential rotation around 14:00 today that disabled basic authentication. \u2026 Verify the SMTP client configuration in notifications 2.3.4 supports the required auth mechanism; check if app secrets/credentials for svc-notify@example.com are valid.",
+      "reason": "The analysis frames the basic-auth-disabled error as suggesting a mail-provider-side change and directs investigation toward credentials and auth method rather than notification code, presented as items to verify rather than established fact."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check with Platform / Email Ops for any SMTP policy change or credential rotation around 14:00 today that disabled basic authentication. \u2026 Review outbox retry logic: implement backoff and dead-lettering to prevent head-of-line blocking, as currently warned.",
+      "reason": "The analysis covers confirming with the mail tenant and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "NATS reconnect at 18:07:13, otherwise normal. \u2026 Health check at 18:21:09: Healthy (db 8ms, nats 3ms, smtp skipped).",
+      "reason": "The analysis mentions both the NATS reconnect and the healthy check, characterising them as normal and not part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection explanation, calling it unsupported and a separate hardening item."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the outage start; it only references 14:00 as the ticket's reported time and a gap."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly advises against restarting the pod, stating it will not fix authentication."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame NATS, the health check, or the poll interval for the undelivered emails; it attributes the failure to SMTP authentication."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references the 535 authentication error and the 5.7.139 response; no rate-limiting, TLS failure, or mailbox-full claims are made."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 158.56
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "SMTP errors from 18:02:48 onward, e.g.: Sending 'payment-receipt' to customer 41082 failed. System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled. SMTP status code: 535",
+        "reason": "The analysis clearly identifies the SMTP 535 authentication failure with the exact server response as the cause of undelivered emails, though it does not explicitly name EmailSender and OutboxDispatcher as the raising classes.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "The reporter's diagnosis in the comments is not supported by the log. \u2026 Inference: The Data Protection warnings are present but they do not explain the observed failures. The log's errors are SMTP 535 authentication failures. \u2026 No Data Protection-related errors or failures are logged.",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection explanation and states the warnings do not explain the SMTP failures, conveying that they are unrelated to delivery.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "18:03:08 WRN Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+        "reason": "The analysis quotes the exact warning and later recommends implementing backoff and dead-lettering to prevent head-of-line blocking, fully conveying the point.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "18:02:48 INF Outbox dispatcher: 1412 messages pending. \u2026 Pending grows to 2089 by 18:39:48. \u2026 queue increasing ~677 messages in ~37 minutes. \u2026 Customer impact is ongoing and growing queue suggests backlog will accumulate.",
+        "reason": "The analysis provides the exact pending counts, the growth rate, and states customer impact is ongoing, conveying that customers will keep missing receipts until the auth is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "Startup warnings at 18:02:41 after pod restart at 18:02: \u2026 Missing: \u2026 timeline of any SMTP credential/policy change around 14:00",
+        "reason": "The analysis acknowledges the log starts at 18:02 and lists the 14:00 timeline as missing, but does not explicitly state that the log cannot confirm what happened at 14:00 or that the previous container's log was not captured.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "pod restart at 18:02 did not help per Priya Nair comment at 18:45. \u2026 Do not restart the pod again. Priya Nair should hold on restart attempts. \u2026 Restarting will not fix authentication.",
+        "reason": "The analysis clearly states the 18:02 restart did not resolve the issue and explicitly advises against further restarts, noting the same 535 errors persist.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "Check with Platform / Email Ops for any SMTP policy change or credential rotation around 14:00 today that disabled basic authentication. \u2026 Verify the SMTP client configuration in notifications 2.3.4 supports the required auth mechanism; check if app secrets/credentials for svc-notify@example.com are valid.",
+        "reason": "The analysis frames the basic-auth-disabled error as suggesting a mail-provider-side change and directs investigation toward credentials and auth method rather than notification code, presented as items to verify rather than established fact.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Check with Platform / Email Ops for any SMTP policy change or credential rotation around 14:00 today that disabled basic authentication. \u2026 Review outbox retry logic: implement backoff and dead-lettering to prevent head-of-line blocking, as currently warned.",
+        "reason": "The analysis covers confirming with the mail tenant and adding backoff/dead-letter, but does not mention retrieving the pre-18:02 container log to confirm the 14:00 start.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "NATS reconnect at 18:07:13, otherwise normal. \u2026 Health check at 18:21:09: Healthy (db 8ms, nats 3ms, smtp skipped).",
+        "reason": "The analysis mentions both the NATS reconnect and the healthy check, characterising them as normal and not part of the failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection explanation, calling it unsupported and a separate hardening item.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis does not state what the log shows at 14:00 or claim the log covers the outage start; it only references 14:00 as the ticket's reported time and a gap.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis explicitly advises against restarting the pod, stating it will not fix authentication.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis does not blame NATS, the health check, or the poll interval for the undelivered emails; it attributes the failure to SMTP authentication.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references the 535 authentication error and the 5.7.139 response; no rate-limiting, TLS failure, or mailbox-full claims are made.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

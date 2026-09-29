@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 and BANK-425 describe the same web stale-balance symptom on 3.1.4 and are very likely duplicates / the same root cause.",
+      "reason": "The analysis clearly identifies BANK-425 and BANK-440 as duplicates reporting the same web stale-balance-after-transfer symptom on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440: Link as duplicate/child of BANK-425. Do not investigate separately. Keep reference to the API observation that GET /api/user/balance is correct.\n* BANK-425: Keep as the primary web stale-balance bug. Assign to web owner; Hana Sato is the author of the cache implementation and provided the root cause analysis.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, satisfying the 'either direction acceptable if linked and analysis preserved' criterion."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is a different platform and different defect \u2013 push notification text built from the wrong event \u2013 not a duplicate of BANK-440.",
+      "reason": "The analysis correctly identifies MOB-88 as a mobile push-notification issue with a different cause (TransferRequested event) and notes it is In Progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 contains the only technical analysis in the set: BalanceCache in local storage for 15 minutes, no invalidation on transfer success, suggested fix to clear BalanceCache when a transfer succeeds.",
+      "reason": "The analysis clearly states the cause (15-minute BalanceCache in local storage not invalidated after transfer) and the fix (clear it when a transfer succeeds)."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-419 is the completed task that introduced the 15-minute BalanceCache on web in 3.1.4; it is not a duplicate but the likely cause of BANK-440 / BANK-425.",
+      "reason": "The analysis presents the regression link as an inference ('likely cause') and recommends documenting BANK-419 as the origin of the regression for traceability, effectively linking it."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No owner on BANK-440 or BANK-425, both Open, risk of duplicate work.",
+      "reason": "The analysis explicitly states both duplicate tickets are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'not a duplicate of BANK-440' and has 'No relation to BANK-440.'"
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the API returns the correct balance and does not claim it returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 71.02
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-440 and BANK-425 describe the same web stale-balance symptom on 3.1.4 and are very likely duplicates / the same root cause.",
+        "reason": "The analysis clearly identifies BANK-425 and BANK-440 as duplicates reporting the same web stale-balance-after-transfer symptom on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "BANK-440: Link as duplicate/child of BANK-425. Do not investigate separately. Keep reference to the API observation that GET /api/user/balance is correct.\n* BANK-425: Keep as the primary web stale-balance bug. Assign to web owner; Hana Sato is the author of the cache implementation and provided the root cause analysis.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, satisfying the 'either direction acceptable if linked and analysis preserved' criterion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is a different platform and different defect \u2013 push notification text built from the wrong event \u2013 not a duplicate of BANK-440.",
+        "reason": "The analysis correctly identifies MOB-88 as a mobile push-notification issue with a different cause (TransferRequested event) and notes it is In Progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425 contains the only technical analysis in the set: BalanceCache in local storage for 15 minutes, no invalidation on transfer success, suggested fix to clear BalanceCache when a transfer succeeds.",
+        "reason": "The analysis clearly states the cause (15-minute BalanceCache in local storage not invalidated after transfer) and the fix (clear it when a transfer succeeds).",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is the completed task that introduced the 15-minute BalanceCache on web in 3.1.4; it is not a duplicate but the likely cause of BANK-440 / BANK-425.",
+        "reason": "The analysis presents the regression link as an inference ('likely cause') and recommends documenting BANK-419 as the origin of the regression for traceability, effectively linking it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "No owner on BANK-440 or BANK-425, both Open, risk of duplicate work.",
+        "reason": "The analysis explicitly states both duplicate tickets are unassigned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'not a duplicate of BANK-440' and has 'No relation to BANK-440.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the API returns the correct balance and does not claim it returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

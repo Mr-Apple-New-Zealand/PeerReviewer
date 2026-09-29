@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "retrying a timed-out transfer debits the source cheque account twice while crediting savings once",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "It is reproducible on version 3.1.4 with artificial latency and has impacted three customers on 5, 6 and 8 September. Fix is targeted for 3.2.0 release on 2026-09-24.",
+      "reason": "Both the affected version (3.1.4) and the fix target (3.2.0, releasing 2026-09-24) are explicitly stated."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Retry button calls POST /api/transaction/transfer again with no idempotency key, server treats it as new transfer. Debit and credit are not in one database transaction, so first debit stays committed when credit times out.",
+      "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated and attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress, Assignee: Priya Nair, Reporter: Marcus Reid",
+      "reason": "Status, assignee, and PR #218 waiting on code review are all explicitly stated in the analysis."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Finance manual reversals required for three affected customers. Aroha Walker on 2026-09-11 09:15 asks Marcus Reid to raise that with Finance Ops.",
+      "reason": "The analysis names the three affected customers, the manual Finance reversal requirement, and Marcus Reid's role in raising it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Manual finance reversals are pending; no confirmation they are completed.",
+      "reason": "The analysis explicitly notes that the ticket does not confirm the reversals have been raised or completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair: obtain code review for PR #218 and complete implementation within Sprint 38. Code reviewer: review and approve PR #218 promptly to unblock merge. Marcus Reid: raise manual reversal request with Finance Ops for the three affected customers",
+      "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are listed as suggested next steps."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently describes PR #218 as open and waiting on code review, never claiming it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug does NOT reproduce on desktop web, matching Tom Becker's confirmation."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 56.92
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "retrying a timed-out transfer debits the source cheque account twice while crediting savings once",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "It is reproducible on version 3.1.4 with artificial latency and has impacted three customers on 5, 6 and 8 September. Fix is targeted for 3.2.0 release on 2026-09-24.",
+        "reason": "Both the affected version (3.1.4) and the fix target (3.2.0, releasing 2026-09-24) are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "Retry button calls POST /api/transaction/transfer again with no idempotency key, server treats it as new transfer. Debit and credit are not in one database transaction, so first debit stays committed when credit times out.",
+        "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated and attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress, Assignee: Priya Nair, Reporter: Marcus Reid",
+        "reason": "Status, assignee, and PR #218 waiting on code review are all explicitly stated in the analysis.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Finance manual reversals required for three affected customers. Aroha Walker on 2026-09-11 09:15 asks Marcus Reid to raise that with Finance Ops.",
+        "reason": "The analysis names the three affected customers, the manual Finance reversal requirement, and Marcus Reid's role in raising it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Manual finance reversals are pending; no confirmation they are completed.",
+        "reason": "The analysis explicitly notes that the ticket does not confirm the reversals have been raised or completed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair: obtain code review for PR #218 and complete implementation within Sprint 38. Code reviewer: review and approve PR #218 promptly to unblock merge. Marcus Reid: raise manual reversal request with Finance Ops for the three affected customers",
+        "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are listed as suggested next steps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently describes PR #218 as open and waiting on code review, never claiming it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis correctly states the bug does NOT reproduce on desktop web, matching Tom Becker's confirmation.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The attached 48h payments-api-prod.log shows a recurring 403 Forbidden from masterfile-api on branchlocation calls that directly matches the AddPaymentRoutingRuleSecondary / BulkUpdateSecondaryBranches save path.",
+      "reason": "The analysis identifies the 403s on both methods, lists all four occurrences, names both commands, and connects them to the user-reported save failure, calling it the first fix to prioritize."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "03:37:30, 03:38:22, 03:38:50, 03:40:12, 20:26:31 ERR\n  `Conversion failed when converting the ****** value '******' to data type ******. Microsoft.Data.SqlClient.SqlException (0x80131904) Error Number:245,State:1,Class:16`\n  Occurs in SearchPaymentRoutingRuleQueryHandler.Handle via EF Core query.",
+      "reason": "Five timestamps are listed, the error message is quoted, the handler is named, and the error number 245 is given."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Conversion error values are redacted as ******, so column/table cannot be identified from the export.",
+      "reason": "The analysis explicitly states the values are redacted and that the column/table cannot be identified, and in suggested actions asks for an unredacted value/column."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "22:26:04 onward multiple ERR Execution Timeout Expired for GetMonitorJobsQueryHandler. Error Number:-2,State:0,Class:11",
+      "reason": "The analysis identifies the handler and error number but does not state the count (eight), the end time (22:29:08), the recovery (22:36:47 onward), or characterize it as a bounded episode; it also starts the window at 22:26:04 rather than 22:26:37."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "22:35:24 and 22:35:32 ERR Handling transaction for UpdatePaymentRoutingRuleCommand RuleSetId 41003\n  `Application.BuildingBlocks.Exceptions.ApplicationValidationException: Application validation errors have occured.`\n  Not obviously related to secondary branch saves.",
+      "reason": "The analysis identifies the two failures and the exception type but does not note that the individual validation messages are never logged or flag this as a logging gap worth fixing."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "00:20:43 to 00:24:34 WRN Long-running request GetStatementLineQuery took 35-72s, threshold 10000ms.",
+      "reason": "The analysis gives the time range and duration range but does not state the count (fourteen), does not explicitly note the values are still rising at the end of the log, and rounds 72974ms down to 72s."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the DBG-level connection string containing the password (User ID=svc_payments;Password=Pr0d-Payments-2026!) or flags it as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Container restart at 02:50:11 \u2192 02:50:14 means times wrap; 48h window cannot be reliably mapped to real occurrences.",
+      "reason": "The analysis identifies the single restart at the correct timestamps and uses it to explain the time-wrap issue."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Startup warnings: Storing keys in '/app/.aspnet/DataProtection-Keys' may not be persisted, No XML encryptor configured, Overriding address(es) 'http://*:8080', Failed to determine the https port for redirect.",
+      "reason": "All four startup warnings are listed under 'Routine noise that can be ignored,' clearly indicating they are not the cause of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Repeated INF `Service Permissions found and sent on the event bus` every few minutes.",
+      "reason": "Only the Service Permissions messages are identified as non-defects; the ObjectMapper licence lines, the TaskCanceledException at 21:11:02, and the 404 for pending payment 88213 are not mentioned."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Log timestamps show time-of-day only, no date. Container restart at 02:50:11 \u2192 02:50:14 means times wrap; 48h window cannot be reliably mapped to real occurrences.\n* Support trimmed repeated stack traces, so full error context is missing.",
+      "reason": "The analysis covers the time-of-day/no-date limitation, the ordering problem, and the trimmed stack traces, conveying that the log is not a complete or reliably ordered record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: These 403s on masterfile-api branchlocation lookups are the failure path for saving secondary branches. The log does not show a successful completion for those commands.",
+      "reason": "The analysis labels the point as an inference and in suggested actions points to Dapr service invocation permissions and masterfile-api authorization policies, implying a configuration/access-control issue rather than a payments code fault."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is the first fix to prioritize per Priya Nair's comment.\n* Database team to investigate:\n  * SqlException 245 conversion failure in SearchPaymentRoutingRuleQueryHandler, line 59, on SearchPaymentRoutingRuleQuery.\n  * Execution Timeout Expired on GetMonitorJobsQueryHandler and repeated long-running GetStatementLineQuery warnings.",
+      "reason": "The analysis prioritises the 403s first and lists database issues second, but does not explicitly order the SQL 245 before GetStatementLineQuery, and completely omits the credential-in-log security item that should be handled in parallel."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The DataProtection and XML encryptor warnings are listed under 'Routine noise that can be ignored' and are never attributed as causes of any failure."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values are redacted as ****** and that the column/table cannot be identified; no specific column, value, or data type is named."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly notes 'Log timestamps show time-of-day only, no date' and '48h window cannot be reliably mapped to real occurrences,' so it does not present elapsed times or sequences as established fact."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The NATS subject names are not mentioned anywhere in the analysis."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis refers to a single 'Container restart at 02:50:11 \u2192 02:50:14' and does not claim crash-looping or repeated restarts."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis says 'Separate database conversion errors and SQL timeouts are also present but not obviously tied to the reported save failure,' and does not claim the database was down or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "22:26:04 onward multiple ERR Execution Timeout Expired for GetMonitorJobsQueryHandler",
+      "reason": "The first Execution Timeout Expired error in the log is at 22:26:37; at 22:26:04 GetMonitorJobsQuery completed successfully in 133ms. The stated start time is incorrect."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 203.84
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "The attached 48h payments-api-prod.log shows a recurring 403 Forbidden from masterfile-api on branchlocation calls that directly matches the AddPaymentRoutingRuleSecondary / BulkUpdateSecondaryBranches save path.",
+        "reason": "The analysis identifies the 403s on both methods, lists all four occurrences, names both commands, and connects them to the user-reported save failure, calling it the first fix to prioritize.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "03:37:30, 03:38:22, 03:38:50, 03:40:12, 20:26:31 ERR\n  `Conversion failed when converting the ****** value '******' to data type ******. Microsoft.Data.SqlClient.SqlException (0x80131904) Error Number:245,State:1,Class:16`\n  Occurs in SearchPaymentRoutingRuleQueryHandler.Handle via EF Core query.",
+        "reason": "Five timestamps are listed, the error message is quoted, the handler is named, and the error number 245 is given.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "Conversion error values are redacted as ******, so column/table cannot be identified from the export.",
+        "reason": "The analysis explicitly states the values are redacted and that the column/table cannot be identified, and in suggested actions asks for an unredacted value/column.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "22:26:04 onward multiple ERR Execution Timeout Expired for GetMonitorJobsQueryHandler. Error Number:-2,State:0,Class:11",
+        "reason": "The analysis identifies the handler and error number but does not state the count (eight), the end time (22:29:08), the recovery (22:36:47 onward), or characterize it as a bounded episode; it also starts the window at 22:26:04 rather than 22:26:37.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "22:35:24 and 22:35:32 ERR Handling transaction for UpdatePaymentRoutingRuleCommand RuleSetId 41003\n  `Application.BuildingBlocks.Exceptions.ApplicationValidationException: Application validation errors have occured.`\n  Not obviously related to secondary branch saves.",
+        "reason": "The analysis identifies the two failures and the exception type but does not note that the individual validation messages are never logged or flag this as a logging gap worth fixing.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "00:20:43 to 00:24:34 WRN Long-running request GetStatementLineQuery took 35-72s, threshold 10000ms.",
+        "reason": "The analysis gives the time range and duration range but does not state the count (fourteen), does not explicitly note the values are still rising at the end of the log, and rounds 72974ms down to 72s.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "",
+        "reason": "The analysis never mentions the DBG-level connection string containing the password (User ID=svc_payments;Password=Pr0d-Payments-2026!) or flags it as a credential exposure requiring rotation.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "Container restart at 02:50:11 \u2192 02:50:14 means times wrap; 48h window cannot be reliably mapped to real occurrences.",
+        "reason": "The analysis identifies the single restart at the correct timestamps and uses it to explain the time-wrap issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Startup warnings: Storing keys in '/app/.aspnet/DataProtection-Keys' may not be persisted, No XML encryptor configured, Overriding address(es) 'http://*:8080', Failed to determine the https port for redirect.",
+        "reason": "All four startup warnings are listed under 'Routine noise that can be ignored,' clearly indicating they are not the cause of the failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Repeated INF `Service Permissions found and sent on the event bus` every few minutes.",
+        "reason": "Only the Service Permissions messages are identified as non-defects; the ObjectMapper licence lines, the TaskCanceledException at 21:11:02, and the 404 for pending payment 88213 are not mentioned.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "Log timestamps show time-of-day only, no date. Container restart at 02:50:11 \u2192 02:50:14 means times wrap; 48h window cannot be reliably mapped to real occurrences.\n* Support trimmed repeated stack traces, so full error context is missing.",
+        "reason": "The analysis covers the time-of-day/no-date limitation, the ordering problem, and the trimmed stack traces, conveying that the log is not a complete or reliably ordered record.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Inference: These 403s on masterfile-api branchlocation lookups are the failure path for saving secondary branches. The log does not show a successful completion for those commands.",
+        "reason": "The analysis labels the point as an inference and in suggested actions points to Dapr service invocation permissions and masterfile-api authorization policies, implying a configuration/access-control issue rather than a payments code fault.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "This is the first fix to prioritize per Priya Nair's comment.\n* Database team to investigate:\n  * SqlException 245 conversion failure in SearchPaymentRoutingRuleQueryHandler, line 59, on SearchPaymentRoutingRuleQuery.\n  * Execution Timeout Expired on GetMonitorJobsQueryHandler and repeated long-running GetStatementLineQuery warnings.",
+        "reason": "The analysis prioritises the 403s first and lists database issues second, but does not explicitly order the SQL 245 before GetStatementLineQuery, and completely omits the credential-in-log security item that should be handled in parallel.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The DataProtection and XML encryptor warnings are listed under 'Routine noise that can be ignored' and are never attributed as causes of any failure.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values are redacted as ****** and that the column/table cannot be identified; no specific column, value, or data type is named.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis explicitly notes 'Log timestamps show time-of-day only, no date' and '48h window cannot be reliably mapped to real occurrences,' so it does not present elapsed times or sequences as established fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The NATS subject names are not mentioned anywhere in the analysis.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis refers to a single 'Container restart at 02:50:11 \u2192 02:50:14' and does not claim crash-looping or repeated restarts.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis says 'Separate database conversion errors and SQL timeouts are also present but not obviously tied to the reported save failure,' and does not claim the database was down or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "22:26:04 onward multiple ERR Execution Timeout Expired for GetMonitorJobsQueryHandler",
+        "reason": "The first Execution Timeout Expired error in the log is at 22:26:37; at 22:26:04 GetMonitorJobsQuery completed successfully in 133ms. The stated start time is incorrect."
+      }
+    ]
+  }
+}

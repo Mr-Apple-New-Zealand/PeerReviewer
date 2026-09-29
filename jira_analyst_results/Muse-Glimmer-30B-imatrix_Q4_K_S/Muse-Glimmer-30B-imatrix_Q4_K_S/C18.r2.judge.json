@@ -1,0 +1,257 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "401 cascade group \u2013 inference based on breadcrumbs: BANKUI-3C8 is a handled console 401 error with the highest event count and 44 users. BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3 are all unhandled TypeErrors with breadcrumbs showing 401 responses immediately before the error. This suggests the TypeErrors are downstream symptoms of the 401 failures, not independent defects.",
+      "reason": "All five issues are named, grouped under one cause, and the 401-precedes-undefined-property pattern is explicitly stated."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the distinct-user counts cannot be summed, nor does it identify 44 as the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Prioritise BANKUI-5D6 ChunkLoadError. 58 distinct users affected in ~2 days post 4.7.0 deploy with a 404 for 6728.b4f17ce620a8d539.js.",
+      "reason": "The 58-user and 63-event figures are present in the key-details list, but the analysis never explicitly contrasts that 58 is the highest user count while 63 is the lowest event count, nor does it state it is the top item by user impact despite being quietest by events."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-5D6 ChunkLoadError for chunk 6728.b4f17ce620a8d539.js first appears 2026-09-10T21:11:36Z, ~6 minutes after 4.7.0 deployed 2026-09-10T21:05:00Z, and the bundle returns 404.",
+      "reason": "The timing (first seen ~6 min after deploy), the 404 on the requested bundle, and the connection to the 4.7.0 release are all stated, conveying the post-deploy stale-bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANKUI-2F0 is a SecurityError originating from chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js with 4812 events but only 1 distinct user and no app breadcrumbs. Not an application defect.",
+      "reason": "All key facts are present: 4812 events, 1 user, chrome-extension culprit/frame, no app breadcrumbs, not a defect, and the recommendation to exclude from sprint work."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "High event count does not equal broad impact: BANKUI-2F0 has 4812 events but 1 user, matching the ticket description note about previous top-down-by-event work affecting one person.",
+      "reason": "The analysis calls out BANKUI-2F0's misleading count and identifies BANKUI-3C8 as a 'handled console 401 error,' but does not explicitly state that neither of the two largest event counts is the most valuable thing to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-1A7 shows events after its resolved release, conflict between status and lastSeen.",
+      "reason": "The analysis identifies the conflict (resolved in 4.6.0 but last seen 2026-09-11) but only says to 'investigate' and 'clarify' rather than concluding it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps not uploaded per comment by Ravi Kumar, so function names are minified and lastFrame is not actionable.",
+      "reason": "The analysis states source maps are missing, names are minified, and lastFrame is not actionable, conveying that issues cannot be traced to a component from this export."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This suggests the TypeErrors are downstream symptoms of the 401 failures, not independent defects.",
+      "reason": "Presented as inference and the different endpoints are listed, but the analysis does not specifically frame it as sessions expiring without the app handling the rejection, nor does it say a full event (not just this summary) would be needed to confirm."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Prioritise the 401 root cause. Work on BANKUI-3C8 and its downstream TypeErrors BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3 together. This covers 44 users for the 401 plus 41, 39, 33, 31 users for the TypeErrors.",
+      "reason": "Both items are prioritised and BANKUI-2F0 is excluded, but the analysis lists the 401 cluster first rather than BANKUI-5D6 first, does not explicitly state 'one fix in the HTTP layer closes five issues,' and says 'clarify/investigate' for BANKUI-1A7 rather than 'reopen.'"
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and states its high event count does not equal broad impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups the four TypeErrors with the 401 issue as one cascade and explicitly calls them 'downstream symptoms\u2026not independent defects.'"
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis lists the user counts separately ('44 users for the 401 plus 41, 39, 33, 31 users for the TypeErrors') without summing them into a combined total like 188 or 279."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the conflict between resolved status and continued events and recommends investigation, not acceptance of the resolved status."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are described as an authentication cascade, token expiry, session issues, or permission changes\u2014never as an attack, intrusion, or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 is placed in a separate 'Deployment asset group' and BANKUI-1A7 in 'Resolved but still present'; neither is grouped with the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 218.49
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "401 cascade group \u2013 inference based on breadcrumbs: BANKUI-3C8 is a handled console 401 error with the highest event count and 44 users. BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3 are all unhandled TypeErrors with breadcrumbs showing 401 responses immediately before the error. This suggests the TypeErrors are downstream symptoms of the 401 failures, not independent defects.",
+        "reason": "All five issues are named, grouped under one cause, and the 401-precedes-undefined-property pattern is explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "",
+        "reason": "The analysis never states that the distinct-user counts cannot be summed, nor does it identify 44 as the best single estimate of reach for the cluster.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "Prioritise BANKUI-5D6 ChunkLoadError. 58 distinct users affected in ~2 days post 4.7.0 deploy with a 404 for 6728.b4f17ce620a8d539.js.",
+        "reason": "The 58-user and 63-event figures are present in the key-details list, but the analysis never explicitly contrasts that 58 is the highest user count while 63 is the lowest event count, nor does it state it is the top item by user impact despite being quietest by events.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "BANKUI-5D6 ChunkLoadError for chunk 6728.b4f17ce620a8d539.js first appears 2026-09-10T21:11:36Z, ~6 minutes after 4.7.0 deployed 2026-09-10T21:05:00Z, and the bundle returns 404.",
+        "reason": "The timing (first seen ~6 min after deploy), the 404 on the requested bundle, and the connection to the 4.7.0 release are all stated, conveying the post-deploy stale-bundle signature.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "BANKUI-2F0 is a SecurityError originating from chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js with 4812 events but only 1 distinct user and no app breadcrumbs. Not an application defect.",
+        "reason": "All key facts are present: 4812 events, 1 user, chrome-extension culprit/frame, no app breadcrumbs, not a defect, and the recommendation to exclude from sprint work.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "High event count does not equal broad impact: BANKUI-2F0 has 4812 events but 1 user, matching the ticket description note about previous top-down-by-event work affecting one person.",
+        "reason": "The analysis calls out BANKUI-2F0's misleading count and identifies BANKUI-3C8 as a 'handled console 401 error,' but does not explicitly state that neither of the two largest event counts is the most valuable thing to fix.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "BANKUI-1A7 shows events after its resolved release, conflict between status and lastSeen.",
+        "reason": "The analysis identifies the conflict (resolved in 4.6.0 but last seen 2026-09-11) but only says to 'investigate' and 'clarify' rather than concluding it has regressed and should be reopened.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps not uploaded per comment by Ravi Kumar, so function names are minified and lastFrame is not actionable.",
+        "reason": "The analysis states source maps are missing, names are minified, and lastFrame is not actionable, conveying that issues cannot be traced to a component from this export.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "",
+        "reason": "The analysis never mentions whether the 58 ChunkLoadError users overlap with the 44 in the 401 cluster, nor that the total affected-user count cannot be determined from the export.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "This suggests the TypeErrors are downstream symptoms of the 401 failures, not independent defects.",
+        "reason": "Presented as inference and the different endpoints are listed, but the analysis does not specifically frame it as sessions expiring without the app handling the rejection, nor does it say a full event (not just this summary) would be needed to confirm.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "Prioritise the 401 root cause. Work on BANKUI-3C8 and its downstream TypeErrors BANKUI-4A1, BANKUI-4A2, BANKUI-4A9, BANKUI-4B3 together. This covers 44 users for the 401 plus 41, 39, 33, 31 users for the TypeErrors.",
+        "reason": "Both items are prioritised and BANKUI-2F0 is excluded, but the analysis lists the 401 cluster first rather than BANKUI-5D6 first, does not explicitly state 'one fix in the HTTP layer closes five issues,' and says 'clarify/investigate' for BANKUI-1A7 rather than 'reopen.'",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and states its high event count does not equal broad impact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups the four TypeErrors with the 401 issue as one cascade and explicitly calls them 'downstream symptoms\u2026not independent defects.'",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis lists the user counts separately ('44 users for the 401 plus 41, 39, 33, 31 users for the TypeErrors') without summing them into a combined total like 188 or 279.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis flags the conflict between resolved status and continued events and recommends investigation, not acceptance of the resolved status.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The 401s are described as an authentication cascade, token expiry, session issues, or permission changes\u2014never as an attack, intrusion, or security breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "BANKUI-5D6 is placed in a separate 'Deployment asset group' and BANKUI-1A7 in 'Resolved but still present'; neither is grouped with the 401 cluster.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

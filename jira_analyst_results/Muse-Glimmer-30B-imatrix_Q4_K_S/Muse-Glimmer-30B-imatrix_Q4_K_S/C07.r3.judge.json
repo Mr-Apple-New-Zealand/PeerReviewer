@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09:30** \u2013 Config deploy OPS-81 rotated the JWT signing key for the Auth service. Comment 2026-09-11 10:24.\n* **09:47** \u2013 Monitoring alert fired: TransferErrorRate >20%. Description.\n* **09:52** \u2013 Incident declared. Sam Okafor: \"Incident declared. Transfer error rate is at 64%.\"",
+      "reason": "Both the 09:30 deploy time and the ~09:31 error start are clearly stated in the timeline."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09:47** \u2013 Monitoring alert fired: TransferErrorRate >20%. Description.\n* **09:52** \u2013 Incident declared. Sam Okafor: \"Incident declared. Transfer error rate is at 64%.\"",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**10:31** \u2013 Sam Okafor: \"Rolling back the OPS-81 config deploy.\"\n* **10:42** \u2013 Error rate back under 1%. Sam Okafor 10:44: \"Rollback complete. The transfer error rate was back under 1% at 10:42.\"\n* **10:50** \u2013 Resolving. Root cause stated and post-incident review booked for 2026-09-16.",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "From first observed errors ~09:31 to monitoring alert 09:47 = ~16 minutes.",
+      "reason": "The 16-minute time to detect from 09:31 to 09:47 is explicitly calculated."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "From monitoring alert 09:47 to service restored 10:42 = 55 minutes.",
+      "reason": "The 55-minute time to recover from detection (09:47 to 10:42) is stated with the start point clearly identified, matching an acceptable answer."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Auth service began issuing tokens signed with the new key after the 09:30 config deploy OPS-81, while the Transactions API continued validating against the old key, causing 401 \"IDX10503: Signature validation failed\".",
+      "reason": "The root cause is fully stated: OPS-81 rotated the JWT key for Auth without updating the Transactions API validator, resulting in 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "post-incident review booked for 2026-09-16",
+      "reason": "The post-incident review date of 2026-09-16 is explicitly mentioned."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis mentions the database question only as Priya Nair's inquiry and explicitly notes Sam ruled it out; it does not name the database as a cause or contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All stated times (16 min, 21 min, 55 min, 50 min) are supported by pairs of timestamps present in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 67.75
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "**09:30** \u2013 Config deploy OPS-81 rotated the JWT signing key for the Auth service. Comment 2026-09-11 10:24.\n* **09:47** \u2013 Monitoring alert fired: TransferErrorRate >20%. Description.\n* **09:52** \u2013 Incident declared. Sam Okafor: \"Incident declared. Transfer error rate is at 64%.\"",
+        "reason": "Both the 09:30 deploy time and the ~09:31 error start are clearly stated in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "**09:47** \u2013 Monitoring alert fired: TransferErrorRate >20%. Description.\n* **09:52** \u2013 Incident declared. Sam Okafor: \"Incident declared. Transfer error rate is at 64%.\"",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "**10:31** \u2013 Sam Okafor: \"Rolling back the OPS-81 config deploy.\"\n* **10:42** \u2013 Error rate back under 1%. Sam Okafor 10:44: \"Rollback complete. The transfer error rate was back under 1% at 10:42.\"\n* **10:50** \u2013 Resolving. Root cause stated and post-incident review booked for 2026-09-16.",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "From first observed errors ~09:31 to monitoring alert 09:47 = ~16 minutes.",
+        "reason": "The 16-minute time to detect from 09:31 to 09:47 is explicitly calculated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "From monitoring alert 09:47 to service restored 10:42 = 55 minutes.",
+        "reason": "The 55-minute time to recover from detection (09:47 to 10:42) is stated with the start point clearly identified, matching an acceptable answer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Auth service began issuing tokens signed with the new key after the 09:30 config deploy OPS-81, while the Transactions API continued validating against the old key, causing 401 \"IDX10503: Signature validation failed\".",
+        "reason": "The root cause is fully stated: OPS-81 rotated the JWT key for Auth without updating the Transactions API validator, resulting in 401 IDX10503 errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "post-incident review booked for 2026-09-16",
+        "reason": "The post-incident review date of 2026-09-16 is explicitly mentioned.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis mentions the database question only as Priya Nair's inquiry and explicitly notes Sam ruled it out; it does not name the database as a cause or contributing cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "All stated times (16 min, 21 min, 55 min, 50 min) are supported by pairs of timestamps present in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

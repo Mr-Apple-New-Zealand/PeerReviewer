@@ -1,0 +1,317 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Breadcrumbs show ~86 minutes of activity on SettlementAllocation APIs with successful POST/GET 200s, UI inputs and clicks, a token refresh POST https://bank-uat.example.com/api/security/token/refresh 200 at 1789182766.696, then at 1789197802.055 a dropdown interaction followed by repeated 401 Unauthorized responses",
+      "reason": "The analysis identifies the two halves and gives timestamps that imply a gap, but never explicitly states the ~4 h 10 min (\u224814 979 s) gap or the specific times (03:13:33 / 07:23:12), and the '~86 minutes' figure is wrong."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Likely inference, not proven, is that an expired/invalid session causes API responses to be absent/undefined and the UI then dereferences undefined data, e.g. calling .sort on an undefined array. Cannot be confirmed from this event.",
+      "reason": "The causal chain (401 \u2192 no data \u2192 undefined dereference \u2192 TypeError) is identified, but it is framed as an unproven inference rather than the drawn conclusion that the app's lack of 401 handling (no redirect, no guard) is the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Multiple distinct property accesses failing rows, returnProperties, length, sort suggest a broader data-undefined handling issue rather than a single line.",
+      "reason": "All four earlier sentry.event entries are listed with their event IDs and the analysis concludes they represent one broader issue rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Check why api/security/token/refresh succeeded ~1h into session but later requests receive 401, and whether the batch actions screen handles 401 by clearing data leading to undefined.",
+      "reason": "The refresh and its 200 status are noted, but the '~1h into session' timing is wrong (it is ~2 minutes in), and the analysis never explicitly states that no refresh was attempted after the gap or that nothing renewed the session during the idle period."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Environment conflict: Tags say environment: Production and _dsc.environment: Production but the request URL and all API calls are bank-uat.example.com. Referer is https://ntp.msn.com/. This contradicts the ticket's production incident framing and Tom Becker's request to confirm environment.",
+      "reason": "The analysis clearly identifies the Production tag vs UAT URL conflict, notes it contradicts the production framing, and recommends correcting Sentry tagging, effectively answering Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Tags: environment: Production, transaction: /settlements/run/8214, browser: Edge 153.0.0\n  * Culprit reported as /settlements/run/8214",
+      "reason": "Both the transaction/culprit value and the actual request URL are listed, but the analysis never draws the conclusion that the transaction name is stale and points Sentry's grouping at the wrong screen."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Stack is unusable for precise root cause: source maps missing, frames obfuscated, raw stack removed by support, frames trimmed. The event only shows ie.project in 6728.b4f17ce620a8d539.js.",
+      "reason": "The analysis covers missing source maps, the three js_no_source errors, and minified frame names, but omits the three failed scraping_attempts (DNS resolution failure for the UAT host) and the symbolicated_in_app: false flag."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No unobfuscated stack, no release tag in the event, release: null.",
+      "reason": "release: null is mentioned, but dist: null is not, and the analysis does not explicitly connect the null release/dist to the inability to match source maps to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Cannot be confirmed from this event.",
+      "reason": "The analysis acknowledges the limitation but does not mention that all 401 responses have response_body_size 0, nor does it state that expiry cannot be distinguished from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Likely inference, not proven, is that an expired/invalid session causes API responses to be absent/undefined and the UI then dereferences undefined data, e.g. calling .sort on an undefined array. Cannot be confirmed from this event.",
+      "reason": "Presented as a labelled inference with appropriate hedging, and the mechanism (expired session \u2192 401s \u2192 undefined data) is correct, but the four-hour gap and the absence of a post-gap refresh are not cited as supporting evidence."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not address the 780 KB InvokeAction 200 response, does not explain that the Referer is merely the browser's new-tab page, does not note the browser/OS are ordinary, and does not explain that '401 OK' is Angular's statusText rendering rather than a contradictory server response."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the in_app flag, the in_app_frame_mix 'in-app-only' metadata, or the point that polyfills frames being marked in_app true is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm whether the event is UAT or Production and correct Sentry tagging.\n* Obtain untrimmed Sentry event with source maps for bank-ui 4.7.0 release and the exact build 6728.b4f17ce620a8d539.js / main.7a2d95ef0c418bb3.js to get a symbolicate-able stack.",
+      "reason": "Covers environment correction and source maps, but omits handling 401 centrally with a redirect to sign-in, correcting the stale transaction name, and explicitly stating that a null guard before .sort would hide the symptom without fixing the root cause."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis frames the null guard as 'defensive handling' and identifies the 401 handling gap as the underlying issue; it does not present the missing null check as the root cause or the fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the UAT host and the environment conflict rather than treating the event as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports the transaction/culprit value as data from the event without asserting the error occurred on the /settlements/run/8214 screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports minified file and function names only to illustrate that the stack is unusable; it does not name a specific application component, method, or line as the fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are attributed to a likely expired/invalid session, not to an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis jumps from the last pre-gap breadcrumb to the first post-gap 401 without describing any activity during the gap or claiming continuous failures across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Breadcrumbs show ~86 minutes of activity on SettlementAllocation APIs with successful POST/GET 200s, UI inputs and clicks",
+      "reason": "The first-half breadcrumbs span from timestamp 1789182659.0 to 1789182813.637, which is approximately 155 seconds (\u22482.6 minutes), not 86 minutes."
+    },
+    {
+      "quote": "Check why api/security/token/refresh succeeded ~1h into session but later requests receive 401",
+      "reason": "The token refresh at timestamp 1789182766.696 occurs only about 107 seconds (\u22481.8 minutes) after the first breadcrumb at 1789182659.0, not approximately one hour into the session."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 328.35
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "Breadcrumbs show ~86 minutes of activity on SettlementAllocation APIs with successful POST/GET 200s, UI inputs and clicks, a token refresh POST https://bank-uat.example.com/api/security/token/refresh 200 at 1789182766.696, then at 1789197802.055 a dropdown interaction followed by repeated 401 Unauthorized responses",
+        "reason": "The analysis identifies the two halves and gives timestamps that imply a gap, but never explicitly states the ~4 h 10 min (\u224814 979 s) gap or the specific times (03:13:33 / 07:23:12), and the '~86 minutes' figure is wrong.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Likely inference, not proven, is that an expired/invalid session causes API responses to be absent/undefined and the UI then dereferences undefined data, e.g. calling .sort on an undefined array. Cannot be confirmed from this event.",
+        "reason": "The causal chain (401 \u2192 no data \u2192 undefined dereference \u2192 TypeError) is identified, but it is framed as an unproven inference rather than the drawn conclusion that the app's lack of 401 handling (no redirect, no guard) is the underlying defect.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "Multiple distinct property accesses failing rows, returnProperties, length, sort suggest a broader data-undefined handling issue rather than a single line.",
+        "reason": "All four earlier sentry.event entries are listed with their event IDs and the analysis concludes they represent one broader issue rather than separate bugs.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "Check why api/security/token/refresh succeeded ~1h into session but later requests receive 401, and whether the batch actions screen handles 401 by clearing data leading to undefined.",
+        "reason": "The refresh and its 200 status are noted, but the '~1h into session' timing is wrong (it is ~2 minutes in), and the analysis never explicitly states that no refresh was attempted after the gap or that nothing renewed the session during the idle period.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "Environment conflict: Tags say environment: Production and _dsc.environment: Production but the request URL and all API calls are bank-uat.example.com. Referer is https://ntp.msn.com/. This contradicts the ticket's production incident framing and Tom Becker's request to confirm environment.",
+        "reason": "The analysis clearly identifies the Production tag vs UAT URL conflict, notes it contradicts the production framing, and recommends correcting Sentry tagging, effectively answering Tom Becker's question.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "Tags: environment: Production, transaction: /settlements/run/8214, browser: Edge 153.0.0\n  * Culprit reported as /settlements/run/8214",
+        "reason": "Both the transaction/culprit value and the actual request URL are listed, but the analysis never draws the conclusion that the transaction name is stale and points Sentry's grouping at the wrong screen.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Stack is unusable for precise root cause: source maps missing, frames obfuscated, raw stack removed by support, frames trimmed. The event only shows ie.project in 6728.b4f17ce620a8d539.js.",
+        "reason": "The analysis covers missing source maps, the three js_no_source errors, and minified frame names, but omits the three failed scraping_attempts (DNS resolution failure for the UAT host) and the symbolicated_in_app: false flag.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "No unobfuscated stack, no release tag in the event, release: null.",
+        "reason": "release: null is mentioned, but dist: null is not, and the analysis does not explicitly connect the null release/dist to the inability to match source maps to a build.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "Cannot be confirmed from this event.",
+        "reason": "The analysis acknowledges the limitation but does not mention that all 401 responses have response_body_size 0, nor does it state that expiry cannot be distinguished from revocation or a server-side session drop.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "Likely inference, not proven, is that an expired/invalid session causes API responses to be absent/undefined and the UI then dereferences undefined data, e.g. calling .sort on an undefined array. Cannot be confirmed from this event.",
+        "reason": "Presented as a labelled inference with appropriate hedging, and the mechanism (expired session \u2192 401s \u2192 undefined data) is correct, but the four-hour gap and the absence of a post-gap refresh are not cited as supporting evidence.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "",
+        "reason": "The analysis does not address the 780 KB InvokeAction 200 response, does not explain that the Referer is merely the browser's new-tab page, does not note the browser/OS are ordinary, and does not explain that '401 OK' is Angular's statusText rendering rather than a contradictory server response.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions the in_app flag, the in_app_frame_mix 'in-app-only' metadata, or the point that polyfills frames being marked in_app true is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "Confirm whether the event is UAT or Production and correct Sentry tagging.\n* Obtain untrimmed Sentry event with source maps for bank-ui 4.7.0 release and the exact build 6728.b4f17ce620a8d539.js / main.7a2d95ef0c418bb3.js to get a symbolicate-able stack.",
+        "reason": "Covers environment correction and source maps, but omits handling 401 centrally with a redirect to sign-in, correcting the stale transaction name, and explicitly stating that a null guard before .sort would hide the symptom without fixing the root cause.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis frames the null guard as 'defensive handling' and identifies the 401 handling gap as the underlying issue; it does not present the missing null check as the root cause or the fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis explicitly flags the UAT host and the environment conflict rather than treating the event as a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis reports the transaction/culprit value as data from the event without asserting the error occurred on the /settlements/run/8214 screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis reports minified file and function names only to illustrate that the stack is unusable; it does not name a specific application component, method, or line as the fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The 401s are attributed to a likely expired/invalid session, not to an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis jumps from the last pre-gap breadcrumb to the first post-gap 401 without describing any activity during the gap or claiming continuous failures across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Breadcrumbs show ~86 minutes of activity on SettlementAllocation APIs with successful POST/GET 200s, UI inputs and clicks",
+        "reason": "The first-half breadcrumbs span from timestamp 1789182659.0 to 1789182813.637, which is approximately 155 seconds (\u22482.6 minutes), not 86 minutes."
+      },
+      {
+        "quote": "Check why api/security/token/refresh succeeded ~1h into session but later requests receive 401",
+        "reason": "The token refresh at timestamp 1789182766.696 occurs only about 107 seconds (\u22481.8 minutes) after the first breadcrumb at 1789182659.0, not approximately one hour into the session."
+      }
+    ]
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "retrying a transfer after a timeout `ERR_TXN_504` causes the source cheque account to be debited twice while savings is credited once",
+      "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects versions: 3.1.4. Fix versions: 3.2.0. Component: Transactions. Labels: customer-impact, mobile-web.",
+      "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and separately notes the 2026-09-24 release date, covering all required specifics."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. Retry button calls POST /api/transaction/transfer again with no idempotency key, so server treats it as new transfer. Priya Nair 2026-09-09.\n2. Debit and credit are not in one database transaction, so first debit stays committed when credit times out. Priya Nair 2026-09-09.",
+      "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated and attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status: In Progress. Assignee: Priya Nair. Reporter: Marcus Reid.",
+      "reason": "The analysis states the status, assignee, and separately notes PR #218 is open and waiting on code review, covering all three required elements."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Customer impact: three customers need manual duplicate-debit reversals by Finance. Aroha Walker 2026-09-11 notes Finance will need to reverse manually and asks Marcus Reid to raise with Finance Ops.",
+      "reason": "The analysis clearly states three customers are affected, need manual reversals by Finance, and that Marcus Reid was asked to raise it with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Marcus Reid: Raise manual reversal request with Finance Ops for the three affected customers reported 5, 6 and 8 September, as requested by Aroha Walker 2026-09-11.",
+      "reason": "By listing the reversal as a 'suggested next action' the analysis conveys it has not yet been confirmed as done, though it does not explicitly state the ticket lacks confirmation of completion."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair: Complete code review for PR #218 and provide test evidence that retry with same Idempotency-Key returns original result without a second debit.\n* Marcus Reid: Raise manual reversal request with Finance Ops for the three affected customers",
+      "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are clearly listed."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is open and waiting on code review; it does not claim it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'Desktop web is not affected per Tom Becker 2026-09-10,' correctly reflecting the ticket's information."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 82.97
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "retrying a transfer after a timeout `ERR_TXN_504` causes the source cheque account to be debited twice while savings is credited once",
+        "reason": "The analysis clearly states the double-debit/single-credit outcome of retrying after the ERR_TXN_504 timeout.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects versions: 3.1.4. Fix versions: 3.2.0. Component: Transactions. Labels: customer-impact, mobile-web.",
+        "reason": "The analysis states the affected version (3.1.4), fix version (3.2.0), and separately notes the 2026-09-24 release date, covering all required specifics.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "1. Retry button calls POST /api/transaction/transfer again with no idempotency key, so server treats it as new transfer. Priya Nair 2026-09-09.\n2. Debit and credit are not in one database transaction, so first debit stays committed when credit times out. Priya Nair 2026-09-09.",
+        "reason": "Both root-cause elements (missing idempotency key and non-atomic debit/credit) are clearly stated and attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status: In Progress. Assignee: Priya Nair. Reporter: Marcus Reid.",
+        "reason": "The analysis states the status, assignee, and separately notes PR #218 is open and waiting on code review, covering all three required elements.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Customer impact: three customers need manual duplicate-debit reversals by Finance. Aroha Walker 2026-09-11 notes Finance will need to reverse manually and asks Marcus Reid to raise with Finance Ops.",
+        "reason": "The analysis clearly states three customers are affected, need manual reversals by Finance, and that Marcus Reid was asked to raise it with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "Marcus Reid: Raise manual reversal request with Finance Ops for the three affected customers reported 5, 6 and 8 September, as requested by Aroha Walker 2026-09-11.",
+        "reason": "By listing the reversal as a 'suggested next action' the analysis conveys it has not yet been confirmed as done, though it does not explicitly state the ticket lacks confirmation of completion.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Priya Nair: Complete code review for PR #218 and provide test evidence that retry with same Idempotency-Key returns original result without a second debit.\n* Marcus Reid: Raise manual reversal request with Finance Ops for the three affected customers",
+        "reason": "Both next actions (PR review/merge and confirming customer reversals with Finance Ops) are clearly listed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is open and waiting on code review; it does not claim it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states 'Desktop web is not affected per Tom Becker 2026-09-10,' correctly reflecting the ticket's information.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}
