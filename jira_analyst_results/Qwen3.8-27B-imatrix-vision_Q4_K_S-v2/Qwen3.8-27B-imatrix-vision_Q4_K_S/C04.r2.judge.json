@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No \u2014 do not tell the customer this is fixed.",
+      "reason": "The analysis explicitly and unambiguously tells support not to confirm the fix to the customer."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked **Done / Fixed**, but that status is contradicted by evidence inside the same ticket. The underlying problem still reproduces on the fixed version.",
+      "reason": "The analysis states the Done/Fixed status in 3.1.4 and Tom Becker's 2026-09-10 retest on 3.1.4.17 showing the email still not arriving, covering all required specifics."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The SMTP log now shows a *different* failure:\n\n  > `Rejected: 550 5.1.3 Invalid recipient address`",
+      "reason": "The analysis quotes the exact SMTP error code and message and identifies it as a different failure from the original regex issue."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a **provider-side** rejection, not our regex. The original fix removed our block, but the downstream email provider is now the one bouncing the message.",
+      "reason": "The analysis states the provider-side cause as established fact rather than as a tentative inference (Tom's comment says 'Looks like'), so it does not meet the inference-presentation requirement for a 'found' verdict."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No ticket exists for the provider-side rejection (inference: it was discovered during retest but not yet broken out). Without its own ticket, it risks being lost.",
+      "reason": "The analysis conveys that no follow-up ticket was raised and no one currently owns the remaining problem, matching the checkpoint's expectation."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reopen BANK-377 (or create a new ticket) for the provider-side `550 5.1.3` rejection. Update the status and resolution to reflect that the original fix is **insufficient**.",
+      "reason": "The analysis recommends reopening or creating a new ticket, assigns Priya Nair or Tom Becker as owner, and tells Marcus to give a holding response rather than confirming a fix."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the issue is NOT fixed and tells support not to confirm the fix, so it does not fall into the trap."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states no follow-up ticket exists and recommends creating one; it does not claim the ticket has already been reopened or that a follow-up exists."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 79.95
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "No \u2014 do not tell the customer this is fixed.",
+        "reason": "The analysis explicitly and unambiguously tells support not to confirm the fix to the customer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket is marked **Done / Fixed**, but that status is contradicted by evidence inside the same ticket. The underlying problem still reproduces on the fixed version.",
+        "reason": "The analysis states the Done/Fixed status in 3.1.4 and Tom Becker's 2026-09-10 retest on 3.1.4.17 showing the email still not arriving, covering all required specifics.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "The SMTP log now shows a *different* failure:\n\n  > `Rejected: 550 5.1.3 Invalid recipient address`",
+        "reason": "The analysis quotes the exact SMTP error code and message and identifies it as a different failure from the original regex issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "This is a **provider-side** rejection, not our regex. The original fix removed our block, but the downstream email provider is now the one bouncing the message.",
+        "reason": "The analysis states the provider-side cause as established fact rather than as a tentative inference (Tom's comment says 'Looks like'), so it does not meet the inference-presentation requirement for a 'found' verdict.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "No ticket exists for the provider-side rejection (inference: it was discovered during retest but not yet broken out). Without its own ticket, it risks being lost.",
+        "reason": "The analysis conveys that no follow-up ticket was raised and no one currently owns the remaining problem, matching the checkpoint's expectation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "Reopen BANK-377 (or create a new ticket) for the provider-side `550 5.1.3` rejection. Update the status and resolution to reflect that the original fix is **insufficient**.",
+        "reason": "The analysis recommends reopening or creating a new ticket, assigns Priya Nair or Tom Becker as owner, and tells Marcus to give a holding response rather than confirming a fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states the issue is NOT fixed and tells support not to confirm the fix, so it does not fall into the trap.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis states no follow-up ticket exists and recommends creating one; it does not claim the ticket has already been reopened or that a follow-up exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -733,22 +733,36 @@ def judge_json(content: str, thinking: str) -> dict:
     for candidate in (content, thinking):
         if not candidate or not candidate.strip():
             continue
-        text = candidate.strip()
-        fence = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
+        raw = candidate.strip()
+        # THE RAW REPLY IS TRIED FIRST, UNMODIFIED. A judge quoting a fenced
+        # code block inside a "quote" value returns valid JSON whose first ```
+        # sits inside a string, and the fence recovery below then extracts the
+        # middle of that string and throws the whole verdict away. Run 56 lost
+        # C15.r3 exactly that way - the analysis being graded quoted an SMTP
+        # stack trace in a fenced block, and 6,621 characters of correct JSON
+        # were discarded as "no JSON object".
+        variants = [raw]
+        fence = re.search(r"```(?:json)?\s*(.+?)```", raw, re.DOTALL)
         if fence:
-            text = fence.group(1).strip()
+            stripped = fence.group(1).strip()
         else:
             # An unterminated fence: the model opened ```json and stopped
             # without closing it. The array inside is often complete.
-            text = re.sub(r"^```(?:json)?\s*", "", text).strip()
-        attempts = [text]
-        # Arrays first: a truncated array's last '}' closes its FIRST element,
-        # so brace extraction would quietly return one checkpoint and score
-        # the rest as missed. Better to fail loudly than to lose the verdicts.
-        for opener, closer in (("[", "]"), ("{", "}")):
-            a, b = text.find(opener), text.rfind(closer)
-            if a != -1 and b > a:
-                attempts.append(text[a:b + 1])
+            stripped = re.sub(r"^```(?:json)?\s*", "", raw).strip()
+        if stripped != raw:
+            variants.append(stripped)
+
+        attempts = []
+        for variant in variants:
+            attempts.append(variant)
+            # Arrays first: a truncated array's last '}' closes its FIRST
+            # element, so brace extraction would quietly return one checkpoint
+            # and score the rest as missed. Better to fail loudly than to lose
+            # the verdicts.
+            for opener, closer in (("[", "]"), ("{", "}")):
+                a, b = variant.find(opener), variant.rfind(closer)
+                if a != -1 and b > a:
+                    attempts.append(variant[a:b + 1])
         for attempt in attempts:
             try:
                 parsed = json.loads(attempt)

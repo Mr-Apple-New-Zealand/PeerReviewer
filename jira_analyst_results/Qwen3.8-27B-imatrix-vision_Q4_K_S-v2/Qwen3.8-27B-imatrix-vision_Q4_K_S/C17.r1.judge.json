@@ -1,0 +1,311 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)",
+      "reason": "The two-phase structure, the 14,979-second gap, and the all-401 second half are correctly conveyed, but the Phase 1 timestamps are off by roughly four hours (should be ~03:11\u201303:13 UTC, not 07:24\u201307:26)."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Primary defect: no auth-failure interception or graceful degradation on 401. The chain of failure is: 1. The access token (and presumably the refresh token) expires during the ~4-hour idle period. \u2026 3. The Angular components treat the 401 response as if it were a successful response with an empty or missing data body. \u2026 4. Component code then calls .sort() (the main crash), .rows, .length, and .returnProperties on that undefined, throwing TypeError.",
+      "reason": "The analysis clearly identifies the TypeError as a symptom of unhandled 401s and names the missing 401 handling (no redirect, no guard) as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "found",
+      "quote": "The 401 cascade triggers four distinct TypeErrors captured as Sentry breadcrumbs (plus the main event): \u2026 rows \u2026 rows \u2026 returnProperties \u2026 length \u2026 sort \u2190 main event",
+      "reason": "[downgraded: quote not found in analysis] The analysis lists all four earlier sentry.event entries in the correct order and frames them as one cascade from a single root cause rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At timestamp 1789182766.696 a POST /api/security/token/refresh returns 200, confirming the app has a token-refresh mechanism that worked at that point. \u2026 no interceptor steps in to refresh the token and retry \u2014 every call gets a raw 401",
+      "reason": "The analysis identifies the single successful refresh before the gap and notes no refresh was attempted after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Sentry event tags environment: \"Production\" and _dsc.environment: \"Production\", but the URL in every request and breadcrumb is https://bank-uat.example.com/\u2026 \u2014 a UAT domain. Tom Becker flags this: \"worth someone confirming which environment this is actually coming from before we treat it as a production incident.\"",
+      "reason": "The analysis identifies the Production/UAT conflict, names the UAT host, and directly addresses Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists the transaction value in a table but never calls out the mismatch between /settlements/run/8214 and /payments/batch/actions, nor concludes that the transaction name is stale and misdirects Sentry's culprit/grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All three JS bundles (6728.\u2026js, main.\u2026js, polyfills.\u2026js) have symbolicator_type: \"missing_source\". The scraping_attempts show DNS failures \u2026 This means Sentry could not download the bundles to symbolicate. The stack trace contains only minified names (ie.project, ie.next, ie._next, XMLHttpRequest.An, XMLHttpRequest.Y, etc.). The symbolicated_in_app field is false.",
+      "reason": "All key elements are present: three js_no_source errors, DNS-based scraping failures, symbolicated_in_app false, and minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "release and dist are null in the Sentry event, so the build cannot be independently confirmed",
+      "reason": "The analysis identifies both release and dist as null and states the build cannot be confirmed, which covers the inability to tie the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "every single one returns 401 with response_body_size: 0 \u2026 The observed idle window is ~4 h 10 min, but the actual token/refresh-token TTL is not stated anywhere in the ticket.",
+      "reason": "The analysis notes the zero body size and unknown TTL but does not explicitly state that the event cannot distinguish token expiry from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The chain of failure is: 1. The access token (and presumably the refresh token) expires during the ~4-hour idle period. The earlier successful token refresh at 1789182766.696 does not extend indefinitely.",
+      "reason": "The mechanism is correctly identified but presented as a definitive 'chain of failure' rather than as a likely or suggested explanation, which downgrades an inference to a stated fact."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Note the statusText: \"OK\" paired with status: 401 in every error object \u2014 an inconsistency that may point to a gateway or proxy rewriting the status text.",
+      "reason": "The analysis does not dismiss the 780 KB response, the Referer, or the browser/OS as non-faults, and it treats the '401 OK' wording as potentially significant (gateway/proxy) rather than explaining it as Angular's statusText reporting."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the in_app flag, the in_app_frame_mix 'in-app-only' metadata, or the fact that all frames including polyfills are marked in_app true."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A single guard on the .sort call (as Tom suggests) would fix one symptom but leave the others. \u2026 This is a stopgap, not the fix, but it prevents the blank-screen UX.",
+      "reason": "Most next actions are covered (401 handling, environment fix, source maps, null guard as stopgap), but the stale transaction name correction is absent because the issue was never identified, and setting release/dist is not explicitly called out."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly identifies the 401 handling as the root cause and frames the null guard as a stopgap, not the fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the UAT host and the environment conflict prominently, and quotes Tom Becker's caution about treating it as a production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the user as working on /payments/batch/actions and only lists /settlements/run/8214 as the transaction value without claiming the error occurred on that screen."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports minified frame names (ie.project, etc.) while explicitly stating they are minified and that the exact source location cannot be identified without source maps."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 780 KB response is mentioned in the context of normal Phase 1 activity; the browser and OS are listed as facts without being blamed."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are attributed to token expiry, not to an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'No breadcrumbs are recorded during this period' for the four-hour gap and does not describe any activity or continuous failures across it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)",
+      "reason": "The Unix timestamps in the breadcrumbs (1789182659.0 to 1789182813.637) correspond to approximately 03:10:58\u201303:13:33 UTC, not 07:24:19\u201307:26:53 UTC; the analysis's Phase 1 times are off by roughly four hours, a calculation error."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "C17-P3"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 354.24
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)",
+        "reason": "The two-phase structure, the 14,979-second gap, and the all-401 second half are correctly conveyed, but the Phase 1 timestamps are off by roughly four hours (should be ~03:11\u201303:13 UTC, not 07:24\u201307:26).",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "Primary defect: no auth-failure interception or graceful degradation on 401. The chain of failure is: 1. The access token (and presumably the refresh token) expires during the ~4-hour idle period. \u2026 3. The Angular components treat the 401 response as if it were a successful response with an empty or missing data body. \u2026 4. Component code then calls .sort() (the main crash), .rows, .length, and .returnProperties on that undefined, throwing TypeError.",
+        "reason": "The analysis clearly identifies the TypeError as a symptom of unhandled 401s and names the missing 401 handling (no redirect, no guard) as the underlying defect.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "The 401 cascade triggers four distinct TypeErrors captured as Sentry breadcrumbs (plus the main event): \u2026 rows \u2026 rows \u2026 returnProperties \u2026 length \u2026 sort \u2190 main event",
+        "reason": "The analysis lists all four earlier sentry.event entries in the correct order and frames them as one cascade from a single root cause rather than separate bugs.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "At timestamp 1789182766.696 a POST /api/security/token/refresh returns 200, confirming the app has a token-refresh mechanism that worked at that point. \u2026 no interceptor steps in to refresh the token and retry \u2014 every call gets a raw 401",
+        "reason": "The analysis identifies the single successful refresh before the gap and notes no refresh was attempted after the gap.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "The Sentry event tags environment: \"Production\" and _dsc.environment: \"Production\", but the URL in every request and breadcrumb is https://bank-uat.example.com/\u2026 \u2014 a UAT domain. Tom Becker flags this: \"worth someone confirming which environment this is actually coming from before we treat it as a production incident.\"",
+        "reason": "The analysis identifies the Production/UAT conflict, names the UAT host, and directly addresses Tom Becker's question.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis lists the transaction value in a table but never calls out the mismatch between /settlements/run/8214 and /payments/batch/actions, nor concludes that the transaction name is stale and misdirects Sentry's culprit/grouping.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "All three JS bundles (6728.\u2026js, main.\u2026js, polyfills.\u2026js) have symbolicator_type: \"missing_source\". The scraping_attempts show DNS failures \u2026 This means Sentry could not download the bundles to symbolicate. The stack trace contains only minified names (ie.project, ie.next, ie._next, XMLHttpRequest.An, XMLHttpRequest.Y, etc.). The symbolicated_in_app field is false.",
+        "reason": "All key elements are present: three js_no_source errors, DNS-based scraping failures, symbolicated_in_app false, and minified frame names.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "release and dist are null in the Sentry event, so the build cannot be independently confirmed",
+        "reason": "The analysis identifies both release and dist as null and states the build cannot be confirmed, which covers the inability to tie the event to a build.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "every single one returns 401 with response_body_size: 0 \u2026 The observed idle window is ~4 h 10 min, but the actual token/refresh-token TTL is not stated anywhere in the ticket.",
+        "reason": "The analysis notes the zero body size and unknown TTL but does not explicitly state that the event cannot distinguish token expiry from revocation or a server-side session drop.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The chain of failure is: 1. The access token (and presumably the refresh token) expires during the ~4-hour idle period. The earlier successful token refresh at 1789182766.696 does not extend indefinitely.",
+        "reason": "The mechanism is correctly identified but presented as a definitive 'chain of failure' rather than as a likely or suggested explanation, which downgrades an inference to a stated fact.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "Note the statusText: \"OK\" paired with status: 401 in every error object \u2014 an inconsistency that may point to a gateway or proxy rewriting the status text.",
+        "reason": "The analysis does not dismiss the 780 KB response, the Referer, or the browser/OS as non-faults, and it treats the '401 OK' wording as potentially significant (gateway/proxy) rather than explaining it as Angular's statusText reporting.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis never mentions the in_app flag, the in_app_frame_mix 'in-app-only' metadata, or the fact that all frames including polyfills are marked in_app true.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "A single guard on the .sort call (as Tom suggests) would fix one symptom but leave the others. \u2026 This is a stopgap, not the fix, but it prevents the blank-screen UX.",
+        "reason": "Most next actions are covered (401 handling, environment fix, source maps, null guard as stopgap), but the stale transaction name correction is absent because the issue was never identified, and setting release/dist is not explicitly called out.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis explicitly identifies the 401 handling as the root cause and frames the null guard as a stopgap, not the fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis flags the UAT host and the environment conflict prominently, and quotes Tom Becker's caution about treating it as a production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis describes the user as working on /payments/batch/actions and only lists /settlements/run/8214 as the transaction value without claiming the error occurred on that screen.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis reports minified frame names (ie.project, etc.) while explicitly stating they are minified and that the exact source location cannot be identified without source maps.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The 780 KB response is mentioned in the context of normal Phase 1 activity; the browser and OS are listed as facts without being blamed.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The 401s are attributed to token expiry, not to an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis explicitly states 'No breadcrumbs are recorded during this period' for the four-hour gap and does not describe any activity or continuous failures across it.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)",
+        "reason": "The Unix timestamps in the breadcrumbs (1789182659.0 to 1789182813.637) correspond to approximately 03:10:58\u201303:13:33 UTC, not 07:24:19\u201307:26:53 UTC; the analysis's Phase 1 times are off by roughly four hours, a calculation error."
+      }
+    ]
+  }
+}

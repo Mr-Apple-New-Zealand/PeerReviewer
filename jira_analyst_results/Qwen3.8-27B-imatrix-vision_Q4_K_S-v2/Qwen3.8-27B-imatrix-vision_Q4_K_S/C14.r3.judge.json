@@ -1,0 +1,319 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reported \"save secondary branch spins then fails\" is caused by a **403 Forbidden** returned by `masterfile-api` when `payments-api` calls it via Dapr to look up branch locations. Two commands that save secondary branches (`AddPaymentRoutingRuleSecondaryCommand`, `BulkUpdateSecondaryBranchesCommand`) both hit this 403 and abort.",
+      "reason": "The analysis clearly identifies the 403 from masterfile-api on both endpoints, names both commands, notes four occurrences in the table, and connects it directly to the user-reported save failure as the most serious issue."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First seen 03:37:32, repeated at 03:38:24, 03:38:50, 03:40:12, 20:26:31 (5 occurrences in the 48 h window).",
+      "reason": "The analysis names the handler, the SQL error 245, the exact message, and correctly counts five occurrences with timestamps."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Message: `Conversion failed when converting the ****** value '******' to data type ******.` (actual value, source column and target type are **redacted** in the log).",
+      "reason": "The analysis explicitly notes the value, column, and type are redacted/masked and that the offending details cannot be identified from this log file."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "22:26:37 \u2192 22:29:08: seven consecutive `Execution Timeout Expired` errors (SQL Error \u22122, Class 11).",
+      "reason": "The analysis correctly identifies the handler, error type, time range, and recovery, but states 'seven' instead of the correct count of eight occurrences in the log."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "22:35:24 (twice, 8 s apart), RuleSetId 41003, ProductCode 5500412. The payload has `BranchId: null, BranchRowId: null`. The validation layer rejects this before any DB write.",
+      "reason": "The analysis identifies the two failures and the exception type but does not note that the individual validation messages are never logged (a logging gap); instead it speculates about the cause without flagging the gap."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Long-running `GetStatementLineQuery` warnings (00:20\u201300:24, 14\u00d7, 35 s \u2192 73 s)",
+      "reason": "The analysis correctly states 14 breaches, the range from ~35s to ~73s, and the time window; the rising trend is conveyed by the numbers."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The connection string (including password) is logged at DBG level: `Server=sql-prd.internal,1433;\u2026;Password=Pr0d-Payments-2026!;\u2026`. This is a **security hygiene issue** in its own right and should be flagged separately; the log should not be shared beyond the ticket in its current form.",
+      "reason": "The analysis identifies the credential exposure at DBG level with the specific password, flags it as a security issue, and recommends it be handled separately."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Container restart at 02:50 (shut down \u2192 start) | Normal rolling deploy or liveness restart.",
+      "reason": "The analysis identifies the single restart at 02:50 and connects it to the duplicate startup warnings by noting 'two container starts' in the DataProtection row."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Data Protection key warnings (two container starts) | Standard ASP.NET-in-K8s warning; keys are ephemeral by design unless external storage is configured.",
+      "reason": "All four startup warnings are listed in the routine noise table with explanations, and the section heading explicitly labels them as ignorable, not causes of the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Repeated `Service Permissions found and sent on the event bus` (~every 20 s) | Heartbeat / permission refresh.",
+      "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for pending payment 88213) are listed in the routine noise table with explanations."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The container logs **time-of-day only, no date** (stated in the export header). Timestamps wrap (e.g., 22:xx appears before 19:xx and after 01:xx), so the 48 h window is not strictly chronological in the file.",
+      "reason": "The analysis explicitly notes the lack of dates, the non-chronological ordering, and the trimmed stack traces, all of which limit what can be determined."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a service-to-service authorisation failure, not a database problem.",
+      "reason": "The analysis conveys the correct inference (access-control/Dapr config issue, not payments code fault) but states it as established fact rather than as a likely or suggested explanation."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "If there is more than one thing to fix, **fix A first** because it is the one matching the user complaint and completely blocks the feature. B (conversion error) is second. C and D can wait.",
+      "reason": "The analysis correctly prioritises the 403s first and the conversion error second, but does not explicitly place GetStatementLineQuery in the priority sequence alongside the conversion error, nor does it frame the credential as a parallel security item in the priority ordering."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly categorises the DataProtection and XML encryptor warnings as routine noise and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the value, column, and type are redacted and does not name any specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly acknowledges the timestamps are not in order and does not state elapsed times or ordered sequences across the file as if they were chronological."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject names at all."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies exactly one restart at 02:50 and does not claim crash-looping or repeated restarts."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the 403 is not a database issue and that the Database team has no part in the reported save failure."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "potentially all users who touch this feature since the auth change (see gaps below)",
+      "reason": "The log contains no reference to an auth change or any specific configuration change; 'the auth change' implies a known event that is not evidenced in the tickets."
+    },
+    {
+      "quote": "This is a normal business-rule guard (a routing rule update without a branch is invalid). No data corruption.",
+      "reason": "The log only states 'Application validation errors have occured' without specifying which validation rule fired; the analysis asserts a specific cause (null BranchId) and the absence of data corruption, neither of which is established by the log."
+    },
+    {
+      "quote": "Container restart at 02:50 (shut down \u2192 start) | Normal rolling deploy or liveness restart.",
+      "reason": "The log shows a shutdown and restart but does not state the cause; 'rolling deploy or liveness restart' is an unsupported interpretation of why the restart occurred."
+    },
+    {
+      "quote": "Normal 404 \u2013 user queried a deleted record.",
+      "reason": "The log says 'pending payment 88213 not found'; it does not state the record was deleted\u2014it could have never existed or been moved."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 299.35
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "The reported \"save secondary branch spins then fails\" is caused by a **403 Forbidden** returned by `masterfile-api` when `payments-api` calls it via Dapr to look up branch locations. Two commands that save secondary branches (`AddPaymentRoutingRuleSecondaryCommand`, `BulkUpdateSecondaryBranchesCommand`) both hit this 403 and abort.",
+        "reason": "The analysis clearly identifies the 403 from masterfile-api on both endpoints, names both commands, notes four occurrences in the table, and connects it directly to the user-reported save failure as the most serious issue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "First seen 03:37:32, repeated at 03:38:24, 03:38:50, 03:40:12, 20:26:31 (5 occurrences in the 48 h window).",
+        "reason": "The analysis names the handler, the SQL error 245, the exact message, and correctly counts five occurrences with timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "Message: `Conversion failed when converting the ****** value '******' to data type ******.` (actual value, source column and target type are **redacted** in the log).",
+        "reason": "The analysis explicitly notes the value, column, and type are redacted/masked and that the offending details cannot be identified from this log file.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "22:26:37 \u2192 22:29:08: seven consecutive `Execution Timeout Expired` errors (SQL Error \u22122, Class 11).",
+        "reason": "The analysis correctly identifies the handler, error type, time range, and recovery, but states 'seven' instead of the correct count of eight occurrences in the log.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "22:35:24 (twice, 8 s apart), RuleSetId 41003, ProductCode 5500412. The payload has `BranchId: null, BranchRowId: null`. The validation layer rejects this before any DB write.",
+        "reason": "The analysis identifies the two failures and the exception type but does not note that the individual validation messages are never logged (a logging gap); instead it speculates about the cause without flagging the gap.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "Long-running `GetStatementLineQuery` warnings (00:20\u201300:24, 14\u00d7, 35 s \u2192 73 s)",
+        "reason": "The analysis correctly states 14 breaches, the range from ~35s to ~73s, and the time window; the rising trend is conveyed by the numbers.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "The connection string (including password) is logged at DBG level: `Server=sql-prd.internal,1433;\u2026;Password=Pr0d-Payments-2026!;\u2026`. This is a **security hygiene issue** in its own right and should be flagged separately; the log should not be shared beyond the ticket in its current form.",
+        "reason": "The analysis identifies the credential exposure at DBG level with the specific password, flags it as a security issue, and recommends it be handled separately.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "Container restart at 02:50 (shut down \u2192 start) | Normal rolling deploy or liveness restart.",
+        "reason": "The analysis identifies the single restart at 02:50 and connects it to the duplicate startup warnings by noting 'two container starts' in the DataProtection row.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Data Protection key warnings (two container starts) | Standard ASP.NET-in-K8s warning; keys are ephemeral by design unless external storage is configured.",
+        "reason": "All four startup warnings are listed in the routine noise table with explanations, and the section heading explicitly labels them as ignorable, not causes of the failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Repeated `Service Permissions found and sent on the event bus` (~every 20 s) | Heartbeat / permission refresh.",
+        "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for pending payment 88213) are listed in the routine noise table with explanations.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "The container logs **time-of-day only, no date** (stated in the export header). Timestamps wrap (e.g., 22:xx appears before 19:xx and after 01:xx), so the 48 h window is not strictly chronological in the file.",
+        "reason": "The analysis explicitly notes the lack of dates, the non-chronological ordering, and the trimmed stack traces, all of which limit what can be determined.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "This is a service-to-service authorisation failure, not a database problem.",
+        "reason": "The analysis conveys the correct inference (access-control/Dapr config issue, not payments code fault) but states it as established fact rather than as a likely or suggested explanation.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "If there is more than one thing to fix, **fix A first** because it is the one matching the user complaint and completely blocks the feature. B (conversion error) is second. C and D can wait.",
+        "reason": "The analysis correctly prioritises the 403s first and the conversion error second, but does not explicitly place GetStatementLineQuery in the priority sequence alongside the conversion error, nor does it frame the credential as a parallel security item in the priority ordering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly categorises the DataProtection and XML encryptor warnings as routine noise and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the value, column, and type are redacted and does not name any specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis explicitly acknowledges the timestamps are not in order and does not state elapsed times or ordered sequences across the file as if they were chronological.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject names at all.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis identifies exactly one restart at 02:50 and does not claim crash-looping or repeated restarts.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly states the 403 is not a database issue and that the Database team has no part in the reported save failure.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "potentially all users who touch this feature since the auth change (see gaps below)",
+        "reason": "The log contains no reference to an auth change or any specific configuration change; 'the auth change' implies a known event that is not evidenced in the tickets."
+      },
+      {
+        "quote": "This is a normal business-rule guard (a routing rule update without a branch is invalid). No data corruption.",
+        "reason": "The log only states 'Application validation errors have occured' without specifying which validation rule fired; the analysis asserts a specific cause (null BranchId) and the absence of data corruption, neither of which is established by the log."
+      },
+      {
+        "quote": "Container restart at 02:50 (shut down \u2192 start) | Normal rolling deploy or liveness restart.",
+        "reason": "The log shows a shutdown and restart but does not state the cause; 'rolling deploy or liveness restart' is an unsupported interpretation of why the restart occurred."
+      },
+      {
+        "quote": "Normal 404 \u2013 user queried a deleted record.",
+        "reason": "The log says 'pending payment 88213 not found'; it does not state the record was deleted\u2014it could have never existed or been moved."
+      }
+    ]
+  }
+}

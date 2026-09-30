@@ -1,0 +1,303 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "payments-api receiving a 403 Forbidden from `masterfile-api` every time it tries to look up a branch during `AddPaymentRoutingRuleSecondaryCommand` or `BulkUpdateSecondaryBranchesCommand`. The Dapr sidecar call to `masterfile-api` (`branchlocation/get?ID=71` or `branchlocation/GetAll`) is being rejected at the HTTP/auth layer",
+      "reason": "The analysis identifies the 403 on both endpoints, names both commands, lists all four occurrences in a table, and explicitly connects it to the user-reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Repeated at 03:37:32, 03:38:24, 03:38:50, 03:40:12, and 20:26:31: > `Conversion failed when converting the ****** value '******' to data type ******.` > `Microsoft.Data.SqlClient.SqlException (0x80131904)` > `Error Number:245, State:1, Class:16`",
+      "reason": "The analysis names the handler, the error number 245, the exact masked message, and lists all five occurrences with timestamps."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual offending column, value, and target type are **redacted** in the log (literal `******`). This breaks routing-rule *search/listing*, not saves.",
+      "reason": "The analysis explicitly states the column, value, and type are masked and cannot be identified from the log, and in section 5 reiterates that one must query the database or use full SQL logging."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Between 22:26:37 and 22:29:08, **eight** consecutive attempts timed out: > `Execution Timeout Expired. The timeout period elapsed prior to completion of the operation or the server is not responding.` > `Error Number:-2, State:0, Class:11` By 22:36:47 the same query was completing in 279 ms. This was a **transient database-side stall**, not a code defect.",
+      "reason": "The analysis gives the correct time window, count (eight), error number, and notes recovery at 22:36:47, characterising it as a bounded/transient episode."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log does **not** record which validation rule fired, so the exact cause cannot be confirmed from this log alone. It is a different command (Update, not Add-Secondary) and a different rule set, so it is unlikely to be the same user complaint, but it does represent a broken save path for at least one user.",
+      "reason": "The analysis notes the two occurrences, the generic exception message, the absence of field-level detail, and in suggested action #6 recommends adding validation detail to the log output, identifying it as a logging gap."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "WRN Long-running request GetStatementLineQuery took 35\u201372 s (\u00d714, 00:20\u201300:24) | Performance problem, but on a different query (statement lines), different code path, and not related to routing-rule saves. Should be tracked separately.",
+      "reason": "The analysis identifies 14 breaches and the 35\u201372 s range but files it under 'routine noise' and does not explicitly note that the values are still rising at the end of the log or frame it as a degrading issue in the priority ordering."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At 01:03:36 the log contains the **full production connection string in cleartext**: > `Server=sql-prd.internal,1433;Database=Payments;User ID=svc_payments;Password=Pr0d-Payments-2026!;TrustServerCertificate=True` This is logged at `DBG` level. The log file was then attached to a Jira ticket and circulated. **The database password should be considered compromised and rotated.**",
+      "reason": "The analysis identifies the credential exposure at DBG level, quotes the full string, and recommends rotation and log-level change, noting the file was shared via the ticket."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Container restart at 02:50:11 \u2192 02:50:14 | Deployment or HPA scale event. Not related to the error window.",
+      "reason": "The noise table correctly identifies the single restart at the right timestamps, but section 5 incorrectly states 'The 48-hour window contains two restarts,' contradicting the log which shows only one restart."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "WRN Storing keys in a directory '/app/.aspnet/DataProtection-Keys'\u2026 (\u00d72, at startup) | Standard ASP.NET Core container warning. No functional impact in this incident. | WRN No XML encryptor configured\u2026 (\u00d72) | Same as above; security-hygiene note, not a defect. | WRN Overriding address(es) 'http://*:8080'\u2026 | Normal Kestrel binding message. | WRN Failed to determine the https port for redirect. | Normal when HTTPS is terminated at the ingress.",
+      "reason": "All four startup warnings are listed and explicitly dismissed as routine container/ASP.NET Core noise with no functional impact on the incident."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "INF Service Permissions found and sent on the event bus (repeating every ~30 s) | Heartbeat / permission refresh. Normal. | WRN The connection was aborted by the client. TaskCanceledException (21:11:02) | One-off; user closed the browser mid-request. | WRN GetPendingPaymentQuery returned 404: pending payment 88213 not found (22:05:10) | Stale reference or race; different feature.",
+      "reason": "The analysis covers the Service Permissions messages, the TaskCanceledException, and the 404, but does not mention the ObjectMapper licence lines at all."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Container logs have time-of-day only, no date. The 48-hour window contains two restarts, so timestamps before and after the 02:50 restart are from different container lifetimes but the same calendar day is ambiguous.",
+      "reason": "The analysis notes the absence of dates but does not explicitly state that timestamps are out of order or that the trimmed stack traces make the log an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is an **inter-service authorisation problem, not a database problem**. ... You need masterfile-api logs from the same window and the Dapr/identity configuration to determine whether this is a token expiry, a missing role after a deploy, a sidecar identity mismatch, or a changed auth policy on the masterfile side.",
+      "reason": "The analysis presents the 403 as an access-control/Dapr configuration issue between the two services rather than a payments-code fault, and lists multiple specific sub-causes as possibilities to investigate, satisfying the inference framing."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "1. **403 from masterfile-api** (P0) \u2013 blocks the reported user action. Fix first. 2. **SQL conversion error 245** (P1) \u2013 breaks routing-rule search intermittently. Second. ... 5. **Credentials in log** \u2013 rotate the DB password and fix the log level. Parallel work, do not block on the other fixes.",
+      "reason": "The 403 is correctly first and the credential is correctly parallel, but GetStatementLineQuery is not included in the priority ordering (it is only in the noise table and a suggested action), so the 'then SQL 245 and GetStatementLineQuery' grouping is incomplete."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the DataProtection and XML encryptor warnings as routine with 'No functional impact in this incident' and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis repeatedly states the column, value, and type are masked as ****** and cannot be identified from the log; it never names a specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis acknowledges 'Container logs have time-of-day only, no date' and does not assert a dated or globally ordered sequence; the specific time ranges it cites (e.g., 22:26:37\u201322:29:08) correspond to entries that are in order within the log."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or use it as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies a single 'Container restart at 02:50:11 \u2192 02:50:14' in the noise table and does not claim crash-looping or repeated restarting."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'This is an inter-service authorisation problem, not a database problem' and 'It is not the database team,' and does not claim the database was down or the single cause of all failures."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The 48-hour window contains two restarts, so timestamps before and after the 02:50 restart are from different container lifetimes but the same calendar day is ambiguous.",
+      "reason": "The log shows only one restart (shutdown at 02:50:11, start at 02:50:14); the initial startup at 01:03:35 is the container's first start, not a restart. The analysis's own noise table correctly lists a single 'Container restart.'"
+    },
+    {
+      "quote": "Container restart at 02:50:11 \u2192 02:50:14 | Deployment or HPA scale event. Not related to the error window.",
+      "reason": "The log does not indicate what caused the restart; 'Deployment or HPA scale event' is an invented cause with no basis in the ticket or log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 280.67
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "payments-api receiving a 403 Forbidden from `masterfile-api` every time it tries to look up a branch during `AddPaymentRoutingRuleSecondaryCommand` or `BulkUpdateSecondaryBranchesCommand`. The Dapr sidecar call to `masterfile-api` (`branchlocation/get?ID=71` or `branchlocation/GetAll`) is being rejected at the HTTP/auth layer",
+        "reason": "The analysis identifies the 403 on both endpoints, names both commands, lists all four occurrences in a table, and explicitly connects it to the user-reported save failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Repeated at 03:37:32, 03:38:24, 03:38:50, 03:40:12, and 20:26:31: > `Conversion failed when converting the ****** value '******' to data type ******.` > `Microsoft.Data.SqlClient.SqlException (0x80131904)` > `Error Number:245, State:1, Class:16`",
+        "reason": "The analysis names the handler, the error number 245, the exact masked message, and lists all five occurrences with timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The actual offending column, value, and target type are **redacted** in the log (literal `******`). This breaks routing-rule *search/listing*, not saves.",
+        "reason": "The analysis explicitly states the column, value, and type are masked and cannot be identified from the log, and in section 5 reiterates that one must query the database or use full SQL logging.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Between 22:26:37 and 22:29:08, **eight** consecutive attempts timed out: > `Execution Timeout Expired. The timeout period elapsed prior to completion of the operation or the server is not responding.` > `Error Number:-2, State:0, Class:11` By 22:36:47 the same query was completing in 279 ms. This was a **transient database-side stall**, not a code defect.",
+        "reason": "The analysis gives the correct time window, count (eight), error number, and notes recovery at 22:36:47, characterising it as a bounded/transient episode.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "The log does **not** record which validation rule fired, so the exact cause cannot be confirmed from this log alone. It is a different command (Update, not Add-Secondary) and a different rule set, so it is unlikely to be the same user complaint, but it does represent a broken save path for at least one user.",
+        "reason": "The analysis notes the two occurrences, the generic exception message, the absence of field-level detail, and in suggested action #6 recommends adding validation detail to the log output, identifying it as a logging gap.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "WRN Long-running request GetStatementLineQuery took 35\u201372 s (\u00d714, 00:20\u201300:24) | Performance problem, but on a different query (statement lines), different code path, and not related to routing-rule saves. Should be tracked separately.",
+        "reason": "The analysis identifies 14 breaches and the 35\u201372 s range but files it under 'routine noise' and does not explicitly note that the values are still rising at the end of the log or frame it as a degrading issue in the priority ordering.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "At 01:03:36 the log contains the **full production connection string in cleartext**: > `Server=sql-prd.internal,1433;Database=Payments;User ID=svc_payments;Password=Pr0d-Payments-2026!;TrustServerCertificate=True` This is logged at `DBG` level. The log file was then attached to a Jira ticket and circulated. **The database password should be considered compromised and rotated.**",
+        "reason": "The analysis identifies the credential exposure at DBG level, quotes the full string, and recommends rotation and log-level change, noting the file was shared via the ticket.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "Container restart at 02:50:11 \u2192 02:50:14 | Deployment or HPA scale event. Not related to the error window.",
+        "reason": "The noise table correctly identifies the single restart at the right timestamps, but section 5 incorrectly states 'The 48-hour window contains two restarts,' contradicting the log which shows only one restart.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "WRN Storing keys in a directory '/app/.aspnet/DataProtection-Keys'\u2026 (\u00d72, at startup) | Standard ASP.NET Core container warning. No functional impact in this incident. | WRN No XML encryptor configured\u2026 (\u00d72) | Same as above; security-hygiene note, not a defect. | WRN Overriding address(es) 'http://*:8080'\u2026 | Normal Kestrel binding message. | WRN Failed to determine the https port for redirect. | Normal when HTTPS is terminated at the ingress.",
+        "reason": "All four startup warnings are listed and explicitly dismissed as routine container/ASP.NET Core noise with no functional impact on the incident.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "INF Service Permissions found and sent on the event bus (repeating every ~30 s) | Heartbeat / permission refresh. Normal. | WRN The connection was aborted by the client. TaskCanceledException (21:11:02) | One-off; user closed the browser mid-request. | WRN GetPendingPaymentQuery returned 404: pending payment 88213 not found (22:05:10) | Stale reference or race; different feature.",
+        "reason": "The analysis covers the Service Permissions messages, the TaskCanceledException, and the 404, but does not mention the ObjectMapper licence lines at all.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "Container logs have time-of-day only, no date. The 48-hour window contains two restarts, so timestamps before and after the 02:50 restart are from different container lifetimes but the same calendar day is ambiguous.",
+        "reason": "The analysis notes the absence of dates but does not explicitly state that timestamps are out of order or that the trimmed stack traces make the log an incomplete record.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "This is an **inter-service authorisation problem, not a database problem**. ... You need masterfile-api logs from the same window and the Dapr/identity configuration to determine whether this is a token expiry, a missing role after a deploy, a sidecar identity mismatch, or a changed auth policy on the masterfile side.",
+        "reason": "The analysis presents the 403 as an access-control/Dapr configuration issue between the two services rather than a payments-code fault, and lists multiple specific sub-causes as possibilities to investigate, satisfying the inference framing.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "1. **403 from masterfile-api** (P0) \u2013 blocks the reported user action. Fix first. 2. **SQL conversion error 245** (P1) \u2013 breaks routing-rule search intermittently. Second. ... 5. **Credentials in log** \u2013 rotate the DB password and fix the log level. Parallel work, do not block on the other fixes.",
+        "reason": "The 403 is correctly first and the credential is correctly parallel, but GetStatementLineQuery is not included in the priority ordering (it is only in the noise table and a suggested action), so the 'then SQL 245 and GetStatementLineQuery' grouping is incomplete.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly labels the DataProtection and XML encryptor warnings as routine with 'No functional impact in this incident' and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis repeatedly states the column, value, and type are masked as ****** and cannot be identified from the log; it never names a specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis acknowledges 'Container logs have time-of-day only, no date' and does not assert a dated or globally ordered sequence; the specific time ranges it cites (e.g., 22:26:37\u201322:29:08) correspond to entries that are in order within the log.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject 'payments.prod.requests.payments.errors' or use it as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis identifies a single 'Container restart at 02:50:11 \u2192 02:50:14' in the noise table and does not claim crash-looping or repeated restarting.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly states 'This is an inter-service authorisation problem, not a database problem' and 'It is not the database team,' and does not claim the database was down or the single cause of all failures.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The 48-hour window contains two restarts, so timestamps before and after the 02:50 restart are from different container lifetimes but the same calendar day is ambiguous.",
+        "reason": "The log shows only one restart (shutdown at 02:50:11, start at 02:50:14); the initial startup at 01:03:35 is the container's first start, not a restart. The analysis's own noise table correctly lists a single 'Container restart.'"
+      },
+      {
+        "quote": "Container restart at 02:50:11 \u2192 02:50:14 | Deployment or HPA scale event. Not related to the error window.",
+        "reason": "The log does not indicate what caused the restart; 'Deployment or HPA scale event' is an invented cause with no basis in the ticket or log."
+      }
+    ]
+  }
+}

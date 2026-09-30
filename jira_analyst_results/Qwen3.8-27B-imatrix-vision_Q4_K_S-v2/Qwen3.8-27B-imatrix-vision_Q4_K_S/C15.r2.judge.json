@@ -1,0 +1,215 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The attached production log shows every email send failing with SMTP status 535 \u2013 the mail server is rejecting the service account's credentials because **basic authentication is disabled** on `smtp.example.com:587`.",
+      "reason": "The analysis clearly identifies the SMTP 535 authentication failure with the exact server response text as the cause of undelivered emails, though it does not explicitly name EmailSender and OutboxDispatcher as the raising classes."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "These are legitimate warnings about ASP.NET Core data-protection key persistence (relevant to cookie encryption, anti-forgery tokens, etc.). They do **not** cause SMTP 535 errors. The exception stack trace goes through `SmtpClient.SendMailCallback \u2192 SmtpTransport.EndGetConnection` \u2013 there is no data-protection code in the failure path.",
+      "reason": "The analysis explicitly states the reporter's explanation is not supported, characterises the DataProtection lines as routine startup warnings, and notes nothing in the log connects them to the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Queue head blocking:** `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.` The dispatcher cannot progress past this item.",
+      "reason": "All elements are present: 5-second retry, no backoff, no dead-letter path, item 991204 at head of queue, and the blocking consequence."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Backlog growth:** 1,412 \u2192 1,508 \u2192 1,604 \u2192 1,702 \u2192 1,799 \u2192 1,896 \u2192 1,993 \u2192 2,089 messages over 18:02\u201318:39 (~100 msg / 5 min).",
+      "reason": "The analysis gives the exact start and end counts, the time window, and the growth rate, and the surrounding context makes clear customers will keep missing receipts until auth is fixed."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Previous container log lost:** The log header notes the prior container's log was not captured. We do not have the first-failure timestamp; the \"14:00\" figure comes from the contact centre, not the log.",
+      "reason": "The analysis explicitly states the log cannot confirm the 14:00 start, that the previous container's log was not captured, and that the 14:00 figure is from the contact centre."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya's suggestion to restart the pod again will also not help \u2013 the log already shows the post-restart container (started 18:02) producing the identical 535 errors.",
+      "reason": "The analysis clearly states another restart will not help because the pod was already restarted at 18:02 and the same 535 errors continue."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "> **Inference (not stated in the ticket):** The most likely root cause is a server-side change on `smtp.example.com` \u2013 for example, an IT/Platform team disabled plain/basic auth in favour of OAuth2 or CRAM-MD5 \u2013 made around 14:00. The notifications service was not updated to match.",
+      "reason": "Presented explicitly as an inference, it suggests the mail provider turned off basic auth for the account and the fix is a change of authentication method rather than a code change."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Contact the mail/Platform team that owns that server. Ask for the change log around 14:00 today and the current accepted auth mechanisms for `svc-notify@example.com`.",
+      "reason": "Two of the three expected actions (confirm with mail tenant and change auth method; add backoff and dead-letter) are clearly present, but the analysis does not suggest retrieving the pre-18:02 container log to confirm the 14:00 start\u2014it only suggests capturing future logs."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**NATS blip (minor):** Connection lost at 18:07:12, reconnected 1 s later. Unrelated to the email failure.",
+      "reason": "The NATS reconnection is explicitly called unrelated, and the health check is quoted as healthy; neither is attributed to the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection key explanation multiple times and does not endorse it."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log does not cover 14:00 and that the figure comes from the contact centre, not the log."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states another restart will not help and does not recommend it as a fix."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis calls the NATS blip unrelated and does not blame the health check or poll interval for the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only references SMTP 535 and 'basic authentication is disabled'; no rate limiting, TLS failure, or mailbox-full response is mentioned."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 156.17
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "quote": "The attached production log shows every email send failing with SMTP status 535 \u2013 the mail server is rejecting the service account's credentials because **basic authentication is disabled** on `smtp.example.com:587`.",
+        "reason": "The analysis clearly identifies the SMTP 535 authentication failure with the exact server response text as the cause of undelivered emails, though it does not explicitly name EmailSender and OutboxDispatcher as the raising classes.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P2",
+        "quote": "These are legitimate warnings about ASP.NET Core data-protection key persistence (relevant to cookie encryption, anti-forgery tokens, etc.). They do **not** cause SMTP 535 errors. The exception stack trace goes through `SmtpClient.SendMailCallback \u2192 SmtpTransport.EndGetConnection` \u2013 there is no data-protection code in the failure path.",
+        "reason": "The analysis explicitly states the reporter's explanation is not supported, characterises the DataProtection lines as routine startup warnings, and notes nothing in the log connects them to the SMTP failures.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P3",
+        "quote": "**Queue head blocking:** `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.` The dispatcher cannot progress past this item.",
+        "reason": "All elements are present: 5-second retry, no backoff, no dead-letter path, item 991204 at head of queue, and the blocking consequence.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P4",
+        "quote": "**Backlog growth:** 1,412 \u2192 1,508 \u2192 1,604 \u2192 1,702 \u2192 1,799 \u2192 1,896 \u2192 1,993 \u2192 2,089 messages over 18:02\u201318:39 (~100 msg / 5 min).",
+        "reason": "The analysis gives the exact start and end counts, the time window, and the growth rate, and the surrounding context makes clear customers will keep missing receipts until auth is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P5",
+        "quote": "**Previous container log lost:** The log header notes the prior container's log was not captured. We do not have the first-failure timestamp; the \"14:00\" figure comes from the contact centre, not the log.",
+        "reason": "The analysis explicitly states the log cannot confirm the 14:00 start, that the previous container's log was not captured, and that the 14:00 figure is from the contact centre.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P6",
+        "quote": "Priya's suggestion to restart the pod again will also not help \u2013 the log already shows the post-restart container (started 18:02) producing the identical 535 errors.",
+        "reason": "The analysis clearly states another restart will not help because the pod was already restarted at 18:02 and the same 535 errors continue.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-I1",
+        "quote": "> **Inference (not stated in the ticket):** The most likely root cause is a server-side change on `smtp.example.com` \u2013 for example, an IT/Platform team disabled plain/basic auth in favour of OAuth2 or CRAM-MD5 \u2013 made around 14:00. The notifications service was not updated to match.",
+        "reason": "Presented explicitly as an inference, it suggests the mail provider turned off basic auth for the account and the fix is a change of authentication method rather than a code change.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-P7",
+        "quote": "Contact the mail/Platform team that owns that server. Ask for the change log around 14:00 today and the current accepted auth mechanisms for `svc-notify@example.com`.",
+        "reason": "Two of the three expected actions (confirm with mail tenant and change auth method; add backoff and dead-letter) are clearly present, but the analysis does not suggest retrieving the pre-18:02 container log to confirm the 14:00 start\u2014it only suggests capturing future logs.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C15-P8",
+        "quote": "**NATS blip (minor):** Connection lost at 18:07:12, reconnected 1 s later. Unrelated to the email failure.",
+        "reason": "The NATS reconnection is explicitly called unrelated, and the health check is quoted as healthy; neither is attributed to the failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C15-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection key explanation multiple times and does not endorse it.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the log does not cover 14:00 and that the figure comes from the contact centre, not the log.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T3",
+        "quote": "",
+        "reason": "The analysis explicitly states another restart will not help and does not recommend it as a fix.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T4",
+        "quote": "",
+        "reason": "The analysis calls the NATS blip unrelated and does not blame the health check or poll interval for the undelivered emails.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C15-T5",
+        "quote": "",
+        "reason": "The analysis only references SMTP 535 and 'basic authentication is disabled'; no rate limiting, TLS failure, or mailbox-full response is mentioned.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

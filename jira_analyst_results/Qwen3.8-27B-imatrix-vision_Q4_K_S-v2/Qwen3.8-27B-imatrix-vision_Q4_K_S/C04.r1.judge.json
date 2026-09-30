@@ -1,0 +1,149 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No. The issue is not fully resolved. Do not confirm a fix to the customer.**",
+      "reason": "The analysis explicitly and clearly states that support should not tell the customer it is fixed."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked **Done / Fixed** in Jira, but that status is inaccurate. A retest on staging four days after the fix was merged proved the bug still reproduces.",
+      "reason": "The analysis conveys the Done/Fixed status, the 3.1.4 staging retest by Tom Becker on 2026-09-10, and that reset emails to plus-addressed recipients still do not arrive, though it misstates the gap as 'four days' rather than seven."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP log now shows:\n\n  > \"Rejected: 550 5.1.3 Invalid recipient address\"",
+      "reason": "The analysis quotes the exact SMTP error code and message from the retest."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This indicates the **email provider / SMTP gateway** is rejecting the plus-addressed recipient, not the internal regex. The original fix removed one gate, but a second, external gate remains.",
+      "reason": "The analysis draws the correct inference that the provider is the new cause, but presents it as a definitive conclusion ('indicates', 'meaning the provider itself does not accept') rather than as Tom's unconfirmed 'looks like' observation, so it reads as established fact rather than a tentative inference."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No owner for the SMTP-side issue. Tom Becker identified the new symptom, but no one has been assigned to investigate the email provider's configuration.",
+      "reason": "The analysis clearly states that nobody reopened the ticket, no follow-up ticket exists, and no one owns the remaining problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **Reopen BANK-377** (or create a child/linked ticket) and change status from Done back to **Open / In Progress**. \u2026 2. **Marcus Reid** should reply to the customer that the issue is **still being worked on** and avoid confirming a fix. \u2026 3. **Priya Nair** (or the email-component owner) should investigate the SMTP rejection.",
+      "reason": "The analysis recommends reopening or creating a linked ticket, assigning an owner to investigate the provider rejection, and giving the customer a holding response."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly denies that the issue is fixed and advises against confirming a fix to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states 'No linked ticket exists for the SMTP-side issue' and only suggests reopening as a future action; it does not claim the ticket has already been reopened or that a follow-up exists."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "A retest on staging four days after the fix was merged proved the bug still reproduces.",
+      "reason": "PR #201 was merged on 2026-09-03 and the retest occurred on 2026-09-10, a gap of seven days, not four."
+    },
+    {
+      "quote": "3.1.4 shipped without a complete fix",
+      "reason": "The tickets only mention testing on staging with build 3.1.4.17; there is no evidence in the export that 3.1.4 has been released or 'shipped' to production."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 94.11
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "quote": "**No. The issue is not fully resolved. Do not confirm a fix to the customer.**",
+        "reason": "The analysis explicitly and clearly states that support should not tell the customer it is fixed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P2",
+        "quote": "The ticket is marked **Done / Fixed** in Jira, but that status is inaccurate. A retest on staging four days after the fix was merged proved the bug still reproduces.",
+        "reason": "The analysis conveys the Done/Fixed status, the 3.1.4 staging retest by Tom Becker on 2026-09-10, and that reset emails to plus-addressed recipients still do not arrive, though it misstates the gap as 'four days' rather than seven.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P3",
+        "quote": "SMTP log now shows:\n\n  > \"Rejected: 550 5.1.3 Invalid recipient address\"",
+        "reason": "The analysis quotes the exact SMTP error code and message from the retest.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-I1",
+        "quote": "This indicates the **email provider / SMTP gateway** is rejecting the plus-addressed recipient, not the internal regex. The original fix removed one gate, but a second, external gate remains.",
+        "reason": "The analysis draws the correct inference that the provider is the new cause, but presents it as a definitive conclusion ('indicates', 'meaning the provider itself does not accept') rather than as Tom's unconfirmed 'looks like' observation, so it reads as established fact rather than a tentative inference.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C04-P4",
+        "quote": "No owner for the SMTP-side issue. Tom Becker identified the new symptom, but no one has been assigned to investigate the email provider's configuration.",
+        "reason": "The analysis clearly states that nobody reopened the ticket, no follow-up ticket exists, and no one owns the remaining problem.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-P5",
+        "quote": "1. **Reopen BANK-377** (or create a child/linked ticket) and change status from Done back to **Open / In Progress**. \u2026 2. **Marcus Reid** should reply to the customer that the issue is **still being worked on** and avoid confirming a fix. \u2026 3. **Priya Nair** (or the email-component owner) should investigate the SMTP rejection.",
+        "reason": "The analysis recommends reopening or creating a linked ticket, assigning an owner to investigate the provider rejection, and giving the customer a holding response.",
+        "verdict": "found"
+      },
+      {
+        "id": "C04-T1",
+        "quote": "",
+        "reason": "The analysis explicitly denies that the issue is fixed and advises against confirming a fix to the customer.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C04-T2",
+        "quote": "",
+        "reason": "The analysis states 'No linked ticket exists for the SMTP-side issue' and only suggests reopening as a future action; it does not claim the ticket has already been reopened or that a follow-up exists.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "A retest on staging four days after the fix was merged proved the bug still reproduces.",
+        "reason": "PR #201 was merged on 2026-09-03 and the retest occurred on 2026-09-10, a gap of seven days, not four."
+      },
+      {
+        "quote": "3.1.4 shipped without a complete fix",
+        "reason": "The tickets only mention testing on staging with build 3.1.4.17; there is no evidence in the export that 3.1.4 has been released or 'shipped' to production."
+      }
+    ]
+  }
+}

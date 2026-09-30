@@ -1,0 +1,295 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+      "reason": "The analysis identifies the 403 from masterfile-api on both endpoints, names both commands, states it appears four times, and explicitly links it to the user-reported save failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31): Conversion failed when converting the ****** value '******' to data type ******. Error Number: 245, State: 1, Class: 16 at SearchPaymentRoutingRuleQueryHandler.cs:59",
+      "reason": "The analysis names the handler, the error number, the exact message, and correctly counts five occurrences with timestamps."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+      "reason": "The analysis explicitly states the values are masked and cannot be identified from the log, and recommends running the query to get the real data."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \u22122, Class 11). The same query then succeeds at 22:36:47 in 279 ms.",
+      "reason": "The analysis correctly identifies the time window, error number, and recovery, but states 'seven' timeouts when the log shows eight ERR lines in that window."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The error message gives no detail on *which* validation rule fired. This may be a legitimate user input error, but the uninformative message means support cannot help the user without code inspection.",
+      "reason": "The analysis notes two occurrences, the ApplicationValidationException, the lack of specific validation messages, and recommends adding specific error messages."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention GetStatementLineQuery or the long-running threshold breaches at all."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start. This log file has been attached to a Jira ticket. The password should be rotated and the log level for connection strings reduced.",
+      "reason": "The analysis identifies the credential exposure at DBG level, names the password, and recommends rotation and log-level reduction."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Container restart at 02:50 (shut down 02:50:11 \u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+      "reason": "The analysis identifies the single restart with correct timestamps and explains it as a deployment, which accounts for the duplicate startup warnings."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Storing keys in a directory \u2026 DataProtection-Keys \u2026 may not be persisted | Standard .NET container warning, present on every start \u2026 No XML encryptor configured | Same \u2013 recurring config warning \u2026 Failed to determine the https port for redirect | Kestrel config note, not an error",
+      "reason": "The analysis lists the DataProtection, XML encryptor, and https port warnings as routine noise and explicitly places them in the 'safe to ignore' section, though it omits the 'Overriding address(es)' warning."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Service Permissions found and sent on the event bus (\u00d76) | Normal NATS bus heartbeat \u2026 ObjectMapper license key \u2026 valid \u2026 expires 11/28/2026 | Startup informational \u2026 The connection was aborted by the client (21:11:02) | Client-side cancel, not a server fault \u2026 GetPendingPaymentQuery returned 404: pending payment 88213 not found | Expected 404",
+      "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are listed as non-defects in the noise table."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+      "reason": "The analysis notes the lack of dates, the inability to establish sequence, and separately mentions the trimmed stack traces, covering the key limitations."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Likely causes (inference, not confirmed by this log): Expired or missing Dapr service-account / JWT between payments-api and masterfile-api; An RBAC or authz policy change on the masterfile-api side; A Dapr sidecar configuration drift on either pod",
+      "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services, explicitly labels it as inference, and distinguishes it from a payments code fault."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Priority order if only one thing can be fixed first: the masterfile-api 403. It is the direct cause of the user-reported save failures, it affects every secondary-branch save and bulk-update (not just two users), and it will keep generating tickets until the service-to-service auth is repaired.",
+      "reason": "The analysis correctly prioritises the 403 first and treats the credential as a separate security item, but omits GetStatementLineQuery from the priority ordering entirely."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly places the DataProtection and XML encryptor warnings in the 'Routine noise (safe to ignore)' section and does not attribute any failure to them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the values are masked and cannot be identified, and does not name any specific column, value, or data type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly acknowledges the timestamps are time-of-day only and that dates/sequence cannot be established; it does not state any elapsed time or ordered sequence as fact."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not mention the NATS subject names or treat 'payments.prod.requests.payments.errors' as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies exactly one restart and explicitly calls it a deployment, not a crash or crash-loop."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'This is not a database problem' and identifies multiple separate issues with different owners; it does not claim the database was down or the single cause."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "All `GetPaymentBatchActionListQuery` calls at 60\u2013260 ms",
+      "reason": "The log shows one GetPaymentBatchActionListQuery call at 1053ms (01:43:17), so the claim that all calls are at 60\u2013260 ms is contradicted by the log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 197.85
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+        "reason": "The analysis identifies the 403 from masterfile-api on both endpoints, names both commands, states it appears four times, and explicitly links it to the user-reported save failure.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P2",
+        "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31): Conversion failed when converting the ****** value '******' to data type ******. Error Number: 245, State: 1, Class: 16 at SearchPaymentRoutingRuleQueryHandler.cs:59",
+        "reason": "The analysis names the handler, the error number, the exact message, and correctly counts five occurrences with timestamps.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P3",
+        "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+        "reason": "The analysis explicitly states the values are masked and cannot be identified from the log, and recommends running the query to get the real data.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P4",
+        "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \u22122, Class 11). The same query then succeeds at 22:36:47 in 279 ms.",
+        "reason": "The analysis correctly identifies the time window, error number, and recovery, but states 'seven' timeouts when the log shows eight ERR lines in that window.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-P5",
+        "quote": "The error message gives no detail on *which* validation rule fired. This may be a legitimate user input error, but the uninformative message means support cannot help the user without code inspection.",
+        "reason": "The analysis notes two occurrences, the ApplicationValidationException, the lack of specific validation messages, and recommends adding specific error messages.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P6",
+        "quote": "",
+        "reason": "The analysis does not mention GetStatementLineQuery or the long-running threshold breaches at all.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C14-P7",
+        "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start. This log file has been attached to a Jira ticket. The password should be rotated and the log level for connection strings reduced.",
+        "reason": "The analysis identifies the credential exposure at DBG level, names the password, and recommends rotation and log-level reduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P8",
+        "quote": "Container restart at 02:50 (shut down 02:50:11 \u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+        "reason": "The analysis identifies the single restart with correct timestamps and explains it as a deployment, which accounts for the duplicate startup warnings.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P9",
+        "quote": "Storing keys in a directory \u2026 DataProtection-Keys \u2026 may not be persisted | Standard .NET container warning, present on every start \u2026 No XML encryptor configured | Same \u2013 recurring config warning \u2026 Failed to determine the https port for redirect | Kestrel config note, not an error",
+        "reason": "The analysis lists the DataProtection, XML encryptor, and https port warnings as routine noise and explicitly places them in the 'safe to ignore' section, though it omits the 'Overriding address(es)' warning.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P10",
+        "quote": "Service Permissions found and sent on the event bus (\u00d76) | Normal NATS bus heartbeat \u2026 ObjectMapper license key \u2026 valid \u2026 expires 11/28/2026 | Startup informational \u2026 The connection was aborted by the client (21:11:02) | Client-side cancel, not a server fault \u2026 GetPendingPaymentQuery returned 404: pending payment 88213 not found | Expected 404",
+        "reason": "All four items (Service Permissions, ObjectMapper licence, TaskCanceledException at 21:11:02, 404 for payment 88213) are listed as non-defects in the noise table.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P11",
+        "quote": "The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+        "reason": "The analysis notes the lack of dates, the inability to establish sequence, and separately mentions the trimmed stack traces, covering the key limitations.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-I1",
+        "quote": "Likely causes (inference, not confirmed by this log): Expired or missing Dapr service-account / JWT between payments-api and masterfile-api; An RBAC or authz policy change on the masterfile-api side; A Dapr sidecar configuration drift on either pod",
+        "reason": "The analysis presents the 403 as likely an access-control/Dapr configuration issue between the two services, explicitly labels it as inference, and distinguishes it from a payments code fault.",
+        "verdict": "found"
+      },
+      {
+        "id": "C14-P12",
+        "quote": "Priority order if only one thing can be fixed first: the masterfile-api 403. It is the direct cause of the user-reported save failures, it affects every secondary-branch save and bulk-update (not just two users), and it will keep generating tickets until the service-to-service auth is repaired.",
+        "reason": "The analysis correctly prioritises the 403 first and treats the credential as a separate security item, but omits GetStatementLineQuery from the priority ordering entirely.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C14-T1",
+        "quote": "",
+        "reason": "The analysis explicitly places the DataProtection and XML encryptor warnings in the 'Routine noise (safe to ignore)' section and does not attribute any failure to them.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the values are masked and cannot be identified, and does not name any specific column, value, or data type.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T3",
+        "quote": "",
+        "reason": "The analysis explicitly acknowledges the timestamps are time-of-day only and that dates/sequence cannot be established; it does not state any elapsed time or ordered sequence as fact.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T4",
+        "quote": "",
+        "reason": "The analysis does not mention the NATS subject names or treat 'payments.prod.requests.payments.errors' as evidence of errors.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T5",
+        "quote": "",
+        "reason": "The analysis identifies exactly one restart and explicitly calls it a deployment, not a crash or crash-loop.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C14-T6",
+        "quote": "",
+        "reason": "The analysis explicitly states 'This is not a database problem' and identifies multiple separate issues with different owners; it does not claim the database was down or the single cause.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "All `GetPaymentBatchActionListQuery` calls at 60\u2013260 ms",
+        "reason": "The log shows one GetPaymentBatchActionListQuery call at 1053ms (01:43:17), so the claim that all calls are at 60\u2013260 ms is contradicted by the log."
+      }
+    ]
+  }
+}

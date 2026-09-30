@@ -1,0 +1,267 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body. BANKUI-3C8 is the upstream 401 being logged by the app's own console-error handler (5 140 events, `handled: true`).",
+      "reason": "The analysis groups all five issues together, identifies each by its property name, explains the 401-precedes-TypeError causal chain, and characterises 3C8 as the console logger recording the 401."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+      "reason": "The analysis acknowledges the overlap caveat and uses 44 as the reach figure, but does not explicitly state that 44 (BANKUI-3C8) is the best single estimate for the cluster rather than the sum of all five counts."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Widest user reach of any single issue (58 users). It is a user-facing \"white screen / broken page\" on navigation.",
+      "reason": "The analysis explicitly states 5D6 has the widest user reach (58) and notes it has only 63 events, making it the top item by user impact despite low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z; ~1 event per user; breadcrumb says \"a navigation immediately before; the requested bundle returns 404\"\u2026a browser tab running the pre-deploy bundle (or a routing table that still points at the old hash) navigates, requests chunk 6728, and the server/CDN no longer serves it.",
+      "reason": "The analysis gives the correct timestamps, the ~6-minute gap, the 404 on the requested bundle, and the open-session/stale-hash explanation."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Culprit is `chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`. No app breadcrumbs. Every event is from the same browser session. This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe. **Not a bank-ui defect.** The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+      "reason": "The analysis identifies the chrome-extension culprit, single user, no app breadcrumbs, labels it not a defect, and recommends filtering it in Sentry."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+      "reason": "The analysis characterises 3C8 as a logger recording a symptom and 2F0 as one user's extension, and neither is given sprint priority, making clear that raw event count does not reflect value to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Sentry says `resolved` / `resolvedInRelease: 4.6.0`, yet it fired 18 events as late as 2026-09-11. Either the resolution was premature or some users are on an old build. Needs a 10-minute check before the next triage.",
+      "reason": "The analysis flags the discrepancy (resolved in 4.6.0 but firing after 4.7.0) but attributes it to stale tabs rather than a regression, and recommends a conditional check rather than definitively reopening the issue."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are not uploaded (confirmed in Ravi Kumar's comment and in the JSON notes). Every `lastFrame` is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). Debugging and verifying the fix for Group A will be guesswork without readable stack traces.",
+      "reason": "The analysis explicitly states source maps are missing, gives examples of minified names, and notes the consequence for tracing issues to components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "User-count overlap is unknown. The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+      "reason": "The analysis explicitly states the overlap is unknown and that the total affected-user count cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern). All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+      "reason": "The analysis presents the 401\u2192unhandled-rejection\u2192TypeError chain as a labelled inference, grounded in the breadcrumb evidence, and notes the information gap about the root trigger of the 401s."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "### Priority 1 \u2013 Fix the 401 response-handling gap (Group A)\n\n- **Why first:** One root-cause fix eliminates four separate Sentry issues (4A1, 4A2, 4A9, 4B3) and stops the 5 140-event 401 log flood (3C8).",
+      "reason": "The analysis identifies the correct two items for the two slots and the correct non-sprint items, but reverses the priority order (401 cluster first, 5D6 second) and treats 1A7 as a conditional check rather than a definitive reopen."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes 2F0 from sprint work, calls it not a defect, and explains the high count as one user's extension."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis groups all four TypeErrors under one cause and one fix, and does not treat the eight issues as separate defects."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses 44 for the cluster and explicitly warns that user counts may overlap and the true blast radius is lower than the sum."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the 1A7 discrepancy, says it needs verification, and offers a conditional reopen rather than declaring it fixed or needing no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as an auth-failure cascade and suggests checking token TTL or auth-service logs; it never calls it an attack, intrusion, or breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis places 5D6 in Group B (deploy-related) and 1A7 in Group D (resolved/stale), separate from the 401 cluster in Group A."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+      "reason": "The ticket identifies the culprit as a chrome-extension with filename 'inject.js' and a SecurityError about cross-origin frame access, but gives no basis for identifying the extension as an adblocker; 'script-injector' is loosely supported by the filename but 'adblocker' is invented."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 267.99
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "quote": "All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body. BANKUI-3C8 is the upstream 401 being logged by the app's own console-error handler (5 140 events, `handled: true`).",
+        "reason": "The analysis groups all five issues together, identifies each by its property name, explains the 401-precedes-TypeError causal chain, and characterises 3C8 as the console logger recording the 401.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P2",
+        "quote": "The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+        "reason": "The analysis acknowledges the overlap caveat and uses 44 as the reach figure, but does not explicitly state that 44 (BANKUI-3C8) is the best single estimate for the cluster rather than the sum of all five counts.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P3",
+        "quote": "Widest user reach of any single issue (58 users). It is a user-facing \"white screen / broken page\" on navigation.",
+        "reason": "The analysis explicitly states 5D6 has the widest user reach (58) and notes it has only 63 events, making it the top item by user impact despite low event count.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P4",
+        "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z; ~1 event per user; breadcrumb says \"a navigation immediately before; the requested bundle returns 404\"\u2026a browser tab running the pre-deploy bundle (or a routing table that still points at the old hash) navigates, requests chunk 6728, and the server/CDN no longer serves it.",
+        "reason": "The analysis gives the correct timestamps, the ~6-minute gap, the 404 on the requested bundle, and the open-session/stale-hash explanation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P5",
+        "quote": "Culprit is `chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`. No app breadcrumbs. Every event is from the same browser session. This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe. **Not a bank-ui defect.** The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+        "reason": "The analysis identifies the chrome-extension culprit, single user, no app breadcrumbs, labels it not a defect, and recommends filtering it in Sentry.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P6",
+        "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+        "reason": "The analysis characterises 3C8 as a logger recording a symptom and 2F0 as one user's extension, and neither is given sprint priority, making clear that raw event count does not reflect value to fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P7",
+        "quote": "Sentry says `resolved` / `resolvedInRelease: 4.6.0`, yet it fired 18 events as late as 2026-09-11. Either the resolution was premature or some users are on an old build. Needs a 10-minute check before the next triage.",
+        "reason": "The analysis flags the discrepancy (resolved in 4.6.0 but firing after 4.7.0) but attributes it to stale tabs rather than a regression, and recommends a conditional check rather than definitively reopening the issue.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-P8",
+        "quote": "Source maps are not uploaded (confirmed in Ravi Kumar's comment and in the JSON notes). Every `lastFrame` is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). Debugging and verifying the fix for Group A will be guesswork without readable stack traces.",
+        "reason": "The analysis explicitly states source maps are missing, gives examples of minified names, and notes the consequence for tracing issues to components.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P9",
+        "quote": "User-count overlap is unknown. The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+        "reason": "The analysis explicitly states the overlap is unknown and that the total affected-user count cannot be determined from the export.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-I1",
+        "quote": "Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern). All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+        "reason": "The analysis presents the 401\u2192unhandled-rejection\u2192TypeError chain as a labelled inference, grounded in the breadcrumb evidence, and notes the information gap about the root trigger of the 401s.",
+        "verdict": "found"
+      },
+      {
+        "id": "C18-P10",
+        "quote": "### Priority 1 \u2013 Fix the 401 response-handling gap (Group A)\n\n- **Why first:** One root-cause fix eliminates four separate Sentry issues (4A1, 4A2, 4A9, 4B3) and stops the 5 140-event 401 log flood (3C8).",
+        "reason": "The analysis identifies the correct two items for the two slots and the correct non-sprint items, but reverses the priority order (401 cluster first, 5D6 second) and treats 1A7 as a conditional check rather than a definitive reopen.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C18-T1",
+        "quote": "",
+        "reason": "The analysis explicitly excludes 2F0 from sprint work, calls it not a defect, and explains the high count as one user's extension.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T2",
+        "quote": "",
+        "reason": "The analysis groups all four TypeErrors under one cause and one fix, and does not treat the eight issues as separate defects.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T3",
+        "quote": "",
+        "reason": "The analysis uses 44 for the cluster and explicitly warns that user counts may overlap and the true blast radius is lower than the sum.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T4",
+        "quote": "",
+        "reason": "The analysis flags the 1A7 discrepancy, says it needs verification, and offers a conditional reopen rather than declaring it fixed or needing no action.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T5",
+        "quote": "",
+        "reason": "The analysis describes the 401s as an auth-failure cascade and suggests checking token TTL or auth-service logs; it never calls it an attack, intrusion, or breach.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C18-T6",
+        "quote": "",
+        "reason": "The analysis places 5D6 in Group B (deploy-related) and 1A7 in Group D (resolved/stale), separate from the 401 cluster in Group A.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+        "reason": "The ticket identifies the culprit as a chrome-extension with filename 'inject.js' and a SecurityError about cross-origin frame access, but gives no basis for identifying the extension as an adblocker; 'script-injector' is loosely supported by the filename but 'adblocker' is invented."
+      }
+    ]
+  }
+}

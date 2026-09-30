@@ -1,0 +1,145 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 | Config deploy **OPS-81** executed; JWT signing key for Auth service rotated. | **\u2248 09:31** | Transfer errors begin appearing on dashboards.",
+      "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated in the timeline."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 | Monitoring alert fires: *TransferErrorRate > 20 %*. | **09:52** | Incident declared (BANK-450 created).",
+      "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 | Rollback of OPS-81 config deploy initiated. | **10:42** | Transfer error rate back **under 1 %**. | **10:50** | Incident resolved.",
+      "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fault onset (\u2248 09:31) \u2192 monitoring alert (09:47) | **16 minutes**",
+      "reason": "Time to detect is stated as 16 minutes from 09:31 to 09:47, matching the expected calculation."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes**",
+      "reason": "71 minutes from impact start (09:31) to recovery (10:42) is stated with the start point clearly identified."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy **OPS-81** (executed 09:30) rotated the JWT signing key used by the **Auth** service without a corresponding update to the key the **Transactions API** uses for token validation. After the deploy: Auth began issuing tokens signed with the **new** key. Transactions API continued to validate incoming tokens against the **old** key. Every transfer request was rejected with **401 \u2014 \"IDX10503: Signature validation failed\"**",
+      "reason": "The full root cause chain is stated: OPS-81 rotated the key, Auth used new key, Transactions API validated against old key, resulting in 401 IDX10503 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review scheduled for **2026-09-16**.",
+      "reason": "The post-incident review date of 2026-09-16 is clearly stated."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly attributes the database suggestion to Priya as a ruled-out hypothesis and explicitly calls it a 'red-herring' that Sam resolved at 10:24; it does not name the database as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All stated durations (16, 21, 50, 58, 71, 32, 7, 11 minutes) are supported by pairs of timestamps present in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 78.68
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "quote": "09:30 | Config deploy **OPS-81** executed; JWT signing key for Auth service rotated. | **\u2248 09:31** | Transfer errors begin appearing on dashboards.",
+        "reason": "Both the 09:30 deploy time and the ~09:31 impact start are clearly stated in the timeline.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P2",
+        "quote": "09:47 | Monitoring alert fires: *TransferErrorRate > 20 %*. | **09:52** | Incident declared (BANK-450 created).",
+        "reason": "Both the 09:47 alert and the 09:52 incident declaration are explicitly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P3",
+        "quote": "10:31 | Rollback of OPS-81 config deploy initiated. | **10:42** | Transfer error rate back **under 1 %**. | **10:50** | Incident resolved.",
+        "reason": "Rollback start (10:31), recovery below 1% (10:42), and resolution (10:50) are all clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P4",
+        "quote": "Fault onset (\u2248 09:31) \u2192 monitoring alert (09:47) | **16 minutes**",
+        "reason": "Time to detect is stated as 16 minutes from 09:31 to 09:47, matching the expected calculation.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P5",
+        "quote": "Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes**",
+        "reason": "71 minutes from impact start (09:31) to recovery (10:42) is stated with the start point clearly identified.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P6",
+        "quote": "Config deploy **OPS-81** (executed 09:30) rotated the JWT signing key used by the **Auth** service without a corresponding update to the key the **Transactions API** uses for token validation. After the deploy: Auth began issuing tokens signed with the **new** key. Transactions API continued to validate incoming tokens against the **old** key. Every transfer request was rejected with **401 \u2014 \"IDX10503: Signature validation failed\"**",
+        "reason": "The full root cause chain is stated: OPS-81 rotated the key, Auth used new key, Transactions API validated against old key, resulting in 401 IDX10503 errors.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-P7",
+        "quote": "Post-incident review scheduled for **2026-09-16**.",
+        "reason": "The post-incident review date of 2026-09-16 is clearly stated.",
+        "verdict": "found"
+      },
+      {
+        "id": "C07-T1",
+        "quote": "",
+        "reason": "The analysis correctly attributes the database suggestion to Priya as a ruled-out hypothesis and explicitly calls it a 'red-herring' that Sam resolved at 10:24; it does not name the database as a cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C07-T2",
+        "quote": "",
+        "reason": "All stated durations (16, 21, 50, 58, 71, 32, 7, 11 minutes) are supported by pairs of timestamps present in the ticket.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

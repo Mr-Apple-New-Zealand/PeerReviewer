@@ -1,0 +1,163 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "a transfer that times out (ERR_TXN_504) can be retried by tapping a Retry button, which issues a brand-new POST to the transfer endpoint with no idempotency key. Because the debit and credit are not wrapped in a single database transaction, the first attempt's debit survives after the credit times out, and the retry creates a second debit. Net result: the source account is debited twice, the destination credited once.",
+      "reason": "The analysis clearly states the double-debit / single-credit outcome of retrying after ERR_TXN_504."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects version **3.1.4**.",
+      "reason": "The analysis states the affected version is 3.1.4 and the fix target is 3.2.0 releasing 2026-09-24 in the current-state table."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No idempotency key on the retry.** The Retry button fires `POST /api/transaction/transfer` with no key, so the server allocates a new transaction ID (log: `txn=8841` \u2192 `txn=8842`).\n- **Debit and credit are separate DB transactions.** When the credit times out at 30 000 ms, the already-committed debit has no compensating rollback.",
+      "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Status | In Progress | Assignee | Priya Nair",
+      "reason": "The analysis states the status is In Progress, assignee is Priya Nair, and PR #218 is waiting on code review."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Three customers have been affected as of 8 September.",
+      "reason": "The analysis mentions three affected customers and that Aroha asked Marcus Reid to raise the manual-reversal request with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No follow-up comment or linked ticket confirming that has been done.",
+      "reason": "The analysis explicitly notes the ticket does not confirm the Finance reversal has been raised or completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Complete code review and merge PR #218 (single-transaction wrap + Idempotency-Key).",
+      "reason": "The suggested next actions include merging PR #218 and confirming the Finance Ops reversal for the three customers."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently states PR #218 is open and waiting on code review; it never claims it has been merged, deployed, or released."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the bug is mobile-web only and that Tom Becker confirmed it does not reproduce on desktop web."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "PR #218 is still in review as of 2026-09-12 (3 days before sprint end, 12 days before release).",
+      "reason": "Sprint 38 ends 2026-09-22, so 2026-09-12 is 10 days before sprint end, not 3. This is a calculation error."
+    },
+    {
+      "quote": "already 4 days old as of the last update",
+      "reason": "The tickets do not state when PR #218 was opened; the analysis assumes it was opened on 2026-09-08 (the ticket creation date) to arrive at '4 days old' by 2026-09-12, but no ticket field confirms the PR's creation date."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 96.88
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "quote": "a transfer that times out (ERR_TXN_504) can be retried by tapping a Retry button, which issues a brand-new POST to the transfer endpoint with no idempotency key. Because the debit and credit are not wrapped in a single database transaction, the first attempt's debit survives after the credit times out, and the retry creates a second debit. Net result: the source account is debited twice, the destination credited once.",
+        "reason": "The analysis clearly states the double-debit / single-credit outcome of retrying after ERR_TXN_504.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P2",
+        "quote": "Affects version **3.1.4**.",
+        "reason": "The analysis states the affected version is 3.1.4 and the fix target is 3.2.0 releasing 2026-09-24 in the current-state table.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P3",
+        "quote": "**No idempotency key on the retry.** The Retry button fires `POST /api/transaction/transfer` with no key, so the server allocates a new transaction ID (log: `txn=8841` \u2192 `txn=8842`).\n- **Debit and credit are separate DB transactions.** When the credit times out at 30 000 ms, the already-committed debit has no compensating rollback.",
+        "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are clearly attributed to Priya's reproduction.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P4",
+        "quote": "Status | In Progress | Assignee | Priya Nair",
+        "reason": "The analysis states the status is In Progress, assignee is Priya Nair, and PR #218 is waiting on code review.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P5",
+        "quote": "Three customers have been affected as of 8 September.",
+        "reason": "The analysis mentions three affected customers and that Aroha asked Marcus Reid to raise the manual-reversal request with Finance Ops.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P6",
+        "quote": "No follow-up comment or linked ticket confirming that has been done.",
+        "reason": "The analysis explicitly notes the ticket does not confirm the Finance reversal has been raised or completed.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-P7",
+        "quote": "Complete code review and merge PR #218 (single-transaction wrap + Idempotency-Key).",
+        "reason": "The suggested next actions include merging PR #218 and confirming the Finance Ops reversal for the three customers.",
+        "verdict": "found"
+      },
+      {
+        "id": "C01-T1",
+        "quote": "",
+        "reason": "The analysis consistently states PR #218 is open and waiting on code review; it never claims it has been merged, deployed, or released.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C01-T2",
+        "quote": "",
+        "reason": "The analysis explicitly states the bug is mobile-web only and that Tom Becker confirmed it does not reproduce on desktop web.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "PR #218 is still in review as of 2026-09-12 (3 days before sprint end, 12 days before release).",
+        "reason": "Sprint 38 ends 2026-09-22, so 2026-09-12 is 10 days before sprint end, not 3. This is a calculation error."
+      },
+      {
+        "quote": "already 4 days old as of the last update",
+        "reason": "The tickets do not state when PR #218 was opened; the analysis assumes it was opened on 2026-09-08 (the ticket creation date) to arrive at '4 days old' by 2026-09-12, but no ticket field confirms the PR's creation date."
+      }
+    ]
+  }
+}

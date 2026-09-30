@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Both tickets describe the same defect: the web home/dashboard screen shows a stale balance after a transfer, in the same version (3.1.4), with no fix applied.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Keep BANK-425 as the tracking ticket \u2013 it was filed first, already has a confirmed root cause and a concrete fix (clear BalanceCache on successful transfer), and Hana Sato has already investigated. Close BANK-440 as a duplicate of BANK-425.",
+      "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with linking and context merging."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 \u2013 Not a duplicate \u2026 Platform / component: Mobile push-notification service (iOS + Android) vs. web front-end local storage. \u2026 Root cause (per Ravi Kumar): The notification service builds its message from the TransferRequested event, which fires before the debit is applied. \u2026 Keep open and independent. No action needed beyond the already-in-progress fix. Ravi Kumar should confirm the event switch",
+      "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event before debit), notes it's a mobile push-notification issue, and confirms Ravi Kumar is already working on it."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the balance is cached in local storage (BalanceCache, 15 min TTL). A page refresh re-reads the same local-storage entry (still stale), while a logout/login cycle re-fetches from the API and overwrites the cache.",
+      "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and states the fix is to clear it on successful transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This completed task introduced the 15-minute BalanceCache in local storage. It is the direct cause of the bug tracked in BANK-425 / BANK-440.",
+      "reason": "The analysis states the causal link as established fact ('introduced', 'direct cause') rather than as a likely or possible inference, which does not meet the inference presentation requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Assign BANK-425 to an owner (currently Unassigned).",
+      "reason": "The analysis notes BANK-425 is unassigned but does not explicitly state that BANK-440 is also unassigned, so the 'both unassigned' point is only partially conveyed."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains why it differs from BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly quotes that GET /api/user/balance returns the correct new balance and treats it as corroboration, never claiming the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The task did what it asked (cut API calls from ~40/session to ~1).",
+      "reason": "The ticket states the goal was to 'cut load' by caching for 15 minutes, but never specifies the result would be approximately 1 call per session; the '~1' figure is invented."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 84.27
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "Both tickets describe the same defect: the web home/dashboard screen shows a stale balance after a transfer, in the same version (3.1.4), with no fix applied.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both report the web dashboard/home screen balance staying stale after a transfer on 3.1.4.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Keep BANK-425 as the tracking ticket \u2013 it was filed first, already has a confirmed root cause and a concrete fix (clear BalanceCache on successful transfer), and Hana Sato has already investigated. Close BANK-440 as a duplicate of BANK-425.",
+        "reason": "The analysis recommends keeping BANK-425 (older, has Hana Sato's root-cause analysis) and closing BANK-440 as a duplicate, with linking and context merging.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 \u2013 Not a duplicate \u2026 Platform / component: Mobile push-notification service (iOS + Android) vs. web front-end local storage. \u2026 Root cause (per Ravi Kumar): The notification service builds its message from the TransferRequested event, which fires before the debit is applied. \u2026 Keep open and independent. No action needed beyond the already-in-progress fix. Ravi Kumar should confirm the event switch",
+        "reason": "The analysis correctly identifies MOB-88 as not a duplicate, explains the different cause (TransferRequested event before debit), notes it's a mobile push-notification issue, and confirms Ravi Kumar is already working on it.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "the balance is cached in local storage (BalanceCache, 15 min TTL). A page refresh re-reads the same local-storage entry (still stale), while a logout/login cycle re-fetches from the API and overwrites the cache.",
+        "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and states the fix is to clear it on successful transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "This completed task introduced the 15-minute BalanceCache in local storage. It is the direct cause of the bug tracked in BANK-425 / BANK-440.",
+        "reason": "The analysis states the causal link as established fact ('introduced', 'direct cause') rather than as a likely or possible inference, which does not meet the inference presentation requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "Assign BANK-425 to an owner (currently Unassigned).",
+        "reason": "The analysis notes BANK-425 is unassigned but does not explicitly state that BANK-440 is also unassigned, so the 'both unassigned' point is only partially conveyed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains why it differs from BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly quotes that GET /api/user/balance returns the correct new balance and treats it as corroboration, never claiming the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The task did what it asked (cut API calls from ~40/session to ~1).",
+        "reason": "The ticket states the goal was to 'cut load' by caching for 15 minutes, but never specifies the result would be approximately 1 call per session; the '~1' figure is invented."
+      }
+    ]
+  }
+}

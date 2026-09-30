@@ -20,12 +20,13 @@ step with it.
 
 ## Current standing
 
-Sixteen models have been measured on the full eighteen cases with the judge of
+Seventeen models have been measured on the full eighteen cases with the judge of
 record. Everything earlier is superseded — see below.
 
 | Model | Quant | Temp | Quality | Coverage | C01–C13 | C14–C18 | Traps hit | Invented | Unsup | GB |
 |---|---|---|---|---|---|---|---|---|---|---|
 | **claude-sonnet-5** ¹ | — | n/a | **88.4 (87–91)** | **90%** | **93.6** | **74.9** | 4/162 | 0 | **13** | — |
+| Qwen3.8-27B-imatrix-vision ⁵ | Q4_K_S | 1.0 | 84.8 (82–87) | **90%** | 88.4 | **75.5** | 3/157 | 0 | 42 | 20.0 |
 | **Muse-Glimmer-30B-imatrix** | Q4_K_S | 1.0 | **82.8 (82–84)** | **84%** | **89.3** | **65.9** | **1/162** | 0 | **13** | **16.7** |
 | Gemma-4-31B-it-imatrix | Q4_K_M | 1.0 | 66.7 (65–69) | 68% | 75.3 | 44.2 | 3/162 | 0 | **11** | 22.7 |
 | Qwen3-VL-32B-Instruct-imatrix | Q4_K_M | 0.3 | 62.5 (59–65) | **69%** | 72.5 | 36.4 | 8/162 | **5** | 39 | — ² |
@@ -62,6 +63,22 @@ the Instruct build (~19.8 GB weights, ~1.4 GB vision, 8 GiB KV at 32768) and
 **35 GB** for the Thinking build (~23 GB weights, ~1.4 GB vision, 12 GiB KV at
 49152). Both are estimates. Measuring them is the most useful small thing left
 to do.
+
+³ **Lost 3 of 54 cases to runaway reasoning and ran at 44% on GPU.** Its trap
+count is out of 149 rather than 162 because the lost cases take their traps with
+them, and its times measure CPU spill, not the model. See the 2B section below —
+both are findings, not accidents.
+
+⁴ **Text-only**, so C11, C12 and C13 scored 0 with "model has no vision
+capability" — 9 of its 54 runs, and why its traps are out of 144 rather than 162.
+That is the guard working as intended, not instability. It is the floor marker for
+the board.
+
+⁵ **Self-judged, and measurably inflated.** The judge of record is this same
+model. The identical 54 analyses graded by `claude-sonnet-5` score **79.8**, so
+read this row as ~80. It ranks above Muse-Glimmer here; on Sonnet's scale it does
+not. The run also lost C15.r3 to a `judge_json` bug, hence traps out of 157. The
+measurement is in the section below.
 
 ### A local model gets within 6 points of the ceiling, at 16.7 GB
 
@@ -122,67 +139,74 @@ implies at F16, or the language weights are smaller than the GGUF size suggests.
 This also supersedes the 19.6 GB figure in CONFIG_SETTINGS, which predates the
 projector and has no recorded `num_ctx`.
 
-### Qwen3.8-27B: the highest recall measured, and it cannot be ranked
+### Qwen3.8-27B, and what a self-judge is worth
 
-`Qwen3.8-27B-imatrix-vision:Q4_K_S` scores **79.8 (79.8-81.9)** at 19.96 GB, 100%
-on GPU, 69.5s a case. It is **deliberately absent from the table above** and sits
-under "Not ranked" in the generated leaderboard, because it was graded by
-`claude-sonnet-5` rather than the judge of record.
+`Qwen3.8-27B-imatrix-vision:Q4_K_S` has now been graded twice on the **same 54
+analyses**: once by `claude-sonnet-5` (run 54) and once by the judge of record,
+which is this same model (run 56). That makes it the only run on the board with a
+direct measurement of judge effect, and the only one where the judge is the model
+under test.
 
-That was not a mistake - the judge of record *is* Qwen3.8-27B. Leaving the judge
-blank would have had this model grade itself: same weights, same generation, same
-tokenizer. The cost of avoiding that is that **79.8 cannot be compared with any
-number in the standing table**, including Muse-Glimmer's 82.8. Changing the judge
-rescales every score.
-
-What *is* readable is its internal profile, judged consistently throughout:
-
-| | Sonnet (1) | Muse-Glimmer (1) | Qwen3.8-27B (2) |
+| | judged by Sonnet | judged by itself | diff |
 |---|---|---|---|
-| Coverage | 90.5% | 84.2% | **89.8%** |
-| Found (full credit) | 81.1% | 67.4% | 80.9% |
-| **Missed** | 5.2% | 6.1% | **4.3%** |
-| Unsupported per analysis | **0.24** | **0.24** | 1.25 |
-| Traps | 4/162 | **1/162** | 5/148 |
-| C14-C18 | 74.9 | 65.9 | **69.6** |
+| Quality | **79.8** | **84.8** | **+5.0** |
+| Coverage | 89.8% | 89.8% | **0.0** |
+| Found (share of checkpoints) | 80.9% | 79.5% | −1.4 |
+| Missed | 4.3% | 3.1% | −1.2 |
+| Unsupported per analysis | 1.25 | 0.79 | **−0.46** |
+| Traps | 5/148 | 3/157 | — |
+| Prose C01–C13 | 83.8 | 88.4 | +4.6 |
+| Telemetry C14–C18 | 69.6 | 75.5 | +5.9 |
 
-(1) judged by Qwen3.8-27B; (2) judged by claude-sonnet-5 - **the scales differ**
+**The two judges agree exactly on what the analyses found** — coverage is 89.8%
+both times, and the self-judge credits a slightly *smaller* share of checkpoints at
+full marks. The entire +5.0 comes from penalties: 42 unsupported claims against 65,
+and 3 traps against 5.
 
-**It misses less than anything else measured, Sonnet included** - 17 checkpoints
-of 397, 4.3%. Coverage 89.8% is within a point of Sonnet's own. On recall this is
-the strongest local model by a clear margin.
+So the bias is not "it likes its own writing". It is narrower and worse: **the
+self-judge forgives exactly the failure this model is worst at.** Under Sonnet,
+1.25 unsupported claims per analysis is the loosest figure in the top tier by five
+times. Under its own judging that becomes 0.79 and the row climbs above
+Muse-Glimmer.
 
-**Its precision is the worst in the top tier by a factor of five.** 65 unsupported
-claims, 1.25 per analysis, against 0.24 for both Sonnet and Muse. It finds almost
-everything and then asserts a good deal more besides. That is the opposite trade
-from Muse, which hedges what it finds but rarely over-reaches - and for output a
-human acts on directly, Muse's failure mode is much the safer one.
+**It is not blanket generosity either.** It marked itself *down* on C11 (−4.8),
+C13 (−4.8), C01 (−2.4) and C15 (−0.9) — cases where penalties are not the
+deciding factor. The leniency concentrates where over-assertion is scored: C12
++19.0, C05 +11.1, C14 +10.3, C03 +9.5, C18 +9.1.
 
-**Best local telemetry so far at 69.6**, above Muse's 65.9, with C15 at 93 and C16
-at 78.
+**Read the row as ~80, not 84.8.** It sits at rank 2 mechanically, because 84.8 is
+comparable with the sixteen other Qwen3.8-judged rows by every key `--compare`
+checks. It should not be read as beating Muse-Glimmer's 82.8. The fair comparison
+does not exist yet — it needs Muse re-judged by Sonnet.
 
-**The `=medium` override worked.** No truncation, no empty content, 2,691 output
-tokens a case against a 40,960 budget. Left at its `xhigh` default this model
-would very likely have failed the way the judge does without the same setting.
-Memory came in at 19.96 GB against the ~21-22 GB its Modelfile predicted.
+#### What this does and does not say about the other sixteen rows
 
-#### C17 rests on a single repeat, and that was a harness bug
+**It does not invalidate them.** The effect measured here is *same-model*, not
+same-family, and the board argues against family favouritism: the two non-Qwen
+analysts scored **highest** under a Qwen judge — Muse-Glimmer 82.8 and Gemma-4
+66.7, against a Qwen3-VL ceiling of 62.5. A judge tilted toward its own vendor
+would have suppressed them, not crowned them.
 
-Two of the three C17 runs have no score: `judge failed 4x: judge
-stop_reason=max_tokens`. The Claude judge path had `max_tokens` fixed at
-**16,000**, and `--judge-num-predict` only ever reached the Ollama path. C17 is
-the largest case with the most checkpoints - 13 points plus 7 traps - and Sonnet's
-adaptive thinking plus a 20-verdict JSON payload does not fit in 16,000 tokens.
+**But it sets a floor on how finely the board can be read.** A judge capable of a
+5-point swing on penalty-heavy analyses means gaps of a few points between adjacent
+rows carry less weight than the confidence intervals suggest — particularly
+between models with very different unsupported-claim rates.
 
-The harness now passes `judge_num_predict` to the Claude path and defaults it to
-32,768 for a Claude judge (`CLAUDE_JUDGE_NUM_PREDICT`). The two lost repeats are
-**excluded from the aggregates rather than scored 0** - hence traps out of 148 and
-checkpoints out of 397 - so the score is not depressed, but **C17's 54 is a single
-measurement**, and it is the highest C17 any local model has produced. Do not
-quote it as settled.
+#### Two harness findings from these runs
 
-This bug would have hit the recommended Muse re-judge identically. It is fixed
-before that runs.
+**C17 came back.** Run 54 lost two of three C17 repeats to the Claude judge's fixed
+16,000-token `max_tokens`; the re-judge scored all three (61.5 against 53.8 on the
+single repeat). That path now honours `--judge-num-predict` and defaults to 32,768
+for a Claude judge.
+
+**A `judge_json` bug was destroying valid verdicts.** Run 56 lost C15.r3 to
+`judge returned no JSON object` on 6,621 characters of *correct* JSON. The recovery
+logic stripped markdown fences before trying to parse, and the judge had quoted a
+fenced SMTP stack trace inside a `"quote"` value — so the fence regex matched a
+triple-backtick pair *inside* a JSON string and extracted the middle of it. The raw
+reply is now tried unmodified before any fence recovery, with the other seven
+recovery paths covered by tests. Any judge quoting a fenced code block was exposed
+to this, which is most of C14–C18.
 
 ### The 4B is the best value under 10 GB
 
@@ -532,7 +556,10 @@ Every model that was queued has now been run: the eight Qwen3-VL builds, the fou
 Qwen2.5-VL builds, Falcon-H1-Tiny as a floor, and both non-Qwen candidates. What
 remains is verification, not coverage.
 
-**1. Re-judge Muse-Glimmer with Sonnet.** Now doubly needed. It confirms or
+**1. Re-judge Muse-Glimmer with Sonnet.** Now the single most important run
+outstanding: it is the only way to know whether Muse or Qwen3.8-27B is the better
+local model, and the self-judge measurement above shows the question cannot be
+settled on the current numbers. It confirms or
 corrects the 82.8 headline, *and* it is the only way to compare Muse with the
 Qwen3.8-27B run, which is already Sonnet-judged - the two strongest local models
 measured currently sit on different scales. `mode: rejudge`,
@@ -544,6 +571,10 @@ fixed; before that it would have lost C17 the same way run 54 did.
 `/api/ps` figures, so neither can be placed on the Pareto front. Lower priority
 now — Muse dominates both on quality by 20+ points, so their footprints no longer
 affect any recommendation. Worth doing only to close the gap in the table.
+
+**2a. Re-judge Qwen3.8-27B once more** to recover C15.r3, now that the
+`judge_json` fence bug is fixed. Cheap, and it makes run 56 a complete
+54-analysis set rather than 53.
 
 **3. A second Qwen3.8-27B run at `=low`.** The most informative single run still
 available. It would hold weights, quant, size, temperature and judge all constant

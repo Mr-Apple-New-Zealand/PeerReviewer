@@ -1,0 +1,309 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The next breadcrumb is at 1789197792, about **4 hours 17 minutes later** (\u0394 \u2248 14,979 s).",
+      "reason": "The analysis correctly identifies the two halves, the 200s before, the gap, and the 401s after, and gives the correct \u0394 of 14,979 s, but states the gap as '4 hours 17 minutes' when 14,979 s is approximately 4 h 10 min."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen",
+      "reason": "The analysis clearly identifies the TypeError as a symptom of unhandled 401s, explains that components get no data and dereference undefined, and names the lack of 401 interception/redirect as the underlying defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This explains why **four different property names** crash: it isn't one missing array; it is every component on that screen that consumes a list-shaped API response, all hitting the same \"response is undefined because the request 401'd\" condition simultaneously.",
+      "reason": "The analysis lists all four earlier sentry.event breadcrumbs (rows \u00d72, returnProperties, length) with timestamps and explicitly frames them as one cascade from the same root cause rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At 1789182766 a call to `/api/security/token/refresh` also returned 200. The user was interacting with AG Grid number inputs and buttons. Everything was fine.",
+      "reason": "The analysis identifies the single token refresh at the correct timestamp with a 200 response before the gap, and states that no refresh was attempted after the gap ('the app did not intercept the 401s, refresh the token, and retry')."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Sentry `environment` tag and `_dsc.environment` both say **\"Production\"**. The `url` tag and every breadcrumb URL is **`https://bank-uat.example.com/\u2026`** \u2013 a UAT hostname.",
+      "reason": "The analysis explicitly flags the Production tag vs. UAT URL conflict, identifies it as a likely Sentry misconfiguration, and references Tom Becker's question about confirming the environment."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis reports the transaction and culprit values but does not flag the discrepancy with the request URL (/payments/batch/actions), does not call the transaction name stale, and does not note that Sentry's grouping would point to the wrong screen."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps / symbolication | **Failed for all three bundles.** The `scraping_attempts` show DNS resolution failure for `bank-uat.example.com.google.internal.` (no A record). The function `ie.project` is minified; the exact source file and line of the `.sort` call **cannot be determined** from this event.",
+      "reason": "The analysis identifies the three failed scraping attempts due to DNS resolution failure, the minified function names, and explicitly states the exact source location cannot be determined."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Sentry event has `release: null` and `dist: null`, so the deployed bundle version is not independently confirmed.",
+      "reason": "The analysis identifies both release and dist as null and states the consequence that the build cannot be confirmed, which is the same point the key makes about not being able to tie the event to a build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every response body was **0 bytes**. The token that was successfully refreshed ~4 hours earlier had expired, and the app did **not** intercept the 401s, refresh the token, and retry.",
+      "reason": "The analysis notes the 0-byte response bodies and explicitly raises the question of why the token was rejected (TTL vs. other causes), acknowledging the event does not provide the answer."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen: 1. The app has a token-refresh mechanism (proven by the successful `/api/security/token/refresh` call earlier in the session). 2. After the token expires, the next batch of API calls returns 401 with an empty body.",
+      "reason": "The section is explicitly labelled 'inference, based on the breadcrumb sequence' and presents the token-expiry-during-idle mechanism as the likely explanation, grounded in the pre-gap refresh, the gap, and the post-gap 401s."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+      "reason": "The analysis addresses the Referer and the '401 OK' statusText, but does not explicitly call out the 780 KB InvokeAction response as a non-issue, nor does it state that the browser/OS are ordinary and not the fault."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the in_app flags on the frames, the in_app_frame_mix 'in-app-only' metadata, or the point that this flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the fix should be a global interceptor, not per-component null-guards",
+      "reason": "The analysis covers 401 handling, environment fix, and source maps, and rejects null guards as the fix, but does not include correcting the stale transaction name as a next action."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the null guard as the fix and identifies the 401 handling gap as the root cause."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the UAT hostname and the Production tag conflict, and does not treat the event as a confirmed production incident."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis reports the transaction value as data but does not state that the error occurred on the /settlements/run/8214 screen; it says the user was 'working within a specific settlement run' which is a mild interpretation, not a claim about where the error occurred."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the exact source file and line cannot be determined and only references minified names like ie.project as what is available, not as the actual fault location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system for the error."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the 401s as token expiry, not as an attack, intrusion, permissions misconfiguration, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes the gap as a gap with no breadcrumbs in between and does not attribute any activity, requests, or errors to the four-hour idle period."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Over the span from breadcrumb timestamp 1789182659 to 1789182813, roughly 25 API calls to `SettlementAllocation/Query`, `GetAllocationLineMarketPlanDetail`, and `InvokeAction` all returned **200 OK**.",
+      "reason": "Counting the XHR breadcrumbs in that timestamp range yields 18 calls (17 to the three named endpoints plus 1 token/refresh), not 'roughly 25.' The count is inflated by about 7 calls."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 310.59
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "quote": "The next breadcrumb is at 1789197792, about **4 hours 17 minutes later** (\u0394 \u2248 14,979 s).",
+        "reason": "The analysis correctly identifies the two halves, the 200s before, the gap, and the 401s after, and gives the correct \u0394 of 14,979 s, but states the gap as '4 hours 17 minutes' when 14,979 s is approximately 4 h 10 min.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P2",
+        "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen",
+        "reason": "The analysis clearly identifies the TypeError as a symptom of unhandled 401s, explains that components get no data and dereference undefined, and names the lack of 401 interception/redirect as the underlying defect.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P3",
+        "quote": "This explains why **four different property names** crash: it isn't one missing array; it is every component on that screen that consumes a list-shaped API response, all hitting the same \"response is undefined because the request 401'd\" condition simultaneously.",
+        "reason": "The analysis lists all four earlier sentry.event breadcrumbs (rows \u00d72, returnProperties, length) with timestamps and explicitly frames them as one cascade from the same root cause rather than separate bugs.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P4",
+        "quote": "At 1789182766 a call to `/api/security/token/refresh` also returned 200. The user was interacting with AG Grid number inputs and buttons. Everything was fine.",
+        "reason": "The analysis identifies the single token refresh at the correct timestamp with a 200 response before the gap, and states that no refresh was attempted after the gap ('the app did not intercept the 401s, refresh the token, and retry').",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P5",
+        "quote": "The Sentry `environment` tag and `_dsc.environment` both say **\"Production\"**. The `url` tag and every breadcrumb URL is **`https://bank-uat.example.com/\u2026`** \u2013 a UAT hostname.",
+        "reason": "The analysis explicitly flags the Production tag vs. UAT URL conflict, identifies it as a likely Sentry misconfiguration, and references Tom Becker's question about confirming the environment.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P6",
+        "quote": "",
+        "reason": "The analysis reports the transaction and culprit values but does not flag the discrepancy with the request URL (/payments/batch/actions), does not call the transaction name stale, and does not note that Sentry's grouping would point to the wrong screen.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P7",
+        "quote": "Source maps / symbolication | **Failed for all three bundles.** The `scraping_attempts` show DNS resolution failure for `bank-uat.example.com.google.internal.` (no A record). The function `ie.project` is minified; the exact source file and line of the `.sort` call **cannot be determined** from this event.",
+        "reason": "The analysis identifies the three failed scraping attempts due to DNS resolution failure, the minified function names, and explicitly states the exact source location cannot be determined.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P8",
+        "quote": "The Sentry event has `release: null` and `dist: null`, so the deployed bundle version is not independently confirmed.",
+        "reason": "The analysis identifies both release and dist as null and states the consequence that the build cannot be confirmed, which is the same point the key makes about not being able to tie the event to a build.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P9",
+        "quote": "Every response body was **0 bytes**. The token that was successfully refreshed ~4 hours earlier had expired, and the app did **not** intercept the 401s, refresh the token, and retry.",
+        "reason": "The analysis notes the 0-byte response bodies and explicitly raises the question of why the token was rejected (TTL vs. other causes), acknowledging the event does not provide the answer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-I1",
+        "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen: 1. The app has a token-refresh mechanism (proven by the successful `/api/security/token/refresh` call earlier in the session). 2. After the token expires, the next batch of API calls returns 401 with an empty body.",
+        "reason": "The section is explicitly labelled 'inference, based on the breadcrumb sequence' and presents the token-expiry-during-idle mechanism as the likely explanation, grounded in the pre-gap refresh, the gap, and the post-gap 401s.",
+        "verdict": "found"
+      },
+      {
+        "id": "C17-P10",
+        "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+        "reason": "The analysis addresses the Referer and the '401 OK' statusText, but does not explicitly call out the 780 KB InvokeAction response as a non-issue, nor does it state that the browser/OS are ordinary and not the fault.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-P11",
+        "quote": "",
+        "reason": "The analysis does not mention the in_app flags on the frames, the in_app_frame_mix 'in-app-only' metadata, or the point that this flag is not evidence the fault is in application code.",
+        "verdict": "missed"
+      },
+      {
+        "id": "C17-P12",
+        "quote": "the fix should be a global interceptor, not per-component null-guards",
+        "reason": "The analysis covers 401 handling, environment fix, and source maps, and rejects null guards as the fix, but does not include correcting the stale transaction name as a next action.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C17-T1",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the null guard as the fix and identifies the 401 handling gap as the root cause.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T2",
+        "quote": "",
+        "reason": "The analysis explicitly flags the UAT hostname and the Production tag conflict, and does not treat the event as a confirmed production incident.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T3",
+        "quote": "",
+        "reason": "The analysis reports the transaction value as data but does not state that the error occurred on the /settlements/run/8214 screen; it says the user was 'working within a specific settlement run' which is a mild interpretation, not a claim about where the error occurred.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T4",
+        "quote": "",
+        "reason": "The analysis explicitly states the exact source file and line cannot be determined and only references minified names like ie.project as what is available, not as the actual fault location.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T5",
+        "quote": "",
+        "reason": "The analysis does not blame the 780 KB response, slow network, browser, browser version, or operating system for the error.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T6",
+        "quote": "",
+        "reason": "The analysis describes the 401s as token expiry, not as an attack, intrusion, permissions misconfiguration, or server outage.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C17-T7",
+        "quote": "",
+        "reason": "The analysis describes the gap as a gap with no breadcrumbs in between and does not attribute any activity, requests, or errors to the four-hour idle period.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Over the span from breadcrumb timestamp 1789182659 to 1789182813, roughly 25 API calls to `SettlementAllocation/Query`, `GetAllocationLineMarketPlanDetail`, and `InvokeAction` all returned **200 OK**.",
+        "reason": "Counting the XHR breadcrumbs in that timestamp range yields 18 calls (17 to the three named endpoints plus 1 token/refresh), not 'roughly 25.' The count is inflated by about 7 calls."
+      }
+    ]
+  }
+}

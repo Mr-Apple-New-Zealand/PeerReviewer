@@ -1,0 +1,131 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a near-duplicate of BANK-440. MOB-88 is a separate bug with a different root cause. BANK-419 is not a duplicate; it is the shipped feature that created the conditions for both web bugs.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting same version (3.1.4), same web surface, and same stale-balance-after-transfer symptom."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Merge into BANK-440 (keep the older key or the one with the root-cause comment \u2013 in practice, folding BANK-425 into BANK-440 makes sense because BANK-440 is the cleaner bug report and the fix ticket; attach Hana Sato's comment to BANK-440 for context). Mark BANK-425 as Duplicate with a link to BANK-440.",
+      "reason": "The analysis recommends keeping one ticket, closing the other as duplicate, linking them, and preserving Hana Sato's root-cause analysis, satisfying the 'either direction acceptable if linked and analysis preserved' criterion."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Not a duplicate. Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the TransferRequested event (fired before the debit) instead of TransferCompleted.",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate, identifies the different cause (TransferRequested vs TransferCompleted event), and notes it is In Progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The likely root cause (identified in BANK-425's comment) is the BalanceCache local-storage cache introduced in 3.1.4 by BANK-419, which has a 15-minute TTL and is never invalidated on a successful transfer.",
+      "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and states the fix is to invalidate it on successful transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It is the root cause of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+      "reason": "The analysis does connect BANK-419 to the bug and recommends a link, but in the BANK-419 section it states the causal relationship as established fact ('It is the root cause') rather than as a probable regression, failing the inference-presentation requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No assignee on BANK-440. It has been open since 2026-09-13 with no owner.",
+      "reason": "The analysis notes BANK-440 is unassigned but never explicitly states that BANK-425 is also unassigned, so the 'both unassigned' point is only partially conveyed."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is 'Not a duplicate' and explains why it is a separate bug."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states 'the API returns the correct value immediately,' consistent with BANK-440's description, and never claims the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 91.24
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a near-duplicate of BANK-440. MOB-88 is a separate bug with a different root cause. BANK-419 is not a duplicate; it is the shipped feature that created the conditions for both web bugs.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting same version (3.1.4), same web surface, and same stale-balance-after-transfer symptom.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Merge into BANK-440 (keep the older key or the one with the root-cause comment \u2013 in practice, folding BANK-425 into BANK-440 makes sense because BANK-440 is the cleaner bug report and the fix ticket; attach Hana Sato's comment to BANK-440 for context). Mark BANK-425 as Duplicate with a link to BANK-440.",
+        "reason": "The analysis recommends keeping one ticket, closing the other as duplicate, linking them, and preserving Hana Sato's root-cause analysis, satisfying the 'either direction acceptable if linked and analysis preserved' criterion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "Not a duplicate. Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the TransferRequested event (fired before the debit) instead of TransferCompleted.",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate, identifies the different cause (TransferRequested vs TransferCompleted event), and notes it is In Progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "The likely root cause (identified in BANK-425's comment) is the BalanceCache local-storage cache introduced in 3.1.4 by BANK-419, which has a 15-minute TTL and is never invalidated on a successful transfer.",
+        "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and states the fix is to invalidate it on successful transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "It is the root cause of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+        "reason": "The analysis does connect BANK-419 to the bug and recommends a link, but in the BANK-419 section it states the causal relationship as established fact ('It is the root cause') rather than as a probable regression, failing the inference-presentation requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "No assignee on BANK-440. It has been open since 2026-09-13 with no owner.",
+        "reason": "The analysis notes BANK-440 is unassigned but never explicitly states that BANK-425 is also unassigned, so the 'both unassigned' point is only partially conveyed.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is 'Not a duplicate' and explains why it is a separate bug.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis correctly states 'the API returns the correct value immediately,' consistent with BANK-440's description, and never claims the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

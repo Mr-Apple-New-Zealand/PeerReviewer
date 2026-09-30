@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440. MOB-88 and BANK-419 are not.",
+      "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both are on the web platform, version 3.1.4, and describe the balance staying stale after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Designate as the primary / tracking ticket for the web cache bug. Duplicate BANK-425 into it (link as \"is duplicated by\"). Merge the useful detail from BANK-425's comment (root cause: BalanceCache not cleared) into BANK-440's description or a comment so the fix context lives in one place.",
+      "reason": "The analysis recommends keeping one ticket (BANK-440) and closing the other (BANK-425) as a duplicate, linking them and preserving Hana Sato's root-cause analysis, which satisfies the 'either direction is acceptable if linked and analysis preserved' criterion."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "MOB-88 is not a duplicate\n\n- Different platform: iOS / Android push notification vs. web dashboard.\n- Different root cause: The notification service subscribes to TransferRequested (fired before the debit) instead of TransferCompleted.",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate, identifies it as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted event), and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 adds the confirmed root cause (Hana Sato's comment): the BalanceCache in local storage is never invalidated after a transfer.",
+      "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and recommends clearing it on successful transfer as the fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-419 is the originating task that introduced the 15-minute local-storage cache in 3.1.4. It is a Task (not a Bug), already Done, and its purpose (reducing API load) was legitimate. It is the cause of BANK-440/BANK-425, not a duplicate of them.",
+      "reason": "The analysis identifies BANK-419 as the originating task that introduced the cache and states it is 'the cause' of the bugs as established fact rather than as a probable regression, so it does not meet the inference-presentation requirement."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-440 (Open, Unassigned, Medium)",
+      "reason": "The analysis explicitly labels both BANK-440 and BANK-425 as 'Unassigned' in the recommended actions section."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains the differences; it never claims MOB-88 is a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis confirms the API is correct ('GET /api/user/balance returns new value') and explicitly states 'the cache is client-side, not an API issue,' never claiming the API returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "These are the same defect reported independently by two users nine days apart.",
+      "reason": "BANK-425 was created 2026-09-05 and BANK-440 was created 2026-09-13, which is 8 days apart, not 9. Although the statement is labelled as an inference, it misstates a date fact from the tickets."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 80.0
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "quote": "BANK-425 is a duplicate of BANK-440. MOB-88 and BANK-419 are not.",
+        "reason": "The analysis clearly identifies BANK-425 as a duplicate of BANK-440, noting both are on the web platform, version 3.1.4, and describe the balance staying stale after a transfer.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P2",
+        "quote": "Designate as the primary / tracking ticket for the web cache bug. Duplicate BANK-425 into it (link as \"is duplicated by\"). Merge the useful detail from BANK-425's comment (root cause: BalanceCache not cleared) into BANK-440's description or a comment so the fix context lives in one place.",
+        "reason": "The analysis recommends keeping one ticket (BANK-440) and closing the other (BANK-425) as a duplicate, linking them and preserving Hana Sato's root-cause analysis, which satisfies the 'either direction is acceptable if linked and analysis preserved' criterion.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P3",
+        "quote": "MOB-88 is not a duplicate\n\n- Different platform: iOS / Android push notification vs. web dashboard.\n- Different root cause: The notification service subscribes to TransferRequested (fired before the debit) instead of TransferCompleted.",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate, identifies it as a mobile push-notification problem with a different cause (TransferRequested vs TransferCompleted event), and notes it is in progress with Ravi Kumar.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-P4",
+        "quote": "BANK-425 adds the confirmed root cause (Hana Sato's comment): the BalanceCache in local storage is never invalidated after a transfer.",
+        "reason": "The analysis correctly identifies the 15-minute BalanceCache in local storage as the cause and recommends clearing it on successful transfer as the fix.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-I1",
+        "quote": "BANK-419 is the originating task that introduced the 15-minute local-storage cache in 3.1.4. It is a Task (not a Bug), already Done, and its purpose (reducing API load) was legitimate. It is the cause of BANK-440/BANK-425, not a duplicate of them.",
+        "reason": "The analysis identifies BANK-419 as the originating task that introduced the cache and states it is 'the cause' of the bugs as established fact rather than as a probable regression, so it does not meet the inference-presentation requirement.",
+        "verdict": "partial"
+      },
+      {
+        "id": "C05-P5",
+        "quote": "BANK-440 (Open, Unassigned, Medium)",
+        "reason": "The analysis explicitly labels both BANK-440 and BANK-425 as 'Unassigned' in the recommended actions section.",
+        "verdict": "found"
+      },
+      {
+        "id": "C05-T1",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and explains the differences; it never claims MOB-88 is a duplicate of BANK-440.",
+        "verdict": "clean"
+      },
+      {
+        "id": "C05-T2",
+        "quote": "",
+        "reason": "The analysis confirms the API is correct ('GET /api/user/balance returns new value') and explicitly states 'the cache is client-side, not an API issue,' never claiming the API returns a wrong or stale value.",
+        "verdict": "clean"
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "These are the same defect reported independently by two users nine days apart.",
+        "reason": "BANK-425 was created 2026-09-05 and BANK-440 was created 2026-09-13, which is 8 days apart, not 9. Although the statement is labelled as an inference, it misstates a date fact from the tickets."
+      }
+    ]
+  }
+}
