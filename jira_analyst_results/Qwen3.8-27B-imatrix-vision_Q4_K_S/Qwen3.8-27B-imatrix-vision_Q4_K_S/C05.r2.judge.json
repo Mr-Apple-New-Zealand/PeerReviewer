@@ -1,0 +1,151 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**BANK-425 is a duplicate of BANK-440.**",
+      "reason": "Analysis clearly identifies BANK-425 as a duplicate of BANK-440 with matching stale-balance symptom on 3.1.4."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Keep BANK-425 as the tracking ticket** \u2013 it was filed first, already has a confirmed root cause and a concrete fix",
+      "reason": "Analysis recommends keeping BANK-425 (the older ticket with root-cause analysis) and closing BANK-440 as a duplicate."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause (per Ravi Kumar):** The notification service builds its message from the `TransferRequested` event, which fires *before* the debit is applied.",
+      "reason": "Analysis correctly identifies MOB-88 as unrelated with a distinct cause and notes it is already in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the balance is cached in **local storage** (`BalanceCache`, 15 min TTL)",
+      "reason": "Analysis correctly states the cache mechanism and the fix of clearing it on transfer success."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This completed task *introduced* the 15-minute `BalanceCache` in local storage. It is the direct cause of the bug tracked in BANK-425 / BANK-440.",
+      "reason": "The causal link to BANK-419 is stated as established fact rather than as a likely/possible inference."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never explicitly notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the API returns a wrong or stale balance; it treats the API response as correct corroboration."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The task did what it asked (cut API calls from ~40/session to ~1)",
+      "reason": "The tickets only state the cache reduces calls to once per 15 minutes, not a specific reduction to ~1 call per session; this exact figure is invented."
+    },
+    {
+      "quote": "A page refresh re-reads the same local-storage entry (still stale), while a logout/login cycle re-fetches from the API and overwrites the cache.",
+      "reason": "This specific mechanism is presented as established fact but is not stated anywhere in the tickets; it is an unlabeled speculative explanation."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 22.6,
+    "input_tokens": 5205,
+    "output_tokens": 2783
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "**BANK-425 is a duplicate of BANK-440.**",
+        "reason": "Analysis clearly identifies BANK-425 as a duplicate of BANK-440 with matching stale-balance symptom on 3.1.4."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "**Keep BANK-425 as the tracking ticket** \u2013 it was filed first, already has a confirmed root cause and a concrete fix",
+        "reason": "Analysis recommends keeping BANK-425 (the older ticket with root-cause analysis) and closing BANK-440 as a duplicate."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "Root cause (per Ravi Kumar):** The notification service builds its message from the `TransferRequested` event, which fires *before* the debit is applied.",
+        "reason": "Analysis correctly identifies MOB-88 as unrelated with a distinct cause and notes it is already in progress with Ravi Kumar."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "the balance is cached in **local storage** (`BalanceCache`, 15 min TTL)",
+        "reason": "Analysis correctly states the cache mechanism and the fix of clearing it on transfer success."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "This completed task *introduced* the 15-minute `BalanceCache` in local storage. It is the direct cause of the bug tracked in BANK-425 / BANK-440.",
+        "reason": "The causal link to BANK-419 is stated as established fact rather than as a likely/possible inference."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never explicitly notes that both duplicate tickets (BANK-440 and BANK-425) are unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not claim the API returns a wrong or stale balance; it treats the API response as correct corroboration."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The task did what it asked (cut API calls from ~40/session to ~1)",
+        "reason": "The tickets only state the cache reduces calls to once per 15 minutes, not a specific reduction to ~1 call per session; this exact figure is invented."
+      },
+      {
+        "quote": "A page refresh re-reads the same local-storage entry (still stale), while a logout/login cycle re-fetches from the API and overwrites the cache.",
+        "reason": "This specific mechanism is presented as established fact but is not stated anywhere in the tickets; it is an unlabeled speculative explanation."
+      }
+    ]
+  }
+}

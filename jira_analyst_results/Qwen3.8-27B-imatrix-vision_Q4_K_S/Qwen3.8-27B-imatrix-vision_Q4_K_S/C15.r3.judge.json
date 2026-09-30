@@ -1,0 +1,227 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or\nthe client was not authenticated. The server response was:\n5.7.139 Authentication unsuccessful, basic authentication is disabled.\nSMTP status code: 535",
+      "reason": "The analysis correctly identifies the SMTP 535 authentication failure as the cause of delivery failure, matching the log."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Data Protection keys** encrypt/decrypt application-level data (anti-forgery tokens, cookie payloads, `IDataProtectionProvider`-protected values). They are **not** the mechanism used to authenticate to an SMTP server.",
+      "reason": "The analysis explains that the DataProtection warnings are routine startup warnings unrelated to SMTP delivery."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox item 991204 (customer 41082) hit its 5-attempt cap at 18:03:08 and **stays at the head of the queue** with a fixed 5 s retry. There is **no backoff and no dead-letter path**, so one stuck item can block the entire dispatcher.",
+      "reason": "Accurately describes the head-of-line blocking issue from the log."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**1412 messages were already in the outbox at 18:02:48**, before the new pod had processed a single one. The queue grew to **2089 by 18:39:48** (~18/min).",
+      "reason": "Correctly reports backlog growth figures from log."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The attached log covers only the period from the 18:02 pod restart to 18:40 (the 60 lines pulled by `kubectl logs --tail=60`). The previous container's log (covering ~14:00\u201318:02, when the outage actually started) **was not captured**.",
+      "reason": "Correctly notes the log cannot confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya's suggestion to \"just restart it again\" will not help: the 18:02 restart already produced the same 535 errors, and the credential/policy mismatch will persist across restarts.",
+      "reason": "Correctly notes the restart already occurred and failures continued afterward."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference (labelled):** The most likely root cause is that the mail server at `smtp.example.com` had basic authentication disabled (security hardening, credential rotation, or an auth-policy change), and the notifications service was not updated to use the new mechanism (e.g. OAuth 2.0 / XOAUTH2) or the service account `svc-notify@example.com` was deactivated or its password rotated.",
+      "reason": "Presented explicitly as a labelled inference, matching the expected inference about basic auth being disabled."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Verify the service account and SMTP policy (mail-infra team, immediate).",
+      "reason": "Next actions include confirming with the mail tenant owner, fixing outbox backoff/dead-letter, and recovering earlier logs."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A brief NATS disconnect at 18:07:12 reconnected after 1 attempt. Almost certainly unrelated.",
+      "reason": "Notes NATS reconnection quickly and health check being unrelated to the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection explanation as the cause."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log does not cover the 14:00 window."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly recommends against restarting the pod again."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the NATS reconnection and health check are unrelated to the failure."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not invent any SMTP error beyond what the log shows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "A sustained SMTP auth failure went from ~14:00 to at least 18:40 (~4 h 40 min) without an automated alert, relying on customer call volume to surface it.",
+      "reason": "The analysis itself earlier states the log does not cover the period before 18:02, so asserting the failure ran continuously from 14:00 is not supported by the log."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 37.3,
+    "input_tokens": 9407,
+    "output_tokens": 3912
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or\nthe client was not authenticated. The server response was:\n5.7.139 Authentication unsuccessful, basic authentication is disabled.\nSMTP status code: 535",
+        "reason": "The analysis correctly identifies the SMTP 535 authentication failure as the cause of delivery failure, matching the log."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "Data Protection keys** encrypt/decrypt application-level data (anti-forgery tokens, cookie payloads, `IDataProtectionProvider`-protected values). They are **not** the mechanism used to authenticate to an SMTP server.",
+        "reason": "The analysis explains that the DataProtection warnings are routine startup warnings unrelated to SMTP delivery."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Outbox item 991204 (customer 41082) hit its 5-attempt cap at 18:03:08 and **stays at the head of the queue** with a fixed 5 s retry. There is **no backoff and no dead-letter path**, so one stuck item can block the entire dispatcher.",
+        "reason": "Accurately describes the head-of-line blocking issue from the log."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "**1412 messages were already in the outbox at 18:02:48**, before the new pod had processed a single one. The queue grew to **2089 by 18:39:48** (~18/min).",
+        "reason": "Correctly reports backlog growth figures from log."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "The attached log covers only the period from the 18:02 pod restart to 18:40 (the 60 lines pulled by `kubectl logs --tail=60`). The previous container's log (covering ~14:00\u201318:02, when the outage actually started) **was not captured**.",
+        "reason": "Correctly notes the log cannot confirm the 14:00 start."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "Priya's suggestion to \"just restart it again\" will not help: the 18:02 restart already produced the same 535 errors, and the credential/policy mismatch will persist across restarts.",
+        "reason": "Correctly notes the restart already occurred and failures continued afterward."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "**Inference (labelled):** The most likely root cause is that the mail server at `smtp.example.com` had basic authentication disabled (security hardening, credential rotation, or an auth-policy change), and the notifications service was not updated to use the new mechanism (e.g. OAuth 2.0 / XOAUTH2) or the service account `svc-notify@example.com` was deactivated or its password rotated.",
+        "reason": "Presented explicitly as a labelled inference, matching the expected inference about basic auth being disabled."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "found",
+        "quote": "Verify the service account and SMTP policy (mail-infra team, immediate).",
+        "reason": "Next actions include confirming with the mail tenant owner, fixing outbox backoff/dead-letter, and recovering earlier logs."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "found",
+        "quote": "A brief NATS disconnect at 18:07:12 reconnected after 1 attempt. Almost certainly unrelated.",
+        "reason": "Notes NATS reconnection quickly and health check being unrelated to the failure."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection explanation as the cause."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the log does not cover the 14:00 window."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly recommends against restarting the pod again."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the NATS reconnection and health check are unrelated to the failure."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not invent any SMTP error beyond what the log shows."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "A sustained SMTP auth failure went from ~14:00 to at least 18:40 (~4 h 40 min) without an automated alert, relying on customer call volume to surface it.",
+        "reason": "The analysis itself earlier states the log does not cover the period before 18:02, so asserting the failure ran continuously from 14:00 is not supported by the log."
+      }
+    ]
+  }
+}

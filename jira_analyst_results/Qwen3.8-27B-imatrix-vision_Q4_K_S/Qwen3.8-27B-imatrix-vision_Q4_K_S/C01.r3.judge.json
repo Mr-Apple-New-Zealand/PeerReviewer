@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The net result for the customer is two debits against the source account and one credit to the destination.",
+      "reason": "The analysis clearly states the double-debit, single-credit outcome from the retry."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| Target release | **3.2.0**, due 2026-09-24 |",
+      "reason": "The analysis states the fix targets 3.2.0 with a 2026-09-24 release date and separately notes the bug affects version 3.1.4."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the retry issues a fresh `POST /api/transaction/transfer` with no idempotency key, so the server creates a second transfer. Compounding this, the debit and credit are not wrapped in a single database transaction, so when the credit leg times out on the *first* attempt, the debit persists.",
+      "reason": "Both root causes (missing idempotency key and lack of a single DB transaction) are correctly attributed to Priya's reproduction."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| Status | **In Progress** |\n| Assignee | Priya Nair |\n| Sprint | Sprint 38 (2026-09-09 \u2192 2026-09-22) |\n| Target release | **3.2.0**, due 2026-09-24 |\n| Blocker | PR #218 is open and **waiting on code review** |",
+      "reason": "Status, assignee, and PR review status are all correctly reported."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Aroha (11 Sep) asked Marcus to raise the manual reversal with Finance Ops for the three affected customers.",
+      "reason": "Correctly identifies the three affected customers, the manual reversal need, and Marcus being asked to contact Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Customer remediation is untracked.** Aroha (11 Sep) asked Marcus to raise the manual reversal with Finance Ops for the three affected customers. No linked ticket, no assignee, and no deadline is recorded for that work.",
+      "reason": "The analysis notes the reversal request lacks tracking, implying it has not been confirmed as raised or completed."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The main risks to the 24 September release are the code-review bottleneck and the two-day sprint-to-release gap. The most urgent non-engineering action is getting the Finance reversal for the three customers formally tracked and staffed",
+      "reason": "Next actions explicitly include finishing PR #218 review and formally tracking the Finance reversal."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently describes PR #218 as open and awaiting code review, never as merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states the bug is mobile-web only and desktop does not reproduce it, matching Tom Becker's comment."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 47.7,
+    "input_tokens": 6304,
+    "output_tokens": 5302
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "verdict": "found",
+        "quote": "The net result for the customer is two debits against the source account and one credit to the destination.",
+        "reason": "The analysis clearly states the double-debit, single-credit outcome from the retry."
+      },
+      {
+        "id": "C01-P2",
+        "verdict": "found",
+        "quote": "| Target release | **3.2.0**, due 2026-09-24 |",
+        "reason": "The analysis states the fix targets 3.2.0 with a 2026-09-24 release date and separately notes the bug affects version 3.1.4."
+      },
+      {
+        "id": "C01-P3",
+        "verdict": "found",
+        "quote": "the retry issues a fresh `POST /api/transaction/transfer` with no idempotency key, so the server creates a second transfer. Compounding this, the debit and credit are not wrapped in a single database transaction, so when the credit leg times out on the *first* attempt, the debit persists.",
+        "reason": "Both root causes (missing idempotency key and lack of a single DB transaction) are correctly attributed to Priya's reproduction."
+      },
+      {
+        "id": "C01-P4",
+        "verdict": "found",
+        "quote": "| Status | **In Progress** |\n| Assignee | Priya Nair |\n| Sprint | Sprint 38 (2026-09-09 \u2192 2026-09-22) |\n| Target release | **3.2.0**, due 2026-09-24 |\n| Blocker | PR #218 is open and **waiting on code review** |",
+        "reason": "Status, assignee, and PR review status are all correctly reported."
+      },
+      {
+        "id": "C01-P5",
+        "verdict": "found",
+        "quote": "Aroha (11 Sep) asked Marcus to raise the manual reversal with Finance Ops for the three affected customers.",
+        "reason": "Correctly identifies the three affected customers, the manual reversal need, and Marcus being asked to contact Finance Ops."
+      },
+      {
+        "id": "C01-P6",
+        "verdict": "found",
+        "quote": "**Customer remediation is untracked.** Aroha (11 Sep) asked Marcus to raise the manual reversal with Finance Ops for the three affected customers. No linked ticket, no assignee, and no deadline is recorded for that work.",
+        "reason": "The analysis notes the reversal request lacks tracking, implying it has not been confirmed as raised or completed."
+      },
+      {
+        "id": "C01-P7",
+        "verdict": "found",
+        "quote": "The main risks to the 24 September release are the code-review bottleneck and the two-day sprint-to-release gap. The most urgent non-engineering action is getting the Finance reversal for the three customers formally tracked and staffed",
+        "reason": "Next actions explicitly include finishing PR #218 review and formally tracking the Finance reversal."
+      },
+      {
+        "id": "C01-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis consistently describes PR #218 as open and awaiting code review, never as merged or deployed."
+      },
+      {
+        "id": "C01-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis correctly states the bug is mobile-web only and desktop does not reproduce it, matching Tom Becker's comment."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

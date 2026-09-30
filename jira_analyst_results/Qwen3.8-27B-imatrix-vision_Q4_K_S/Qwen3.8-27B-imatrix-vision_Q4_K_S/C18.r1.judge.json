@@ -1,0 +1,277 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "### Group A \u2013 401 \u2192 unhandled TypeError cascade (5 issues)",
+      "reason": "The analysis explicitly groups BANKUI-4A1, 4A2, 4A9, 4B3 and 3C8 together as one cause driven by 401 responses."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Affects ~44 distinct users across the settlements and payments flows.",
+      "reason": "The correct estimate (44, from 3C8) is used instead of a sum, but the analysis never explicitly explains that the per-issue user counts for this cluster cannot be added together."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Widest user reach of any single issue (58 users).",
+      "reason": "The analysis identifies BANKUI-5D6 as having the highest user count in the whole list despite its low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z; ~1 event per user; breadcrumb says \"a navigation immediately before; the requested bundle returns 404\"",
+      "reason": "This matches the expected timing relationship to the 4.7.0 deploy and the 404-on-hashed-bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe. **Not a bank-ui defect.**",
+      "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension issue on a single user, not an app defect, and recommends filtering it."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+      "reason": "The analysis debunks 2F0's event count as noise but still uses 3C8's high event count as part of the justification for prioritizing Group A, so it does not clearly convey that the two highest event counts are both misleading."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Either the resolution was premature or some users are on an old build. Needs a 10-minute check before the next triage.",
+      "reason": "The analysis hedges between a regression and stale browser tabs instead of clearly stating BANKUI-1A7 has regressed and should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every `lastFrame` is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). Debugging and verifying the fix for Group A will be guesswork without readable stack traces.",
+      "reason": "The analysis correctly ties the lack of source maps to the minified lastFrame values and the inability to trace issues to components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+      "reason": "The analysis explicitly states the overlap between the two user counts is unknown, matching the expected point."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern).** All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+      "reason": "The idea is presented explicitly as a labeled inference rather than established fact, matching the expected content."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "### Priority 1 \u2013 Fix the 401 response-handling gap (Group A)",
+      "reason": "The analysis covers the same two slots (401 cluster and BANKUI-5D6) plus reopening 1A7 and muting 2F0, but reverses the expected priority order, putting the 401 cluster first instead of BANKUI-5D6."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and treats its event count as noise rather than impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues are grouped under one shared cause (Group A) rather than treated as separate defects."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never sums user counts across issues; it uses 44 and 58 as separate estimates and flags their possible overlap."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats BANKUI-1A7 as needing verification and possible reopening, not as fixed or requiring no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are described as an unhandled response-handling bug, not as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern).",
+      "reason": "Only BANKUI-3C8, 4A1 and 4A2 have firstSeen at 2026-09-05 02:14; BANKUI-4A9 first appeared on 2026-09-06 and BANKUI-4B3 at 04:02 on 09-05, so the claim that all four TypeError issues share a matching firstSeen timestamp is factually wrong."
+    },
+    {
+      "quote": "A ninth issue (BANKUI-1A7) is already marked resolved but is still firing.",
+      "reason": "The export contains only eight issues total, including BANKUI-1A7, so calling it a 'ninth issue' after stating 'Eight issues are in the export' is an internal counting error not supported by the data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 81.5,
+    "input_tokens": 10140,
+    "output_tokens": 9246
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "found",
+        "quote": "### Group A \u2013 401 \u2192 unhandled TypeError cascade (5 issues)",
+        "reason": "The analysis explicitly groups BANKUI-4A1, 4A2, 4A9, 4B3 and 3C8 together as one cause driven by 401 responses."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "partial",
+        "quote": "Affects ~44 distinct users across the settlements and payments flows.",
+        "reason": "The correct estimate (44, from 3C8) is used instead of a sum, but the analysis never explicitly explains that the per-issue user counts for this cluster cannot be added together."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "found",
+        "quote": "Widest user reach of any single issue (58 users).",
+        "reason": "The analysis identifies BANKUI-5D6 as having the highest user count in the whole list despite its low event count."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z; ~1 event per user; breadcrumb says \"a navigation immediately before; the requested bundle returns 404\"",
+        "reason": "This matches the expected timing relationship to the 4.7.0 deploy and the 404-on-hashed-bundle signature."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe. **Not a bank-ui defect.**",
+        "reason": "The analysis correctly identifies BANKUI-2F0 as a browser extension issue on a single user, not an app defect, and recommends filtering it."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "partial",
+        "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+        "reason": "The analysis debunks 2F0's event count as noise but still uses 3C8's high event count as part of the justification for prioritizing Group A, so it does not clearly convey that the two highest event counts are both misleading."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "partial",
+        "quote": "Either the resolution was premature or some users are on an old build. Needs a 10-minute check before the next triage.",
+        "reason": "The analysis hedges between a regression and stale browser tabs instead of clearly stating BANKUI-1A7 has regressed and should be reopened."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Every `lastFrame` is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). Debugging and verifying the fix for Group A will be guesswork without readable stack traces.",
+        "reason": "The analysis correctly ties the lack of source maps to the minified lastFrame values and the inability to trace issues to components."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "found",
+        "quote": "the 44 users in Group A and the 58 in Group B may overlap. True blast radius could be lower than the sum.",
+        "reason": "The analysis explicitly states the overlap between the two user counts is unknown, matching the expected point."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "found",
+        "quote": "**Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern).** All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+        "reason": "The idea is presented explicitly as a labeled inference rather than established fact, matching the expected content."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "partial",
+        "quote": "### Priority 1 \u2013 Fix the 401 response-handling gap (Group A)",
+        "reason": "The analysis covers the same two slots (401 cluster and BANKUI-5D6) plus reopening 1A7 and muting 2F0, but reverses the expected priority order, putting the 401 cluster first instead of BANKUI-5D6."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and treats its event count as noise rather than impact."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The four undefined-property issues are grouped under one shared cause (Group A) rather than treated as separate defects."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never sums user counts across issues; it uses 44 and 58 as separate estimates and flags their possible overlap."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis treats BANKUI-1A7 as needing verification and possible reopening, not as fixed or requiring no action."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401s are described as an unhandled response-handling bug, not as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Inference (basis: every breadcrumb line, matching firstSeen timestamps on 09-05 02:14, and the \"Cannot read properties of undefined\" pattern).",
+        "reason": "Only BANKUI-3C8, 4A1 and 4A2 have firstSeen at 2026-09-05 02:14; BANKUI-4A9 first appeared on 2026-09-06 and BANKUI-4B3 at 04:02 on 09-05, so the claim that all four TypeError issues share a matching firstSeen timestamp is factually wrong."
+      },
+      {
+        "quote": "A ninth issue (BANKUI-1A7) is already marked resolved but is still firing.",
+        "reason": "The export contains only eight issues total, including BANKUI-1A7, so calling it a 'ninth issue' after stating 'Eight issues are in the export' is an internal counting error not supported by the data."
+      }
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 | OPS-81 config deploy executes; JWT signing key for the Auth service is rotated. |\n| ~09:31 | Transfer errors begin appearing on dashboards.",
+      "reason": "Correctly states the deploy time and impact start time."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 | Monitoring alert fires: **TransferErrorRate > 20 %**. |\n| 09:52 | Sam Okafor declares the incident",
+      "reason": "Correctly states alert and declaration times."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 | Sam Okafor begins rolling back the OPS-81 deploy. |\n| 10:42 | Transfer error rate drops back **under 1 %**. |\n| 10:44 | Rollback confirmed complete. |\n| 10:50 | Incident resolved.",
+      "reason": "Correctly lists rollback start, recovery, and resolution times."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Time to detect** (start \u2192 alert) | 09:31 \u2192 09:47 | **16 min**",
+      "reason": "Matches expected 16 minute detection time."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Time to recover** (start \u2192 error rate < 1 %) | 09:31 \u2192 10:42 | **71 min**",
+      "reason": "Correctly calculates 71 minute recovery time from impact start, with 79 min also labeled separately as total incident duration."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The OPS-81 config deploy (09:30) rotated the JWT signing key used by the **Auth** service.",
+      "reason": "States the root cause matching the ticket's explanation including the 401 IDX10503 error."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review booked for **2026-09-16**.",
+      "reason": "Correctly states the review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the database hypothesis as a disproven red herring rather than a contributing cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All detect/recover time calculations are consistent with timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Every transfer request therefore failed at the Transactions API with a 401 and error code **IDX10503: Signature validation failed**, producing the 64 % error rate observed.",
+      "reason": "The ticket reports a 64% error rate, not that every request failed; this statement contradicts the observed rate it cites in the same sentence."
+    },
+    {
+      "quote": "The fix was a rollback of the OPS-81 deploy, which restored the old key on both sides and returned the error rate to under 1 % within roughly 11 minutes of the rollback starting (10:31 \u2192 10:42).",
+      "reason": "The ticket only describes the Auth service's key being rotated by OPS-81; there is no mention of two sides needing restoration, and this claim is stated as fact rather than inference."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 19.1,
+    "input_tokens": 4539,
+    "output_tokens": 2269
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "09:30 | OPS-81 config deploy executes; JWT signing key for the Auth service is rotated. |\n| ~09:31 | Transfer errors begin appearing on dashboards.",
+        "reason": "Correctly states the deploy time and impact start time."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47 | Monitoring alert fires: **TransferErrorRate > 20 %**. |\n| 09:52 | Sam Okafor declares the incident",
+        "reason": "Correctly states alert and declaration times."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31 | Sam Okafor begins rolling back the OPS-81 deploy. |\n| 10:42 | Transfer error rate drops back **under 1 %**. |\n| 10:44 | Rollback confirmed complete. |\n| 10:50 | Incident resolved.",
+        "reason": "Correctly lists rollback start, recovery, and resolution times."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "**Time to detect** (start \u2192 alert) | 09:31 \u2192 09:47 | **16 min**",
+        "reason": "Matches expected 16 minute detection time."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "**Time to recover** (start \u2192 error rate < 1 %) | 09:31 \u2192 10:42 | **71 min**",
+        "reason": "Correctly calculates 71 minute recovery time from impact start, with 79 min also labeled separately as total incident duration."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The OPS-81 config deploy (09:30) rotated the JWT signing key used by the **Auth** service.",
+        "reason": "States the root cause matching the ticket's explanation including the 401 IDX10503 error."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Post-incident review booked for **2026-09-16**.",
+        "reason": "Correctly states the review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly labels the database hypothesis as a disproven red herring rather than a contributing cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All detect/recover time calculations are consistent with timestamps in the ticket."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Every transfer request therefore failed at the Transactions API with a 401 and error code **IDX10503: Signature validation failed**, producing the 64 % error rate observed.",
+        "reason": "The ticket reports a 64% error rate, not that every request failed; this statement contradicts the observed rate it cites in the same sentence."
+      },
+      {
+        "quote": "The fix was a rollback of the OPS-81 deploy, which restored the old key on both sides and returned the error rate to under 1 % within roughly 11 minutes of the rollback starting (10:31 \u2192 10:42).",
+        "reason": "The ticket only describes the Auth service's key being rotated by OPS-81; there is no mention of two sides needing restoration, and this claim is stated as fact rather than inference."
+      }
+    ]
+  }
+}

@@ -1,0 +1,315 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+      "reason": "The analysis correctly identifies the 403 as the root cause of the reported save failures, naming both endpoints and both affected commands with four occurrences."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31):",
+      "reason": "Correctly identifies the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler occurring five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+      "reason": "Correctly notes the masked values prevent identifying the specific column/value/type."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \\u22122, Class 11).",
+      "reason": "Correctly identifies the timeout burst and its window and recovery, but miscounts the occurrences as seven when the log shows eight."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The error message gives no detail on *which* validation rule fired.",
+      "reason": "Correctly identifies the two validation failures and the logging gap of not recording which rule failed."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the GetStatementLineQuery long-running warnings or their escalating durations."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start.",
+      "reason": "Correctly flags the credential exposure and recommends rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Container restart at 02:50 (shut down 02:50:11 \\u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+      "reason": "Correctly identifies the single restart and timestamps but does not explicitly connect it to why the startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "partial",
+      "quote": "| `No XML encryptor configured` | Same \\u2013 recurring config warning |",
+      "reason": "[downgraded: quote not found in analysis] Three of the four routine startup warnings (DataProtection key, XML encryptor, https port) are covered but 'Overriding address(es)' is never mentioned."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`Service Permissions found and sent on the event bus` (\\u00d76) | Normal NATS bus heartbeat",
+      "reason": "Analysis's noise table lists Service Permissions messages, ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 for payment 88213 as non-defects."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+      "reason": "Correctly notes the lack of dates prevents establishing sequence/elapsed time, and separately notes the trimming of stack traces makes the log incomplete."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Likely causes (inference, not confirmed by this log):",
+      "reason": "Presents the Dapr/authz explanation explicitly as an inference rather than fact, matching the expected framing."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Priority order if only one thing can be fixed first:** the masterfile-api 403.",
+      "reason": "Correctly ranks the 403 first but never establishes the SQL 245/GetStatementLineQuery as second priority or the credential as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly classifies the DataProtection and XML encryptor warnings as routine noise, not causes of the failures."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the values are masked and does not invent a specific column, value, or type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis repeatedly cautions that timestamps have no date and avoids asserting a dated or fully ordered sequence."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The NATS subject list is not referenced as evidence of errors anywhere in the analysis."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states there was one restart and calls it a deployment, not a crash-loop."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the 403 issue is not a database problem and treats the SQL errors as a separate, non-universal cause."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Deployment, not a crash (no error before shutdown)",
+      "reason": "The log shows only a shutdown and restart with no error, but nothing in the ticket or log indicates this was a deployment; this is an invented explanation stated as fact."
+    },
+    {
+      "quote": "it affects every secondary-branch save and bulk-update (not just two users)",
+      "reason": "The log only shows a handful of failed attempts; there is no basis to claim it affects every such save and bulk-update across all users."
+    },
+    {
+      "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \\u22122, Class 11).",
+      "reason": "The log actually contains eight timeout entries in this window, not seven."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [
+      "C14-P9"
+    ],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 110.6,
+    "input_tokens": 20833,
+    "output_tokens": 12020
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "verdict": "found",
+        "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+        "reason": "The analysis correctly identifies the 403 as the root cause of the reported save failures, naming both endpoints and both affected commands with four occurrences."
+      },
+      {
+        "id": "C14-P2",
+        "verdict": "found",
+        "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31):",
+        "reason": "Correctly identifies the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler occurring five times."
+      },
+      {
+        "id": "C14-P3",
+        "verdict": "found",
+        "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+        "reason": "Correctly notes the masked values prevent identifying the specific column/value/type."
+      },
+      {
+        "id": "C14-P4",
+        "verdict": "partial",
+        "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \\u22122, Class 11).",
+        "reason": "Correctly identifies the timeout burst and its window and recovery, but miscounts the occurrences as seven when the log shows eight."
+      },
+      {
+        "id": "C14-P5",
+        "verdict": "found",
+        "quote": "The error message gives no detail on *which* validation rule fired.",
+        "reason": "Correctly identifies the two validation failures and the logging gap of not recording which rule failed."
+      },
+      {
+        "id": "C14-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the GetStatementLineQuery long-running warnings or their escalating durations."
+      },
+      {
+        "id": "C14-P7",
+        "verdict": "found",
+        "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start.",
+        "reason": "Correctly flags the credential exposure and recommends rotation."
+      },
+      {
+        "id": "C14-P8",
+        "verdict": "partial",
+        "quote": "Container restart at 02:50 (shut down 02:50:11 \\u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+        "reason": "Correctly identifies the single restart and timestamps but does not explicitly connect it to why the startup warnings appear twice."
+      },
+      {
+        "id": "C14-P9",
+        "verdict": "partial",
+        "quote": "| `No XML encryptor configured` | Same \\u2013 recurring config warning |",
+        "reason": "Three of the four routine startup warnings (DataProtection key, XML encryptor, https port) are covered but 'Overriding address(es)' is never mentioned."
+      },
+      {
+        "id": "C14-P10",
+        "verdict": "found",
+        "quote": "`Service Permissions found and sent on the event bus` (\\u00d76) | Normal NATS bus heartbeat",
+        "reason": "Analysis's noise table lists Service Permissions messages, ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 for payment 88213 as non-defects."
+      },
+      {
+        "id": "C14-P11",
+        "verdict": "found",
+        "quote": "The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+        "reason": "Correctly notes the lack of dates prevents establishing sequence/elapsed time, and separately notes the trimming of stack traces makes the log incomplete."
+      },
+      {
+        "id": "C14-I1",
+        "verdict": "found",
+        "quote": "Likely causes (inference, not confirmed by this log):",
+        "reason": "Presents the Dapr/authz explanation explicitly as an inference rather than fact, matching the expected framing."
+      },
+      {
+        "id": "C14-P12",
+        "verdict": "partial",
+        "quote": "**Priority order if only one thing can be fixed first:** the masterfile-api 403.",
+        "reason": "Correctly ranks the 403 first but never establishes the SQL 245/GetStatementLineQuery as second priority or the credential as a parallel security item."
+      },
+      {
+        "id": "C14-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly classifies the DataProtection and XML encryptor warnings as routine noise, not causes of the failures."
+      },
+      {
+        "id": "C14-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis states the values are masked and does not invent a specific column, value, or type."
+      },
+      {
+        "id": "C14-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis repeatedly cautions that timestamps have no date and avoids asserting a dated or fully ordered sequence."
+      },
+      {
+        "id": "C14-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The NATS subject list is not referenced as evidence of errors anywhere in the analysis."
+      },
+      {
+        "id": "C14-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states there was one restart and calls it a deployment, not a crash-loop."
+      },
+      {
+        "id": "C14-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the 403 issue is not a database problem and treats the SQL errors as a separate, non-universal cause."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Deployment, not a crash (no error before shutdown)",
+        "reason": "The log shows only a shutdown and restart with no error, but nothing in the ticket or log indicates this was a deployment; this is an invented explanation stated as fact."
+      },
+      {
+        "quote": "it affects every secondary-branch save and bulk-update (not just two users)",
+        "reason": "The log only shows a handful of failed attempts; there is no basis to claim it affects every such save and bulk-update across all users."
+      },
+      {
+        "quote": "Between 22:26:37 and 22:29:08, **seven** consecutive `GetMonitorJobsQuery` calls time out (Error Number \\u22122, Class 11).",
+        "reason": "The log actually contains eight timeout entries in this window, not seven."
+      }
+    ]
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C06-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the only remaining work is the staging end-to-end test, which is gated on OPS-77 (certificate installation)",
+      "reason": "Analysis clearly identifies OPS-77 as the blocking dependency and explains the e2e test cannot run until certs are installed."
+    },
+    {
+      "id": "C06-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "*Waiting for vendor* \u2013 due 2026-09-10, **5 days overdue** | Northwind's integration team has not delivered the CA bundle. Requested 09-05; chased 09-11; escalated to partner manager. No reply as of last update (09-11).",
+      "reason": "Correctly states OPS-77's due date, overdue status, and the escalation/no-reply status from the last comment."
+    },
+    {
+      "id": "C06-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09-20 (latest acceptable):** Certs must be in staging for Ravi to finish the 2-day e2e cycle.\n- **09-22:** Sprint 38 closes.\n- **09-24:** Release 3.2.0 ships.",
+      "reason": "Correctly states the release date, sprint end date, and the two-day e2e testing requirement."
+    },
+    {
+      "id": "C06-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At risk, but still possible if the Northwind CA bundle arrives by approximately 2026-09-20.",
+      "reason": "Frames the release outcome as conditional/uncertain rather than asserting a definite outcome, consistent with an inference."
+    },
+    {
+      "id": "C06-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Code is merged behind feature flag `MTLS_PARTNER` (off by default).",
+      "reason": "Directly states the code is complete and merged behind the flag, off by default."
+    },
+    {
+      "id": "C06-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Production cert installation is in OPS-77's scope (\"staging trust store first, then production\") but the ticket has no separate tracking for the production step.",
+      "reason": "Notes that certs are also required in production and mentions the 10-01 Northwind mTLS deadline elsewhere, capturing the external hard deadline."
+    },
+    {
+      "id": "C06-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Jo Tan / partner manager \u2013 today (09-15):** Confirm whether the escalation to Northwind has a named contact and a concrete delivery date.",
+      "reason": "Escalation via the partner manager is clearly recommended, but the analysis does not explicitly propose shipping 3.2.0 with the MTLS_PARTNER flag left off as a fallback, instead suggesting exceptions or revising the release scope."
+    },
+    {
+      "id": "C06-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the certificates have been received or that OPS-77 is complete; it repeatedly states it is unresolved and overdue."
+    },
+    {
+      "id": "C06-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says OPS-77 'has no committed timeline' rather than stating a specific Northwind delivery date."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Recommend a formal go/no-go checkpoint on **09-20 (Monday)**",
+      "reason": "2026-09-20 is actually a Sunday, not a Monday; this is an invented/incorrect day-of-week detail not supported by the tickets."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 64.4,
+    "input_tokens": 5483,
+    "output_tokens": 6045
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C06-P1",
+        "verdict": "found",
+        "quote": "the only remaining work is the staging end-to-end test, which is gated on OPS-77 (certificate installation)",
+        "reason": "Analysis clearly identifies OPS-77 as the blocking dependency and explains the e2e test cannot run until certs are installed."
+      },
+      {
+        "id": "C06-P2",
+        "verdict": "found",
+        "quote": "*Waiting for vendor* \u2013 due 2026-09-10, **5 days overdue** | Northwind's integration team has not delivered the CA bundle. Requested 09-05; chased 09-11; escalated to partner manager. No reply as of last update (09-11).",
+        "reason": "Correctly states OPS-77's due date, overdue status, and the escalation/no-reply status from the last comment."
+      },
+      {
+        "id": "C06-P3",
+        "verdict": "found",
+        "quote": "**09-20 (latest acceptable):** Certs must be in staging for Ravi to finish the 2-day e2e cycle.\n- **09-22:** Sprint 38 closes.\n- **09-24:** Release 3.2.0 ships.",
+        "reason": "Correctly states the release date, sprint end date, and the two-day e2e testing requirement."
+      },
+      {
+        "id": "C06-I1",
+        "verdict": "found",
+        "quote": "At risk, but still possible if the Northwind CA bundle arrives by approximately 2026-09-20.",
+        "reason": "Frames the release outcome as conditional/uncertain rather than asserting a definite outcome, consistent with an inference."
+      },
+      {
+        "id": "C06-P4",
+        "verdict": "found",
+        "quote": "Code is merged behind feature flag `MTLS_PARTNER` (off by default).",
+        "reason": "Directly states the code is complete and merged behind the flag, off by default."
+      },
+      {
+        "id": "C06-P5",
+        "verdict": "found",
+        "quote": "Production cert installation is in OPS-77's scope (\"staging trust store first, then production\") but the ticket has no separate tracking for the production step.",
+        "reason": "Notes that certs are also required in production and mentions the 10-01 Northwind mTLS deadline elsewhere, capturing the external hard deadline."
+      },
+      {
+        "id": "C06-P6",
+        "verdict": "partial",
+        "quote": "**Jo Tan / partner manager \u2013 today (09-15):** Confirm whether the escalation to Northwind has a named contact and a concrete delivery date.",
+        "reason": "Escalation via the partner manager is clearly recommended, but the analysis does not explicitly propose shipping 3.2.0 with the MTLS_PARTNER flag left off as a fallback, instead suggesting exceptions or revising the release scope."
+      },
+      {
+        "id": "C06-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the certificates have been received or that OPS-77 is complete; it repeatedly states it is unresolved and overdue."
+      },
+      {
+        "id": "C06-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly says OPS-77 'has no committed timeline' rather than stating a specific Northwind delivery date."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Recommend a formal go/no-go checkpoint on **09-20 (Monday)**",
+        "reason": "2026-09-20 is actually a Sunday, not a Monday; this is an invented/incorrect day-of-week detail not supported by the tickets."
+      }
+    ]
+  }
+}

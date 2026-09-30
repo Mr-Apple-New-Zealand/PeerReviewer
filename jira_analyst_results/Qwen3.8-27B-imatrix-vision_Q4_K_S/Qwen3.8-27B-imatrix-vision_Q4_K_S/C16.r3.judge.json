@@ -1,0 +1,241 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "281\u2013319 ms, avg **\u2248 300 ms** | 33 757\u201372 974 ms, avg **\u2248 51 760 ms**",
+      "reason": "The analysis gives the exact baseline range (281-319ms) and the after range (33,757-72,974ms), matching the expected quantification."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**~170\u00d7 slower**",
+      "reason": "It conveys a hundredfold-plus slowdown but reports a single average ratio (~170x) rather than the specific start (~110x) and worst-case (~240x) multiples the key asks for."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "- First call (00:20:43): 35 171 ms\n- Mid-window (00:23:56): 36 545 ms\n- Final cluster (00:24:21\u201300:24:34): 69 342 \u2192 72 974 ms",
+      "reason": "The analysis explicitly shows the escalation within the window using timestamped values close to the expected anchor points."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**GetAccountSummaryQuery** is essentially identical in both windows (~3 s, same variance). Ravi Kumar's comment (\"It'll be the account summary query\") is **contradicted by the data**; the regression is in a different query.",
+      "reason": "It gives the near-identical before/after numbers and explicitly notes this contradicts Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand is unchanged (~1.9 s).",
+      "reason": "The unchanged timing is reported and the surrounding structure isolates the regression to GetStatementLineQuery only."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Tom writes: *\"Nothing in 4.7.0 touched statements.\"* The after-log shows the 4.7.0 pod applied the migration **`20260914_2100_ReindexStatementLines`** at startup.",
+      "reason": "The analysis directly quotes Tom's claim and contradicts it with the migration log entry and its timestamp."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The logs show the migration was *applied* and the regression appeared later, but they do not show what the migration did (dropped an index? created a new one? is it still running in the background? did it complete or fail?).",
+      "reason": "The analysis treats the migration as the prime, coincidental suspect while explicitly stating the logs cannot establish causation, matching the expected hedged inference."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This suggests a feedback loop: slow queries occupy pool threads \u2192 new requests queue \u2192 queuing adds further latency \u2192 queries get even slower. The logs do not let us say which direction the causality starts.",
+      "reason": "It notes the correlation with the latency jump but frames it as an undetermined feedback loop rather than committing to starvation being a symptom of the slow query as expected."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "There is a ~3-hour gap with no log lines. The degradation may have been climbing since the reindex started.",
+      "reason": "It flags a temporal gap but does not explicitly caveat that the whole comparison rests on two short, non-continuous windows with few samples, making the magnitude indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Run `EXPLAIN (ANALYZE, BUFFERS)` on the `GetStatementLineQuery` SQL against production (or a replica) *now*. Compare the plan to what was in place under 4.6.3.",
+      "reason": "It recommends checking the execution plan/migration and assigns Tom Becker as owner, but never explicitly suggests collecting a longer sample from both versions."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and rejects it as the regression source."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only speculates about what the migration might have done and explicitly labels causal claims as inference or open questions, never asserting them as fact."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All stated magnitudes (~110x-246x range, ~170x average) fall within the supported hundredfold-or-more range."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says it cannot determine whether starvation is cause or effect, not asserting it as root cause."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Gaps between the windows are discussed only as unknowns/limitations, not as an observed trend or measurement."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "All 14 slow queries exceed it, which matches the reported user experience.",
+      "reason": "Only 6 of the 14 logged long-running queries exceed 60,000 ms (the assumed timeout); the other 8 range from about 33,757 ms to 44,335 ms, so this claim misstates the log data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 143.5,
+    "input_tokens": 7893,
+    "output_tokens": 14988
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "verdict": "found",
+        "quote": "281\u2013319 ms, avg **\u2248 300 ms** | 33 757\u201372 974 ms, avg **\u2248 51 760 ms**",
+        "reason": "The analysis gives the exact baseline range (281-319ms) and the after range (33,757-72,974ms), matching the expected quantification."
+      },
+      {
+        "id": "C16-P2",
+        "verdict": "partial",
+        "quote": "**~170\u00d7 slower**",
+        "reason": "It conveys a hundredfold-plus slowdown but reports a single average ratio (~170x) rather than the specific start (~110x) and worst-case (~240x) multiples the key asks for."
+      },
+      {
+        "id": "C16-P3",
+        "verdict": "found",
+        "quote": "- First call (00:20:43): 35 171 ms\n- Mid-window (00:23:56): 36 545 ms\n- Final cluster (00:24:21\u201300:24:34): 69 342 \u2192 72 974 ms",
+        "reason": "The analysis explicitly shows the escalation within the window using timestamped values close to the expected anchor points."
+      },
+      {
+        "id": "C16-P4",
+        "verdict": "found",
+        "quote": "**GetAccountSummaryQuery** is essentially identical in both windows (~3 s, same variance). Ravi Kumar's comment (\"It'll be the account summary query\") is **contradicted by the data**; the regression is in a different query.",
+        "reason": "It gives the near-identical before/after numbers and explicitly notes this contradicts Ravi's suggestion."
+      },
+      {
+        "id": "C16-P5",
+        "verdict": "found",
+        "quote": "ExportStatementCommand is unchanged (~1.9 s).",
+        "reason": "The unchanged timing is reported and the surrounding structure isolates the regression to GetStatementLineQuery only."
+      },
+      {
+        "id": "C16-P6",
+        "verdict": "found",
+        "quote": "Tom writes: *\"Nothing in 4.7.0 touched statements.\"* The after-log shows the 4.7.0 pod applied the migration **`20260914_2100_ReindexStatementLines`** at startup.",
+        "reason": "The analysis directly quotes Tom's claim and contradicts it with the migration log entry and its timestamp."
+      },
+      {
+        "id": "C16-I1",
+        "verdict": "found",
+        "quote": "The logs show the migration was *applied* and the regression appeared later, but they do not show what the migration did (dropped an index? created a new one? is it still running in the background? did it complete or fail?).",
+        "reason": "The analysis treats the migration as the prime, coincidental suspect while explicitly stating the logs cannot establish causation, matching the expected hedged inference."
+      },
+      {
+        "id": "C16-I2",
+        "verdict": "partial",
+        "quote": "This suggests a feedback loop: slow queries occupy pool threads \u2192 new requests queue \u2192 queuing adds further latency \u2192 queries get even slower. The logs do not let us say which direction the causality starts.",
+        "reason": "It notes the correlation with the latency jump but frames it as an undetermined feedback loop rather than committing to starvation being a symptom of the slow query as expected."
+      },
+      {
+        "id": "C16-P7",
+        "verdict": "partial",
+        "quote": "There is a ~3-hour gap with no log lines. The degradation may have been climbing since the reindex started.",
+        "reason": "It flags a temporal gap but does not explicitly caveat that the whole comparison rests on two short, non-continuous windows with few samples, making the magnitude indicative rather than measured."
+      },
+      {
+        "id": "C16-P8",
+        "verdict": "partial",
+        "quote": "Run `EXPLAIN (ANALYZE, BUFFERS)` on the `GetStatementLineQuery` SQL against production (or a replica) *now*. Compare the plan to what was in place under 4.6.3.",
+        "reason": "It recommends checking the execution plan/migration and assigns Tom Becker as owner, but never explicitly suggests collecting a longer sample from both versions."
+      },
+      {
+        "id": "C16-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and rejects it as the regression source."
+      },
+      {
+        "id": "C16-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only speculates about what the migration might have done and explicitly labels causal claims as inference or open questions, never asserting them as fact."
+      },
+      {
+        "id": "C16-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All stated magnitudes (~110x-246x range, ~170x average) fall within the supported hundredfold-or-more range."
+      },
+      {
+        "id": "C16-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly says it cannot determine whether starvation is cause or effect, not asserting it as root cause."
+      },
+      {
+        "id": "C16-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Gaps between the windows are discussed only as unknowns/limitations, not as an observed trend or measurement."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "All 14 slow queries exceed it, which matches the reported user experience.",
+        "reason": "Only 6 of the 14 logged long-running queries exceed 60,000 ms (the assumed timeout); the other 8 range from about 33,757 ms to 44,335 ms, so this claim misstates the log data."
+      }
+    ]
+  }
+}

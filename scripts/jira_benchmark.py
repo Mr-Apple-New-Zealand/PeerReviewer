@@ -783,8 +783,15 @@ def judge_analysis(ep: Endpoints, cfg: dict, judge_prompt: str, case: dict,
     for attempt in range(attempts):
         try:
             if Endpoints.is_claude(cfg["judge"]):
+                # max_tokens must follow judge_num_predict, not sit at the
+                # function default. Run 54 lost C17 on two of three repeats to
+                # "stop_reason=max_tokens" at the old fixed 16000: Sonnet's
+                # adaptive thinking plus a 20-checkpoint verdict does not fit,
+                # and C17 is the largest case with the most checkpoints. The
+                # knob existed but only reached the Ollama path.
                 raw, usage = anthropic_json(ep, cfg["judge"], judge_prompt, user, JUDGE_SCHEMA,
-                                            cfg["judge_effort"])
+                                            cfg["judge_effort"],
+                                            max_tokens=cfg["judge_num_predict"])
             else:
                 r = ollama_chat(ep, cfg["judge"], judge_prompt, user,
                                 {"temperature": 0, "num_ctx": cfg["judge_num_ctx"],
@@ -936,6 +943,12 @@ JUDGE_DEFAULTS = {
 # specifies for Qwen3.8-27B, which is how run 36 was judged at the wrong
 # budget while reporting the table as applied.
 JUDGE_FALLBACKS = {"judge_think": "", "judge_num_predict": 16384}
+
+# A Claude judge spends output budget on adaptive thinking before it emits the
+# verdict, so the Ollama fallback is not enough: 16384 is only 384 above the
+# fixed 16000 that lost two C17 repeats in run 54. Applied when the judge is a
+# Claude model and --judge-num-predict was not passed.
+CLAUDE_JUDGE_NUM_PREDICT = 32768
 
 
 def judge_defaults_for(judge: str) -> dict:
@@ -1508,9 +1521,10 @@ def main() -> None:
     # A reasoning judge spends this budget on thinking before it writes any
     # JSON, and an Ollama judge that runs out returns empty content -- which
     # is how minimax-m3:cloud failed all 54 calls at the old fixed 8192.
-    # 16384 matches what the Claude judge path allows itself (16000).
+    # It now applies to the Claude judge path too, where it sets max_tokens:
+    # that was fixed at 16000 and lost two C17 repeats in run 54.
     ap.add_argument("--judge-num-predict", type=int, default=None,
-                    help=f"Only for an Ollama judge; raise it for a reasoning judge "
+                    help=f"Raise it for a reasoning judge; applies to Ollama and Claude judges "
                          f"(default {JUDGE_FALLBACKS['judge_num_predict']}, or whatever "
                          f"JUDGE_DEFAULTS specifies for the judge)")
     ap.add_argument("--judge-think", default=None, help="Only for an Ollama judge")
@@ -1581,6 +1595,10 @@ def main() -> None:
         if cfg.get(key) is None:
             cfg[key] = value
             print(f"Judge default applied: {key}={value} (required by {args.judge})")
+    if Endpoints.is_claude(args.judge) and cfg.get("judge_num_predict") is None:
+        cfg["judge_num_predict"] = CLAUDE_JUDGE_NUM_PREDICT
+        print(f"Judge default applied: judge_num_predict={CLAUDE_JUDGE_NUM_PREDICT} "
+              f"(a Claude judge spends budget on thinking first)")
     for key, value in JUDGE_FALLBACKS.items():
         if cfg.get(key) is None:
             cfg[key] = value

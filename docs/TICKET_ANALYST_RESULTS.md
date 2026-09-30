@@ -122,6 +122,68 @@ implies at F16, or the language weights are smaller than the GGUF size suggests.
 This also supersedes the 19.6 GB figure in CONFIG_SETTINGS, which predates the
 projector and has no recorded `num_ctx`.
 
+### Qwen3.8-27B: the highest recall measured, and it cannot be ranked
+
+`Qwen3.8-27B-imatrix-vision:Q4_K_S` scores **79.8 (79.8-81.9)** at 19.96 GB, 100%
+on GPU, 69.5s a case. It is **deliberately absent from the table above** and sits
+under "Not ranked" in the generated leaderboard, because it was graded by
+`claude-sonnet-5` rather than the judge of record.
+
+That was not a mistake - the judge of record *is* Qwen3.8-27B. Leaving the judge
+blank would have had this model grade itself: same weights, same generation, same
+tokenizer. The cost of avoiding that is that **79.8 cannot be compared with any
+number in the standing table**, including Muse-Glimmer's 82.8. Changing the judge
+rescales every score.
+
+What *is* readable is its internal profile, judged consistently throughout:
+
+| | Sonnet (1) | Muse-Glimmer (1) | Qwen3.8-27B (2) |
+|---|---|---|---|
+| Coverage | 90.5% | 84.2% | **89.8%** |
+| Found (full credit) | 81.1% | 67.4% | 80.9% |
+| **Missed** | 5.2% | 6.1% | **4.3%** |
+| Unsupported per analysis | **0.24** | **0.24** | 1.25 |
+| Traps | 4/162 | **1/162** | 5/148 |
+| C14-C18 | 74.9 | 65.9 | **69.6** |
+
+(1) judged by Qwen3.8-27B; (2) judged by claude-sonnet-5 - **the scales differ**
+
+**It misses less than anything else measured, Sonnet included** - 17 checkpoints
+of 397, 4.3%. Coverage 89.8% is within a point of Sonnet's own. On recall this is
+the strongest local model by a clear margin.
+
+**Its precision is the worst in the top tier by a factor of five.** 65 unsupported
+claims, 1.25 per analysis, against 0.24 for both Sonnet and Muse. It finds almost
+everything and then asserts a good deal more besides. That is the opposite trade
+from Muse, which hedges what it finds but rarely over-reaches - and for output a
+human acts on directly, Muse's failure mode is much the safer one.
+
+**Best local telemetry so far at 69.6**, above Muse's 65.9, with C15 at 93 and C16
+at 78.
+
+**The `=medium` override worked.** No truncation, no empty content, 2,691 output
+tokens a case against a 40,960 budget. Left at its `xhigh` default this model
+would very likely have failed the way the judge does without the same setting.
+Memory came in at 19.96 GB against the ~21-22 GB its Modelfile predicted.
+
+#### C17 rests on a single repeat, and that was a harness bug
+
+Two of the three C17 runs have no score: `judge failed 4x: judge
+stop_reason=max_tokens`. The Claude judge path had `max_tokens` fixed at
+**16,000**, and `--judge-num-predict` only ever reached the Ollama path. C17 is
+the largest case with the most checkpoints - 13 points plus 7 traps - and Sonnet's
+adaptive thinking plus a 20-verdict JSON payload does not fit in 16,000 tokens.
+
+The harness now passes `judge_num_predict` to the Claude path and defaults it to
+32,768 for a Claude judge (`CLAUDE_JUDGE_NUM_PREDICT`). The two lost repeats are
+**excluded from the aggregates rather than scored 0** - hence traps out of 148 and
+checkpoints out of 397 - so the score is not depressed, but **C17's 54 is a single
+measurement**, and it is the highest C17 any local model has produced. Do not
+quote it as settled.
+
+This bug would have hit the recommended Muse re-judge identically. It is fixed
+before that runs.
+
 ### The 4B is the best value under 10 GB
 
 `Qwen3-VL-4B-Instruct` scores **48.6 at 7.9 GB resident**. Muse-Glimmer has since
@@ -470,22 +532,31 @@ Every model that was queued has now been run: the eight Qwen3-VL builds, the fou
 Qwen2.5-VL builds, Falcon-H1-Tiny as a floor, and both non-Qwen candidates. What
 remains is verification, not coverage.
 
-**1. Re-judge Muse-Glimmer with Sonnet.** This is the only outstanding item that
-changes what the board says. 82.8 is sixteen points above the next model and was
-graded by a local judge; `mode: rejudge` with `results_dir` pointing at the
-committed folder and `judge: claude-sonnet-5` confirms or corrects it without
-re-running the analyst. Until then the headline result is provisional.
+**1. Re-judge Muse-Glimmer with Sonnet.** Now doubly needed. It confirms or
+corrects the 82.8 headline, *and* it is the only way to compare Muse with the
+Qwen3.8-27B run, which is already Sonnet-judged - the two strongest local models
+measured currently sit on different scales. `mode: rejudge`,
+`results_dir: jira_analyst_results/Muse-Glimmer-30B-imatrix_Q4_K_S`,
+`judge: claude-sonnet-5`. Worth doing now that the Claude judge's token budget is
+fixed; before that it would have lost C17 the same way run 54 did.
 
 **2. Re-run the two Qwen3-VL 32B builds to capture memory.** Both lost their
 `/api/ps` figures, so neither can be placed on the Pareto front. Lower priority
 now — Muse dominates both on quality by 20+ points, so their footprints no longer
 affect any recommendation. Worth doing only to close the gap in the table.
 
-**3. Qwen3.8-27B and Qwen3.6-27B as analysts.** Both turned out to be
-vision-language models rather than text-only, and both now have Modelfiles with
-the projector step. The 3.8 is the more interesting: same generation as the
-leaders, and it would be the third non-Qwen-VL architecture tried. **Judge it with
-Sonnet, not the default** — the default judge *is* Qwen3.8-27B.
+**3. A second Qwen3.8-27B run at `=low`.** The most informative single run still
+available. It would hold weights, quant, size, temperature and judge all constant
+and vary only reasoning effort - the clean test no Instruct/Thinking pair could
+give. The board's evidence predicts `low` should win: reasoning cost the
+size-matched 32B pair 6.6 points on telemetry and gained nothing on prose, and
+this model's specific weakness is over-assertion, which less reasoning may reduce.
+
+**3a. Qwen3.6-27B as an analyst.** Also a vision-language model, also now with a
+projector step in its Modelfile. Lower value than the 3.8 was: its card documents
+no reasoning-effort control, so the `=medium` that made the 3.8 run cleanly has
+nothing to bind to, and unbounded thinking is exactly how it failed as a judge.
+If it is tried, disable thinking entirely.
 
 **4. The analyst prompt A/B**, still unstarted. The prompt is written for prose
 ticket grooming and a third of the cases are not that; the capable models fill

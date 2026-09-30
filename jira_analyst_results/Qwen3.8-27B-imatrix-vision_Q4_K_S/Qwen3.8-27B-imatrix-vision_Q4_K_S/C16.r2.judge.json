@@ -1,0 +1,249 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The `GetStatementLineQuery` endpoint went from a stable ~300 ms to 34\u201373 s between the pre-release baseline (4.6.3) and the post-release window (4.7.0).",
+      "reason": "The analysis correctly states the baseline range (281-319ms, shown in the table) and the after range (33,757-72,974ms)."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**~106\u00d7 \u2013 ~260\u00d7** slower",
+      "reason": "The analysis quantifies the slowdown as roughly a hundred to two-hundred-sixty-fold, matching the expected order of magnitude even if the exact reference points differ slightly."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**00:24:02 \u2013 00:24:34** (6 queries): 41.5 s \u2013 73.0 s, with three consecutive queries at \u2248 72 s",
+      "reason": "The analysis shows the escalation from ~34s to ~73s within the after window via its two-phase breakdown."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**GetAccountSummaryQuery:** still ~3 s in both windows. (This directly contradicts Ravi Kumar's comment, see \u00a76.)",
+      "reason": "The analysis correctly notes GetAccountSummaryQuery is unchanged and explicitly ties this to contradicting Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**ExportStatementCommand:** ~1.8\u20131.9 s in both windows.",
+      "reason": "The analysis notes ExportStatementCommand is unchanged, supporting that the regression is isolated to the statement line query."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The after-log shows a migration explicitly named **`ReindexStatementLines`** applied during the 4.7.0 deployment.",
+      "reason": "The analysis identifies the migration timestamp and uses it to contradict Tom Becker's claim."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The correlation is suggestive, not conclusive.",
+      "reason": "The analysis appropriately hedges the migration-as-cause idea as a suggestive correlation rather than a proven fact."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the starvation reads as a **consequence** of threads being held by slow queries, not the initial cause.",
+      "reason": "The analysis frames the ThreadPool starvation as a likely downstream symptom rather than the root cause, appropriately hedged."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Only two 5-minute samples.** A single before/after pair is the minimum evidence; there is no trend data over the hours since the migration.",
+      "reason": "The analysis explicitly notes the limited sample size and lack of data between the windows as a caveat on the regression's certainty."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Pull the `EXPLAIN (ANALYZE, BUFFERS)` for `GetStatementLineQuery`** in production (or a production-mirror DB) and compare it against the pre-4.7.0 plan. Confirm whether the new index from `20260914_2100_ReindexStatementLines` is being used, and on which column.",
+      "reason": "The analysis recommends checking the execution plan/index tied to the migration and, elsewhere, discusses extending the log sample and Tom Becker's stance as assignee."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and rejects Ravi's suggestion, never naming it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only lists hypothetical possibilities for what the migration might have done and explicitly calls the migration-causation link 'suggestive, not conclusive' rather than asserting it as fact."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated magnitudes (roughly 106x-260x) are consistent with the log data, not an unsupported figure like 10x or 2x."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly frames ThreadPool starvation as a consequence of the slow queries, not their root cause."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states it cannot know whether degradation was constant or gradual over the days between windows, rather than asserting a build-up trend."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The after-log confirms 35\u201373 s per statement-line request with thread-pool starvation, which will cascade to other endpoints sharing the pool.",
+      "reason": "The logs show GetAccountSummaryQuery and other endpoints continuing at normal latency even after the starvation warning (e.g., 3297ms at 00:24:18), so the claim that starvation 'will cascade' to other endpoints is not supported by the log evidence."
+    },
+    {
+      "quote": "Mean | 299.8 ms | 51 759 ms | **~173\u00d7**",
+      "reason": "Averaging the ten baseline GetStatementLineQuery values listed in the log (281,304,296,312,288,319,297,305,293,308) yields 300.3 ms, not 299.8 ms, a minor arithmetic inaccuracy."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 126.6,
+    "input_tokens": 8941,
+    "output_tokens": 13618
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "verdict": "found",
+        "quote": "The `GetStatementLineQuery` endpoint went from a stable ~300 ms to 34\u201373 s between the pre-release baseline (4.6.3) and the post-release window (4.7.0).",
+        "reason": "The analysis correctly states the baseline range (281-319ms, shown in the table) and the after range (33,757-72,974ms)."
+      },
+      {
+        "id": "C16-P2",
+        "verdict": "found",
+        "quote": "**~106\u00d7 \u2013 ~260\u00d7** slower",
+        "reason": "The analysis quantifies the slowdown as roughly a hundred to two-hundred-sixty-fold, matching the expected order of magnitude even if the exact reference points differ slightly."
+      },
+      {
+        "id": "C16-P3",
+        "verdict": "found",
+        "quote": "**00:24:02 \u2013 00:24:34** (6 queries): 41.5 s \u2013 73.0 s, with three consecutive queries at \u2248 72 s",
+        "reason": "The analysis shows the escalation from ~34s to ~73s within the after window via its two-phase breakdown."
+      },
+      {
+        "id": "C16-P4",
+        "verdict": "found",
+        "quote": "**GetAccountSummaryQuery:** still ~3 s in both windows. (This directly contradicts Ravi Kumar's comment, see \u00a76.)",
+        "reason": "The analysis correctly notes GetAccountSummaryQuery is unchanged and explicitly ties this to contradicting Ravi's suggestion."
+      },
+      {
+        "id": "C16-P5",
+        "verdict": "found",
+        "quote": "**ExportStatementCommand:** ~1.8\u20131.9 s in both windows.",
+        "reason": "The analysis notes ExportStatementCommand is unchanged, supporting that the regression is isolated to the statement line query."
+      },
+      {
+        "id": "C16-P6",
+        "verdict": "found",
+        "quote": "The after-log shows a migration explicitly named **`ReindexStatementLines`** applied during the 4.7.0 deployment.",
+        "reason": "The analysis identifies the migration timestamp and uses it to contradict Tom Becker's claim."
+      },
+      {
+        "id": "C16-I1",
+        "verdict": "found",
+        "quote": "The correlation is suggestive, not conclusive.",
+        "reason": "The analysis appropriately hedges the migration-as-cause idea as a suggestive correlation rather than a proven fact."
+      },
+      {
+        "id": "C16-I2",
+        "verdict": "found",
+        "quote": "the starvation reads as a **consequence** of threads being held by slow queries, not the initial cause.",
+        "reason": "The analysis frames the ThreadPool starvation as a likely downstream symptom rather than the root cause, appropriately hedged."
+      },
+      {
+        "id": "C16-P7",
+        "verdict": "found",
+        "quote": "**Only two 5-minute samples.** A single before/after pair is the minimum evidence; there is no trend data over the hours since the migration.",
+        "reason": "The analysis explicitly notes the limited sample size and lack of data between the windows as a caveat on the regression's certainty."
+      },
+      {
+        "id": "C16-P8",
+        "verdict": "found",
+        "quote": "**Pull the `EXPLAIN (ANALYZE, BUFFERS)` for `GetStatementLineQuery`** in production (or a production-mirror DB) and compare it against the pre-4.7.0 plan. Confirm whether the new index from `20260914_2100_ReindexStatementLines` is being used, and on which column.",
+        "reason": "The analysis recommends checking the execution plan/index tied to the migration and, elsewhere, discusses extending the log sample and Tom Becker's stance as assignee."
+      },
+      {
+        "id": "C16-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and rejects Ravi's suggestion, never naming it as the regression."
+      },
+      {
+        "id": "C16-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only lists hypothetical possibilities for what the migration might have done and explicitly calls the migration-causation link 'suggestive, not conclusive' rather than asserting it as fact."
+      },
+      {
+        "id": "C16-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The stated magnitudes (roughly 106x-260x) are consistent with the log data, not an unsupported figure like 10x or 2x."
+      },
+      {
+        "id": "C16-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly frames ThreadPool starvation as a consequence of the slow queries, not their root cause."
+      },
+      {
+        "id": "C16-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states it cannot know whether degradation was constant or gradual over the days between windows, rather than asserting a build-up trend."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The after-log confirms 35\u201373 s per statement-line request with thread-pool starvation, which will cascade to other endpoints sharing the pool.",
+        "reason": "The logs show GetAccountSummaryQuery and other endpoints continuing at normal latency even after the starvation warning (e.g., 3297ms at 00:24:18), so the claim that starvation 'will cascade' to other endpoints is not supported by the log evidence."
+      },
+      {
+        "quote": "Mean | 299.8 ms | 51 759 ms | **~173\u00d7**",
+        "reason": "Averaging the ten baseline GetStatementLineQuery values listed in the log (281,304,296,312,288,319,297,305,293,308) yields 300.3 ms, not 299.8 ms, a minor arithmetic inaccuracy."
+      }
+    ]
+  }
+}

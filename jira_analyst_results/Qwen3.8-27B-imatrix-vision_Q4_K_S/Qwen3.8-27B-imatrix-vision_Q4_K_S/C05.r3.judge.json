@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a near-duplicate of BANK-440.",
+      "reason": "The analysis identifies BANK-425 as a near-duplicate matching version, platform, and symptom of BANK-440."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Mark BANK-425 as **Duplicate** with a link to BANK-440.",
+      "reason": "It recommends closing one ticket as a duplicate while linking and preserving the diagnostic comment, satisfying the flexible requirement."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Not a duplicate. Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the `TransferRequested` event (fired before the debit) instead of `TransferCompleted`.",
+      "reason": "Correctly explains MOB-88 is distinct due to different cause and platform, and notes it is in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fix: invalidate `BalanceCache` on successful transfer, as Hana Sato described.",
+      "reason": "The analysis correctly identifies the 15-minute BalanceCache as the root cause and the fix as clearing it after a transfer."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It is the **root cause** of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+      "reason": "The regression link to BANK-419 is presented as established fact rather than a hedged inference in this section, though elsewhere it is called 'likely'."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis notes BANK-440 has no assignee but never states that BANK-425 is also unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API itself returns a wrong or stale value."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 37.2,
+    "input_tokens": 5914,
+    "output_tokens": 4125
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "BANK-425 is a near-duplicate of BANK-440.",
+        "reason": "The analysis identifies BANK-425 as a near-duplicate matching version, platform, and symptom of BANK-440."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "Mark BANK-425 as **Duplicate** with a link to BANK-440.",
+        "reason": "It recommends closing one ticket as a duplicate while linking and preserving the diagnostic comment, satisfying the flexible requirement."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "Not a duplicate. Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the `TransferRequested` event (fired before the debit) instead of `TransferCompleted`.",
+        "reason": "Correctly explains MOB-88 is distinct due to different cause and platform, and notes it is in progress with Ravi Kumar."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "Fix: invalidate `BalanceCache` on successful transfer, as Hana Sato described.",
+        "reason": "The analysis correctly identifies the 15-minute BalanceCache as the root cause and the fix as clearing it after a transfer."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "It is the **root cause** of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+        "reason": "The regression link to BANK-419 is presented as established fact rather than a hedged inference in this section, though elsewhere it is called 'likely'."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis notes BANK-440 has no assignee but never states that BANK-425 is also unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the balance API itself returns a wrong or stale value."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

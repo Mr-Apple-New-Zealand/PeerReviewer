@@ -1,0 +1,227 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+      "reason": "Analysis clearly identifies the SMTP 535 authentication failure as the cause, quoting the exact error and tracing it to EmailSender/OutboxDispatcher."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No. The Data Protection warnings are real but do not cause an SMTP 535 authentication rejection.",
+      "reason": "Analysis explicitly rejects the reporter's explanation, noting the DataProtection warnings are routine and unrelated to the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+      "reason": "Analysis quotes the exact log line about the stuck outbox item and no backoff/dead-letter path, and elsewhere explains this blocks subsequent items."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1 412 \u2192 2 089 in ~37 min \u2248 +18 msg/min",
+      "reason": "Analysis reports the backlog growth from 1412 to 2089 and calculates the rate, matching the expected point."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The previous container's log was not captured. If the failure started at 14:00, the logs between 14:00 and 18:02 are lost, making it harder to identify exactly when and why the SMTP server started rejecting.",
+      "reason": "Analysis correctly notes the log begins at 18:02:41 and cannot confirm the 14:00 start reported by the contact centre."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod was already restarted at 18:02; the same 535 errors continue.",
+      "reason": "Analysis notes the restart already happened and the same errors persisted afterward, and elsewhere shows they continue through 18:38."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Likely actual root cause (inference): The SMTP server at `smtp.example.com:587` was reconfigured (or a credential was rotated) so that it no longer accepts basic/SMTP-AUTH.",
+      "reason": "Analysis presents the mail-provider auth policy change as a labelled inference, matching the expected idea."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Escalate to the Platform / Mail-Relay team to confirm the current auth policy on `smtp.example.com:587`.",
+      "reason": "Analysis recommends escalating to Platform/mail owners and retrieving the missing log, but does not explicitly recommend adding backoff and a dead-letter path to the dispatcher itself."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "NATS blip at 18:07 (lost \u2192 reconnected after 1 attempt) \u2013 minor, self-recovered, unrelated to the SMTP issue.",
+      "reason": "Analysis correctly identifies the NATS reconnection and health check as unrelated, self-recovered, or misleading rather than causal."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation rather than endorsing it."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis states the log does not cover the 14:00 period rather than claiming to show what happened then."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly advises against restarting the pod again."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis treats NATS reconnection and health check as unrelated to the email failures rather than blaming them."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis does not invent any additional SMTP error codes or reasons beyond the 535/5.7.139 shown in the log."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The SMTP credentials are logged in **plain text** at 18:05:00, confirming they are not Data-Protection-encrypted.",
+      "reason": "The log line at 18:05:00 only shows the SMTP host, username, and StartTls setting, not a password or 'credentials' in the sense of secret material, so claiming credentials are logged in plain text overstates what the log shows."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 54.2,
+    "input_tokens": 9999,
+    "output_tokens": 5938
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+        "reason": "Analysis clearly identifies the SMTP 535 authentication failure as the cause, quoting the exact error and tracing it to EmailSender/OutboxDispatcher."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "No. The Data Protection warnings are real but do not cause an SMTP 535 authentication rejection.",
+        "reason": "Analysis explicitly rejects the reporter's explanation, noting the DataProtection warnings are routine and unrelated to the SMTP failures."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+        "reason": "Analysis quotes the exact log line about the stuck outbox item and no backoff/dead-letter path, and elsewhere explains this blocks subsequent items."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "1 412 \u2192 2 089 in ~37 min \u2248 +18 msg/min",
+        "reason": "Analysis reports the backlog growth from 1412 to 2089 and calculates the rate, matching the expected point."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "The previous container's log was not captured. If the failure started at 14:00, the logs between 14:00 and 18:02 are lost, making it harder to identify exactly when and why the SMTP server started rejecting.",
+        "reason": "Analysis correctly notes the log begins at 18:02:41 and cannot confirm the 14:00 start reported by the contact centre."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "The pod was already restarted at 18:02; the same 535 errors continue.",
+        "reason": "Analysis notes the restart already happened and the same errors persisted afterward, and elsewhere shows they continue through 18:38."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "Likely actual root cause (inference): The SMTP server at `smtp.example.com:587` was reconfigured (or a credential was rotated) so that it no longer accepts basic/SMTP-AUTH.",
+        "reason": "Analysis presents the mail-provider auth policy change as a labelled inference, matching the expected idea."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "partial",
+        "quote": "Escalate to the Platform / Mail-Relay team to confirm the current auth policy on `smtp.example.com:587`.",
+        "reason": "Analysis recommends escalating to Platform/mail owners and retrieving the missing log, but does not explicitly recommend adding backoff and a dead-letter path to the dispatcher itself."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "found",
+        "quote": "NATS blip at 18:07 (lost \u2192 reconnected after 1 attempt) \u2013 minor, self-recovered, unrelated to the SMTP issue.",
+        "reason": "Analysis correctly identifies the NATS reconnection and health check as unrelated, self-recovered, or misleading rather than causal."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation rather than endorsing it."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis states the log does not cover the 14:00 period rather than claiming to show what happened then."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly advises against restarting the pod again."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis treats NATS reconnection and health check as unrelated to the email failures rather than blaming them."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis does not invent any additional SMTP error codes or reasons beyond the 535/5.7.139 shown in the log."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The SMTP credentials are logged in **plain text** at 18:05:00, confirming they are not Data-Protection-encrypted.",
+        "reason": "The log line at 18:05:00 only shows the SMTP host, username, and StartTls setting, not a password or 'credentials' in the sense of secret material, so claiming credentials are logged in plain text overstates what the log shows."
+      }
+    ]
+  }
+}

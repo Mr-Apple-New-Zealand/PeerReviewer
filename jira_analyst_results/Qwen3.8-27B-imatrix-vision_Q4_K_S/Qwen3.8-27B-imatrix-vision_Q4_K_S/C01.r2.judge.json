@@ -1,0 +1,173 @@
+{
+  "checkpoints": [
+    {
+      "id": "C01-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Net result: the source account is debited twice, the destination credited once.",
+      "reason": "The analysis clearly states the double-debit, single-credit outcome from the retried transfer."
+    },
+    {
+      "id": "C01-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "3.2.0, release 2026-09-24",
+      "reason": "The analysis states the fix version, release date, and elsewhere the affects version 3.1.4."
+    },
+    {
+      "id": "C01-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No idempotency key on the retry.** The Retry button fires `POST /api/transaction/transfer` with no key, so the server allocates a new transaction ID (log: `txn=8841` \u2192 `txn=8842`).\n- **Debit and credit are separate DB transactions.** When the credit times out at 30 000 ms, the already-committed debit has no compensating rollback.",
+      "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are explicitly identified as Priya's findings."
+    },
+    {
+      "id": "C01-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "PR #218 (single-DB-transaction wrap + Idempotency-Key header) is open and **waiting on code review** (Priya, 2026-09-12).",
+      "reason": "Status In Progress, assignee Priya Nair, and PR #218 waiting on review are all stated in the analysis."
+    },
+    {
+      "id": "C01-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Aroha asked Marcus Reid to raise the manual-reversal request with Finance Ops (comment, 2026-09-11).",
+      "reason": "The analysis states three customers were affected and that Marcus Reid was asked to raise reversal with Finance Ops."
+    },
+    {
+      "id": "C01-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No follow-up comment or linked ticket confirming that has been done.",
+      "reason": "The analysis explicitly notes there is no confirmation that the Finance reversal has been actioned."
+    },
+    {
+      "id": "C01-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Complete code review and merge PR #218** (single-transaction wrap + Idempotency-Key).",
+      "reason": "The suggested next actions table lists both merging PR #218 and confirming the Finance Ops reversal for the three customers."
+    },
+    {
+      "id": "C01-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly states PR #218 is still awaiting code review, not merged or deployed."
+    },
+    {
+      "id": "C01-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the bug does not reproduce on desktop web, per Tom Becker's confirmation."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "High (upgraded from Medium by Aroha Walker, 2026-09-09)",
+      "reason": "The ticket history shows the priority change occurred on 2026-09-08, not 2026-09-09."
+    },
+    {
+      "quote": "PR #218 is still in review as of 2026-09-12 (3 days before sprint end, 12 days before release).",
+      "reason": "Sprint 38 ends 2026-09-22, which is 10 days after 2026-09-12, not 3 days as claimed."
+    },
+    {
+      "quote": "already 4 days old as of the last update.",
+      "reason": "The ticket gives no date for when PR #218 was opened, so this age figure is invented."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 83.5,
+    "input_tokens": 5905,
+    "output_tokens": 9064
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C01-P1",
+        "verdict": "found",
+        "quote": "Net result: the source account is debited twice, the destination credited once.",
+        "reason": "The analysis clearly states the double-debit, single-credit outcome from the retried transfer."
+      },
+      {
+        "id": "C01-P2",
+        "verdict": "found",
+        "quote": "3.2.0, release 2026-09-24",
+        "reason": "The analysis states the fix version, release date, and elsewhere the affects version 3.1.4."
+      },
+      {
+        "id": "C01-P3",
+        "verdict": "found",
+        "quote": "**No idempotency key on the retry.** The Retry button fires `POST /api/transaction/transfer` with no key, so the server allocates a new transaction ID (log: `txn=8841` \u2192 `txn=8842`).\n- **Debit and credit are separate DB transactions.** When the credit times out at 30 000 ms, the already-committed debit has no compensating rollback.",
+        "reason": "Both root causes (missing idempotency key and non-atomic debit/credit) are explicitly identified as Priya's findings."
+      },
+      {
+        "id": "C01-P4",
+        "verdict": "found",
+        "quote": "PR #218 (single-DB-transaction wrap + Idempotency-Key header) is open and **waiting on code review** (Priya, 2026-09-12).",
+        "reason": "Status In Progress, assignee Priya Nair, and PR #218 waiting on review are all stated in the analysis."
+      },
+      {
+        "id": "C01-P5",
+        "verdict": "found",
+        "quote": "Aroha asked Marcus Reid to raise the manual-reversal request with Finance Ops (comment, 2026-09-11).",
+        "reason": "The analysis states three customers were affected and that Marcus Reid was asked to raise reversal with Finance Ops."
+      },
+      {
+        "id": "C01-P6",
+        "verdict": "found",
+        "quote": "No follow-up comment or linked ticket confirming that has been done.",
+        "reason": "The analysis explicitly notes there is no confirmation that the Finance reversal has been actioned."
+      },
+      {
+        "id": "C01-P7",
+        "verdict": "found",
+        "quote": "**Complete code review and merge PR #218** (single-transaction wrap + Idempotency-Key).",
+        "reason": "The suggested next actions table lists both merging PR #218 and confirming the Finance Ops reversal for the three customers."
+      },
+      {
+        "id": "C01-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis correctly states PR #218 is still awaiting code review, not merged or deployed."
+      },
+      {
+        "id": "C01-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the bug does not reproduce on desktop web, per Tom Becker's confirmation."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "High (upgraded from Medium by Aroha Walker, 2026-09-09)",
+        "reason": "The ticket history shows the priority change occurred on 2026-09-08, not 2026-09-09."
+      },
+      {
+        "quote": "PR #218 is still in review as of 2026-09-12 (3 days before sprint end, 12 days before release).",
+        "reason": "Sprint 38 ends 2026-09-22, which is 10 days after 2026-09-12, not 3 days as claimed."
+      },
+      {
+        "quote": "already 4 days old as of the last update.",
+        "reason": "The ticket gives no date for when PR #218 was opened, so this age figure is invented."
+      }
+    ]
+  }
+}

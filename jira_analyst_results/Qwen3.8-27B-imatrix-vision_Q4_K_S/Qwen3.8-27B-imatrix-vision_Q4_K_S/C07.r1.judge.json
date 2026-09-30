@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy **OPS-81** executed; JWT signing key for Auth service rotated.",
+      "reason": "The analysis correctly states the 09:30 deploy and \u224809:31 impact start."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **09:47** | Monitoring alert fires: *TransferErrorRate > 20 %*. |\n| **09:52** | Incident declared (BANK-450 created). Transfer error rate at **64 %**. Sam Okafor reports as both assignee and reporter. |",
+      "reason": "Both the 09:47 alert and 09:52 declaration are correctly recorded."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **10:31** | Rollback of OPS-81 config deploy initiated. |\n| **10:42** | Transfer error rate back **under 1 %**. |\n| **10:44** | Sam Okafor confirms rollback complete. |\n| **10:50** | Incident resolved. Root cause recorded. Post-incident review scheduled for **2026-09-16**. |",
+      "reason": "Rollback start, recovery time, and resolution time are all correctly captured."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The 16-minute gap between the first errors and the alert threshold being crossed is the key detection latency.",
+      "reason": "Correctly computes 16 minutes as time to detect."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "| Incident declared (09:52) \u2192 error rate < 1 % (10:42) | **50 minutes** |\n| Incident declared (09:52) \u2192 resolution logged (10:50) | **58 minutes** |\n| Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes** |",
+      "reason": "The analysis offers three different recovery time metrics (50, 58, 71 minutes), hedging across values only one of which (71 minutes) matches an accepted answer."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Config deploy **OPS-81** (executed 09:30) rotated the JWT signing key used by the **Auth** service without a corresponding update to the key the **Transactions API** uses for token validation.",
+      "reason": "Correctly states the root cause of the key mismatch causing 401 errors."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Incident resolved. Root cause recorded. Post-incident review scheduled for **2026-09-16**.",
+      "reason": "Correctly states the post-incident review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly notes the database was ruled out as a red herring rather than asserting it as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All time calculations in the analysis are mathematically consistent with the ticket's timestamps, even though some differ from the key's preferred framing."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 44.9,
+    "input_tokens": 4745,
+    "output_tokens": 5131
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "Config deploy **OPS-81** executed; JWT signing key for Auth service rotated.",
+        "reason": "The analysis correctly states the 09:30 deploy and \u224809:31 impact start."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "| **09:47** | Monitoring alert fires: *TransferErrorRate > 20 %*. |\n| **09:52** | Incident declared (BANK-450 created). Transfer error rate at **64 %**. Sam Okafor reports as both assignee and reporter. |",
+        "reason": "Both the 09:47 alert and 09:52 declaration are correctly recorded."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "| **10:31** | Rollback of OPS-81 config deploy initiated. |\n| **10:42** | Transfer error rate back **under 1 %**. |\n| **10:44** | Sam Okafor confirms rollback complete. |\n| **10:50** | Incident resolved. Root cause recorded. Post-incident review scheduled for **2026-09-16**. |",
+        "reason": "Rollback start, recovery time, and resolution time are all correctly captured."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "The 16-minute gap between the first errors and the alert threshold being crossed is the key detection latency.",
+        "reason": "Correctly computes 16 minutes as time to detect."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "partial",
+        "quote": "| Incident declared (09:52) \u2192 error rate < 1 % (10:42) | **50 minutes** |\n| Incident declared (09:52) \u2192 resolution logged (10:50) | **58 minutes** |\n| Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes** |",
+        "reason": "The analysis offers three different recovery time metrics (50, 58, 71 minutes), hedging across values only one of which (71 minutes) matches an accepted answer."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "Config deploy **OPS-81** (executed 09:30) rotated the JWT signing key used by the **Auth** service without a corresponding update to the key the **Transactions API** uses for token validation.",
+        "reason": "Correctly states the root cause of the key mismatch causing 401 errors."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Incident resolved. Root cause recorded. Post-incident review scheduled for **2026-09-16**.",
+        "reason": "Correctly states the post-incident review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly notes the database was ruled out as a red herring rather than asserting it as a cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All time calculations in the analysis are mathematically consistent with the ticket's timestamps, even though some differ from the key's preferred framing."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

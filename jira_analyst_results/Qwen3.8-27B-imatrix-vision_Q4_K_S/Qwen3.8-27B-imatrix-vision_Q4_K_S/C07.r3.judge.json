@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 | Config deploy **OPS-81** executed; JWT signing key for the Auth service rotated.",
+      "reason": "Correctly states deploy time and impact start."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 | Monitoring alert fires: `TransferErrorRate > 20%`. | 09:52 | Sam Okafor declares incident.",
+      "reason": "Correct alert and declaration times."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 | Rollback of OPS-81 config deploy initiated. | 10:42 | Transfer error rate back under **1%**. | 10:44 | Rollback confirmed complete. | 10:50 | Incident marked **Resolved**.",
+      "reason": "All three timestamps correctly captured."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Time to detect** | **16 min** (09:31 \u2192 09:47)",
+      "reason": "Matches expected calculation."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Time to resolve / recover** | **71 min** (09:31 \u2192 10:42)",
+      "reason": "Matches one of the acceptable calculations with start point stated."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy **OPS-81** (09:30) rotated the JWT signing key used by the **Auth** service. Auth immediately began issuing tokens signed with the **new** key, but the **Transactions API** continued to validate inbound tokens against the **old** key.",
+      "reason": "Root cause fully and correctly stated including the 401 error text."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Incident marked **Resolved**. Post-incident review booked for 2026-09-16.",
+      "reason": "Correct date for post-incident review."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Database hypothesis is attributed to Priya and explicitly ruled out, called a 'red herring', not asserted as cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All detect/recover figures match supported timestamp pairs."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Resolution was a rollback of the OPS-81 config change, restoring the old key across both services.",
+      "reason": "The tickets only state the OPS-81 deploy was rolled back; there is no mention of the old key being restored 'across both services', which is an invented mechanistic detail not supported by the text."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 13.5,
+    "input_tokens": 4470,
+    "output_tokens": 1508
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "09:30 | Config deploy **OPS-81** executed; JWT signing key for the Auth service rotated.",
+        "reason": "Correctly states deploy time and impact start."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47 | Monitoring alert fires: `TransferErrorRate > 20%`. | 09:52 | Sam Okafor declares incident.",
+        "reason": "Correct alert and declaration times."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31 | Rollback of OPS-81 config deploy initiated. | 10:42 | Transfer error rate back under **1%**. | 10:44 | Rollback confirmed complete. | 10:50 | Incident marked **Resolved**.",
+        "reason": "All three timestamps correctly captured."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "**Time to detect** | **16 min** (09:31 \u2192 09:47)",
+        "reason": "Matches expected calculation."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "**Time to resolve / recover** | **71 min** (09:31 \u2192 10:42)",
+        "reason": "Matches one of the acceptable calculations with start point stated."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The config deploy **OPS-81** (09:30) rotated the JWT signing key used by the **Auth** service. Auth immediately began issuing tokens signed with the **new** key, but the **Transactions API** continued to validate inbound tokens against the **old** key.",
+        "reason": "Root cause fully and correctly stated including the 401 error text."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Incident marked **Resolved**. Post-incident review booked for 2026-09-16.",
+        "reason": "Correct date for post-incident review."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Database hypothesis is attributed to Priya and explicitly ruled out, called a 'red herring', not asserted as cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All detect/recover figures match supported timestamp pairs."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Resolution was a rollback of the OPS-81 config change, restoring the old key across both services.",
+        "reason": "The tickets only state the OPS-81 deploy was rolled back; there is no mention of the old key being restored 'across both services', which is an invented mechanistic detail not supported by the text."
+      }
+    ]
+  }
+}
