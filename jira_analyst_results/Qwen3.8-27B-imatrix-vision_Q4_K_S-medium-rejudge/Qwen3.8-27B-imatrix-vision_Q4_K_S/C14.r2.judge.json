@@ -1,0 +1,313 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "is caused by **payments-api receiving a 403 Forbidden from `masterfile-api`** every time it tries to look up a branch during `AddPaymentRoutingRuleSecondaryCommand` or `BulkUpdateSecondaryBranchesCommand`",
+      "reason": "Correctly identifies the 403 Forbidden from masterfile-api on both endpoints as the cause of the user-reported failed save."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Repeated at 03:37:32, 03:38:24, 03:38:50, 03:40:12, and 20:26:31:",
+      "reason": "Correctly identifies five occurrences of the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The actual offending column, value, and target type are **redacted** in the log (literal `******`).",
+      "reason": "Correctly notes the masked values prevent identifying the specific column/value/type."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Between 22:26:37 and 22:29:08, **eight** consecutive attempts timed out",
+      "reason": "Correctly identifies eight timeouts in that window; recovery by 22:36:47 is also stated elsewhere in the analysis confirming it as a bounded episode."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log does **not** record which validation rule fired, so the exact cause cannot be confirmed from this log alone.",
+      "reason": "Correctly notes the missing field-level validation detail as a logging gap."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`WRN Long-running request GetStatementLineQuery took 35\u201372 s (\u00d714, 00:20\u201300:24)`",
+      "reason": "Correctly reports 14 occurrences and the 35\u201372 second range for GetStatementLineQuery threshold breaches."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**The database password should be considered compromised and rotated.**",
+      "reason": "Correctly identifies the cleartext connection string with password logged at DBG level and recommends rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Container restart at 02:50:11 \u2192 02:50:14",
+      "reason": "Correctly identifies the single pod restart at the times matching the shutdown/startup log lines."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| `WRN Storing keys in a directory '/app/.aspnet/DataProtection-Keys'\u2026` (\u00d72, at startup) | Standard ASP.NET Core container warning. No functional impact in this incident. |",
+      "reason": "Correctly classifies the DataProtection/XML encryptor/Kestrel binding/https-redirect warnings as routine and unrelated to the failures."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`WRN The connection was aborted by the client. TaskCanceledException` (21:11:02) | One-off; user closed the browser mid-request.",
+      "reason": "Covers the Service Permissions heartbeat, the client-aborted TaskCanceledException, and the 404 pending payment, but never mentions the ObjectMapper licence lines as noise."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Container logs have time-of-day only, no date.",
+      "reason": "Notes the missing date but does not explicitly state that timestamps are out of chronological order throughout the file or that the trimmed stack traces make the file an incomplete record."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Both `branchlocation/get` (by ID) and `branchlocation/GetAll` are rejected, so the 403 is not specific to one branch or one endpoint\u2014it is an identity/permission problem on the calling side.",
+      "reason": "States the access-control/config explanation as an established fact rather than clearly hedging it as a likely inference, even though later text lists open possibilities."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1. **403 from masterfile-api** (P0) \u2013 blocks the reported user action. Fix first.",
+      "reason": "Gives a fix-order list placing the 403 first, then the SQL 245 errors, with the credential issue flagged as parallel work."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings as routine noise, not the cause of the 403s or SQL errors."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the column, value and type are redacted and does not invent specifics."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the lack of a date as preventing correlation of the 403 onset with a deploy, and does not assert a global elapsed time or ordered sequence across the whole file."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never references the NATS subject names as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies only a single restart, not a crash loop."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly separates causes and states the 403 issue is not a database problem, rather than blaming the database for everything."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Deployment or HPA scale event.",
+      "reason": "The log gives no indication of what caused the restart; this specific cause is invented without support and without hedging language."
+    },
+    {
+      "quote": "One-off; user closed the browser mid-request.",
+      "reason": "The log only shows a client-aborted TaskCanceledException; attributing it specifically to the user closing the browser is an unsupported specific claim stated as fact."
+    },
+    {
+      "quote": "This was a **transient database-side stall**, not a code defect.",
+      "reason": "The log shows a SQL execution timeout but does not establish whether the cause was database-side versus application/query-side; this is stated as certain fact without support."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 144.2,
+    "input_tokens": 21442,
+    "output_tokens": 14428
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "verdict": "found",
+        "quote": "is caused by **payments-api receiving a 403 Forbidden from `masterfile-api`** every time it tries to look up a branch during `AddPaymentRoutingRuleSecondaryCommand` or `BulkUpdateSecondaryBranchesCommand`",
+        "reason": "Correctly identifies the 403 Forbidden from masterfile-api on both endpoints as the cause of the user-reported failed save."
+      },
+      {
+        "id": "C14-P2",
+        "verdict": "found",
+        "quote": "Repeated at 03:37:32, 03:38:24, 03:38:50, 03:40:12, and 20:26:31:",
+        "reason": "Correctly identifies five occurrences of the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler."
+      },
+      {
+        "id": "C14-P3",
+        "verdict": "found",
+        "quote": "The actual offending column, value, and target type are **redacted** in the log (literal `******`).",
+        "reason": "Correctly notes the masked values prevent identifying the specific column/value/type."
+      },
+      {
+        "id": "C14-P4",
+        "verdict": "found",
+        "quote": "Between 22:26:37 and 22:29:08, **eight** consecutive attempts timed out",
+        "reason": "Correctly identifies eight timeouts in that window; recovery by 22:36:47 is also stated elsewhere in the analysis confirming it as a bounded episode."
+      },
+      {
+        "id": "C14-P5",
+        "verdict": "found",
+        "quote": "The log does **not** record which validation rule fired, so the exact cause cannot be confirmed from this log alone.",
+        "reason": "Correctly notes the missing field-level validation detail as a logging gap."
+      },
+      {
+        "id": "C14-P6",
+        "verdict": "found",
+        "quote": "`WRN Long-running request GetStatementLineQuery took 35\u201372 s (\u00d714, 00:20\u201300:24)`",
+        "reason": "Correctly reports 14 occurrences and the 35\u201372 second range for GetStatementLineQuery threshold breaches."
+      },
+      {
+        "id": "C14-P7",
+        "verdict": "found",
+        "quote": "**The database password should be considered compromised and rotated.**",
+        "reason": "Correctly identifies the cleartext connection string with password logged at DBG level and recommends rotation."
+      },
+      {
+        "id": "C14-P8",
+        "verdict": "found",
+        "quote": "Container restart at 02:50:11 \u2192 02:50:14",
+        "reason": "Correctly identifies the single pod restart at the times matching the shutdown/startup log lines."
+      },
+      {
+        "id": "C14-P9",
+        "verdict": "found",
+        "quote": "| `WRN Storing keys in a directory '/app/.aspnet/DataProtection-Keys'\u2026` (\u00d72, at startup) | Standard ASP.NET Core container warning. No functional impact in this incident. |",
+        "reason": "Correctly classifies the DataProtection/XML encryptor/Kestrel binding/https-redirect warnings as routine and unrelated to the failures."
+      },
+      {
+        "id": "C14-P10",
+        "verdict": "partial",
+        "quote": "`WRN The connection was aborted by the client. TaskCanceledException` (21:11:02) | One-off; user closed the browser mid-request.",
+        "reason": "Covers the Service Permissions heartbeat, the client-aborted TaskCanceledException, and the 404 pending payment, but never mentions the ObjectMapper licence lines as noise."
+      },
+      {
+        "id": "C14-P11",
+        "verdict": "partial",
+        "quote": "Container logs have time-of-day only, no date.",
+        "reason": "Notes the missing date but does not explicitly state that timestamps are out of chronological order throughout the file or that the trimmed stack traces make the file an incomplete record."
+      },
+      {
+        "id": "C14-I1",
+        "verdict": "partial",
+        "quote": "Both `branchlocation/get` (by ID) and `branchlocation/GetAll` are rejected, so the 403 is not specific to one branch or one endpoint\u2014it is an identity/permission problem on the calling side.",
+        "reason": "States the access-control/config explanation as an established fact rather than clearly hedging it as a likely inference, even though later text lists open possibilities."
+      },
+      {
+        "id": "C14-P12",
+        "verdict": "found",
+        "quote": "1. **403 from masterfile-api** (P0) \u2013 blocks the reported user action. Fix first.",
+        "reason": "Gives a fix-order list placing the 403 first, then the SQL 245 errors, with the credential issue flagged as parallel work."
+      },
+      {
+        "id": "C14-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings as routine noise, not the cause of the 403s or SQL errors."
+      },
+      {
+        "id": "C14-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the column, value and type are redacted and does not invent specifics."
+      },
+      {
+        "id": "C14-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly flags the lack of a date as preventing correlation of the 403 onset with a deploy, and does not assert a global elapsed time or ordered sequence across the whole file."
+      },
+      {
+        "id": "C14-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never references the NATS subject names as evidence of errors."
+      },
+      {
+        "id": "C14-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis identifies only a single restart, not a crash loop."
+      },
+      {
+        "id": "C14-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly separates causes and states the 403 issue is not a database problem, rather than blaming the database for everything."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Deployment or HPA scale event.",
+        "reason": "The log gives no indication of what caused the restart; this specific cause is invented without support and without hedging language."
+      },
+      {
+        "quote": "One-off; user closed the browser mid-request.",
+        "reason": "The log only shows a client-aborted TaskCanceledException; attributing it specifically to the user closing the browser is an unsupported specific claim stated as fact."
+      },
+      {
+        "quote": "This was a **transient database-side stall**, not a code defect.",
+        "reason": "The log shows a SQL execution timeout but does not establish whether the cause was database-side versus application/query-side; this is stated as certain fact without support."
+      }
+    ]
+  }
+}

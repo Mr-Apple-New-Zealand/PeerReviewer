@@ -1,0 +1,235 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every outbound email is failing with SMTP 535 (\"Authentication unsuccessful, basic authentication is disabled\") against `smtp.example.com:587`.",
+      "reason": "The analysis correctly identifies the SMTP 535 authentication failure with the exact server response as the cause, tracing it through EmailSender and OutboxDispatcher elsewhere in the text."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Data Protection warnings are genuine and should be addressed, but they do **not** explain the SMTP 535 error:",
+      "reason": "The analysis explicitly states the DataProtection warnings are routine and unrelated to the SMTP failure."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+      "reason": "The analysis quotes the exact warning about the stuck item and the lack of backoff/dead-letter path."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The outbox backlog has grown from 1 412 to 2 089 messages in the ~37 minutes the log covers, with no backoff or dead-letter path.",
+      "reason": "The analysis correctly reports the growing backlog with matching figures from the log."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The previous container's log was not captured. If the failure started at 14:00, the logs between 14:00 and 18:02 are lost, making it harder to identify exactly when and why the SMTP server started rejecting.",
+      "reason": "The analysis correctly notes the log cannot confirm the 14:00 start because the prior container's log is missing."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod was already restarted at 18:02; the same 535 errors continue.",
+      "reason": "The analysis correctly notes the restart already happened and the same failures persisted afterward."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Likely actual root cause (inference):** The SMTP server at `smtp.example.com:587` was reconfigured (or a credential was rotated) so that it no longer accepts basic/SMTP-AUTH.",
+      "reason": "The analysis presents this as a labelled inference rather than certain fact, matching the expected hedge."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "to confirm the current auth policy on `smtp.example.com:587`. Ask: was basic auth disabled? What is the expected auth mechanism now (OAuth 2.0, client cert, app password)? Was there a deployment or config change around 14:00?",
+      "reason": "The analysis recommends confirming the auth policy and retrieving the missing log, but never explicitly recommends adding backoff and a dead-letter path to the dispatcher as a next action."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "(lost \u2192 reconnected after 1 attempt) \u2013 minor, self-recovered, unrelated to the SMTP issue.",
+      "reason": "The analysis explicitly separates the NATS blip and healthy health check from the SMTP failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as not supported by the log."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log only covers from 18:02 and cannot confirm anything about the 14:00 window, attributing the 14:00 time to the contact centre report."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'Do not restart the pod again' rather than recommending it."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the NATS blip and health-check gap as unrelated to the undelivered emails."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only cites the actual 535/5.7.139 error from the log and does not invent any other SMTP code or reason."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The SMTP credentials are logged in **plain text** at 18:05:00, confirming they are not Data-Protection-encrypted. The key-loss scenario therefore does not apply to these credentials.",
+      "reason": "The log line only shows startup configuration (host, user, TLS setting) being printed, which does not establish anything about whether Data Protection encrypts credentials elsewhere; this is presented as proven fact without support."
+    },
+    {
+      "quote": "Keys in a non-persistent path with no XML encryptor means any previously-protected state (cookies, anti-forgery tokens, possibly other encrypted fields) is lost on every pod restart.",
+      "reason": "The tickets contain no mention of cookies, anti-forgery tokens, or any other protected state, so this specific consequence is invented and stated as certain fact."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 128.4,
+    "input_tokens": 9999,
+    "output_tokens": 14169
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "Every outbound email is failing with SMTP 535 (\"Authentication unsuccessful, basic authentication is disabled\") against `smtp.example.com:587`.",
+        "reason": "The analysis correctly identifies the SMTP 535 authentication failure with the exact server response as the cause, tracing it through EmailSender and OutboxDispatcher elsewhere in the text."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "The Data Protection warnings are genuine and should be addressed, but they do **not** explain the SMTP 535 error:",
+        "reason": "The analysis explicitly states the DataProtection warnings are routine and unrelated to the SMTP failure."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.",
+        "reason": "The analysis quotes the exact warning about the stuck item and the lack of backoff/dead-letter path."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "The outbox backlog has grown from 1 412 to 2 089 messages in the ~37 minutes the log covers, with no backoff or dead-letter path.",
+        "reason": "The analysis correctly reports the growing backlog with matching figures from the log."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "The previous container's log was not captured. If the failure started at 14:00, the logs between 14:00 and 18:02 are lost, making it harder to identify exactly when and why the SMTP server started rejecting.",
+        "reason": "The analysis correctly notes the log cannot confirm the 14:00 start because the prior container's log is missing."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "The pod was already restarted at 18:02; the same 535 errors continue.",
+        "reason": "The analysis correctly notes the restart already happened and the same failures persisted afterward."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "**Likely actual root cause (inference):** The SMTP server at `smtp.example.com:587` was reconfigured (or a credential was rotated) so that it no longer accepts basic/SMTP-AUTH.",
+        "reason": "The analysis presents this as a labelled inference rather than certain fact, matching the expected hedge."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "partial",
+        "quote": "to confirm the current auth policy on `smtp.example.com:587`. Ask: was basic auth disabled? What is the expected auth mechanism now (OAuth 2.0, client cert, app password)? Was there a deployment or config change around 14:00?",
+        "reason": "The analysis recommends confirming the auth policy and retrieving the missing log, but never explicitly recommends adding backoff and a dead-letter path to the dispatcher as a next action."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "found",
+        "quote": "(lost \u2192 reconnected after 1 attempt) \u2013 minor, self-recovered, unrelated to the SMTP issue.",
+        "reason": "The analysis explicitly separates the NATS blip and healthy health check from the SMTP failure."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML-encryptor explanation as not supported by the log."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the log only covers from 18:02 and cannot confirm anything about the 14:00 window, attributing the 14:00 time to the contact centre report."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states 'Do not restart the pod again' rather than recommending it."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly labels the NATS blip and health-check gap as unrelated to the undelivered emails."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only cites the actual 535/5.7.139 error from the log and does not invent any other SMTP code or reason."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The SMTP credentials are logged in **plain text** at 18:05:00, confirming they are not Data-Protection-encrypted. The key-loss scenario therefore does not apply to these credentials.",
+        "reason": "The log line only shows startup configuration (host, user, TLS setting) being printed, which does not establish anything about whether Data Protection encrypts credentials elsewhere; this is presented as proven fact without support."
+      },
+      {
+        "quote": "Keys in a non-persistent path with no XML encryptor means any previously-protected state (cookies, anti-forgery tokens, possibly other encrypted fields) is lost on every pod restart.",
+        "reason": "The tickets contain no mention of cookies, anti-forgery tokens, or any other protected state, so this specific consequence is invented and stated as certain fact."
+      }
+    ]
+  }
+}

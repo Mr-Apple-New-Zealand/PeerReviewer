@@ -1,0 +1,269 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Five of the seven open issues share a single root cause: **API calls returning HTTP 401**, which the UI does not handle gracefully, causing unhandled `TypeError` crashes on four different routes and a flood of handled console errors on a fifth.",
+      "reason": "Correctly identifies the five-issue cluster (4A1, 4A2, 4A9, 4B3, 3C8) as sharing the 401 root cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "44 users hit the root 401; the four downstream TypeErrors each hit 31\u201341 users. Even with overlap, this is the broadest set of affected users.",
+      "reason": "Acknowledges overlap in user counts but treats the counts as cumulative ('broadest set') rather than stating explicitly that the counts cannot be summed and that 44 is the best single reach estimate."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The fact that 58 distinct users are affected (more than any other issue) makes this the **widest-reaching single problem** in this export.",
+      "reason": "Correctly identifies BANKUI-5D6 as having the highest user count despite low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First seen **2026-09-10 21:11 UTC**, six minutes after the **4.7.0** deploy (21:05 UTC).",
+      "reason": "Correctly ties the chunk error timing to the 4.7.0 deploy and the 404 bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The culprit is a Chrome extension's `inject.js`, not any bank-ui code.",
+      "reason": "Correctly identifies BANKUI-2F0 as browser-extension noise, not a defect."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANKUI-2F0 is exactly that trap (4 812 events, 1 user).",
+      "reason": "Flags 2F0's event count as misleading but does not clearly frame BANKUI-3C8's 5,140 events as similarly misleading, instead folding it into the priority fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The `lastSeen` post-dating the 4.6.0 deploy (Aug 27) is slightly odd \u2013 possibly a stale cached bundle on a few clients \u2013 but Sentry has already closed it. No sprint capacity needed.",
+      "reason": "Notices the timing oddity but incorrectly compares to the 4.6.0 deploy instead of the later 4.7.0 deploy and wrongly concludes no action is needed instead of recommending reopening."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every `lastFrame` in this export is a minified name (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`, `a.loadChunk`). This makes root-cause analysis slower and makes the Sentry breadcrumbs the only real signal.",
+      "reason": "Correctly notes the lack of source maps and its effect on traceability."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the export cannot determine whether the 58 chunk-error users overlap with the 44 users in the 401 cluster."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference (based on the breadcrumb data in each issue):** BANKUI-3C8 is the upstream event. Each of the four TypeErrors records 401 XHR responses in the 40 seconds immediately before the crash.",
+      "reason": "Presents the session-expiry theory explicitly as an inference rather than fact, matching the expected framing."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "### Slot 1 \u2013 Fix the 401 handling (Group A)",
+      "reason": "Both sprint items are covered but the order is reversed from the key (401 cluster placed first instead of the higher-impact BANKUI-5D6), and BANKUI-1A7 is incorrectly left as closed rather than recommended for reopening."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-2F0 is explicitly deprioritized as noise, not placed near the top of the priority list."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues are grouped under a single 401 root cause, not treated as separate causes."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No explicit numeric sum of distinct-user counts (e.g., ~188 or ~279) is given anywhere in the analysis."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Sentry has already closed it. No sprint capacity needed.",
+      "reason": "The analysis explicitly states BANKUI-1A7 needs no action despite evidence of a post-4.7.0 regression."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401 cluster is described as a session/auth handling problem, never as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "This is a standard Angular 14+ pattern.",
+      "reason": "The tickets never specify the Angular version in use, so asserting it as an Angular 14+ pattern is an invented technical detail not supported by the export."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 136.8,
+    "input_tokens": 10981,
+    "output_tokens": 13933
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "found",
+        "quote": "Five of the seven open issues share a single root cause: **API calls returning HTTP 401**, which the UI does not handle gracefully, causing unhandled `TypeError` crashes on four different routes and a flood of handled console errors on a fifth.",
+        "reason": "Correctly identifies the five-issue cluster (4A1, 4A2, 4A9, 4B3, 3C8) as sharing the 401 root cause."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "partial",
+        "quote": "44 users hit the root 401; the four downstream TypeErrors each hit 31\u201341 users. Even with overlap, this is the broadest set of affected users.",
+        "reason": "Acknowledges overlap in user counts but treats the counts as cumulative ('broadest set') rather than stating explicitly that the counts cannot be summed and that 44 is the best single reach estimate."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "found",
+        "quote": "The fact that 58 distinct users are affected (more than any other issue) makes this the **widest-reaching single problem** in this export.",
+        "reason": "Correctly identifies BANKUI-5D6 as having the highest user count despite low event count."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "First seen **2026-09-10 21:11 UTC**, six minutes after the **4.7.0** deploy (21:05 UTC).",
+        "reason": "Correctly ties the chunk error timing to the 4.7.0 deploy and the 404 bundle signature."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "The culprit is a Chrome extension's `inject.js`, not any bank-ui code.",
+        "reason": "Correctly identifies BANKUI-2F0 as browser-extension noise, not a defect."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "partial",
+        "quote": "BANKUI-2F0 is exactly that trap (4 812 events, 1 user).",
+        "reason": "Flags 2F0's event count as misleading but does not clearly frame BANKUI-3C8's 5,140 events as similarly misleading, instead folding it into the priority fix."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "partial",
+        "quote": "The `lastSeen` post-dating the 4.6.0 deploy (Aug 27) is slightly odd \u2013 possibly a stale cached bundle on a few clients \u2013 but Sentry has already closed it. No sprint capacity needed.",
+        "reason": "Notices the timing oddity but incorrectly compares to the 4.6.0 deploy instead of the later 4.7.0 deploy and wrongly concludes no action is needed instead of recommending reopening."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Every `lastFrame` in this export is a minified name (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`, `a.loadChunk`). This makes root-cause analysis slower and makes the Sentry breadcrumbs the only real signal.",
+        "reason": "Correctly notes the lack of source maps and its effect on traceability."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never states that the export cannot determine whether the 58 chunk-error users overlap with the 44 users in the 401 cluster."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "found",
+        "quote": "**Inference (based on the breadcrumb data in each issue):** BANKUI-3C8 is the upstream event. Each of the four TypeErrors records 401 XHR responses in the 40 seconds immediately before the crash.",
+        "reason": "Presents the session-expiry theory explicitly as an inference rather than fact, matching the expected framing."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "partial",
+        "quote": "### Slot 1 \u2013 Fix the 401 handling (Group A)",
+        "reason": "Both sprint items are covered but the order is reversed from the key (401 cluster placed first instead of the higher-impact BANKUI-5D6), and BANKUI-1A7 is incorrectly left as closed rather than recommended for reopening."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-2F0 is explicitly deprioritized as noise, not placed near the top of the priority list."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The four undefined-property issues are grouped under a single 401 root cause, not treated as separate causes."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "No explicit numeric sum of distinct-user counts (e.g., ~188 or ~279) is given anywhere in the analysis."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "violated",
+        "quote": "Sentry has already closed it. No sprint capacity needed.",
+        "reason": "The analysis explicitly states BANKUI-1A7 needs no action despite evidence of a post-4.7.0 regression."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401 cluster is described as a session/auth handling problem, never as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "This is a standard Angular 14+ pattern.",
+        "reason": "The tickets never specify the Angular version in use, so asserting it as an Angular 14+ pattern is an invented technical detail not supported by the export."
+      }
+    ]
+  }
+}

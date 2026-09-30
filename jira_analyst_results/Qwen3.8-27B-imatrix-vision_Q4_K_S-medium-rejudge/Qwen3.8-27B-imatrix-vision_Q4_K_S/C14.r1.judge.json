@@ -1,0 +1,297 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+      "reason": "Analysis correctly identifies the 403 to masterfile-api on both branchlocation/get and branchlocation/GetAll, four occurrences, aborting the two secondary-branch commands, matching the reported failed save."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31):",
+      "reason": "Correctly identifies the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler occurring five times."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+      "reason": "Analysis notes the masked values prevent identifying the specific column/value/type."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Between 22:26:37 and 22:29:08, seven consecutive `GetMonitorJobsQuery` calls time out (Error Number \u22122, Class 11). The same query then succeeds at 22:36:47 in 279 ms.",
+      "reason": "Correctly identifies the bounded timeout episode and recovery, but miscounts the occurrences as seven when the log shows eight."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The error message gives no detail on *which* validation rule fired. This may be a legitimate user input error, but the uninformative message means support cannot help the user without code inspection.",
+      "reason": "Analysis identifies the two ApplicationValidationException failures and flags the missing detail as a gap to fix."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the GetStatementLineQuery long-running warnings or the degrading duration trend at all."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start.",
+      "reason": "Correctly flags the credential exposure and recommends rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Container restart at 02:50 (shut down 02:50:11 \u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+      "reason": "Correctly identifies the single restart and its timing."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| `No XML encryptor configured` | Same \u2013 recurring config warning |",
+      "reason": "Startup warnings are correctly listed as routine noise, separate from the causes of failure."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`GetPendingPaymentQuery returned 404: pending payment 88213 not found` | Expected 404 for a missing/deleted record",
+      "reason": "Analysis lists Service Permissions messages, ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 as noise."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Exact dates.** The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+      "reason": "Analysis conveys that the lack of dates prevents establishing sequence/elapsed time and separately raises concern about the completeness of the trimmed log."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Likely causes (inference, not confirmed by this log):\n- Expired or missing Dapr service-account / JWT between payments-api and masterfile-api\n- An RBAC or authz policy change on the masterfile-api side\n- A Dapr sidecar configuration drift on either pod",
+      "reason": "The likely access-control/config root cause is presented explicitly as an inference, matching the expected checkpoint."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Priority order if only one thing can be fixed first:** the masterfile-api 403.",
+      "reason": "Correctly puts the 403 first but the stated priority order omits the degrading GetStatementLineQuery issue and does not explicitly frame the credential fix as parallel work."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings as routine noise, not causes of the failures."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the SQL 245 values are masked and does not invent a specific column, value or type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not assert a global elapsed duration or ordered sequence across disordered sections of the file; the localized timeout episode it describes comes from a contiguous, monotonically increasing block."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never references the NATS 'payments.errors' subject name as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states there was a single restart, not a crash loop."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states 'This is not a database problem' regarding the 403s and treats the SQL issues as separate, not claiming the database was down or the sole cause of everything."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Between 22:26:37 and 22:29:08, seven consecutive `GetMonitorJobsQuery` calls time out",
+      "reason": "The log actually shows eight timeout occurrences in this window (22:26:37, 22:26:39, 22:26:46, 22:26:49, 22:27:27, 22:28:07, 22:28:17, 22:29:08), not seven."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 110.2,
+    "input_tokens": 20833,
+    "output_tokens": 11031
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "verdict": "found",
+        "quote": "Four distinct failures in the 48-hour window all share the same root cause: payments-api calls masterfile-api over Dapr and receives **HTTP 403 (Forbidden)**.",
+        "reason": "Analysis correctly identifies the 403 to masterfile-api on both branchlocation/get and branchlocation/GetAll, four occurrences, aborting the two secondary-branch commands, matching the reported failed save."
+      },
+      {
+        "id": "C14-P2",
+        "verdict": "found",
+        "quote": "Five occurrences (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31):",
+        "reason": "Correctly identifies the SQL 245 conversion error in SearchPaymentRoutingRuleQueryHandler occurring five times."
+      },
+      {
+        "id": "C14-P3",
+        "verdict": "found",
+        "quote": "The offending values are **masked** in the log (asterisks), so the actual bad data or parameter cannot be identified from this file.",
+        "reason": "Analysis notes the masked values prevent identifying the specific column/value/type."
+      },
+      {
+        "id": "C14-P4",
+        "verdict": "partial",
+        "quote": "Between 22:26:37 and 22:29:08, seven consecutive `GetMonitorJobsQuery` calls time out (Error Number \u22122, Class 11). The same query then succeeds at 22:36:47 in 279 ms.",
+        "reason": "Correctly identifies the bounded timeout episode and recovery, but miscounts the occurrences as seven when the log shows eight."
+      },
+      {
+        "id": "C14-P5",
+        "verdict": "found",
+        "quote": "The error message gives no detail on *which* validation rule fired. This may be a legitimate user input error, but the uninformative message means support cannot help the user without code inspection.",
+        "reason": "Analysis identifies the two ApplicationValidationException failures and flags the missing detail as a gap to fix."
+      },
+      {
+        "id": "C14-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the GetStatementLineQuery long-running warnings or the degrading duration trend at all."
+      },
+      {
+        "id": "C14-P7",
+        "verdict": "found",
+        "quote": "The full production connection string, **including the password** `Pr0d-Payments-2026!`, is logged at `DBG` level on every container start.",
+        "reason": "Correctly flags the credential exposure and recommends rotation."
+      },
+      {
+        "id": "C14-P8",
+        "verdict": "found",
+        "quote": "Container restart at 02:50 (shut down 02:50:11 \u2192 started 02:50:14) | Deployment, not a crash (no error before shutdown)",
+        "reason": "Correctly identifies the single restart and its timing."
+      },
+      {
+        "id": "C14-P9",
+        "verdict": "found",
+        "quote": "| `No XML encryptor configured` | Same \u2013 recurring config warning |",
+        "reason": "Startup warnings are correctly listed as routine noise, separate from the causes of failure."
+      },
+      {
+        "id": "C14-P10",
+        "verdict": "found",
+        "quote": "`GetPendingPaymentQuery returned 404: pending payment 88213 not found` | Expected 404 for a missing/deleted record",
+        "reason": "Analysis lists Service Permissions messages, ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 as noise."
+      },
+      {
+        "id": "C14-P11",
+        "verdict": "found",
+        "quote": "**Exact dates.** The log timestamps are time-of-day only (no date). With a 48-hour window and a container restart, it is impossible to assign a calendar date to each line or to tell how recent the 403 errors are.",
+        "reason": "Analysis conveys that the lack of dates prevents establishing sequence/elapsed time and separately raises concern about the completeness of the trimmed log."
+      },
+      {
+        "id": "C14-I1",
+        "verdict": "found",
+        "quote": "Likely causes (inference, not confirmed by this log):\n- Expired or missing Dapr service-account / JWT between payments-api and masterfile-api\n- An RBAC or authz policy change on the masterfile-api side\n- A Dapr sidecar configuration drift on either pod",
+        "reason": "The likely access-control/config root cause is presented explicitly as an inference, matching the expected checkpoint."
+      },
+      {
+        "id": "C14-P12",
+        "verdict": "partial",
+        "quote": "**Priority order if only one thing can be fixed first:** the masterfile-api 403.",
+        "reason": "Correctly puts the 403 first but the stated priority order omits the degrading GetStatementLineQuery issue and does not explicitly frame the credential fix as parallel work."
+      },
+      {
+        "id": "C14-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings as routine noise, not causes of the failures."
+      },
+      {
+        "id": "C14-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis states the SQL 245 values are masked and does not invent a specific column, value or type."
+      },
+      {
+        "id": "C14-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not assert a global elapsed duration or ordered sequence across disordered sections of the file; the localized timeout episode it describes comes from a contiguous, monotonically increasing block."
+      },
+      {
+        "id": "C14-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never references the NATS 'payments.errors' subject name as evidence of errors."
+      },
+      {
+        "id": "C14-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states there was a single restart, not a crash loop."
+      },
+      {
+        "id": "C14-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states 'This is not a database problem' regarding the 403s and treats the SQL issues as separate, not claiming the database was down or the sole cause of everything."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Between 22:26:37 and 22:29:08, seven consecutive `GetMonitorJobsQuery` calls time out",
+        "reason": "The log actually shows eight timeout occurrences in this window (22:26:37, 22:26:39, 22:26:46, 22:26:49, 22:27:27, 22:28:07, 22:28:17, 22:29:08), not seven."
+      }
+    ]
+  }
+}

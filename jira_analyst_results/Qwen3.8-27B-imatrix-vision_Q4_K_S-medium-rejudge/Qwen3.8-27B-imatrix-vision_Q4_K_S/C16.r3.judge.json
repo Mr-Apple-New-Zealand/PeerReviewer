@@ -1,0 +1,241 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "281\u2013319 ms, avg **\u2248 300 ms** | 33 757\u201372 974 ms, avg **\u2248 51 760 ms**",
+      "reason": "The analysis accurately reports the baseline range (281\u2011319 ms) and the after\u2011release range (33,757\u201172,974 ms)."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**~170\u00d7 slower**",
+      "reason": "It gives an overall average multiplier (~170x) but never separates the ~110x start figure from the ~240x worst-case figure the key asks for."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "First call (00:20:43): 35 171 ms",
+      "reason": "It shows the escalation trend with a start (35s) and an end (69-73s) point but cites a different mid-point (36,545 ms at 00:23:56) instead of the ~44s reading at 00:24:05 the key expects."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Ravi Kumar's comment (\"It'll be the account summary query\") is **contradicted by the data**; the regression is in a different query.",
+      "reason": "The analysis gives the matching unchanged ranges and explicitly contradicts Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "ExportStatementCommand is unchanged (~1.9 s).",
+      "reason": "The ExportStatementCommand timings are correctly reported as essentially unchanged, supporting a query-specific regression."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The after-log shows the 4.7.0 pod applied the migration **`20260914_2100_ReindexStatementLines`** at startup.",
+      "reason": "The analysis correctly identifies and quotes the migration that contradicts Tom Becker's claim."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The logs show the migration was *applied* and the regression appeared later, but they do not show what the migration did (dropped an index? created a new one? is it still running in the background? did it complete or fail?).",
+      "reason": "The analysis frames the migration as a coincidence worth investigating rather than a proven cause, matching the inference's required hedging."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This suggests a feedback loop: slow queries occupy pool threads \u2192 new requests queue \u2192 queuing adds further latency \u2192 queries get even slower. The logs do not let us say which direction the causality starts.",
+      "reason": "It notes the coincidence with the timing but hedges on direction rather than presenting starvation as the more likely consequence of the pile-up as the key expects."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis treats the matched five-minute windows as controlling for time-of-day rather than flagging the small sample size and gap between windows as making the regression's magnitude indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Pull the DDL and execution log for `20260914_2100_ReindexStatementLines`. Confirm whether it dropped an existing index before creating a new one, and whether it completed.",
+      "reason": "It recommends checking the migration and execution plan and assigns actions to Tom Becker, but never explicitly notes he currently believes it's not his team's issue nor recommends collecting a longer sample before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and not the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats the migration's role as an open question, explicitly listing what it cannot confirm about the schema change, rather than asserting it as the proven cause."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The magnitude reported (~170x average, with correct min/max) matches what the timings support."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly says the causality direction between starvation and slow queries cannot be determined from the logs, rather than asserting starvation as the root cause."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The speculation about degradation building up is explicitly framed as unknown/possible under the 'cannot establish' section, not asserted as an observed trend."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "(10 samples)",
+      "reason": "The baseline log has 10 GetStatementLineQuery entries but the after log has 14, so labeling both columns of the comparison table with the same '10 samples' count misstates the after-log sample size."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 124.3,
+    "input_tokens": 7893,
+    "output_tokens": 12734
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "verdict": "found",
+        "quote": "281\u2013319 ms, avg **\u2248 300 ms** | 33 757\u201372 974 ms, avg **\u2248 51 760 ms**",
+        "reason": "The analysis accurately reports the baseline range (281\u2011319 ms) and the after\u2011release range (33,757\u201172,974 ms)."
+      },
+      {
+        "id": "C16-P2",
+        "verdict": "partial",
+        "quote": "**~170\u00d7 slower**",
+        "reason": "It gives an overall average multiplier (~170x) but never separates the ~110x start figure from the ~240x worst-case figure the key asks for."
+      },
+      {
+        "id": "C16-P3",
+        "verdict": "partial",
+        "quote": "First call (00:20:43): 35 171 ms",
+        "reason": "It shows the escalation trend with a start (35s) and an end (69-73s) point but cites a different mid-point (36,545 ms at 00:23:56) instead of the ~44s reading at 00:24:05 the key expects."
+      },
+      {
+        "id": "C16-P4",
+        "verdict": "found",
+        "quote": "Ravi Kumar's comment (\"It'll be the account summary query\") is **contradicted by the data**; the regression is in a different query.",
+        "reason": "The analysis gives the matching unchanged ranges and explicitly contradicts Ravi's suggestion."
+      },
+      {
+        "id": "C16-P5",
+        "verdict": "found",
+        "quote": "ExportStatementCommand is unchanged (~1.9 s).",
+        "reason": "The ExportStatementCommand timings are correctly reported as essentially unchanged, supporting a query-specific regression."
+      },
+      {
+        "id": "C16-P6",
+        "verdict": "found",
+        "quote": "The after-log shows the 4.7.0 pod applied the migration **`20260914_2100_ReindexStatementLines`** at startup.",
+        "reason": "The analysis correctly identifies and quotes the migration that contradicts Tom Becker's claim."
+      },
+      {
+        "id": "C16-I1",
+        "verdict": "found",
+        "quote": "The logs show the migration was *applied* and the regression appeared later, but they do not show what the migration did (dropped an index? created a new one? is it still running in the background? did it complete or fail?).",
+        "reason": "The analysis frames the migration as a coincidence worth investigating rather than a proven cause, matching the inference's required hedging."
+      },
+      {
+        "id": "C16-I2",
+        "verdict": "partial",
+        "quote": "This suggests a feedback loop: slow queries occupy pool threads \u2192 new requests queue \u2192 queuing adds further latency \u2192 queries get even slower. The logs do not let us say which direction the causality starts.",
+        "reason": "It notes the coincidence with the timing but hedges on direction rather than presenting starvation as the more likely consequence of the pile-up as the key expects."
+      },
+      {
+        "id": "C16-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis treats the matched five-minute windows as controlling for time-of-day rather than flagging the small sample size and gap between windows as making the regression's magnitude indicative rather than measured."
+      },
+      {
+        "id": "C16-P8",
+        "verdict": "partial",
+        "quote": "Pull the DDL and execution log for `20260914_2100_ReindexStatementLines`. Confirm whether it dropped an existing index before creating a new one, and whether it completed.",
+        "reason": "It recommends checking the migration and execution plan and assigns actions to Tom Becker, but never explicitly notes he currently believes it's not his team's issue nor recommends collecting a longer sample before concluding."
+      },
+      {
+        "id": "C16-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged and not the regression."
+      },
+      {
+        "id": "C16-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis treats the migration's role as an open question, explicitly listing what it cannot confirm about the schema change, rather than asserting it as the proven cause."
+      },
+      {
+        "id": "C16-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The magnitude reported (~170x average, with correct min/max) matches what the timings support."
+      },
+      {
+        "id": "C16-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly says the causality direction between starvation and slow queries cannot be determined from the logs, rather than asserting starvation as the root cause."
+      },
+      {
+        "id": "C16-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The speculation about degradation building up is explicitly framed as unknown/possible under the 'cannot establish' section, not asserted as an observed trend."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "(10 samples)",
+        "reason": "The baseline log has 10 GetStatementLineQuery entries but the after log has 14, so labeling both columns of the comparison table with the same '10 samples' count misstates the after-log sample size."
+      }
+    ]
+  }
+}

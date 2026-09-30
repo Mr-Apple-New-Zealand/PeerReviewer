@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a near-duplicate of BANK-440. MOB-88 is a separate bug with a different root cause.",
+      "reason": "Analysis clearly identifies BANK-425 as duplicate of BANK-440, citing same symptom, version, and cause."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Merge into BANK-440** (keep the older key or the one with the root-cause comment \u2013 in practice, folding BANK-425 into BANK-440 makes sense because BANK-440 is the cleaner bug report and the fix ticket; attach Hana Sato's comment to BANK-440 for context). Mark BANK-425 as **Duplicate** with a link to BANK-440.",
+      "reason": "Recommends keeping one ticket, closing the other as duplicate, with linkage and preservation of the root-cause analysis, matching the flexible expectation in the key."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Not a duplicate.** Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the `TransferRequested` event (fired before the debit) instead of `TransferCompleted`.",
+      "reason": "Correctly identifies MOB-88 as not a duplicate, with correct cause and status/assignee."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The likely root cause (identified in BANK-425's comment) is the `BalanceCache` local-storage cache introduced in 3.1.4 by BANK-419, which has a 15-minute TTL and is never invalidated on a successful transfer.",
+      "reason": "Correctly explains the BalanceCache root cause and the needed fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It is the **root cause** of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+      "reason": "The idea that BANK-419 caused the bug is stated as established fact rather than framed as an inference, despite earlier hedged wording elsewhere."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis notes BANK-440 is unassigned but never states that BANK-425 is also unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis correctly states the API returns the correct value, not asserting a stale/wrong API response."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 23.7,
+    "input_tokens": 5914,
+    "output_tokens": 2930
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "BANK-425 is a near-duplicate of BANK-440. MOB-88 is a separate bug with a different root cause.",
+        "reason": "Analysis clearly identifies BANK-425 as duplicate of BANK-440, citing same symptom, version, and cause."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "Merge into BANK-440** (keep the older key or the one with the root-cause comment \u2013 in practice, folding BANK-425 into BANK-440 makes sense because BANK-440 is the cleaner bug report and the fix ticket; attach Hana Sato's comment to BANK-440 for context). Mark BANK-425 as **Duplicate** with a link to BANK-440.",
+        "reason": "Recommends keeping one ticket, closing the other as duplicate, with linkage and preservation of the root-cause analysis, matching the flexible expectation in the key."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "Not a duplicate.** Different platform (iOS/Android push notification), different component (Notifications / Mobile App), different version (mobile 5.4.0), and a different root cause: the notification service reads the balance from the `TransferRequested` event (fired before the debit) instead of `TransferCompleted`.",
+        "reason": "Correctly identifies MOB-88 as not a duplicate, with correct cause and status/assignee."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "The likely root cause (identified in BANK-425's comment) is the `BalanceCache` local-storage cache introduced in 3.1.4 by BANK-419, which has a 15-minute TTL and is never invalidated on a successful transfer.",
+        "reason": "Correctly explains the BalanceCache root cause and the needed fix."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "It is the **root cause** of the BANK-440/BANK-425 bug: the cache was added for performance (reduce ~40 calls/session) without an invalidation hook for state-changing operations (transfers).",
+        "reason": "The idea that BANK-419 caused the bug is stated as established fact rather than framed as an inference, despite earlier hedged wording elsewhere."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis notes BANK-440 is unassigned but never states that BANK-425 is also unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis correctly states the API returns the correct value, not asserting a stale/wrong API response."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

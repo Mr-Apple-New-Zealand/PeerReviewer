@@ -74,69 +74,103 @@ capability" — 9 of its 54 runs, and why its traps are out of 144 rather than 1
 That is the guard working as intended, not instability. It is the floor marker for
 the board.
 
-⁵ **Self-judged, and measurably inflated.** The judge of record is this same
-model. The identical 54 analyses graded by `claude-sonnet-5` score **79.8**, so
-read this row as ~80. It ranks above Muse-Glimmer here; on Sonnet's scale it does
-not. The run also lost C15.r3 to a `judge_json` bug, hence traps out of 157. The
-measurement is in the section below.
+⁵ **Self-judged.** The judge of record is this same model, so this row is graded
+by the model under test. The same 54 analyses graded by `claude-sonnet-5` score
+**82.7**, so the inflation is about **+2.1** — in line with the +1.7 this judge
+applies to other models' work, not a self-favouring premium. Read the row as ~82.7
+and see the section below. The run lost C15.r3 to a `judge_json` bug, hence traps
+out of 157.
 
-### On a neutral judge, the top two local models tie
+### Reasoning effort, isolated: it buys recall and costs precision
 
-Both leading local models have now been graded by `claude-sonnet-5` on their own
-saved analyses, which is the only way to compare them: the ranked table is scored
-by Qwen3.8-27B, and one of the two *is* Qwen3.8-27B.
+`Qwen3.8-27B-imatrix-vision` has been run twice at `=medium` and `=low` with
+**everything else held constant** — same weights, quant, size, temperature,
+num_ctx, num_predict, cases and judge. This is the cleanest single-variable
+experiment on the board; no Instruct/Thinking pair could isolate reasoning this
+way, because those differ in quant as well.
 
-| Sonnet's judging | Muse-Glimmer-30B | Qwen3.8-27B |
-|---|---|---|
-| **Quality** | **81.1** (79.7–82.2) | **79.8** (79.8–81.9) |
-| Coverage | 84.4% | **89.8%** |
-| Found (share) | 71.2% | **80.9%** |
-| Missed | 9.9% | **4.3%** |
-| Trap rate | **3.1%** | 3.4% |
-| Unsupported per analysis | **0.44** | 1.25 |
-| Prose C01–C13 | **89.0** | 83.8 |
-| Telemetry C14–C18 | 60.6 | **69.6** |
+| | `=medium` | `=low` | diff |
+|---|---|---|---|
+| Quality | **82.7** (81.2–84.8) | 81.8 (80.7–82.7) | −0.9 |
+| Coverage | **90.1%** | 87.1% | −3.0 |
+| Missed | **4.0%** | 7.1% | +3.1 |
+| Unsupported (count) | 56 | **36** | **−20** |
+| Unsupported per analysis | 1.04 | **0.67** | **−0.37** |
+| Prose C01–C13 | 86.9 | 87.1 | +0.2 |
+| Telemetry C14–C18 | **71.8** | 68.2 | −3.6 |
+| Output tokens a case | 2,691 | **2,133** | −21% |
+| Time a case | 69.5s | **55.6s** | −20% |
 
-**81.1 against 79.8 is a tie.** The intervals overlap almost completely
-(79.7–82.2 against 79.8–81.9), and 1.3 points is inside the noise this benchmark
-can resolve. Neither is the better model in general.
+**Lowering reasoning effort did cut over-assertion, substantially** — 36% fewer
+unsupported claims, from 1.04 per analysis to 0.67. That was the prediction and it
+held.
 
-**They are, however, opposite models.** Qwen3.8-27B finds substantially more —
-89.8% coverage against 84.4%, and it misses 4.3% of checkpoints where Muse misses
-9.9%, more than twice as often. Muse asserts far less that is unsupported: 0.44
-claims per analysis against 1.25, a factor of three. The two effects very nearly
-cancel.
+**But it cost recall almost exactly as much as it gained precision.** Coverage fell
+3 points and the miss rate nearly doubled, 4.0% to 7.1%. Net quality −0.9, well
+inside both intervals. **There is no free lunch here: the two settings are the same
+model making a different trade, not a better and a worse configuration.**
 
-**And the split by case type is clean enough to act on:**
+**Prose is untouched — the entire effect is on telemetry.** C01–C13 moves +0.18,
+which is nothing; C14–C18 moves −3.6. Reasoning effort is a lever on machine-output
+analysis and essentially inert on prose ticket reading.
 
-- **Prose tickets go to Muse** — 89.0 against 83.8
-- **Logs and Sentry exports go to Qwen3.8-27B** — 69.6 against 60.6
+#### This refines the four-pair reasoning finding rather than confirming it
 
-So the choice is not "which is better" but "which errors cost you". Muse's failure
-mode is omission, which a reviewer sees. Qwen3.8's is over-assertion, which reads
-as confident and needs checking. For output a person acts on directly, and for
-prose-heavy tickets, Muse remains the safer default — and it is cheaper on both
-axes that matter operationally: **16.7 GB against 20.0, and 51.2s a case against
-69.5s.** For telemetry-heavy work the nine points on C14–C18 are the stronger
-argument.
+The Instruct/Thinking pairs showed reasoning **hurting** telemetry at every size
+(−1.9 to −6.6). Within a single reasoning model, more effort **helps** telemetry
+(+3.6). Those are not contradictory but they are different questions, and this file
+previously blurred them:
 
-#### The judges differ in decisiveness, not just leniency
+- **Architecture** — a Thinking build against an Instruct build — costs telemetry
+- **Effort** — how hard one reasoning model thinks — buys telemetry
 
-Grading the same Muse analyses, Qwen3.8 and Sonnet reached different shapes as
-well as different totals:
+So "reasoning hurts telemetry" should be read as a statement about choosing a
+Thinking variant, not about how much a reasoning model should think.
 
-| Muse's checkpoints | by Qwen3.8 | by Sonnet |
-|---|---|---|
-| Found | 285 | **301** |
-| Partial | **112** | 80 |
-| Missed | 26 | **42** |
+### On a neutral judge, the top three are within 1.6 points
 
-Sonnet awards *more* full marks and *more* outright misses; Qwen3.8 parks 40% more
-checkpoints in the middle. That matters when reading any hedged claim on this
-board: the earlier statement that Muse "misses only 26 of 423, within four of
-Sonnet's 22" is true on Qwen3.8's scale, which is the only same-judge comparison
-available for that pair — but it is flattered by a judge that hedges. On Sonnet's
-scale Muse misses 42.
+All three leading local configurations have now been graded by `claude-sonnet-5`
+on their own saved analyses, which is the only way to compare them: the ranked
+table is scored by Qwen3.8-27B, and two of the three *are* Qwen3.8-27B.
+
+| Sonnet's judging | Qwen3.8 `=medium` | Qwen3.8 `=low` | Muse-Glimmer |
+|---|---|---|---|
+| **Quality** | **82.7** (81.2–84.8) | 81.8 (80.7–82.7) | 81.1 (79.7–82.2) |
+| Coverage | **90.1%** | 87.1% | 84.4% |
+| Missed | **4.0%** | 7.1% | 9.9% |
+| Unsupported per analysis | 1.04 | 0.67 | **0.44** |
+| Traps hit | 6 | 7 | **5** |
+| Prose C01–C13 | 86.9 | 87.1 | **89.0** |
+| Telemetry C14–C18 | **71.8** | 68.2 | 60.6 |
+| Resident | 20.0 GB | 20.0 GB | **16.7 GB** |
+| Time a case | 69.5s | 55.6s | **51.2s** |
+
+**1.6 points across all three, with overlapping intervals — they are one tier.**
+The ordering is not the interesting part; the trade is. Coverage runs
+90.1 → 87.1 → 84.4 and unsupported claims run 1.04 → 0.67 → 0.44, monotonically
+and in opposite directions. **These three configurations sit on a single
+recall-versus-precision curve**, and the choice is where on it you want to be.
+
+- **Most thorough, least careful:** Qwen3.8 `=medium`. Best coverage and by far the
+  best telemetry (71.8 against Muse's 60.6), at more than double Muse's
+  unsupported-claim rate.
+- **The middle, and arguably the best compromise:** Qwen3.8 `=low`. It beats Muse on
+  coverage *and* telemetry while cutting its own over-assertion by a third, for 20%
+  less time than `=medium`.
+- **Most careful, least thorough, and cheapest:** Muse. Best prose, lowest
+  unsupported rate, fewest traps, 3.3 GB less memory.
+
+**A correction to what this file said before.** The earlier head-to-head reported
+Muse ahead of Qwen3.8-27B, 81.1 against 79.8. That 79.8 came from run 54, which
+lost two of three C17 repeats to the Claude judge's fixed token budget. Re-judged
+complete (run 59) the same analyses score **82.7**, so the ordering reverses. The
+2.9-point difference was entirely missing data, not judging.
+
+**And the gap to Sonnet is smaller than stated.** Sonnet's 88.4 was graded by
+Qwen3.8-27B, which runs about +1.7 generous on other models' work, putting it near
+**86.7** on Sonnet's own scale. Against the best local 82.7 that is roughly **4
+points**, not the 7.3 reported earlier. Treat 86.7 as an estimate: the +1.7 offset
+was measured on Muse's analyses, and Sonnet cannot grade itself.
 
 ### A local model gets within 6 points of the ceiling, at 16.7 GB
 
@@ -207,7 +241,8 @@ under test.
 
 | | judged by Sonnet | judged by itself | diff |
 |---|---|---|---|
-| Quality | **79.8** | **84.8** | **+5.0** |
+| Quality (run 54, incomplete — see below) | 79.8 | 84.8 | +5.0 |
+| **Quality (run 59, complete)** | **82.7** | **84.8** | **+2.1** |
 | Coverage | 89.8% | 89.8% | **0.0** |
 | Found (share of checkpoints) | 80.9% | 79.5% | −1.4 |
 | Missed | 4.3% | 3.1% | −1.2 |
@@ -218,28 +253,32 @@ under test.
 
 **The two judges agree exactly on what the analyses found** — coverage is 89.8%
 both times, and the self-judge credits a slightly *smaller* share of checkpoints at
-full marks. The entire +5.0 comes from penalties: 42 unsupported claims against 65,
-and 3 traps against 5.
+full marks. What difference there is comes from penalties: on the run-54 judging
+the self-judge flagged 42 unsupported claims against Sonnet's 65, and 3 traps
+against 5.
 
-**How much of that +5.0 is self-favouring rather than general leniency is now
-measured.** Qwen3.8 has also re-graded Muse-Glimmer's analyses, so the same judge
-can be compared against Sonnet on two different models:
+**RETRACTED: the +5.0 was mostly missing data, not bias.** That figure compared
+run 56 against run 54, and run 54 had lost two of three C17 repeats to the Claude
+judge's fixed token budget. Re-judged complete (run 59), the same analyses score
+**82.7**, not 79.8. With complete data on both sides of both comparisons:
 
-| Analyses graded | Sonnet | Qwen3.8 | inflation |
+| Analyses graded | by Sonnet | by Qwen3.8 | inflation |
 |---|---|---|---|
 | Muse-Glimmer (another model) | 81.1 | 82.8 | **+1.7** |
-| Qwen3.8-27B (itself) | 79.8 | 84.8 | **+5.0** |
+| Qwen3.8-27B (itself) | 82.7 | 84.8 | **+2.1** |
 
-So Qwen3.8 runs about **+1.7 generous on anyone**, consistent with the +1.0/−1.3
-seen during the judge search, and adds roughly **+3.3 on top when grading its own
-output**. The self-judge premium is the larger part, and it is not a rounding
-error.
+**The self-judge premium is +0.4 — indistinguishable from noise.** The judge of
+record is uniformly about **+2 generous** against Sonnet, on its own output and on
+other models' alike, which is consistent with the +1.0/−1.3 measured during the
+judge search. It does not meaningfully favour itself.
 
-So the bias is not "it likes its own writing". It is narrower and worse: **the
-self-judge forgives exactly the failure this model is worst at.** Under Sonnet,
-1.25 unsupported claims per analysis is the loosest figure in the top tier by five
-times. Under its own judging that becomes 0.79 and the row climbs above
-Muse-Glimmer.
+That is a better result for the board than the earlier claim suggested: the
+sixteen Qwen3.8-judged rows carry a roughly constant offset rather than a
+model-dependent one, so their *relative* ordering is sound and only the absolute
+level is a couple of points high.
+
+The rest of the original observation still holds and is worth keeping, because it
+is about where the two judges disagree rather than by how much:
 
 **It is not blanket generosity either.** It marked itself *down* on C11 (−4.8),
 C13 (−4.8), C01 (−2.4) and C15 (−0.9) — cases where penalties are not the
@@ -629,8 +668,9 @@ Qwen2.5-VL builds, Falcon-H1-Tiny as a floor, and both non-Qwen candidates. What
 remains is verification, not coverage.
 
 **1. ~~Re-judge Muse-Glimmer with Sonnet.~~ Done** (run 58, zero errors). It
-returned 81.1 against Qwen3.8-27B's 79.8 — a tie on a neutral judge. See the
-head-to-head section. Both Sonnet-judged runs stay committed and sit under "Not
+returned 81.1. Against Qwen3.8-27B's complete 82.7 (run 59) the three leading
+configurations sit within 1.6 points of each other. See the head-to-head
+section. Both Sonnet-judged runs stay committed and sit under "Not
 ranked", which is correct: the ranked table is on Qwen3.8's scale. It confirms or
 corrects the 82.8 headline, *and* it is the only way to compare Muse with the
 Qwen3.8-27B run, which is already Sonnet-judged - the two strongest local models
@@ -648,12 +688,9 @@ affect any recommendation. Worth doing only to close the gap in the table.
 `judge_json` fence bug is fixed. Cheap, and it makes run 56 a complete
 54-analysis set rather than 53.
 
-**3. A second Qwen3.8-27B run at `=low`.** The most informative single run still
-available. It would hold weights, quant, size, temperature and judge all constant
-and vary only reasoning effort - the clean test no Instruct/Thinking pair could
-give. The board's evidence predicts `low` should win: reasoning cost the
-size-matched 32B pair 6.6 points on telemetry and gained nothing on prose, and
-this model's specific weakness is over-assertion, which less reasoning may reduce.
+**3. ~~A second Qwen3.8-27B run at `=low`.~~ Done** (run 60). It cut unsupported
+claims by 36% and cost 3 points of coverage — a lateral move, not an improvement.
+See the reasoning-effort section.
 
 **3a. Qwen3.6-27B as an analyst.** Also a vision-language model, also now with a
 projector step in its Modelfile. Lower value than the 3.8 was: its card documents

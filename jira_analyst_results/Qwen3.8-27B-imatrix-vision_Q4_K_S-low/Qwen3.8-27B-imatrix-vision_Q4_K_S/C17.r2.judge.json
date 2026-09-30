@@ -1,0 +1,319 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A **~16-minute gap** with no activity. The tab was left open.",
+      "reason": "The analysis correctly identifies a quiet period before the 401s but drastically understates its length (16 minutes vs. the actual ~4h10m/14,979s gap) and its clock times are off by roughly four hours from the values derivable from the epoch timestamps."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Primary defect: No 401 handling in the data-fetching pipeline.**",
+      "reason": "The analysis correctly frames the TypeError as a downstream symptom of an unhandled 401 response rather than the root cause."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the code attempted to read properties (`.rows`, `.sort`, `.length`, `.returnProperties`) from the empty response and crashed.",
+      "reason": "The analysis lists all four sibling TypeErrors from the breadcrumbs and treats them as manifestations of the same underlying cause rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "A token refresh at ~07:32:46 (`POST /api/security/token/refresh`) succeeds.",
+      "reason": "The analysis correctly notes only one successful refresh occurred and none after the gap, but gives an incorrect clock time for it (actual computed time is ~03:12:46, well before the multi-hour gap, not within the short active window it describes)."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The Sentry environment is tagged **Production** but the hostname is explicitly **bank-uat**.",
+      "reason": "The analysis identifies the environment/host mismatch and connects it to Tom Becker's question about which environment this is really from."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The transaction value /settlements/run/8214 is only listed in a table alongside the URL without ever drawing the conclusion that the transaction name is stale and misdirects the culprit/grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Sentry's source-map scraping **failed** for all three bundles due to a DNS resolution error (`bank-uat.example.com.google.internal.` \u2014 no A record). Without symbolication, you cannot locate the offending code.",
+      "reason": "The analysis correctly explains that missing source maps and unsymbolicated minified frames prevent locating the failing component."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build/source maps."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "We cannot tell from this event whether the interceptor skipped refresh, the refresh token was expired server-side, or a race condition dropped it.",
+      "reason": "The analysis acknowledges the event cannot distinguish among expiry, revocation, or server-side drop as the reason for the 401s, also noting the zero-byte response bodies."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "the user's session token expired during inactivity.",
+      "reason": "This is stated as an established fact rather than being framed as a likely or possible inference."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses the 780KB successful response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-issues."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the in_app:true flags on polyfill frames or the misleading in_app_frame_mix metadata."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Add a 401 interceptor guard (assign to a developer once environment is confirmed).",
+      "reason": "Most recommended actions (401 handling, environment fix, source maps, defensive guard as secondary) are covered, but correcting the stale transaction name and setting release/dist are not mentioned."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The null-check guard is explicitly framed as a defensive backstop, not the root cause or primary fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly questions the production framing and flags the UAT hostname discrepancy rather than asserting it is production."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently identifies /payments/batch/actions as the actual screen and never asserts the error occurred on /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "References to chunk 6728 or 'wherever the batch actions component fetches data' are hedged and not presented as a confirmed source-code location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the large response, network, browser, or OS."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are attributed to session/token expiry handling, not an attack, permissions issue, or outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the gap period had no activity and does not claim failures ran continuously through it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The user is actively working on the batch actions screen, performing settlement allocation actions. All API calls return 200. A token refresh at ~07:32:46",
+      "reason": "The clock times attributed to the initial active session and the token refresh do not match the times derivable from the event's epoch timestamps (which place this activity around 03:12-03:13, not 07:24-07:33)."
+    },
+    {
+      "quote": "A **~16-minute gap** with no activity. The tab was left open.",
+      "reason": "The actual gap between the last normal activity and the resumption of activity is about 4 hours 10 minutes (~14,979 seconds) based on the breadcrumb timestamps, not 16 minutes."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 186.8,
+    "input_tokens": 22998,
+    "output_tokens": 18525
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "verdict": "partial",
+        "quote": "A **~16-minute gap** with no activity. The tab was left open.",
+        "reason": "The analysis correctly identifies a quiet period before the 401s but drastically understates its length (16 minutes vs. the actual ~4h10m/14,979s gap) and its clock times are off by roughly four hours from the values derivable from the epoch timestamps."
+      },
+      {
+        "id": "C17-P2",
+        "verdict": "found",
+        "quote": "**Primary defect: No 401 handling in the data-fetching pipeline.**",
+        "reason": "The analysis correctly frames the TypeError as a downstream symptom of an unhandled 401 response rather than the root cause."
+      },
+      {
+        "id": "C17-P3",
+        "verdict": "found",
+        "quote": "the code attempted to read properties (`.rows`, `.sort`, `.length`, `.returnProperties`) from the empty response and crashed.",
+        "reason": "The analysis lists all four sibling TypeErrors from the breadcrumbs and treats them as manifestations of the same underlying cause rather than separate bugs."
+      },
+      {
+        "id": "C17-P4",
+        "verdict": "partial",
+        "quote": "A token refresh at ~07:32:46 (`POST /api/security/token/refresh`) succeeds.",
+        "reason": "The analysis correctly notes only one successful refresh occurred and none after the gap, but gives an incorrect clock time for it (actual computed time is ~03:12:46, well before the multi-hour gap, not within the short active window it describes)."
+      },
+      {
+        "id": "C17-P5",
+        "verdict": "found",
+        "quote": "The Sentry environment is tagged **Production** but the hostname is explicitly **bank-uat**.",
+        "reason": "The analysis identifies the environment/host mismatch and connects it to Tom Becker's question about which environment this is really from."
+      },
+      {
+        "id": "C17-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The transaction value /settlements/run/8214 is only listed in a table alongside the URL without ever drawing the conclusion that the transaction name is stale and misdirects the culprit/grouping."
+      },
+      {
+        "id": "C17-P7",
+        "verdict": "found",
+        "quote": "Sentry's source-map scraping **failed** for all three bundles due to a DNS resolution error (`bank-uat.example.com.google.internal.` \u2014 no A record). Without symbolication, you cannot locate the offending code.",
+        "reason": "The analysis correctly explains that missing source maps and unsymbolicated minified frames prevent locating the failing component."
+      },
+      {
+        "id": "C17-P8",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions that release and dist are null or that this prevents tying the event to a build/source maps."
+      },
+      {
+        "id": "C17-P9",
+        "verdict": "found",
+        "quote": "We cannot tell from this event whether the interceptor skipped refresh, the refresh token was expired server-side, or a race condition dropped it.",
+        "reason": "The analysis acknowledges the event cannot distinguish among expiry, revocation, or server-side drop as the reason for the 401s, also noting the zero-byte response bodies."
+      },
+      {
+        "id": "C17-I1",
+        "verdict": "partial",
+        "quote": "the user's session token expired during inactivity.",
+        "reason": "This is stated as an established fact rather than being framed as a likely or possible inference."
+      },
+      {
+        "id": "C17-P10",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never addresses the 780KB successful response, the Referer being a new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-issues."
+      },
+      {
+        "id": "C17-P11",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never discusses the in_app:true flags on polyfill frames or the misleading in_app_frame_mix metadata."
+      },
+      {
+        "id": "C17-P12",
+        "verdict": "partial",
+        "quote": "Add a 401 interceptor guard (assign to a developer once environment is confirmed).",
+        "reason": "Most recommended actions (401 handling, environment fix, source maps, defensive guard as secondary) are covered, but correcting the stale transaction name and setting release/dist are not mentioned."
+      },
+      {
+        "id": "C17-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The null-check guard is explicitly framed as a defensive backstop, not the root cause or primary fix."
+      },
+      {
+        "id": "C17-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly questions the production framing and flags the UAT hostname discrepancy rather than asserting it is production."
+      },
+      {
+        "id": "C17-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis consistently identifies /payments/batch/actions as the actual screen and never asserts the error occurred on /settlements/run/8214."
+      },
+      {
+        "id": "C17-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "References to chunk 6728 or 'wherever the batch actions component fetches data' are hedged and not presented as a confirmed source-code location."
+      },
+      {
+        "id": "C17-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not blame the large response, network, browser, or OS."
+      },
+      {
+        "id": "C17-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401s are attributed to session/token expiry handling, not an attack, permissions issue, or outage."
+      },
+      {
+        "id": "C17-T7",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis states the gap period had no activity and does not claim failures ran continuously through it."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The user is actively working on the batch actions screen, performing settlement allocation actions. All API calls return 200. A token refresh at ~07:32:46",
+        "reason": "The clock times attributed to the initial active session and the token refresh do not match the times derivable from the event's epoch timestamps (which place this activity around 03:12-03:13, not 07:24-07:33)."
+      },
+      {
+        "quote": "A **~16-minute gap** with no activity. The tab was left open.",
+        "reason": "The actual gap between the last normal activity and the resumption of activity is about 4 hours 10 minutes (~14,979 seconds) based on the breadcrumb timestamps, not 16 minutes."
+      }
+    ]
+  }
+}

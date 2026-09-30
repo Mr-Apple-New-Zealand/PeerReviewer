@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **09:30** | Config deploy OPS-81 executed; JWT signing key rotated for Auth service |\n| **09:31** | First errors appear on dashboards (Transactions API returning 401s) |",
+      "reason": "Correctly states deploy at 09:30 and impact starting at 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **09:47** | Monitoring alert fires: TransferErrorRate > 20% |\n| **09:52** | Incident declared (BANK-450); error rate at 64% |",
+      "reason": "Correctly states alert time and declaration time."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **10:31** | Rollback of OPS-81 initiated |\n| **10:42** | Transfer error rate back under 1% \u2014 service restored |\n| **10:44** | Rollback confirmed complete |\n| **10:50** | Ticket resolved; post-incident review booked for 2026-09-16 |",
+      "reason": "All key recovery timestamps are correctly captured."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **Time to Detect** | First error (09:31) \u2192 Alert fired (09:47) | **16 minutes** |",
+      "reason": "Correctly calculates 16 minutes to detect."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "| **Time to Recover** | Incident declared (09:52) \u2192 Service restored (10:42) | **50 minutes** |\n\n> If you prefer \"onset-to-recovery\" as your TTR, it is **71 minutes** (09:31 \u2192 10:42).",
+      "reason": "Hedges between an unsupported 50-minute figure and the acceptable 71-minute figure, so it is graded partial for covering multiple possible answers."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy **OPS-81** at 09:30 rotated the JWT signing key used by the Auth service. Auth immediately began issuing tokens signed with the **new** key, but the Transactions API continued to validate tokens against the **old** key.",
+      "reason": "Root cause is stated correctly with matching details including the 401 error code."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:50 | Ticket resolved; post-incident review booked for 2026-09-16 |",
+      "reason": "Correctly states the post-incident review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database hypothesis is explicitly labeled as rejected, not asserted as a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Both times given (50 and 71 minutes) are derived from real timestamps in the ticket, not fabricated figures."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 20.4,
+    "input_tokens": 4104,
+    "output_tokens": 2253
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "| **09:30** | Config deploy OPS-81 executed; JWT signing key rotated for Auth service |\n| **09:31** | First errors appear on dashboards (Transactions API returning 401s) |",
+        "reason": "Correctly states deploy at 09:30 and impact starting at 09:31."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "| **09:47** | Monitoring alert fires: TransferErrorRate > 20% |\n| **09:52** | Incident declared (BANK-450); error rate at 64% |",
+        "reason": "Correctly states alert time and declaration time."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "| **10:31** | Rollback of OPS-81 initiated |\n| **10:42** | Transfer error rate back under 1% \u2014 service restored |\n| **10:44** | Rollback confirmed complete |\n| **10:50** | Ticket resolved; post-incident review booked for 2026-09-16 |",
+        "reason": "All key recovery timestamps are correctly captured."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "| **Time to Detect** | First error (09:31) \u2192 Alert fired (09:47) | **16 minutes** |",
+        "reason": "Correctly calculates 16 minutes to detect."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "partial",
+        "quote": "| **Time to Recover** | Incident declared (09:52) \u2192 Service restored (10:42) | **50 minutes** |\n\n> If you prefer \"onset-to-recovery\" as your TTR, it is **71 minutes** (09:31 \u2192 10:42).",
+        "reason": "Hedges between an unsupported 50-minute figure and the acceptable 71-minute figure, so it is graded partial for covering multiple possible answers."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The config deploy **OPS-81** at 09:30 rotated the JWT signing key used by the Auth service. Auth immediately began issuing tokens signed with the **new** key, but the Transactions API continued to validate tokens against the **old** key.",
+        "reason": "Root cause is stated correctly with matching details including the 401 error code."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "10:50 | Ticket resolved; post-incident review booked for 2026-09-16 |",
+        "reason": "Correctly states the post-incident review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The database hypothesis is explicitly labeled as rejected, not asserted as a cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Both times given (50 and 71 minutes) are derived from real timestamps in the ticket, not fabricated figures."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All four TypeErrors have breadcrumbs showing one or more 401 responses from a bank-ui API endpoint in the seconds before the crash.",
+      "reason": "The analysis groups BANKUI-4A1, 4A2, 4A9, 4B3 and 3C8 together as one 401-driven cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Highest user impact (31\u201344 users per issue, overlapping)",
+      "reason": "It acknowledges the user counts overlap rather than summing them, but never states that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "63 events, **58 users**.",
+      "reason": "It correctly states the 58-user, 63-event figures for BANKUI-5D6 but never explicitly states it has more users than any other issue, and elsewhere claims Group A has the 'highest user impact' which is inconsistent with that fact."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First seen `2026-09-10T21:11:36Z` \u2014 **6 minutes after the 4.7.0 deploy** (`2026-09-10T21:05:00Z`)",
+      "reason": "Correctly ties BANKUI-5D6's first-seen time to shortly after the 4.7.0 deploy and links it to the 404 on the old bundle."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Flag **BANKUI-2F0** as not our defect.",
+      "reason": "Clearly identifies BANKUI-2F0 as a browser-extension issue, not an app defect, citing the single-user, no-breadcrumb, extension-culprit evidence."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The high event count is an artefact of one user having the extension enabled.",
+      "reason": "The analysis separately explains that BANKUI-2F0's and BANKUI-3C8's large event counts do not reflect real severity, matching the point that event count is misleading."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "Instead of recognizing the regression and recommending reopening, the analysis calls it a 'minor inconsistency' and states no action is needed."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every lastFrame is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). This makes it impossible to confirm the exact code location of the TypeErrors without guessing.",
+      "reason": "Correctly explains that missing source maps make the lastFrame values untraceable to real components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that the export doesn't establish whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference (high confidence): BANKUI-3C8 is the upstream event; the four TypeErrors are downstream symptoms of the same root cause \u2014 the app does not guard against a 401 response body before passing it to render logic.",
+      "reason": "Presents the session/401 mishandling theory explicitly as an inference rather than established fact, matching the expected framing."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "2 | Investigate and fix BANKUI-5D6 | 58 users affected. Likely an operational/deployment issue (asset purge timing or CDN cache).",
+      "reason": "Both the 401 cluster and BANKUI-5D6 are picked as the two sprint items, but the order is reversed from the expected priority and BANKUI-1A7 is left unaddressed (marked as needing no action) rather than reopened."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-2F0 is explicitly deprioritized as not a defect, not placed near the top of the fix list."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues are grouped under one shared cause, not treated as separate defects."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "User counts are described as a range or individually, never summed across issues."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Low priority; no action needed this sprint.",
+      "reason": "The analysis explicitly states BANKUI-1A7 needs no action despite its lastSeen occurring after the fix release, which is the trapped claim."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are described as an auth/session/token issue, not as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (Group C and 'Already resolved') from the 401 cluster (Group A)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Highest user impact (31\u201344 users per issue, overlapping)",
+      "reason": "This claim that Group A has the highest user impact contradicts the analysis's own later statement that BANKUI-5D6 has 58 users, which is higher than any individual Group A issue."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 98.5,
+    "input_tokens": 8838,
+    "output_tokens": 11408
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "found",
+        "quote": "All four TypeErrors have breadcrumbs showing one or more 401 responses from a bank-ui API endpoint in the seconds before the crash.",
+        "reason": "The analysis groups BANKUI-4A1, 4A2, 4A9, 4B3 and 3C8 together as one 401-driven cause."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "partial",
+        "quote": "Highest user impact (31\u201344 users per issue, overlapping)",
+        "reason": "It acknowledges the user counts overlap rather than summing them, but never states that 44 (BANKUI-3C8) is the best single estimate of reach for the cluster."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "partial",
+        "quote": "63 events, **58 users**.",
+        "reason": "It correctly states the 58-user, 63-event figures for BANKUI-5D6 but never explicitly states it has more users than any other issue, and elsewhere claims Group A has the 'highest user impact' which is inconsistent with that fact."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "First seen `2026-09-10T21:11:36Z` \u2014 **6 minutes after the 4.7.0 deploy** (`2026-09-10T21:05:00Z`)",
+        "reason": "Correctly ties BANKUI-5D6's first-seen time to shortly after the 4.7.0 deploy and links it to the 404 on the old bundle."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "Flag **BANKUI-2F0** as not our defect.",
+        "reason": "Clearly identifies BANKUI-2F0 as a browser-extension issue, not an app defect, citing the single-user, no-breadcrumb, extension-culprit evidence."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "found",
+        "quote": "The high event count is an artefact of one user having the extension enabled.",
+        "reason": "The analysis separately explains that BANKUI-2F0's and BANKUI-3C8's large event counts do not reflect real severity, matching the point that event count is misleading."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "Instead of recognizing the regression and recommending reopening, the analysis calls it a 'minor inconsistency' and states no action is needed."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Every lastFrame is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`). This makes it impossible to confirm the exact code location of the TypeErrors without guessing.",
+        "reason": "Correctly explains that missing source maps make the lastFrame values untraceable to real components."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that the export doesn't establish whether the 58 users in BANKUI-5D6 overlap with the 44 in the 401 cluster."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "found",
+        "quote": "Inference (high confidence): BANKUI-3C8 is the upstream event; the four TypeErrors are downstream symptoms of the same root cause \u2014 the app does not guard against a 401 response body before passing it to render logic.",
+        "reason": "Presents the session/401 mishandling theory explicitly as an inference rather than established fact, matching the expected framing."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "partial",
+        "quote": "2 | Investigate and fix BANKUI-5D6 | 58 users affected. Likely an operational/deployment issue (asset purge timing or CDN cache).",
+        "reason": "Both the 401 cluster and BANKUI-5D6 are picked as the two sprint items, but the order is reversed from the expected priority and BANKUI-1A7 is left unaddressed (marked as needing no action) rather than reopened."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-2F0 is explicitly deprioritized as not a defect, not placed near the top of the fix list."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The four undefined-property issues are grouped under one shared cause, not treated as separate defects."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "User counts are described as a range or individually, never summed across issues."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "violated",
+        "quote": "Low priority; no action needed this sprint.",
+        "reason": "The analysis explicitly states BANKUI-1A7 needs no action despite its lastSeen occurring after the fix release, which is the trapped claim."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401s are described as an auth/session/token issue, not as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (Group C and 'Already resolved') from the 401 cluster (Group A)."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Highest user impact (31\u201344 users per issue, overlapping)",
+        "reason": "This claim that Group A has the highest user impact contradicts the analysis's own later statement that BANKUI-5D6 has 58 users, which is higher than any individual Group A issue."
+      }
+    ]
+  }
+}

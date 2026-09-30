@@ -1,0 +1,227 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "an **SMTP authentication failure (535)** \u2014 the server rejects the service's credentials because \"basic authentication is disabled.\"",
+      "reason": "The analysis clearly identifies the SMTP 535/5.7.139 authentication failure originating from EmailSender/OutboxDispatcher as the cause."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log does confirm those two warnings are present, but they do not explain the observed failure.",
+      "reason": "The analysis correctly explains the DataProtection/XML encryptor warnings are routine startup noise unrelated to SMTP delivery."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox item 991204 stays at the head after 5 failed attempts with no backoff and no dead-letter. This means **one permanently failing item blocks all other notifications indefinitely**.",
+      "reason": "The analysis identifies the fixed 5s retry, no backoff/dead-letter, and head-of-line blocking exactly as expected."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The outbox queue is growing (1,412 \u2192 2,089 messages in ~37 minutes) with no successful deliveries and no dead-letter path.",
+      "reason": "The analysis correctly reports the growing backlog with matching numbers."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The previous container's log (pre-18:02 restart) was **not captured**. We have no visibility into what happened between ~14:00 (when the issue started) and 18:02.",
+      "reason": "The analysis correctly notes the log starts at pod restart and cannot confirm the 14:00 window."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod was restarted at 18:02 (Priya's comment confirms this) and it did not help, which is expected \u2014 the problem is a credential/auth-method mismatch, not a transient pod fault.",
+      "reason": "The analysis correctly notes the restart already occurred and failures continued afterward."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The most likely scenario is that the M365 tenant (or the service account `svc-notify@example.com`) was migrated or had basic auth disabled as part of a security policy change, and the notifications service was not updated to use OAuth 2.0 (Modern Auth) before that change took effect.",
+      "reason": "The analysis presents this as a labelled inference/likely scenario rather than established fact, matching the expected inference."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Identify why basic auth was disabled on `smtp.example.com` (likely an M365 tenant policy change). Check M365 admin audit logs or contact the identity/IT security team.",
+      "reason": "Covers confirming the auth change and adding backoff/dead-letter, but does not recommend retrieving the pre-18:02 container log, only future logging policy."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`/healthz` reports \"Healthy\" while email delivery is completely broken. Monitoring is blind to this failure mode.",
+      "reason": "Addresses the health check being unrelated but never mentions the NATS reconnection at 18:07:12-13, so the compound point is incomplete."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation as unrelated to the SMTP failure."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log does not cover the 14:00 window and does not claim the log shows events at that time."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly recommends against restarting the pod again."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states NATS reconnection and health check are unrelated to the email failure."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only cites the SMTP 535/5.7.139 error actually present in the log and invents no other error code or reason."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "Repeated 535 failures for `payment-receipt` \u2192 customer 41082 (5 attempts)",
+      "reason": "The log shows 8 distinct failed send attempts for customer 41082 between 18:02:48 and 18:03:23 (five before the 'reached 5 delivery attempts' warning and three more after), not 5."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 83.6,
+    "input_tokens": 8695,
+    "output_tokens": 9130
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "an **SMTP authentication failure (535)** \u2014 the server rejects the service's credentials because \"basic authentication is disabled.\"",
+        "reason": "The analysis clearly identifies the SMTP 535/5.7.139 authentication failure originating from EmailSender/OutboxDispatcher as the cause."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "The log does confirm those two warnings are present, but they do not explain the observed failure.",
+        "reason": "The analysis correctly explains the DataProtection/XML encryptor warnings are routine startup noise unrelated to SMTP delivery."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Outbox item 991204 stays at the head after 5 failed attempts with no backoff and no dead-letter. This means **one permanently failing item blocks all other notifications indefinitely**.",
+        "reason": "The analysis identifies the fixed 5s retry, no backoff/dead-letter, and head-of-line blocking exactly as expected."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "The outbox queue is growing (1,412 \u2192 2,089 messages in ~37 minutes) with no successful deliveries and no dead-letter path.",
+        "reason": "The analysis correctly reports the growing backlog with matching numbers."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "The previous container's log (pre-18:02 restart) was **not captured**. We have no visibility into what happened between ~14:00 (when the issue started) and 18:02.",
+        "reason": "The analysis correctly notes the log starts at pod restart and cannot confirm the 14:00 window."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "The pod was restarted at 18:02 (Priya's comment confirms this) and it did not help, which is expected \u2014 the problem is a credential/auth-method mismatch, not a transient pod fault.",
+        "reason": "The analysis correctly notes the restart already occurred and failures continued afterward."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "The most likely scenario is that the M365 tenant (or the service account `svc-notify@example.com`) was migrated or had basic auth disabled as part of a security policy change, and the notifications service was not updated to use OAuth 2.0 (Modern Auth) before that change took effect.",
+        "reason": "The analysis presents this as a labelled inference/likely scenario rather than established fact, matching the expected inference."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "partial",
+        "quote": "Identify why basic auth was disabled on `smtp.example.com` (likely an M365 tenant policy change). Check M365 admin audit logs or contact the identity/IT security team.",
+        "reason": "Covers confirming the auth change and adding backoff/dead-letter, but does not recommend retrieving the pre-18:02 container log, only future logging policy."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "partial",
+        "quote": "`/healthz` reports \"Healthy\" while email delivery is completely broken. Monitoring is blind to this failure mode.",
+        "reason": "Addresses the health check being unrelated but never mentions the NATS reconnection at 18:07:12-13, so the compound point is incomplete."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation as unrelated to the SMTP failure."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the log does not cover the 14:00 window and does not claim the log shows events at that time."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly recommends against restarting the pod again."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states NATS reconnection and health check are unrelated to the email failure."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only cites the SMTP 535/5.7.139 error actually present in the log and invents no other error code or reason."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "Repeated 535 failures for `payment-receipt` \u2192 customer 41082 (5 attempts)",
+        "reason": "The log shows 8 distinct failed send attempts for customer 41082 between 18:02:48 and 18:03:23 (five before the 'reached 5 delivery attempts' warning and three more after), not 5."
+      }
+    ]
+  }
+}

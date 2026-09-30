@@ -1,0 +1,305 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is exactly the operation the two users reported \u2014 saving a secondary branch on a routing rule.",
+      "reason": "The analysis identifies the 403 Forbidden errors on both Dapr calls, ties them to the two affected commands, and correctly links them to the user-reported failure."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Occurrences:** 5 error events (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31)",
+      "reason": "Correctly identifies the SQL 245 conversion error, its handler, and the exact five occurrences."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The masking prevents identification of which column or value.",
+      "reason": "Explicitly notes the masked value/type prevents root-cause identification from this file alone."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "A burst of 7+ timeouts between 22:26:37 and 22:29:08, then the same query succeeds normally from 22:36:47 onward.",
+      "reason": "Correctly frames the GetMonitorJobsQuery timeouts as a bounded episode that resolved, matching the expected window."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "it does not say *which* validation failed, making it impossible for the user (or support) to act on it",
+      "reason": "Notes the two ApplicationValidationException failures and the logging gap of missing validation detail."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The subsequent slow GetStatementLineQuery warnings (33\u201373 s, starting 00:20) suggest the database was under sustained pressure around the same period, though the timing is uncertain because the log has no dates.",
+      "reason": "Mentions the rising duration range but omits the count (fourteen occurrences) and the fact it is still rising at the end of the log."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is in a production log that has already been attached to a Jira ticket and shared within the team. **The credential should be considered compromised and rotated.**",
+      "reason": "Correctly flags the plaintext password at DBG level as a credential exposure requiring rotation."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Application shutdown/restart at 02:50 | Deployment or horizontal scaling event",
+      "reason": "Notes a single restart around 02:50 but does not tie it to the specific shutdown/startup timestamps or explain why the startup warnings appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`DataProtection-Keys` directory warning | Standard in ephemeral containers; keys are expected to be ephemeral",
+      "reason": "Correctly labels three of the four expected startup warnings as routine noise but omits the 'Overriding address(es)' warning."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`Service Permissions found and sent on the event bus` (repeated) | Normal periodic heartbeat",
+      "reason": "The noise table also lists the ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 for pending payment 88213, matching the expected items."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The log covers 48 h but has no dates (time-of-day only).",
+      "reason": "Notes the lack of dates repeatedly but never states that timestamps are out of order or that trimmed stack traces make the record incomplete."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Root cause (inference): An authentication or authorisation failure between the two services. The Dapr sidecar is presenting an identity that `masterfile-api` does not accept.",
+      "reason": "Presents the access-control/Dapr-config theory as a labelled inference consistent with the expected reasoning."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**This is the item to fix first.**",
+      "reason": "Correctly ranks the 403s first and the SQL 245 second, but never explicitly ranks the degrading GetStatementLineQuery or frames the credential fix as a parallel track in a single priority statement."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly places the DataProtection/XML encryptor warnings in the noise table, not as a cause of the 403s or SQL errors."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states the masked values prevent identifying a specific column, value, or type."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Where durations are computed, the analysis is between closely clustered consecutive log lines and elsewhere explicitly caveats that timing across the file is uncertain due to missing dates."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The NATS subject list is quoted from the log context but never used as evidence that errors occurred or were published."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis describes a single restart event, not repeated crash-looping."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats the database issues (SQL 245, timeouts) as separate, non-total, and non-'down' events, and does not claim the database was the sole cause of everything."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "User requested a record that no longer exists (already processed or deleted). Expected.",
+      "reason": "The log only shows a 404 for pending payment 88213; there is no basis in the ticket data for concluding it was already processed or deleted."
+    },
+    {
+      "quote": "Deployment or horizontal scaling event",
+      "reason": "The log shows only a shutdown followed by a restart; there is no evidence in the ticket data that this was caused by a deployment or horizontal scaling."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 155.6,
+    "input_tokens": 20348,
+    "output_tokens": 16498
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "verdict": "found",
+        "quote": "This is exactly the operation the two users reported \u2014 saving a secondary branch on a routing rule.",
+        "reason": "The analysis identifies the 403 Forbidden errors on both Dapr calls, ties them to the two affected commands, and correctly links them to the user-reported failure."
+      },
+      {
+        "id": "C14-P2",
+        "verdict": "found",
+        "quote": "**Occurrences:** 5 error events (03:37:32, 03:38:24, 03:38:50, 03:40:12, 20:26:31)",
+        "reason": "Correctly identifies the SQL 245 conversion error, its handler, and the exact five occurrences."
+      },
+      {
+        "id": "C14-P3",
+        "verdict": "found",
+        "quote": "The masking prevents identification of which column or value.",
+        "reason": "Explicitly notes the masked value/type prevents root-cause identification from this file alone."
+      },
+      {
+        "id": "C14-P4",
+        "verdict": "found",
+        "quote": "A burst of 7+ timeouts between 22:26:37 and 22:29:08, then the same query succeeds normally from 22:36:47 onward.",
+        "reason": "Correctly frames the GetMonitorJobsQuery timeouts as a bounded episode that resolved, matching the expected window."
+      },
+      {
+        "id": "C14-P5",
+        "verdict": "found",
+        "quote": "it does not say *which* validation failed, making it impossible for the user (or support) to act on it",
+        "reason": "Notes the two ApplicationValidationException failures and the logging gap of missing validation detail."
+      },
+      {
+        "id": "C14-P6",
+        "verdict": "partial",
+        "quote": "The subsequent slow GetStatementLineQuery warnings (33\u201373 s, starting 00:20) suggest the database was under sustained pressure around the same period, though the timing is uncertain because the log has no dates.",
+        "reason": "Mentions the rising duration range but omits the count (fourteen occurrences) and the fact it is still rising at the end of the log."
+      },
+      {
+        "id": "C14-P7",
+        "verdict": "found",
+        "quote": "This is in a production log that has already been attached to a Jira ticket and shared within the team. **The credential should be considered compromised and rotated.**",
+        "reason": "Correctly flags the plaintext password at DBG level as a credential exposure requiring rotation."
+      },
+      {
+        "id": "C14-P8",
+        "verdict": "partial",
+        "quote": "Application shutdown/restart at 02:50 | Deployment or horizontal scaling event",
+        "reason": "Notes a single restart around 02:50 but does not tie it to the specific shutdown/startup timestamps or explain why the startup warnings appear twice."
+      },
+      {
+        "id": "C14-P9",
+        "verdict": "partial",
+        "quote": "`DataProtection-Keys` directory warning | Standard in ephemeral containers; keys are expected to be ephemeral",
+        "reason": "Correctly labels three of the four expected startup warnings as routine noise but omits the 'Overriding address(es)' warning."
+      },
+      {
+        "id": "C14-P10",
+        "verdict": "found",
+        "quote": "`Service Permissions found and sent on the event bus` (repeated) | Normal periodic heartbeat",
+        "reason": "The noise table also lists the ObjectMapper license lines, the client-aborted TaskCanceledException, and the 404 for pending payment 88213, matching the expected items."
+      },
+      {
+        "id": "C14-P11",
+        "verdict": "partial",
+        "quote": "The log covers 48 h but has no dates (time-of-day only).",
+        "reason": "Notes the lack of dates repeatedly but never states that timestamps are out of order or that trimmed stack traces make the record incomplete."
+      },
+      {
+        "id": "C14-I1",
+        "verdict": "found",
+        "quote": "Root cause (inference): An authentication or authorisation failure between the two services. The Dapr sidecar is presenting an identity that `masterfile-api` does not accept.",
+        "reason": "Presents the access-control/Dapr-config theory as a labelled inference consistent with the expected reasoning."
+      },
+      {
+        "id": "C14-P12",
+        "verdict": "partial",
+        "quote": "**This is the item to fix first.**",
+        "reason": "Correctly ranks the 403s first and the SQL 245 second, but never explicitly ranks the degrading GetStatementLineQuery or frames the credential fix as a parallel track in a single priority statement."
+      },
+      {
+        "id": "C14-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly places the DataProtection/XML encryptor warnings in the noise table, not as a cause of the 403s or SQL errors."
+      },
+      {
+        "id": "C14-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis states the masked values prevent identifying a specific column, value, or type."
+      },
+      {
+        "id": "C14-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Where durations are computed, the analysis is between closely clustered consecutive log lines and elsewhere explicitly caveats that timing across the file is uncertain due to missing dates."
+      },
+      {
+        "id": "C14-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The NATS subject list is quoted from the log context but never used as evidence that errors occurred or were published."
+      },
+      {
+        "id": "C14-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis describes a single restart event, not repeated crash-looping."
+      },
+      {
+        "id": "C14-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis treats the database issues (SQL 245, timeouts) as separate, non-total, and non-'down' events, and does not claim the database was the sole cause of everything."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "User requested a record that no longer exists (already processed or deleted). Expected.",
+        "reason": "The log only shows a 404 for pending payment 88213; there is no basis in the ticket data for concluding it was already processed or deleted."
+      },
+      {
+        "quote": "Deployment or horizontal scaling event",
+        "reason": "The log shows only a shutdown followed by a restart; there is no evidence in the ticket data that this was caused by a deployment or horizontal scaling."
+      }
+    ]
+  }
+}

@@ -1,0 +1,311 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "There is a gap of roughly **14,979 seconds** between the last normal API call (`timestamp 1789182813.637`) and the next user interaction (`timestamp 1789197792.375`).",
+      "reason": "The analysis correctly identifies the two-phase split, the ~14,979-second gap, and the subsequent 401 cascade."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "None of them carry a valid token, and **no interceptor steps in to refresh the token and retry** \u2014 every call gets a raw 401.",
+      "reason": "The analysis clearly frames the TypeError as a downstream symptom of unhandled 401 responses rather than the root defect."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The four distinct property names (`sort`, `rows`, `length`, `returnProperties`) indicate the problem is not one isolated `.sort()` call but a systemic absence of null/undefined checks on API response data throughout the batch actions screen.",
+      "reason": "The analysis explicitly identifies the four sentry.event breadcrumbs as part of one cascade/defect rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "At `timestamp 1789182766.696` a **`POST /api/security/token/refresh` returns 200**, confirming the app has a token-refresh mechanism that worked at that point.",
+      "reason": "The analysis correctly identifies the single successful pre-gap token refresh and separately notes no refresh occurred in response to the later 401s."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Possibilities (inference): (a) the UAT environment is mislabelled as Production in the Sentry DSN config; (b) the UAT domain is actually serving production traffic; (c) the `environment` tag is set by a static config that was copy-pasted. None of these can be confirmed from the ticket data.",
+      "reason": "The analysis flags the environment/URL mismatch but hedges across multiple possibilities, including one that contradicts the key's conclusion, rather than committing to the misconfiguration finding."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists the transaction as /settlements/run/8214 without ever noting it conflicts with the actual request URL /payments/batch/actions or that this makes the transaction/culprit stale."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All three JS bundles (`6728.\u2026js`, `main.\u2026js`, `polyfills.\u2026js`) have `symbolicator_type: \"missing_source\"`.",
+      "reason": "The analysis thoroughly documents the missing source maps, DNS scraping failures, symbolicated_in_app false, and minified frame names."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`release` and `dist` are **null** in the Sentry event, so the build cannot be independently confirmed",
+      "reason": "The analysis correctly notes the null release/dist prevents tying the event to a specific build."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "every single one returns 401 with `response_body_size: 0`",
+      "reason": "The analysis notes the empty 401 bodies but elsewhere asserts token expiry as an established fact rather than acknowledging that the event cannot distinguish expiry from revocation or a session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The batch actions screen crashes and goes blank when a user's authentication token expires after a long idle period.",
+      "reason": "The token-expiry mechanism is stated as established fact in the summary and defect sections rather than clearly framed as a likely inference."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Every `HttpErrorResponse` in the breadcrumbs shows `status: 401` but `statusText: \"OK\"`. This is not normal.",
+      "reason": "The analysis mentions the large response and ordinary browser/OS as neutral facts but mischaracterizes the statusText 'OK' as a suspicious anomaly needing gateway investigation rather than recognizing it as benign, and never addresses the Referer as a non-issue."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the in_app:true flag on every frame (including polyfills) or the in_app_frame_mix metadata, so it does not address why that flag is not evidence of an application-code fault."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Add defensive null-checks on all API response consumers on the batch actions screen, not just the `.sort` call. At minimum, guard the four properties seen in this event (`rows`, `length`, `returnProperties`, and the array fed to `.sort`). This is a stopgap, not the fix, but it prevents the blank-screen UX.",
+      "reason": "Next actions cover 401 handling, environment fix, and source maps, and correctly frame null-guards as a stopgap, but never mention correcting the stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels a null-guard on .sort as a stopgap rather than the root cause or the real fix."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly flags the environment/UAT-URL conflict rather than treating the event as confirmed production."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis consistently identifies /payments/batch/actions as the screen where the crash occurred, not /settlements/run/8214."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Although it cites the raw ie.project frame name from the ticket data, the analysis explicitly caveats afterward that the exact source location cannot be determined due to missing symbolication."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 780KB response, browser, and OS are mentioned only as neutral details, never blamed for the crash."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are treated as an auth/session issue, not as an attack, permissions misconfiguration, or outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states no breadcrumbs are recorded during the idle gap, not that failures ran continuously through it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "**Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)**",
+      "reason": "Converting the breadcrumb epoch timestamps against the event's anchor datetime (2026-09-12T07:23:50 UTC) places this phase at approximately 03:10\u201303:13 UTC, not 07:24\u201307:26 UTC; the stated clock times are a miscalculation not supported by the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 248.5,
+    "input_tokens": 25984,
+    "output_tokens": 24408
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "verdict": "found",
+        "quote": "There is a gap of roughly **14,979 seconds** between the last normal API call (`timestamp 1789182813.637`) and the next user interaction (`timestamp 1789197792.375`).",
+        "reason": "The analysis correctly identifies the two-phase split, the ~14,979-second gap, and the subsequent 401 cascade."
+      },
+      {
+        "id": "C17-P2",
+        "verdict": "found",
+        "quote": "None of them carry a valid token, and **no interceptor steps in to refresh the token and retry** \u2014 every call gets a raw 401.",
+        "reason": "The analysis clearly frames the TypeError as a downstream symptom of unhandled 401 responses rather than the root defect."
+      },
+      {
+        "id": "C17-P3",
+        "verdict": "found",
+        "quote": "The four distinct property names (`sort`, `rows`, `length`, `returnProperties`) indicate the problem is not one isolated `.sort()` call but a systemic absence of null/undefined checks on API response data throughout the batch actions screen.",
+        "reason": "The analysis explicitly identifies the four sentry.event breadcrumbs as part of one cascade/defect rather than separate bugs."
+      },
+      {
+        "id": "C17-P4",
+        "verdict": "found",
+        "quote": "At `timestamp 1789182766.696` a **`POST /api/security/token/refresh` returns 200**, confirming the app has a token-refresh mechanism that worked at that point.",
+        "reason": "The analysis correctly identifies the single successful pre-gap token refresh and separately notes no refresh occurred in response to the later 401s."
+      },
+      {
+        "id": "C17-P5",
+        "verdict": "partial",
+        "quote": "Possibilities (inference): (a) the UAT environment is mislabelled as Production in the Sentry DSN config; (b) the UAT domain is actually serving production traffic; (c) the `environment` tag is set by a static config that was copy-pasted. None of these can be confirmed from the ticket data.",
+        "reason": "The analysis flags the environment/URL mismatch but hedges across multiple possibilities, including one that contradicts the key's conclusion, rather than committing to the misconfiguration finding."
+      },
+      {
+        "id": "C17-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis lists the transaction as /settlements/run/8214 without ever noting it conflicts with the actual request URL /payments/batch/actions or that this makes the transaction/culprit stale."
+      },
+      {
+        "id": "C17-P7",
+        "verdict": "found",
+        "quote": "All three JS bundles (`6728.\u2026js`, `main.\u2026js`, `polyfills.\u2026js`) have `symbolicator_type: \"missing_source\"`.",
+        "reason": "The analysis thoroughly documents the missing source maps, DNS scraping failures, symbolicated_in_app false, and minified frame names."
+      },
+      {
+        "id": "C17-P8",
+        "verdict": "found",
+        "quote": "`release` and `dist` are **null** in the Sentry event, so the build cannot be independently confirmed",
+        "reason": "The analysis correctly notes the null release/dist prevents tying the event to a specific build."
+      },
+      {
+        "id": "C17-P9",
+        "verdict": "partial",
+        "quote": "every single one returns 401 with `response_body_size: 0`",
+        "reason": "The analysis notes the empty 401 bodies but elsewhere asserts token expiry as an established fact rather than acknowledging that the event cannot distinguish expiry from revocation or a session drop."
+      },
+      {
+        "id": "C17-I1",
+        "verdict": "partial",
+        "quote": "The batch actions screen crashes and goes blank when a user's authentication token expires after a long idle period.",
+        "reason": "The token-expiry mechanism is stated as established fact in the summary and defect sections rather than clearly framed as a likely inference."
+      },
+      {
+        "id": "C17-P10",
+        "verdict": "partial",
+        "quote": "Every `HttpErrorResponse` in the breadcrumbs shows `status: 401` but `statusText: \"OK\"`. This is not normal.",
+        "reason": "The analysis mentions the large response and ordinary browser/OS as neutral facts but mischaracterizes the statusText 'OK' as a suspicious anomaly needing gateway investigation rather than recognizing it as benign, and never addresses the Referer as a non-issue."
+      },
+      {
+        "id": "C17-P11",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never discusses the in_app:true flag on every frame (including polyfills) or the in_app_frame_mix metadata, so it does not address why that flag is not evidence of an application-code fault."
+      },
+      {
+        "id": "C17-P12",
+        "verdict": "partial",
+        "quote": "Add defensive null-checks on all API response consumers on the batch actions screen, not just the `.sort` call. At minimum, guard the four properties seen in this event (`rows`, `length`, `returnProperties`, and the array fed to `.sort`). This is a stopgap, not the fix, but it prevents the blank-screen UX.",
+        "reason": "Next actions cover 401 handling, environment fix, and source maps, and correctly frame null-guards as a stopgap, but never mention correcting the stale transaction name."
+      },
+      {
+        "id": "C17-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly labels a null-guard on .sort as a stopgap rather than the root cause or the real fix."
+      },
+      {
+        "id": "C17-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly flags the environment/UAT-URL conflict rather than treating the event as confirmed production."
+      },
+      {
+        "id": "C17-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis consistently identifies /payments/batch/actions as the screen where the crash occurred, not /settlements/run/8214."
+      },
+      {
+        "id": "C17-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Although it cites the raw ie.project frame name from the ticket data, the analysis explicitly caveats afterward that the exact source location cannot be determined due to missing symbolication."
+      },
+      {
+        "id": "C17-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 780KB response, browser, and OS are mentioned only as neutral details, never blamed for the crash."
+      },
+      {
+        "id": "C17-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401s are treated as an auth/session issue, not as an attack, permissions misconfiguration, or outage."
+      },
+      {
+        "id": "C17-T7",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states no breadcrumbs are recorded during the idle gap, not that failures ran continuously through it."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "**Phase 1 \u2013 Normal work (~07:24:19 \u2013 07:26:53 UTC, ~135 s)**",
+        "reason": "Converting the breadcrumb epoch timestamps against the event's anchor datetime (2026-09-12T07:23:50 UTC) places this phase at approximately 03:10\u201303:13 UTC, not 07:24\u201307:26 UTC; the stated clock times are a miscalculation not supported by the ticket data."
+      }
+    ]
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:30 | Config deploy OPS-81 executes, rotating the JWT signing key for the Auth service |\n| 09:31 | Transfer errors begin appearing on dashboards",
+      "reason": "Timeline correctly states deploy at 09:30 and impact onset at 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "09:47 | Monitoring alert fires: TransferErrorRate > 20% |\n| 09:52 | Sam Okafor declares the incident",
+      "reason": "Correctly states alert at 09:47 and declaration at 09:52."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "10:31 | Sam Okafor begins rollback of OPS-81 |\n| 10:42 | Transfer error rate back under 1% |\n| 10:44 | Rollback confirmed complete |\n| 10:50 | Incident resolved by Sam Okafor",
+      "reason": "Correctly lists rollback start, recovery time, and resolution time."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Onset \u2192 Alert fired | **16 min** (09:31 \u2192 09:47)",
+      "reason": "Correctly calculates 16 minutes to detect."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Onset \u2192 Service restored | **71 min** (09:31 \u2192 10:42)",
+      "reason": "Correctly calculates 71 minutes to recover with start point stated."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy **OPS-81** (09:30) rotated the JWT signing key used by the Auth service to issue tokens, but the key that the Transactions API uses to **validate** those tokens was not updated in the same deploy. As a result, the Transactions API rejected all newly issued tokens with `IDX10503: Signature validation failed` (HTTP 401)",
+      "reason": "Root cause stated accurately and completely with correct error text."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review** is booked for 2026-09-16.",
+      "reason": "Correctly states the post-incident review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Database hypothesis is attributed to Priya Nair and explicitly noted as ruled out by Sam Okafor, not asserted as cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All detect/recover times stated are supported by timestamps in the ticket."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "causing a total failure of the transfer function for all users",
+      "reason": "The ticket states an error rate of 64%, not a total (100%) failure; this overstates the impact."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 8.2,
+    "input_tokens": 4164,
+    "output_tokens": 938
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "09:30 | Config deploy OPS-81 executes, rotating the JWT signing key for the Auth service |\n| 09:31 | Transfer errors begin appearing on dashboards",
+        "reason": "Timeline correctly states deploy at 09:30 and impact onset at 09:31."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "09:47 | Monitoring alert fires: TransferErrorRate > 20% |\n| 09:52 | Sam Okafor declares the incident",
+        "reason": "Correctly states alert at 09:47 and declaration at 09:52."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "10:31 | Sam Okafor begins rollback of OPS-81 |\n| 10:42 | Transfer error rate back under 1% |\n| 10:44 | Rollback confirmed complete |\n| 10:50 | Incident resolved by Sam Okafor",
+        "reason": "Correctly lists rollback start, recovery time, and resolution time."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "Onset \u2192 Alert fired | **16 min** (09:31 \u2192 09:47)",
+        "reason": "Correctly calculates 16 minutes to detect."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "Onset \u2192 Service restored | **71 min** (09:31 \u2192 10:42)",
+        "reason": "Correctly calculates 71 minutes to recover with start point stated."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The config deploy **OPS-81** (09:30) rotated the JWT signing key used by the Auth service to issue tokens, but the key that the Transactions API uses to **validate** those tokens was not updated in the same deploy. As a result, the Transactions API rejected all newly issued tokens with `IDX10503: Signature validation failed` (HTTP 401)",
+        "reason": "Root cause stated accurately and completely with correct error text."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Post-incident review** is booked for 2026-09-16.",
+        "reason": "Correctly states the post-incident review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Database hypothesis is attributed to Priya Nair and explicitly noted as ruled out by Sam Okafor, not asserted as cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All detect/recover times stated are supported by timestamps in the ticket."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "causing a total failure of the transfer function for all users",
+        "reason": "The ticket states an error rate of 64%, not a total (100%) failure; this overstates the impact."
+      }
+    ]
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| 09:30 | Config deploy OPS-81 applied; JWT signing key for Auth service rotated |\n| 09:31 | Transfer errors begin (per dashboard data cited by Sam Okafor) |",
+      "reason": "Timeline correctly states the 09:30 deploy and 09:31 impact start."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| 09:47 | Monitoring alert fires: TransferErrorRate > 20% |\n| 09:52 | Incident declared by Sam Okafor; error rate at 64% |",
+      "reason": "Alert and declaration times are correctly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| 10:31 | Sam Okafor begins rollback of OPS-81 |\n| 10:42 | Transfer error rate returns below 1% |\n| 10:44 | Rollback confirmed complete |\n| 10:50 | Incident resolved; post-incident review booked for 2026-09-16 |",
+      "reason": "Rollback, recovery, and resolution times are all correctly captured."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| Fault onset (09:31) \u2192 Alert (09:47) | **16 minutes** |",
+      "reason": "Time to detect calculated correctly as 16 minutes."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| Fault onset (09:31) \u2192 Error rate < 1% (10:42) | **71 minutes** (total customer-impacting window) |\n| Alert (09:47) \u2192 Error rate < 1% (10:42) | **55 minutes** |",
+      "reason": "Both acceptable time-to-recover calculations are presented with clear start points."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The config deploy **OPS-81** (applied at 09:30) rotated the JWT signing key used by the Auth service. Auth immediately began issuing tokens signed with the new key, but the Transactions API continued to validate incoming tokens against the old key. Every transfer request therefore failed with a `401` and the error `IDX10503: Signature validation failed`, affecting all users.",
+      "reason": "Root cause is stated accurately and matches the ticket's explanation."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Incident resolved; post-incident review booked for 2026-09-16 |",
+      "reason": "Post-incident review date is correctly noted."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The database hypothesis is described as a ruled-out false lead, not asserted as the cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All time-to-detect and time-to-recover figures are derived from valid timestamp pairs in the ticket."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 15.3,
+    "input_tokens": 4311,
+    "output_tokens": 1677
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "| 09:30 | Config deploy OPS-81 applied; JWT signing key for Auth service rotated |\n| 09:31 | Transfer errors begin (per dashboard data cited by Sam Okafor) |",
+        "reason": "Timeline correctly states the 09:30 deploy and 09:31 impact start."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "| 09:47 | Monitoring alert fires: TransferErrorRate > 20% |\n| 09:52 | Incident declared by Sam Okafor; error rate at 64% |",
+        "reason": "Alert and declaration times are correctly stated."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "| 10:31 | Sam Okafor begins rollback of OPS-81 |\n| 10:42 | Transfer error rate returns below 1% |\n| 10:44 | Rollback confirmed complete |\n| 10:50 | Incident resolved; post-incident review booked for 2026-09-16 |",
+        "reason": "Rollback, recovery, and resolution times are all correctly captured."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "| Fault onset (09:31) \u2192 Alert (09:47) | **16 minutes** |",
+        "reason": "Time to detect calculated correctly as 16 minutes."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "| Fault onset (09:31) \u2192 Error rate < 1% (10:42) | **71 minutes** (total customer-impacting window) |\n| Alert (09:47) \u2192 Error rate < 1% (10:42) | **55 minutes** |",
+        "reason": "Both acceptable time-to-recover calculations are presented with clear start points."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "The config deploy **OPS-81** (applied at 09:30) rotated the JWT signing key used by the Auth service. Auth immediately began issuing tokens signed with the new key, but the Transactions API continued to validate incoming tokens against the old key. Every transfer request therefore failed with a `401` and the error `IDX10503: Signature validation failed`, affecting all users.",
+        "reason": "Root cause is stated accurately and matches the ticket's explanation."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Incident resolved; post-incident review booked for 2026-09-16 |",
+        "reason": "Post-incident review date is correctly noted."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The database hypothesis is described as a ruled-out false lead, not asserted as the cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All time-to-detect and time-to-recover figures are derived from valid timestamp pairs in the ticket."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

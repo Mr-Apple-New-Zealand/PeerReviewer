@@ -1,0 +1,217 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+      "reason": "The analysis clearly identifies the SMTP 535 authentication error as the actual cause of failed delivery."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "They do **not** cause SMTP authentication to fail.",
+      "reason": "The analysis explains the DataProtection/XML encryptor warnings are routine startup warnings unrelated to SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The dispatcher is hammering the same failed send every 5 seconds, and new messages accumulate behind it.",
+      "reason": "The analysis cites the 991204 warning and explains the fixed 5s retry with no backoff/dead-letter causing head-of-line blocking."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Approximately 100 messages added every 5\u20136 minutes.",
+      "reason": "The analysis presents the growing backlog from 1412 to 2089 and quantifies the growth rate."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The log only covers 18:02 onwards (post-restart). The original failure at ~14:00 is not captured.",
+      "reason": "The analysis correctly notes the log cannot confirm the 14:00 event since it starts post-restart."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya's suggestion to \"just restart it again\" will not resolve the issue.",
+      "reason": "The analysis explains the prior restart at 18:02 did not stop the ongoing 535 errors, so another restart won't help."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference (high confidence): Something changed on or around 14:00 on the SMTP server or the email provider \u2014 most likely a policy update that disabled basic auth in favour of OAuth2 or another mechanism.",
+      "reason": "The analysis labels this as an inference and correctly suggests a provider-side auth policy change as the fix direction."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Identify why basic auth was disabled on `smtp.example.com`.**",
+      "reason": "The analysis covers confirming the auth change and adding backoff/dead-letter, but never suggests retrieving the pre-18:02 container log to confirm the 14:00 start."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Brief and self-resolved. Not the cause of the outage.",
+      "reason": "The analysis notes the NATS reconnection was brief/self-resolved and separately notes the health check's SMTP-skipped blind spot, concluding neither is the cause."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation as unrelated to the SMTP failures."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "The backlog was already at 1,412 at 18:02, meaning the queue had been building since ~14:00.",
+      "reason": "Despite earlier correctly noting the log doesn't cover 14:00, this unhedged statement asserts the log's backlog data confirms the outage started at 14:00."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states restarting will not help and recommends not restarting again."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the NATS blip and health check are not the cause of the outage."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not invent any SMTP error beyond the 535/5.7.139 shown in the log."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 108.9,
+    "input_tokens": 8377,
+    "output_tokens": 11995
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+        "reason": "The analysis clearly identifies the SMTP 535 authentication error as the actual cause of failed delivery."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "They do **not** cause SMTP authentication to fail.",
+        "reason": "The analysis explains the DataProtection/XML encryptor warnings are routine startup warnings unrelated to SMTP failures."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "The dispatcher is hammering the same failed send every 5 seconds, and new messages accumulate behind it.",
+        "reason": "The analysis cites the 991204 warning and explains the fixed 5s retry with no backoff/dead-letter causing head-of-line blocking."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "Approximately 100 messages added every 5\u20136 minutes.",
+        "reason": "The analysis presents the growing backlog from 1412 to 2089 and quantifies the growth rate."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "The log only covers 18:02 onwards (post-restart). The original failure at ~14:00 is not captured.",
+        "reason": "The analysis correctly notes the log cannot confirm the 14:00 event since it starts post-restart."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "Priya's suggestion to \"just restart it again\" will not resolve the issue.",
+        "reason": "The analysis explains the prior restart at 18:02 did not stop the ongoing 535 errors, so another restart won't help."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "Inference (high confidence): Something changed on or around 14:00 on the SMTP server or the email provider \u2014 most likely a policy update that disabled basic auth in favour of OAuth2 or another mechanism.",
+        "reason": "The analysis labels this as an inference and correctly suggests a provider-side auth policy change as the fix direction."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "partial",
+        "quote": "**Identify why basic auth was disabled on `smtp.example.com`.**",
+        "reason": "The analysis covers confirming the auth change and adding backoff/dead-letter, but never suggests retrieving the pre-18:02 container log to confirm the 14:00 start."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "found",
+        "quote": "Brief and self-resolved. Not the cause of the outage.",
+        "reason": "The analysis notes the NATS reconnection was brief/self-resolved and separately notes the health check's SMTP-skipped blind spot, concluding neither is the cause."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's DataProtection/XML encryptor explanation as unrelated to the SMTP failures."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "violated",
+        "quote": "The backlog was already at 1,412 at 18:02, meaning the queue had been building since ~14:00.",
+        "reason": "Despite earlier correctly noting the log doesn't cover 14:00, this unhedged statement asserts the log's backlog data confirms the outage started at 14:00."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states restarting will not help and recommends not restarting again."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the NATS blip and health check are not the cause of the outage."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not invent any SMTP error beyond the 535/5.7.139 shown in the log."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

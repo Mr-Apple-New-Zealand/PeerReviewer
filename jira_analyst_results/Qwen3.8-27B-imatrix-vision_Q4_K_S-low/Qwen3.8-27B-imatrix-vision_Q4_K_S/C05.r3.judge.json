@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is almost certainly a duplicate of BANK-440.",
+      "reason": "The analysis explicitly identifies BANK-425 as a duplicate, matching platform, version, and stale-balance symptom after a transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Close BANK-440 as a duplicate of BANK-425 (or merge into it). BANK-425 already has the root-cause diagnosis and a stated fix, making it the better parent.",
+      "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected resolution."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Different root cause:** the notification service reads the `TransferRequested` event (published *before* the debit is applied) instead of `TransferCompleted`. This is an event-selection bug in the notification service, not a client-side caching issue.",
+      "reason": "The analysis correctly separates MOB-88 as a distinct mobile bug with a different root cause (event timing) and notes it is already in progress."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "implement fix (clear `BalanceCache` on successful transfer)",
+      "reason": "The analysis identifies the 15-minute BalanceCache not being invalidated as the cause and recommends clearing it on transfer success, matching the expected fix."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is the completed task that introduced the 15-minute `BalanceCache` in local storage.",
+      "reason": "The analysis states BANK-419 as the definite cause of the bug rather than framing it as a likely/inferred regression, so it is stated as certain fact instead of an inference."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that both BANK-440 and BANK-425 are unassigned."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states MOB-88 is not a duplicate and treats it as a separate bug with a different cause."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never claims the balance API returns a wrong or stale value; it attributes the bug to caching, consistent with the tickets."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 41.7,
+    "input_tokens": 4725,
+    "output_tokens": 4611
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "BANK-425 is almost certainly a duplicate of BANK-440.",
+        "reason": "The analysis explicitly identifies BANK-425 as a duplicate, matching platform, version, and stale-balance symptom after a transfer."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "Close BANK-440 as a duplicate of BANK-425 (or merge into it). BANK-425 already has the root-cause diagnosis and a stated fix, making it the better parent.",
+        "reason": "The analysis recommends keeping BANK-425 (which has Hana Sato's root-cause analysis) and closing BANK-440 as the duplicate, matching the expected resolution."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "Different root cause:** the notification service reads the `TransferRequested` event (published *before* the debit is applied) instead of `TransferCompleted`. This is an event-selection bug in the notification service, not a client-side caching issue.",
+        "reason": "The analysis correctly separates MOB-88 as a distinct mobile bug with a different root cause (event timing) and notes it is already in progress."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "implement fix (clear `BalanceCache` on successful transfer)",
+        "reason": "The analysis identifies the 15-minute BalanceCache not being invalidated as the cause and recommends clearing it on transfer success, matching the expected fix."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "This is the completed task that introduced the 15-minute `BalanceCache` in local storage.",
+        "reason": "The analysis states BANK-419 as the definite cause of the bug rather than framing it as a likely/inferred regression, so it is stated as certain fact instead of an inference."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that both BANK-440 and BANK-425 are unassigned."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states MOB-88 is not a duplicate and treats it as a separate bug with a different cause."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never claims the balance API returns a wrong or stale value; it attributes the bug to caching, consistent with the tickets."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

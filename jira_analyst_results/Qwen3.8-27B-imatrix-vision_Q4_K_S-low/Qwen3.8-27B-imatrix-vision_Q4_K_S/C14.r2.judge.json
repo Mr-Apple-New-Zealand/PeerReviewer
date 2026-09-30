@@ -1,0 +1,305 @@
+{
+  "checkpoints": [
+    {
+      "id": "C14-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The direct cause of the user-reported \"spins then fails\" on saving a secondary branch is a **403 Forbidden returned by `masterfile-api`** during a Dapr service invocation.",
+      "reason": "The analysis correctly identifies the 403 from masterfile-api on both branchlocation endpoints, four occurrences, and the two aborted commands."
+    },
+    {
+      "id": "C14-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "5 (one full, four trimmed) at `[03:37:32]`, `[03:38:24]`, `[03:38:50]`, `[03:40:12]`, `[20:26:31]`",
+      "reason": "Correctly identifies the SQL 245 conversion error occurring five times in SearchPaymentRoutingRuleQueryHandler."
+    },
+    {
+      "id": "C14-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All three critical fields (value, column, data type) are masked as `******`. We cannot determine which row or filter triggers it without DB access or unmasking.",
+      "reason": "Explicitly notes the masking prevents identifying the offending column/value/type."
+    },
+    {
+      "id": "C14-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "8 consecutive failures from `[22:26:37]` to `[22:29:08]`, then recovery (next call at `[22:36:47]` completes in 279 ms)",
+      "reason": "Correctly identifies the bounded timeout episode and recovery matching the expected timeframe."
+    },
+    {
+      "id": "C14-P5",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis discusses the validation exception twice but never notes that the specific validation messages are absent from the log, which is the logging gap the key expects."
+    },
+    {
+      "id": "C14-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "fourteen consecutive `GetStatementLineQuery` calls exceed the 10 s threshold, escalating from 35 s to **72 s**.",
+      "reason": "Correctly identifies the fourteen threshold breaches and the escalating duration, close to the expected ~73 seconds."
+    },
+    {
+      "id": "C14-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions the database connection string/password being logged at DBG level, a significant omission."
+    },
+    {
+      "id": "C14-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis does not mention the single pod restart at 02:50:11-02:50:14 or explain why startup lines appear twice."
+    },
+    {
+      "id": "C14-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Standard ASP.NET Core DataProtection warning on containers. A real hardening concern (keys lost on restart) but not related to the current incident.",
+      "reason": "Correctly labels the DataProtection/XML encryptor/port/address warnings as routine and unrelated to the incident."
+    },
+    {
+      "id": "C14-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "`Service Permissions found and sent on the event bus.` (repeated every 20\u201340 s) | Heartbeat / permission broadcast. Normal.",
+      "reason": "Covers Service Permissions messages, the client-aborted TaskCanceledException, and the 404, but omits the ObjectMapper license lines entirely."
+    },
+    {
+      "id": "C14-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the log lacks dates and is out of chronological order, which limits determining elapsed time and event sequence; it instead computes durations as if the presented order were reliable."
+    },
+    {
+      "id": "C14-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Likely cause (inference):** A Dapr service-to-service authentication/authorization failure. The `payments-api` service no longer has a valid identity or token accepted by `masterfile-api`.",
+      "reason": "Presents the access-control/Dapr configuration explanation explicitly labeled as an inference, matching the expected content."
+    },
+    {
+      "id": "C14-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**1 \u2014 Fix first** | 403 from `masterfile-api` blocking all secondary-branch saves | **Platform / Dapr team** (service-to-service auth)",
+      "reason": "Correctly orders 403 first, then SQL 245, then the degrading query, but never mentions the credential exposure as a parallel security item."
+    },
+    {
+      "id": "C14-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings from the incident causes rather than blaming them."
+    },
+    {
+      "id": "C14-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never invents a specific column, value, or data type for the masked SQL 245 error."
+    },
+    {
+      "id": "C14-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not assert a false cross-file elapsed time or ordered sequence as fact; durations discussed are within locally contiguous blocks."
+    },
+    {
+      "id": "C14-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never references the NATS 'payments.errors' subject as evidence of errors."
+    },
+    {
+      "id": "C14-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+    },
+    {
+      "id": "C14-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly concludes the issue is a Platform/Dapr problem, not a database outage, and does not claim the database was down or the sole cause."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The payment routing rule handler calls `masterfile-api` to validate the branch, the call is rejected, the transaction rolls back, and the user sees a generic failure.",
+      "reason": "The log never logs a 'Rollback transaction' event for the failed commands (only Begin/Commit pairs for successful ones), so stating as established fact that the transaction rolls back is unsupported by the log content."
+    },
+    {
+      "quote": "A transient database issue (lock, load spike, or resource contention).",
+      "reason": "This is stated as the established cause of the GetMonitorJobs timeouts without hedging, but the log gives no evidence of a lock, load spike, or resource contention as the actual cause."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 156.9,
+    "input_tokens": 20569,
+    "output_tokens": 16299
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C14-P1",
+        "verdict": "found",
+        "quote": "The direct cause of the user-reported \"spins then fails\" on saving a secondary branch is a **403 Forbidden returned by `masterfile-api`** during a Dapr service invocation.",
+        "reason": "The analysis correctly identifies the 403 from masterfile-api on both branchlocation endpoints, four occurrences, and the two aborted commands."
+      },
+      {
+        "id": "C14-P2",
+        "verdict": "found",
+        "quote": "5 (one full, four trimmed) at `[03:37:32]`, `[03:38:24]`, `[03:38:50]`, `[03:40:12]`, `[20:26:31]`",
+        "reason": "Correctly identifies the SQL 245 conversion error occurring five times in SearchPaymentRoutingRuleQueryHandler."
+      },
+      {
+        "id": "C14-P3",
+        "verdict": "found",
+        "quote": "All three critical fields (value, column, data type) are masked as `******`. We cannot determine which row or filter triggers it without DB access or unmasking.",
+        "reason": "Explicitly notes the masking prevents identifying the offending column/value/type."
+      },
+      {
+        "id": "C14-P4",
+        "verdict": "found",
+        "quote": "8 consecutive failures from `[22:26:37]` to `[22:29:08]`, then recovery (next call at `[22:36:47]` completes in 279 ms)",
+        "reason": "Correctly identifies the bounded timeout episode and recovery matching the expected timeframe."
+      },
+      {
+        "id": "C14-P5",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis discusses the validation exception twice but never notes that the specific validation messages are absent from the log, which is the logging gap the key expects."
+      },
+      {
+        "id": "C14-P6",
+        "verdict": "found",
+        "quote": "fourteen consecutive `GetStatementLineQuery` calls exceed the 10 s threshold, escalating from 35 s to **72 s**.",
+        "reason": "Correctly identifies the fourteen threshold breaches and the escalating duration, close to the expected ~73 seconds."
+      },
+      {
+        "id": "C14-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions the database connection string/password being logged at DBG level, a significant omission."
+      },
+      {
+        "id": "C14-P8",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis does not mention the single pod restart at 02:50:11-02:50:14 or explain why startup lines appear twice."
+      },
+      {
+        "id": "C14-P9",
+        "verdict": "found",
+        "quote": "Standard ASP.NET Core DataProtection warning on containers. A real hardening concern (keys lost on restart) but not related to the current incident.",
+        "reason": "Correctly labels the DataProtection/XML encryptor/port/address warnings as routine and unrelated to the incident."
+      },
+      {
+        "id": "C14-P10",
+        "verdict": "partial",
+        "quote": "`Service Permissions found and sent on the event bus.` (repeated every 20\u201340 s) | Heartbeat / permission broadcast. Normal.",
+        "reason": "Covers Service Permissions messages, the client-aborted TaskCanceledException, and the 404, but omits the ObjectMapper license lines entirely."
+      },
+      {
+        "id": "C14-P11",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never states that the log lacks dates and is out of chronological order, which limits determining elapsed time and event sequence; it instead computes durations as if the presented order were reliable."
+      },
+      {
+        "id": "C14-I1",
+        "verdict": "found",
+        "quote": "Likely cause (inference):** A Dapr service-to-service authentication/authorization failure. The `payments-api` service no longer has a valid identity or token accepted by `masterfile-api`.",
+        "reason": "Presents the access-control/Dapr configuration explanation explicitly labeled as an inference, matching the expected content."
+      },
+      {
+        "id": "C14-P12",
+        "verdict": "partial",
+        "quote": "**1 \u2014 Fix first** | 403 from `masterfile-api` blocking all secondary-branch saves | **Platform / Dapr team** (service-to-service auth)",
+        "reason": "Correctly orders 403 first, then SQL 245, then the degrading query, but never mentions the credential exposure as a parallel security item."
+      },
+      {
+        "id": "C14-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly separates the DataProtection/XML encryptor warnings from the incident causes rather than blaming them."
+      },
+      {
+        "id": "C14-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never invents a specific column, value, or data type for the masked SQL 245 error."
+      },
+      {
+        "id": "C14-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not assert a false cross-file elapsed time or ordered sequence as fact; durations discussed are within locally contiguous blocks."
+      },
+      {
+        "id": "C14-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never references the NATS 'payments.errors' subject as evidence of errors."
+      },
+      {
+        "id": "C14-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not claim the pod is crash-looping or restarting repeatedly."
+      },
+      {
+        "id": "C14-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly concludes the issue is a Platform/Dapr problem, not a database outage, and does not claim the database was down or the sole cause."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The payment routing rule handler calls `masterfile-api` to validate the branch, the call is rejected, the transaction rolls back, and the user sees a generic failure.",
+        "reason": "The log never logs a 'Rollback transaction' event for the failed commands (only Begin/Commit pairs for successful ones), so stating as established fact that the transaction rolls back is unsupported by the log content."
+      },
+      {
+        "quote": "A transient database issue (lock, load spike, or resource contention).",
+        "reason": "This is stated as the established cause of the GetMonitorJobs timeouts without hedging, but the log gives no evidence of a lock, load spike, or resource contention as the actual cause."
+      }
+    ]
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+      "reason": "The analysis quotes the exact SMTP exception, status code, and origin in EmailSender/OutboxDispatcher."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "These are legitimate warnings about ASP.NET Core data-protection key persistence (relevant to cookie encryption, anti-forgery tokens, etc.). They do **not** cause SMTP 535 errors.",
+      "reason": "Explicitly explains the key-storage warnings are unrelated startup warnings, not the cause of the SMTP failures."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Queue head blocking: `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.` The dispatcher cannot progress past this item.",
+      "reason": "Correctly identifies the fixed retry with no backoff/dead-letter path blocking the queue."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Backlog growth: 1,412 \u2192 1,508 \u2192 1,604 \u2192 1,702 \u2192 1,799 \u2192 1,896 \u2192 1,993 \u2192 2,089 messages over 18:02\u201318:39 (~100 msg / 5 min).",
+      "reason": "Accurately tracks the growing backlog with correct numbers and timeframe."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Previous container log lost: The log header notes the prior container's log was not captured. We do not have the first-failure timestamp; the \"14:00\" figure comes from the contact centre, not the log.",
+      "reason": "Correctly notes the log cannot confirm the 14:00 event since the earlier container's log was not captured."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The pod restart at 18:02 (which would generate fresh keys) produced the same error, contradicting the key-storage theory.",
+      "reason": "Notes the post-restart pod still fails identically, disproving the restart-as-fix idea."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**Inference (not stated in the ticket):** The most likely root cause is a server-side change on `smtp.example.com` \u2013 for example, an IT/Platform team disabled plain/basic auth in favour of OAuth2 or CRAM-MD5 \u2013 made around 14:00.",
+      "reason": "Clearly labeled as an inference tied to the 'basic authentication is disabled' text, matching expectation."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Identify what changed on `smtp.example.com:587`. Contact the mail/Platform team that owns that server. Ask for the change log around 14:00 today and the current accepted auth mechanisms for `svc-notify@example.com`.",
+      "reason": "Covers next actions: confirm with mail tenant owner, fix auth, and separately mentions retaining prior logs and adding backoff/dead-letter."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "NATS blip (minor): Connection lost at 18:07:12, reconnected 1 s later. Unrelated to the email failure.",
+      "reason": "Explicitly notes the NATS blip and (elsewhere) the healthy health check are unrelated to the SMTP failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the reporter's data-protection key theory as unsupported by the log."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the log does not cover the 14:00 window and the earlier container log was lost."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states another restart will not help since the post-restart pod shows identical errors."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly labels the NATS blip and health check as unrelated/minor, not blaming them for the outage."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only cites the actual 535/5.7.139 error text from the log, inventing no other SMTP error or code."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The outage has been visible only via customer calls, not monitoring.",
+      "reason": "The tickets only show that the health check skips SMTP; there is no information about the existence or absence of other monitoring/alerting systems, so this claim of complete monitoring blindness is unsupported."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 32.1,
+    "input_tokens": 8926,
+    "output_tokens": 3182
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+        "reason": "The analysis quotes the exact SMTP exception, status code, and origin in EmailSender/OutboxDispatcher."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "These are legitimate warnings about ASP.NET Core data-protection key persistence (relevant to cookie encryption, anti-forgery tokens, etc.). They do **not** cause SMTP 535 errors.",
+        "reason": "Explicitly explains the key-storage warnings are unrelated startup warnings, not the cause of the SMTP failures."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Queue head blocking: `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.` The dispatcher cannot progress past this item.",
+        "reason": "Correctly identifies the fixed retry with no backoff/dead-letter path blocking the queue."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "Backlog growth: 1,412 \u2192 1,508 \u2192 1,604 \u2192 1,702 \u2192 1,799 \u2192 1,896 \u2192 1,993 \u2192 2,089 messages over 18:02\u201318:39 (~100 msg / 5 min).",
+        "reason": "Accurately tracks the growing backlog with correct numbers and timeframe."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "Previous container log lost: The log header notes the prior container's log was not captured. We do not have the first-failure timestamp; the \"14:00\" figure comes from the contact centre, not the log.",
+        "reason": "Correctly notes the log cannot confirm the 14:00 event since the earlier container's log was not captured."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "The pod restart at 18:02 (which would generate fresh keys) produced the same error, contradicting the key-storage theory.",
+        "reason": "Notes the post-restart pod still fails identically, disproving the restart-as-fix idea."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "**Inference (not stated in the ticket):** The most likely root cause is a server-side change on `smtp.example.com` \u2013 for example, an IT/Platform team disabled plain/basic auth in favour of OAuth2 or CRAM-MD5 \u2013 made around 14:00.",
+        "reason": "Clearly labeled as an inference tied to the 'basic authentication is disabled' text, matching expectation."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "found",
+        "quote": "Identify what changed on `smtp.example.com:587`. Contact the mail/Platform team that owns that server. Ask for the change log around 14:00 today and the current accepted auth mechanisms for `svc-notify@example.com`.",
+        "reason": "Covers next actions: confirm with mail tenant owner, fix auth, and separately mentions retaining prior logs and adding backoff/dead-letter."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "found",
+        "quote": "NATS blip (minor): Connection lost at 18:07:12, reconnected 1 s later. Unrelated to the email failure.",
+        "reason": "Explicitly notes the NATS blip and (elsewhere) the healthy health check are unrelated to the SMTP failure."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the reporter's data-protection key theory as unsupported by the log."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the log does not cover the 14:00 window and the earlier container log was lost."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states another restart will not help since the post-restart pod shows identical errors."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly labels the NATS blip and health check as unrelated/minor, not blaming them for the outage."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only cites the actual 535/5.7.139 error text from the log, inventing no other SMTP error or code."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The outage has been visible only via customer calls, not monitoring.",
+        "reason": "The tickets only show that the health check skips SMTP; there is no information about the existence or absence of other monitoring/alerting systems, so this claim of complete monitoring blindness is unsupported."
+      }
+    ]
+  }
+}

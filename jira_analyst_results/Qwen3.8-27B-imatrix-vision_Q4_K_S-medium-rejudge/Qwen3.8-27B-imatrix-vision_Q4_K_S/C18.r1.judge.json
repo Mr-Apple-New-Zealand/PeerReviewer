@@ -1,0 +1,277 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Group A \u2013 401 \u2192 unhandled TypeError cascade (5 issues)",
+      "reason": "The analysis correctly groups the five issues (3C8 plus the four TypeErrors) as one 401\u2011driven cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Affects ~44 distinct users across the settlements and payments flows.",
+      "reason": "It uses 44 as the group estimate without summing the individual counts, but never explicitly explains that the counts cannot be added because users overlap within this cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Widest user reach of any single issue (58 users).",
+      "reason": "The analysis explicitly identifies BANKUI-5D6 as having the highest user count of any issue despite low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z",
+      "reason": "Correctly ties the ChunkLoadError's first appearance to shortly after the 4.7.0 deploy and attributes it to stale-bundle requests."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+      "reason": "Correctly identifies BANKUI-2F0 as extension noise with one user and no app breadcrumbs, not a defect."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+      "reason": "It dismisses 2F0's event count as misleading but treats 3C8's high event count as a legitimate part of the real fix rather than explicitly framing both as misleading rankings."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Quick check that the 12 users have refreshed. If confirmed, close; if not, reopen with a repro.",
+      "reason": "The analysis hedges between closing and reopening instead of asserting that the issue has regressed and must be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every lastFrame is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`).",
+      "reason": "Correctly notes the lack of source maps means stack frames are unreadable and unattributable to components."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "User-count overlap is unknown. The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap.",
+      "reason": "Correctly states that overlap between the two user counts cannot be determined from the export."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+      "reason": "This is presented under an explicit 'Inference' label with stated basis, matching the expected inference about session/401 handling."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**Why first:** One root-cause fix eliminates four separate Sentry issues (4A1, 4A2, 4A9, 4B3) and stops the 5 140-event 401 log flood (3C8).",
+      "reason": "Both correct items (401 cluster and BANKUI-5D6) are chosen for the two sprint slots and 2F0/1A7 are handled outside sprint capacity, but the priority order is reversed from the key's expected ordering and the 1A7 recommendation is hedged."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly places BANKUI-2F0 outside sprint priorities and states its high event count is not meaningful."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues are explicitly grouped as one cause, not treated as separate defects."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never sums the distinct user counts across issues; it treats them separately and notes possible overlap."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags BANKUI-1A7 as still firing after being marked resolved and recommends verification/reopening, not that it is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401 issue is framed as an authentication/session handling defect, not as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "It is a user-facing \"white screen / broken page\" on navigation.",
+      "reason": "The Sentry data describes a ChunkLoadError and 404 on bundle request but gives no information about the resulting visual symptom, so this specific description is invented."
+    },
+    {
+      "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+      "reason": "The ticket data only shows a chrome-extension culprit and a SecurityError; the specific characterization of the extension as an adblocker or script-injector is not supported by any data in the export."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 127.0,
+    "input_tokens": 10140,
+    "output_tokens": 14568
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "found",
+        "quote": "Group A \u2013 401 \u2192 unhandled TypeError cascade (5 issues)",
+        "reason": "The analysis correctly groups the five issues (3C8 plus the four TypeErrors) as one 401\u2011driven cause."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "partial",
+        "quote": "Affects ~44 distinct users across the settlements and payments flows.",
+        "reason": "It uses 44 as the group estimate without summing the individual counts, but never explicitly explains that the counts cannot be added because users overlap within this cluster."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "found",
+        "quote": "Widest user reach of any single issue (58 users).",
+        "reason": "The analysis explicitly identifies BANKUI-5D6 as having the highest user count of any issue despite low event count."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "firstSeen 2026-09-10 21:11:36 Z, six minutes after the 4.7.0 deploy at 21:05:00 Z",
+        "reason": "Correctly ties the ChunkLoadError's first appearance to shortly after the 4.7.0 deploy and attributes it to stale-bundle requests."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+        "reason": "Correctly identifies BANKUI-2F0 as extension noise with one user and no app breadcrumbs, not a defect."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "partial",
+        "quote": "The high event count (4 812) is purely one user's extension firing on every page load / redirect.",
+        "reason": "It dismisses 2F0's event count as misleading but treats 3C8's high event count as a legitimate part of the real fix rather than explicitly framing both as misleading rankings."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "partial",
+        "quote": "Quick check that the 12 users have refreshed. If confirmed, close; if not, reopen with a repro.",
+        "reason": "The analysis hedges between closing and reopening instead of asserting that the issue has regressed and must be reopened."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Every lastFrame is a minified identifier (`ie.project`, `q.render`, `L.buildAction`, `N.setRows`).",
+        "reason": "Correctly notes the lack of source maps means stack frames are unreadable and unattributable to components."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "found",
+        "quote": "User-count overlap is unknown. The JSON notes warn that the same user appears in multiple issues, so the 44 users in Group A and the 58 in Group B may overlap.",
+        "reason": "Correctly states that overlap between the two user counts cannot be determined from the export."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "found",
+        "quote": "All four TypeErrors are the same bug viewed from four call-sites: an API call returns a 401, the code path does not check the HTTP status, and the next line dereferences a property on the (absent) response body.",
+        "reason": "This is presented under an explicit 'Inference' label with stated basis, matching the expected inference about session/401 handling."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "partial",
+        "quote": "**Why first:** One root-cause fix eliminates four separate Sentry issues (4A1, 4A2, 4A9, 4B3) and stops the 5 140-event 401 log flood (3C8).",
+        "reason": "Both correct items (401 cluster and BANKUI-5D6) are chosen for the two sprint slots and 2F0/1A7 are handled outside sprint capacity, but the priority order is reversed from the key's expected ordering and the 1A7 recommendation is hedged."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly places BANKUI-2F0 outside sprint priorities and states its high event count is not meaningful."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The four undefined-property issues are explicitly grouped as one cause, not treated as separate defects."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never sums the distinct user counts across issues; it treats them separately and notes possible overlap."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis flags BANKUI-1A7 as still firing after being marked resolved and recommends verification/reopening, not that it is fixed or needs no action."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401 issue is framed as an authentication/session handling defect, not as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "It is a user-facing \"white screen / broken page\" on navigation.",
+        "reason": "The Sentry data describes a ChunkLoadError and 404 on bundle request but gives no information about the resulting visual symptom, so this specific description is invented."
+      },
+      {
+        "quote": "This is a third-party browser extension (adblocker / script-injector) trying to reach into a cross-origin iframe.",
+        "reason": "The ticket data only shows a chrome-extension culprit and a SecurityError; the specific characterization of the extension as an adblocker or script-injector is not supported by any data in the export."
+      }
+    ]
+  }
+}

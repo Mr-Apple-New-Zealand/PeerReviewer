@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "id": "C05-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-425 is a duplicate of BANK-440",
+      "reason": "Analysis explicitly identifies BANK-425 as a duplicate of BANK-440 with matching platform, version, and symptom of stale balance after transfer."
+    },
+    {
+      "id": "C05-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Duplicate BANK-425 into it (link as \"is duplicated by\"). Merge the useful detail from BANK-425's comment (root cause: `BalanceCache` not cleared) into BANK-440's description or a comment so the fix context lives in one place.",
+      "reason": "Analysis recommends keeping one ticket (BANK-440) as primary, links/merges the other, preserving Hana Sato's root-cause analysis, satisfying the either-direction condition in the key."
+    },
+    {
+      "id": "C05-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The notification service subscribes to `TransferRequested` (fired before the debit) instead of `TransferCompleted`.",
+      "reason": "Analysis correctly explains MOB-88 has a different mobile-side cause and notes it is already in progress with Ravi Kumar."
+    },
+    {
+      "id": "C05-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Invalidate / clear `BalanceCache` on successful transfer (e.g., in the transfer success callback, call `BalanceCache.clear()` or update the stored value with the response from the transfer API).",
+      "reason": "Analysis correctly identifies the 15-minute BalanceCache as the root cause and recommends clearing it on transfer success."
+    },
+    {
+      "id": "C05-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "It is the *cause* of BANK-440/BANK-425, not a duplicate of them.",
+      "reason": "The causal link to BANK-419 is stated as an established fact rather than a hedged inference, and no explicit ticket link is recommended, only a retrospective comment."
+    },
+    {
+      "id": "C05-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "BANK-440 (Open, Unassigned, Medium)",
+      "reason": "Both tickets' unassigned status appears in separate ticket headers but the analysis never explicitly connects this as a shared observation."
+    },
+    {
+      "id": "C05-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+    },
+    {
+      "id": "C05-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis affirms the API returns the correct value and does not claim the API is stale or wrong."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 53.6,
+    "input_tokens": 5445,
+    "output_tokens": 5712
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C05-P1",
+        "verdict": "found",
+        "quote": "BANK-425 is a duplicate of BANK-440",
+        "reason": "Analysis explicitly identifies BANK-425 as a duplicate of BANK-440 with matching platform, version, and symptom of stale balance after transfer."
+      },
+      {
+        "id": "C05-P2",
+        "verdict": "found",
+        "quote": "Duplicate BANK-425 into it (link as \"is duplicated by\"). Merge the useful detail from BANK-425's comment (root cause: `BalanceCache` not cleared) into BANK-440's description or a comment so the fix context lives in one place.",
+        "reason": "Analysis recommends keeping one ticket (BANK-440) as primary, links/merges the other, preserving Hana Sato's root-cause analysis, satisfying the either-direction condition in the key."
+      },
+      {
+        "id": "C05-P3",
+        "verdict": "found",
+        "quote": "The notification service subscribes to `TransferRequested` (fired before the debit) instead of `TransferCompleted`.",
+        "reason": "Analysis correctly explains MOB-88 has a different mobile-side cause and notes it is already in progress with Ravi Kumar."
+      },
+      {
+        "id": "C05-P4",
+        "verdict": "found",
+        "quote": "Invalidate / clear `BalanceCache` on successful transfer (e.g., in the transfer success callback, call `BalanceCache.clear()` or update the stored value with the response from the transfer API).",
+        "reason": "Analysis correctly identifies the 15-minute BalanceCache as the root cause and recommends clearing it on transfer success."
+      },
+      {
+        "id": "C05-I1",
+        "verdict": "partial",
+        "quote": "It is the *cause* of BANK-440/BANK-425, not a duplicate of them.",
+        "reason": "The causal link to BANK-419 is stated as an established fact rather than a hedged inference, and no explicit ticket link is recommended, only a retrospective comment."
+      },
+      {
+        "id": "C05-P5",
+        "verdict": "partial",
+        "quote": "BANK-440 (Open, Unassigned, Medium)",
+        "reason": "Both tickets' unassigned status appears in separate ticket headers but the analysis never explicitly connects this as a shared observation."
+      },
+      {
+        "id": "C05-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly states MOB-88 is not a duplicate of BANK-440."
+      },
+      {
+        "id": "C05-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis affirms the API returns the correct value and does not claim the API is stale or wrong."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

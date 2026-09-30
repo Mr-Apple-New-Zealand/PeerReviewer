@@ -1,0 +1,147 @@
+{
+  "checkpoints": [
+    {
+      "id": "C07-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09:30** | Config deploy **OPS-81** executed; JWT signing key for Auth service rotated. |\n| **\u2248 09:31** | Transfer errors begin appearing on dashboards.",
+      "reason": "Timeline correctly states OPS-81 deploy at 09:30 and impact starting around 09:31."
+    },
+    {
+      "id": "C07-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**09:47** | Monitoring alert fires: *TransferErrorRate > 20 %*. |\n| **09:52** | Incident declared (BANK-450 created).",
+      "reason": "Alert time and declaration time are correctly stated."
+    },
+    {
+      "id": "C07-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**10:31** | Rollback of OPS-81 config deploy initiated. |\n| **10:42** | Transfer error rate back **under 1 %**. |\n| **10:44** | Sam Okafor confirms rollback complete. |\n| **10:50** | Incident resolved.",
+      "reason": "All three key recovery timestamps are correctly stated."
+    },
+    {
+      "id": "C07-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fault onset (\u2248 09:31) \u2192 monitoring alert (09:47) | **16 minutes**",
+      "reason": "Time to detect of 16 minutes is explicitly and correctly calculated."
+    },
+    {
+      "id": "C07-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes**",
+      "reason": "The 71-minute figure matches one of the accepted answers and is clearly labelled."
+    },
+    {
+      "id": "C07-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Every transfer request was rejected with **401 \u2014 \"IDX10503: Signature validation failed\"**, driving the error rate to 64 % and breaking transfers for **all users**.",
+      "reason": "Root cause including the error text and mechanism is fully and accurately stated."
+    },
+    {
+      "id": "C07-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Post-incident review scheduled for **2026-09-16**.",
+      "reason": "Matches the ticket's stated review date."
+    },
+    {
+      "id": "C07-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly notes Sam ruled out the database and calls it a red herring rather than a cause."
+    },
+    {
+      "id": "C07-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "All detect/recover figures (16, 21, 50, 58, 71 minutes) are derived from real timestamp pairs in the ticket, none fabricated."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 20.2,
+    "input_tokens": 4745,
+    "output_tokens": 2478
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C07-P1",
+        "verdict": "found",
+        "quote": "**09:30** | Config deploy **OPS-81** executed; JWT signing key for Auth service rotated. |\n| **\u2248 09:31** | Transfer errors begin appearing on dashboards.",
+        "reason": "Timeline correctly states OPS-81 deploy at 09:30 and impact starting around 09:31."
+      },
+      {
+        "id": "C07-P2",
+        "verdict": "found",
+        "quote": "**09:47** | Monitoring alert fires: *TransferErrorRate > 20 %*. |\n| **09:52** | Incident declared (BANK-450 created).",
+        "reason": "Alert time and declaration time are correctly stated."
+      },
+      {
+        "id": "C07-P3",
+        "verdict": "found",
+        "quote": "**10:31** | Rollback of OPS-81 config deploy initiated. |\n| **10:42** | Transfer error rate back **under 1 %**. |\n| **10:44** | Sam Okafor confirms rollback complete. |\n| **10:50** | Incident resolved.",
+        "reason": "All three key recovery timestamps are correctly stated."
+      },
+      {
+        "id": "C07-P4",
+        "verdict": "found",
+        "quote": "Fault onset (\u2248 09:31) \u2192 monitoring alert (09:47) | **16 minutes**",
+        "reason": "Time to detect of 16 minutes is explicitly and correctly calculated."
+      },
+      {
+        "id": "C07-P5",
+        "verdict": "found",
+        "quote": "Fault onset (\u2248 09:31) \u2192 error rate < 1 % (10:42) \u2014 **total user impact window** | **\u2248 71 minutes**",
+        "reason": "The 71-minute figure matches one of the accepted answers and is clearly labelled."
+      },
+      {
+        "id": "C07-P6",
+        "verdict": "found",
+        "quote": "Every transfer request was rejected with **401 \u2014 \"IDX10503: Signature validation failed\"**, driving the error rate to 64 % and breaking transfers for **all users**.",
+        "reason": "Root cause including the error text and mechanism is fully and accurately stated."
+      },
+      {
+        "id": "C07-P7",
+        "verdict": "found",
+        "quote": "Post-incident review scheduled for **2026-09-16**.",
+        "reason": "Matches the ticket's stated review date."
+      },
+      {
+        "id": "C07-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly notes Sam ruled out the database and calls it a red herring rather than a cause."
+      },
+      {
+        "id": "C07-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "All detect/recover figures (16, 21, 50, 58, 71 minutes) are derived from real timestamp pairs in the ticket, none fabricated."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No \u2014 do not tell the customer this is fixed.",
+      "reason": "Analysis clearly states support should not confirm the fix."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "On staging with **3.1.4 build 3.1.4.17**, the reset email for `test+qa1@example.com` **still does not arrive**.",
+      "reason": "Correctly notes ticket marked Done/Fixed for 3.1.4 but retest on 3.1.4 still fails."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`Rejected: 550 5.1.3 Invalid recipient address`",
+      "reason": "Correctly cites the new SMTP error text."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is a **provider-side** rejection, not our regex. The original fix removed our block, but the downstream email provider is now the one bouncing the message.",
+      "reason": "The provider-rejection cause is stated as established fact rather than as an unconfirmed inference, as required by the checkpoint."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "**No ticket exists for the provider-side rejection** (inference: it was discovered during retest but not yet broken out). Without its own ticket, it risks being lost.",
+      "reason": "Conveys that no one currently owns the remaining problem since no follow-up ticket exists."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Reopen BANK-377 (or create a new ticket) for the provider-side `550 5.1.3` rejection. Update the status and resolution to reflect that the original fix is **insufficient**.",
+      "reason": "Matches the expected recommendation to reopen/raise a new bug, assign ownership, and give a holding response."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly denies that the issue is fixed and advises against confirming it to the customer."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states no ticket currently exists for the remaining issue, not claiming one was already reopened."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The `550 5.1.3` code points to the provider's own address-validation step.",
+      "reason": "This specific technical interpretation of the SMTP error code is not supported by any ticket content and is presented as fact rather than a labeled inference."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 24.3,
+    "input_tokens": 4448,
+    "output_tokens": 2796
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "verdict": "found",
+        "quote": "No \u2014 do not tell the customer this is fixed.",
+        "reason": "Analysis clearly states support should not confirm the fix."
+      },
+      {
+        "id": "C04-P2",
+        "verdict": "found",
+        "quote": "On staging with **3.1.4 build 3.1.4.17**, the reset email for `test+qa1@example.com` **still does not arrive**.",
+        "reason": "Correctly notes ticket marked Done/Fixed for 3.1.4 but retest on 3.1.4 still fails."
+      },
+      {
+        "id": "C04-P3",
+        "verdict": "found",
+        "quote": "`Rejected: 550 5.1.3 Invalid recipient address`",
+        "reason": "Correctly cites the new SMTP error text."
+      },
+      {
+        "id": "C04-I1",
+        "verdict": "partial",
+        "quote": "This is a **provider-side** rejection, not our regex. The original fix removed our block, but the downstream email provider is now the one bouncing the message.",
+        "reason": "The provider-rejection cause is stated as established fact rather than as an unconfirmed inference, as required by the checkpoint."
+      },
+      {
+        "id": "C04-P4",
+        "verdict": "found",
+        "quote": "**No ticket exists for the provider-side rejection** (inference: it was discovered during retest but not yet broken out). Without its own ticket, it risks being lost.",
+        "reason": "Conveys that no one currently owns the remaining problem since no follow-up ticket exists."
+      },
+      {
+        "id": "C04-P5",
+        "verdict": "found",
+        "quote": "Reopen BANK-377 (or create a new ticket) for the provider-side `550 5.1.3` rejection. Update the status and resolution to reflect that the original fix is **insufficient**.",
+        "reason": "Matches the expected recommendation to reopen/raise a new bug, assign ownership, and give a holding response."
+      },
+      {
+        "id": "C04-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly denies that the issue is fixed and advises against confirming it to the customer."
+      },
+      {
+        "id": "C04-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states no ticket currently exists for the remaining issue, not claiming one was already reopened."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The `550 5.1.3` code points to the provider's own address-validation step.",
+        "reason": "This specific technical interpretation of the SMTP error code is not supported by any ticket content and is presented as fact rather than a labeled inference."
+      }
+    ]
+  }
+}

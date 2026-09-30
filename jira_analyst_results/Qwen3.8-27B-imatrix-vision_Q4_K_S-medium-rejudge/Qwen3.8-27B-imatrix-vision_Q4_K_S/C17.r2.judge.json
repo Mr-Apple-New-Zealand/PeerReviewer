@@ -1,0 +1,311 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "about **4 hours 17 minutes later** (\u0394 \u2248 14,979 s)",
+      "reason": "The raw delta in seconds (14,979s) matches the key, but the converted human time (4h17m) is a material arithmetic error since 14,979s is actually about 4h10m."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen:",
+      "reason": "The analysis correctly identifies the reported TypeError as a symptom of unhandled 401 responses rather than the root cause."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Four distinct `TypeError` events fired in rapid succession (all within ~28 seconds):",
+      "reason": "The analysis lists all four cascading TypeErrors (rows, rows, returnProperties, length) and treats them as one cascade rather than separate bugs."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "At 1789182766 a call to `/api/security/token/refresh` also returned 200.",
+      "reason": "It correctly identifies the single successful refresh before the gap but never explicitly states that no refresh is attempted after the gap."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This is either a Sentry project misconfiguration (UAT deployment tagged as Production) or the UAT URL is being served under a \"Production\" environment label.",
+      "reason": "It flags the Production/UAT conflict but hedges between two explanations rather than concluding it is a misconfiguration polluting production alerting."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis lists the transaction/culprit value but never identifies it as stale or mismatched with the actual request URL /payments/batch/actions."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Failed for all three bundles. The `scraping_attempts` show DNS resolution failure for `bank-uat.example.com.google.internal.` (no A record). The function `ie.project` is minified; the exact source file and line of the `.sort` call **cannot be determined** from this event.",
+      "reason": "It correctly ties the js_no_source errors, failed scraping attempts, and minified frame names to the inability to identify the failing component."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The Sentry event has `release: null` and `dist: null`, so the deployed bundle version is not independently confirmed.",
+      "reason": "It notes release/dist are null but for build-confirmation purposes only, without connecting this to why source maps could not be matched."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis notes the 401 bodies are 0 bytes but never draws the conclusion that the event cannot distinguish expiry from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "## 2. The underlying defect (inference, based on the breadcrumb sequence)",
+      "reason": "The section is explicitly labelled as inference and lays out the token-expiry-during-idle mechanism based on the successful refresh, the gap, and the subsequent 401s."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+      "reason": "It addresses the Referer as a red herring but mishandles the 401/OK statusText detail by treating it as a genuine anomaly requiring investigation rather than a benign artifact, and does not clearly frame the 780KB response or browser/OS as non-issues."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never mentions that all frames are marked in_app true or that the in_app_frame_mix flag is not evidence the fault is in application code."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "If no, that is the root-cause gap and the fix should be a global interceptor, not per-component null-guards.",
+      "reason": "It covers central 401 handling, environment fix, and source map restoration, but never recommends correcting the stale transaction name."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly rejects the null-guard as a root cause or full fix, calling it a suppression rather than a solution."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags the Production/UAT conflict and declines to treat it as confirmed production incident, echoing Tom's caution."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "`transaction` is `/settlements/run/8214`, and `culprit` is the same. The user was working within a specific settlement run.",
+      "reason": "This asserts the user's activity/location as the settlement run 8214 screen despite the actual request URL and breadcrumbs showing /payments/batch/actions."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the exact source file and line cannot be determined, and only reports the minified stack names without claiming a real code location."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not blame the large response, network, browser or OS for the defect."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401s are treated as an auth/session issue, not an attack, permissions misconfiguration, or outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis correctly shows the gap as devoid of breadcrumbs and does not claim continuous failures during it."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+      "reason": "The tickets only supply the Referer value; the characterization of it as 'a default browser new-tab page' is an added factual claim with no basis in the ticket data."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 221.5,
+    "input_tokens": 25157,
+    "output_tokens": 21596
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "verdict": "partial",
+        "quote": "about **4 hours 17 minutes later** (\u0394 \u2248 14,979 s)",
+        "reason": "The raw delta in seconds (14,979s) matches the key, but the converted human time (4h17m) is a material arithmetic error since 14,979s is actually about 4h10m."
+      },
+      {
+        "id": "C17-P2",
+        "verdict": "found",
+        "quote": "The primary defect is **not** a missing array in some data model. It is a **missing or broken 401-interception / token-refresh-and-retry path** for the batch-actions screen:",
+        "reason": "The analysis correctly identifies the reported TypeError as a symptom of unhandled 401 responses rather than the root cause."
+      },
+      {
+        "id": "C17-P3",
+        "verdict": "found",
+        "quote": "Four distinct `TypeError` events fired in rapid succession (all within ~28 seconds):",
+        "reason": "The analysis lists all four cascading TypeErrors (rows, rows, returnProperties, length) and treats them as one cascade rather than separate bugs."
+      },
+      {
+        "id": "C17-P4",
+        "verdict": "partial",
+        "quote": "At 1789182766 a call to `/api/security/token/refresh` also returned 200.",
+        "reason": "It correctly identifies the single successful refresh before the gap but never explicitly states that no refresh is attempted after the gap."
+      },
+      {
+        "id": "C17-P5",
+        "verdict": "partial",
+        "quote": "This is either a Sentry project misconfiguration (UAT deployment tagged as Production) or the UAT URL is being served under a \"Production\" environment label.",
+        "reason": "It flags the Production/UAT conflict but hedges between two explanations rather than concluding it is a misconfiguration polluting production alerting."
+      },
+      {
+        "id": "C17-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis lists the transaction/culprit value but never identifies it as stale or mismatched with the actual request URL /payments/batch/actions."
+      },
+      {
+        "id": "C17-P7",
+        "verdict": "found",
+        "quote": "Failed for all three bundles. The `scraping_attempts` show DNS resolution failure for `bank-uat.example.com.google.internal.` (no A record). The function `ie.project` is minified; the exact source file and line of the `.sort` call **cannot be determined** from this event.",
+        "reason": "It correctly ties the js_no_source errors, failed scraping attempts, and minified frame names to the inability to identify the failing component."
+      },
+      {
+        "id": "C17-P8",
+        "verdict": "partial",
+        "quote": "The Sentry event has `release: null` and `dist: null`, so the deployed bundle version is not independently confirmed.",
+        "reason": "It notes release/dist are null but for build-confirmation purposes only, without connecting this to why source maps could not be matched."
+      },
+      {
+        "id": "C17-P9",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis notes the 401 bodies are 0 bytes but never draws the conclusion that the event cannot distinguish expiry from revocation or a server-side session drop."
+      },
+      {
+        "id": "C17-I1",
+        "verdict": "found",
+        "quote": "## 2. The underlying defect (inference, based on the breadcrumb sequence)",
+        "reason": "The section is explicitly labelled as inference and lays out the token-expiry-during-idle mechanism based on the successful refresh, the gap, and the subsequent 401s."
+      },
+      {
+        "id": "C17-P10",
+        "verdict": "partial",
+        "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+        "reason": "It addresses the Referer as a red herring but mishandles the 401/OK statusText detail by treating it as a genuine anomaly requiring investigation rather than a benign artifact, and does not clearly frame the 780KB response or browser/OS as non-issues."
+      },
+      {
+        "id": "C17-P11",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never mentions that all frames are marked in_app true or that the in_app_frame_mix flag is not evidence the fault is in application code."
+      },
+      {
+        "id": "C17-P12",
+        "verdict": "partial",
+        "quote": "If no, that is the root-cause gap and the fix should be a global interceptor, not per-component null-guards.",
+        "reason": "It covers central 401 handling, environment fix, and source map restoration, but never recommends correcting the stale transaction name."
+      },
+      {
+        "id": "C17-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly rejects the null-guard as a root cause or full fix, calling it a suppression rather than a solution."
+      },
+      {
+        "id": "C17-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis flags the Production/UAT conflict and declines to treat it as confirmed production incident, echoing Tom's caution."
+      },
+      {
+        "id": "C17-T3",
+        "verdict": "violated",
+        "quote": "`transaction` is `/settlements/run/8214`, and `culprit` is the same. The user was working within a specific settlement run.",
+        "reason": "This asserts the user's activity/location as the settlement run 8214 screen despite the actual request URL and breadcrumbs showing /payments/batch/actions."
+      },
+      {
+        "id": "C17-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the exact source file and line cannot be determined, and only reports the minified stack names without claiming a real code location."
+      },
+      {
+        "id": "C17-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not blame the large response, network, browser or OS for the defect."
+      },
+      {
+        "id": "C17-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401s are treated as an auth/session issue, not an attack, permissions misconfiguration, or outage."
+      },
+      {
+        "id": "C17-T7",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis correctly shows the gap as devoid of breadcrumbs and does not claim continuous failures during it."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "The `Referer` header is `https://ntp.msn.com/` (a default browser new-tab page), which is uninformative.",
+        "reason": "The tickets only supply the Referer value; the characterization of it as 'a default browser new-tab page' is an added factual claim with no basis in the ticket data."
+      }
+    ]
+  }
+}

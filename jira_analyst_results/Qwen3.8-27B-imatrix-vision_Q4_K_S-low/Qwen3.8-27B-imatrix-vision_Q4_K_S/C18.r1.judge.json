@@ -1,0 +1,285 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "| **A \u2013 401 not handled** | BANKUI-3C8, 4A1, 4A2, 4A9, 4B3 | API returns 401; app reads properties from `undefined` response body | 5,942 | 44 |",
+      "reason": "The analysis groups all five issues (3C8, 4A1, 4A2, 4A9, 4B3) under a single 401-related cause."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects 44 distinct users across settlements, payment batches, and allocation reports. This is the most user-impacting bug in the set.",
+      "reason": "The analysis uses a 'Max distinct users' figure of 44 rather than summing the individual counts, matching the expected reach estimate."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Affects **58 users** (the highest per-issue user count in the set), meaning a wide slice of the production user base hit this in two days.",
+      "reason": "The analysis correctly identifies BANKUI-5D6 as having the highest user count in the dataset despite low events."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First seen `21:11:36Z` on 09-10, six minutes after the 4.7.0 deploy at `21:05:00Z`. The requested file `6728.b4f17ce620a8d539.js` returns 404 \u2014 it existed in 4.6.0 but was removed in 4.7.0.",
+      "reason": "Correctly ties the ChunkLoadError timing to the 4.7.0 deploy and the 404 bundle signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Chrome extension (`chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`) attempting cross-origin frame access. Single user, no app breadcrumbs.",
+      "reason": "Correctly identifies BANKUI-2F0 as a browser extension issue affecting one user, not an app defect."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "3C8 mechanism is `console` and `handled: true` \u2014 it's the app's own error logger catching the same 401 that then causes the TypeErrors.",
+      "reason": "The analysis recognizes 3C8's large event count reflects a logger, and separately treats 2F0's large count as a single-user extension, both deprioritized despite high raw counts."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis explicitly states BANKUI-1A7 needs no action instead of flagging the post-4.7.0 last-seen date as a regression."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Confirmed in Ravi's comment and the JSON notes. All `lastFrame` values are minified.",
+      "reason": "Correctly notes the lack of source maps and resulting minified frames, matching the expected point."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses whether the 58 users in the ChunkLoadError overlap with the 44 in the 401 cluster, so the ambiguity is not raised."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The app currently has no interceptor or guard for 401 responses; it falls through to code that assumes a successful payload and crashes on `.sort`, `.rows`, `.returnProperties`, `.length`.",
+      "reason": "The 401-cluster root cause is presented as an established fact rather than a hedged inference, though it captures the same underlying idea."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "**1. Fix 401 response handling (Group A) \u2014 work first**",
+      "reason": "The analysis picks the same two work items (401 cluster and chunk error) and flags 2F0 for muting, but reverses the expected priority order and fails to recommend reopening BANKUI-1A7."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly places BANKUI-2F0 in a 'not our defect' category and recommends ignoring it rather than prioritizing it."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The four undefined-property issues plus 3C8 are grouped under one shared 401 cause, not treated as separate defects."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis uses a 'Max distinct users' figure (44) rather than summing the individual user counts."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "No action needed.",
+      "reason": "The analysis explicitly states BANKUI-1A7 needs no action, treating it as resolved despite evidence of a post-fix regression."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401 issue is described as an unhandled error condition, not as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "API returns 401; app reads properties from `undefined` response body",
+      "reason": "The ticket data does not specify that the crash occurs from reading an undefined response body; this specific mechanism is asserted as fact without support."
+    },
+    {
+      "quote": "meaning a wide slice of the production user base hit this in two days.",
+      "reason": "No total production user base figure is given in the tickets, so this comparative claim cannot be verified."
+    },
+    {
+      "quote": "This is the most user-impacting bug in the set.",
+      "reason": "This contradicts the analysis's own later statement that BANKUI-5D6 affects 58 users, more than the 44 users cited here."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 149.2,
+    "input_tokens": 8572,
+    "output_tokens": 15658
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "found",
+        "quote": "| **A \u2013 401 not handled** | BANKUI-3C8, 4A1, 4A2, 4A9, 4B3 | API returns 401; app reads properties from `undefined` response body | 5,942 | 44 |",
+        "reason": "The analysis groups all five issues (3C8, 4A1, 4A2, 4A9, 4B3) under a single 401-related cause."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "found",
+        "quote": "Affects 44 distinct users across settlements, payment batches, and allocation reports. This is the most user-impacting bug in the set.",
+        "reason": "The analysis uses a 'Max distinct users' figure of 44 rather than summing the individual counts, matching the expected reach estimate."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "found",
+        "quote": "Affects **58 users** (the highest per-issue user count in the set), meaning a wide slice of the production user base hit this in two days.",
+        "reason": "The analysis correctly identifies BANKUI-5D6 as having the highest user count in the dataset despite low events."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "First seen `21:11:36Z` on 09-10, six minutes after the 4.7.0 deploy at `21:05:00Z`. The requested file `6728.b4f17ce620a8d539.js` returns 404 \u2014 it existed in 4.6.0 but was removed in 4.7.0.",
+        "reason": "Correctly ties the ChunkLoadError timing to the 4.7.0 deploy and the 404 bundle signature."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "Chrome extension (`chrome-extension://hdnmoggkpjoiaeldlphnmgejfcbkadkc/inject.js`) attempting cross-origin frame access. Single user, no app breadcrumbs.",
+        "reason": "Correctly identifies BANKUI-2F0 as a browser extension issue affecting one user, not an app defect."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "found",
+        "quote": "3C8 mechanism is `console` and `handled: true` \u2014 it's the app's own error logger catching the same 401 that then causes the TypeErrors.",
+        "reason": "The analysis recognizes 3C8's large event count reflects a logger, and separately treats 2F0's large count as a single-user extension, both deprioritized despite high raw counts."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis explicitly states BANKUI-1A7 needs no action instead of flagging the post-4.7.0 last-seen date as a regression."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Confirmed in Ravi's comment and the JSON notes. All `lastFrame` values are minified.",
+        "reason": "Correctly notes the lack of source maps and resulting minified frames, matching the expected point."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never addresses whether the 58 users in the ChunkLoadError overlap with the 44 in the 401 cluster, so the ambiguity is not raised."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "partial",
+        "quote": "The app currently has no interceptor or guard for 401 responses; it falls through to code that assumes a successful payload and crashes on `.sort`, `.rows`, `.returnProperties`, `.length`.",
+        "reason": "The 401-cluster root cause is presented as an established fact rather than a hedged inference, though it captures the same underlying idea."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "partial",
+        "quote": "**1. Fix 401 response handling (Group A) \u2014 work first**",
+        "reason": "The analysis picks the same two work items (401 cluster and chunk error) and flags 2F0 for muting, but reverses the expected priority order and fails to recommend reopening BANKUI-1A7."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly places BANKUI-2F0 in a 'not our defect' category and recommends ignoring it rather than prioritizing it."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The four undefined-property issues plus 3C8 are grouped under one shared 401 cause, not treated as separate defects."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis uses a 'Max distinct users' figure (44) rather than summing the individual user counts."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "violated",
+        "quote": "No action needed.",
+        "reason": "The analysis explicitly states BANKUI-1A7 needs no action, treating it as resolved despite evidence of a post-fix regression."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401 issue is described as an unhandled error condition, not as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "BANKUI-5D6 and BANKUI-1A7 are kept in separate groups (B and D) from the 401 cluster (Group A)."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "API returns 401; app reads properties from `undefined` response body",
+        "reason": "The ticket data does not specify that the crash occurs from reading an undefined response body; this specific mechanism is asserted as fact without support."
+      },
+      {
+        "quote": "meaning a wide slice of the production user base hit this in two days.",
+        "reason": "No total production user base figure is given in the tickets, so this comparative claim cannot be verified."
+      },
+      {
+        "quote": "This is the most user-impacting bug in the set.",
+        "reason": "This contradicts the analysis's own later statement that BANKUI-5D6 affects 58 users, more than the 44 users cited here."
+      }
+    ]
+  }
+}

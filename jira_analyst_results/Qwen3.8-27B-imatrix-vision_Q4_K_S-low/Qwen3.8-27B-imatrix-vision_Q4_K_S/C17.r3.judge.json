@@ -1,0 +1,301 @@
+{
+  "checkpoints": [
+    {
+      "id": "C17-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No breadcrumbs. The user leaves the tab open. The auth token expires somewhere in this window.",
+      "reason": "The analysis correctly identifies the two-phase breadcrumb pattern (normal 200s, a multi-hour gap with no activity, then 401s) even though exact clock times differ slightly from the key's."
+    },
+    {
+      "id": "C17-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "It is that the application does not handle 401/auth-failure responses defensively before accessing response data.",
+      "reason": "The analysis clearly states the TypeError is a symptom of unhandled 401s rather than the root cause itself."
+    },
+    {
+      "id": "C17-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Four distinct `TypeError: Cannot read properties of undefined (reading \u2026)` events fire within ~100 ms: `rows` (\u00d72), `returnProperties`, `length`, and `sort` (the event in this attachment).",
+      "reason": "The analysis identifies the four related sentry.event breadcrumbs and treats them as one cascade/defect."
+    },
+    {
+      "id": "C17-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "We know a refresh succeeded ~1 min into the session and the token was dead ~4 h later, so the lifetime is between those bounds, but the exact configured value is not in this data.",
+      "reason": "The analysis notes the single successful refresh before the gap and that nothing renewed the session before the token died, matching the expected point."
+    },
+    {
+      "id": "C17-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "the URLs are UAT",
+      "reason": "The analysis explicitly flags the mismatch between the Production environment tag and the UAT URLs and ties it to Tom Becker's question."
+    },
+    {
+      "id": "C17-P6",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "This may indicate a navigation-tracking bug or a stale span name, but we can't confirm from this data alone.",
+      "reason": "The analysis notices the transaction/request URL mismatch but presents it as an unresolved open question rather than confidently stating the transaction is stale and misleads grouping."
+    },
+    {
+      "id": "C17-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "All three JS chunks are marked `js_no_source` with DNS resolution failures.",
+      "reason": "The analysis covers the missing source maps, js_no_source errors, DNS scraping failures and unsymbolicated minified frames."
+    },
+    {
+      "id": "C17-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "No release tag; cannot confirm exact build",
+      "reason": "The analysis notes release is null but never mentions dist or ties the null release/dist to the source-map matching failure."
+    },
+    {
+      "id": "C17-P9",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "8+ simultaneous API calls all return **401** with `response_body_size: 0`.",
+      "reason": "The analysis notes the empty response bodies but never explicitly states that the event cannot distinguish token expiry from revocation or a server-side session drop."
+    },
+    {
+      "id": "C17-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "The user's authentication token expired during a ~4-hour idle period.",
+      "reason": "The correct mechanism is stated as established fact rather than framed as a likely inference."
+    },
+    {
+      "id": "C17-P10",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never addresses the 780KB successful response, the Referer new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-issues."
+    },
+    {
+      "id": "C17-P11",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never discusses the in_app:true flags on all frames (including polyfills) or the in_app_frame_mix metadata."
+    },
+    {
+      "id": "C17-P12",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Fix the environment tag** so UAT events are not labelled",
+      "reason": "Most recommended fixes (401 interceptor, environment tag, source maps, null-guard-as-band-aid) are present, but correcting the stale transaction name is not listed as an action item."
+    },
+    {
+      "id": "C17-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly frames the null-check as a defensive band-aid over the real 401-handling problem, not as the root cause."
+    },
+    {
+      "id": "C17-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis repeatedly flags that the evidence comes from the UAT host despite the Production tag, rather than asserting the event is from production."
+    },
+    {
+      "id": "C17-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis identifies the user's actual page as /payments/batch/actions and questions the settlements/run/8214 transaction rather than asserting the error occurred there."
+    },
+    {
+      "id": "C17-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states the minified function names cannot be resolved to actual source code locations."
+    },
+    {
+      "id": "C17-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis never blames the large response, network speed, browser, or OS for the defect."
+    },
+    {
+      "id": "C17-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis treats the 401s as a token-expiry/handling issue, not an attack, permissions issue, or server outage."
+    },
+    {
+      "id": "C17-T7",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis states there are no breadcrumbs during the gap and does not invent activity or continuous failures within it."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 150.0,
+    "input_tokens": 23751,
+    "output_tokens": 15300
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C17-P1",
+        "verdict": "found",
+        "quote": "No breadcrumbs. The user leaves the tab open. The auth token expires somewhere in this window.",
+        "reason": "The analysis correctly identifies the two-phase breadcrumb pattern (normal 200s, a multi-hour gap with no activity, then 401s) even though exact clock times differ slightly from the key's."
+      },
+      {
+        "id": "C17-P2",
+        "verdict": "found",
+        "quote": "It is that the application does not handle 401/auth-failure responses defensively before accessing response data.",
+        "reason": "The analysis clearly states the TypeError is a symptom of unhandled 401s rather than the root cause itself."
+      },
+      {
+        "id": "C17-P3",
+        "verdict": "found",
+        "quote": "Four distinct `TypeError: Cannot read properties of undefined (reading \u2026)` events fire within ~100 ms: `rows` (\u00d72), `returnProperties`, `length`, and `sort` (the event in this attachment).",
+        "reason": "The analysis identifies the four related sentry.event breadcrumbs and treats them as one cascade/defect."
+      },
+      {
+        "id": "C17-P4",
+        "verdict": "found",
+        "quote": "We know a refresh succeeded ~1 min into the session and the token was dead ~4 h later, so the lifetime is between those bounds, but the exact configured value is not in this data.",
+        "reason": "The analysis notes the single successful refresh before the gap and that nothing renewed the session before the token died, matching the expected point."
+      },
+      {
+        "id": "C17-P5",
+        "verdict": "found",
+        "quote": "the URLs are UAT",
+        "reason": "The analysis explicitly flags the mismatch between the Production environment tag and the UAT URLs and ties it to Tom Becker's question."
+      },
+      {
+        "id": "C17-P6",
+        "verdict": "partial",
+        "quote": "This may indicate a navigation-tracking bug or a stale span name, but we can't confirm from this data alone.",
+        "reason": "The analysis notices the transaction/request URL mismatch but presents it as an unresolved open question rather than confidently stating the transaction is stale and misleads grouping."
+      },
+      {
+        "id": "C17-P7",
+        "verdict": "found",
+        "quote": "All three JS chunks are marked `js_no_source` with DNS resolution failures.",
+        "reason": "The analysis covers the missing source maps, js_no_source errors, DNS scraping failures and unsymbolicated minified frames."
+      },
+      {
+        "id": "C17-P8",
+        "verdict": "partial",
+        "quote": "No release tag; cannot confirm exact build",
+        "reason": "The analysis notes release is null but never mentions dist or ties the null release/dist to the source-map matching failure."
+      },
+      {
+        "id": "C17-P9",
+        "verdict": "partial",
+        "quote": "8+ simultaneous API calls all return **401** with `response_body_size: 0`.",
+        "reason": "The analysis notes the empty response bodies but never explicitly states that the event cannot distinguish token expiry from revocation or a server-side session drop."
+      },
+      {
+        "id": "C17-I1",
+        "verdict": "partial",
+        "quote": "The user's authentication token expired during a ~4-hour idle period.",
+        "reason": "The correct mechanism is stated as established fact rather than framed as a likely inference."
+      },
+      {
+        "id": "C17-P10",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never addresses the 780KB successful response, the Referer new-tab page, the ordinary browser/OS, or the '401 OK' statusText wording as non-issues."
+      },
+      {
+        "id": "C17-P11",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never discusses the in_app:true flags on all frames (including polyfills) or the in_app_frame_mix metadata."
+      },
+      {
+        "id": "C17-P12",
+        "verdict": "partial",
+        "quote": "Fix the environment tag** so UAT events are not labelled",
+        "reason": "Most recommended fixes (401 interceptor, environment tag, source maps, null-guard-as-band-aid) are present, but correcting the stale transaction name is not listed as an action item."
+      },
+      {
+        "id": "C17-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly frames the null-check as a defensive band-aid over the real 401-handling problem, not as the root cause."
+      },
+      {
+        "id": "C17-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis repeatedly flags that the evidence comes from the UAT host despite the Production tag, rather than asserting the event is from production."
+      },
+      {
+        "id": "C17-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis identifies the user's actual page as /payments/batch/actions and questions the settlements/run/8214 transaction rather than asserting the error occurred there."
+      },
+      {
+        "id": "C17-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states the minified function names cannot be resolved to actual source code locations."
+      },
+      {
+        "id": "C17-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis never blames the large response, network speed, browser, or OS for the defect."
+      },
+      {
+        "id": "C17-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis treats the 401s as a token-expiry/handling issue, not an attack, permissions issue, or server outage."
+      },
+      {
+        "id": "C17-T7",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis states there are no breadcrumbs during the gap and does not invent activity or continuous failures within it."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`GetStatementLineQuery` went from ~300 ms to 34\u201373 s (a **~110\u00d7 to 240\u00d7 regression**) after the 4.7.0 deployment.",
+      "reason": "The analysis correctly states the baseline range (281-319ms) and after range (34-73s) matching the ticket data."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "~110\u00d7\u2013240\u00d7 slower",
+      "reason": "The analysis states the magnitude as roughly 110x to 240x, matching the expected calculation."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "query times start at ~34\u201336 s, climb to ~41\u201344 s, then jump to ~67\u201373 s in the final cluster. This is not a flat regression; it is worsening within a single six-minute window.",
+      "reason": "Correctly identifies the escalating pattern within the after window matching the specific timestamps in the key."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "`GetAccountSummaryQuery` performance is stable (~3 s in both windows). This is relevant because Ravi Kumar's comment suggests this query is the problem, but the data does not support that.",
+      "reason": "Correctly shows AccountSummaryQuery is unchanged and explicitly contradicts Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "1 840 ms (1 sample) | 1 902 ms (1 sample) | No meaningful change",
+      "reason": "Correctly notes ExportStatementCommand is unchanged, supporting that the regression is specific to the statement line query."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The after-log records a migration named `ReindexStatementLines` applied during the 4.7.0 pod startup. Whether the migration was *intended* for the statements feature or shipped incidentally is a process question, but it undeniably ran as part of this deployment.",
+      "reason": "Correctly contradicts Tom Becker's claim using the migration log line and timestamp."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The deployment applied a migration explicitly named `ReindexStatementLines`, which is the most likely cause.",
+      "reason": "Presents the migration as the likely cause using hedged language, consistent with inference framing, and elsewhere notes causation is not confirmed."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This likely explains the escalation: as `GetStatementLineQuery` calls tie up all worker threads, subsequent requests queue and their measured latency inflates further, creating a feedback loop.",
+      "reason": "Frames ThreadPool starvation as a likely consequence/feedback effect rather than an independent root cause, aligning with the expected inference."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "We have one pod, one environment, one six-minute window. We cannot tell whether other pods, other regions, or the staging environment are similarly affected, or whether the issue is intermittent at other times of day.",
+      "reason": "Acknowledges limited scope and sample size but never notes that the two windows are from different days with nothing observed in between, nor explicitly calls the regression size 'indicative rather than measured'."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Inspect the migration `20260914_2100_ReindexStatementLines`: read its DDL, check whether it dropped an existing index before creating a new one, and verify the current index state on the `StatementLines` table (or equivalent).",
+      "reason": "Recommends checking the migration/index and correctly identifies Tom Becker as assignee who disputes the finding, but never recommends collecting a longer sample from both versions before concluding."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly refutes GetAccountSummaryQuery as the regression rather than asserting it."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The migration's causal role is consistently hedged as 'likely' and explicitly listed as unconfirmed, and no specific schema change (e.g., dropped index) is asserted as fact."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated magnitude (~110x-240x) matches the supported calculation from the logs."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "ThreadPool starvation is described as a consequence of the slow query tying up threads, not as the root cause."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis does not claim any trend or measurements for the days between the two log windows."
+    }
+  ],
+  "unsupported_claims": [
+    {
+      "quote": "33 757\u201372 974 ms (14 samples, mean \u2248 49 970 ms)",
+      "reason": "The correct mean of the 14 listed GetStatementLineQuery samples in the after log is approximately 51,759 ms, not 49,970 ms; this is an unsupported/incorrect calculation."
+    }
+  ],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 103.3,
+    "input_tokens": 7736,
+    "output_tokens": 11087
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "verdict": "found",
+        "quote": "`GetStatementLineQuery` went from ~300 ms to 34\u201373 s (a **~110\u00d7 to 240\u00d7 regression**) after the 4.7.0 deployment.",
+        "reason": "The analysis correctly states the baseline range (281-319ms) and after range (34-73s) matching the ticket data."
+      },
+      {
+        "id": "C16-P2",
+        "verdict": "found",
+        "quote": "~110\u00d7\u2013240\u00d7 slower",
+        "reason": "The analysis states the magnitude as roughly 110x to 240x, matching the expected calculation."
+      },
+      {
+        "id": "C16-P3",
+        "verdict": "found",
+        "quote": "query times start at ~34\u201336 s, climb to ~41\u201344 s, then jump to ~67\u201373 s in the final cluster. This is not a flat regression; it is worsening within a single six-minute window.",
+        "reason": "Correctly identifies the escalating pattern within the after window matching the specific timestamps in the key."
+      },
+      {
+        "id": "C16-P4",
+        "verdict": "found",
+        "quote": "`GetAccountSummaryQuery` performance is stable (~3 s in both windows). This is relevant because Ravi Kumar's comment suggests this query is the problem, but the data does not support that.",
+        "reason": "Correctly shows AccountSummaryQuery is unchanged and explicitly contradicts Ravi's suggestion."
+      },
+      {
+        "id": "C16-P5",
+        "verdict": "found",
+        "quote": "1 840 ms (1 sample) | 1 902 ms (1 sample) | No meaningful change",
+        "reason": "Correctly notes ExportStatementCommand is unchanged, supporting that the regression is specific to the statement line query."
+      },
+      {
+        "id": "C16-P6",
+        "verdict": "found",
+        "quote": "The after-log records a migration named `ReindexStatementLines` applied during the 4.7.0 pod startup. Whether the migration was *intended* for the statements feature or shipped incidentally is a process question, but it undeniably ran as part of this deployment.",
+        "reason": "Correctly contradicts Tom Becker's claim using the migration log line and timestamp."
+      },
+      {
+        "id": "C16-I1",
+        "verdict": "found",
+        "quote": "The deployment applied a migration explicitly named `ReindexStatementLines`, which is the most likely cause.",
+        "reason": "Presents the migration as the likely cause using hedged language, consistent with inference framing, and elsewhere notes causation is not confirmed."
+      },
+      {
+        "id": "C16-I2",
+        "verdict": "found",
+        "quote": "This likely explains the escalation: as `GetStatementLineQuery` calls tie up all worker threads, subsequent requests queue and their measured latency inflates further, creating a feedback loop.",
+        "reason": "Frames ThreadPool starvation as a likely consequence/feedback effect rather than an independent root cause, aligning with the expected inference."
+      },
+      {
+        "id": "C16-P7",
+        "verdict": "partial",
+        "quote": "We have one pod, one environment, one six-minute window. We cannot tell whether other pods, other regions, or the staging environment are similarly affected, or whether the issue is intermittent at other times of day.",
+        "reason": "Acknowledges limited scope and sample size but never notes that the two windows are from different days with nothing observed in between, nor explicitly calls the regression size 'indicative rather than measured'."
+      },
+      {
+        "id": "C16-P8",
+        "verdict": "partial",
+        "quote": "Inspect the migration `20260914_2100_ReindexStatementLines`: read its DDL, check whether it dropped an existing index before creating a new one, and verify the current index state on the `StatementLines` table (or equivalent).",
+        "reason": "Recommends checking the migration/index and correctly identifies Tom Becker as assignee who disputes the finding, but never recommends collecting a longer sample from both versions before concluding."
+      },
+      {
+        "id": "C16-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly refutes GetAccountSummaryQuery as the regression rather than asserting it."
+      },
+      {
+        "id": "C16-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The migration's causal role is consistently hedged as 'likely' and explicitly listed as unconfirmed, and no specific schema change (e.g., dropped index) is asserted as fact."
+      },
+      {
+        "id": "C16-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The stated magnitude (~110x-240x) matches the supported calculation from the logs."
+      },
+      {
+        "id": "C16-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "ThreadPool starvation is described as a consequence of the slow query tying up threads, not as the root cause."
+      },
+      {
+        "id": "C16-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis does not claim any trend or measurements for the days between the two log windows."
+      }
+    ],
+    "unsupported_claims": [
+      {
+        "quote": "33 757\u201372 974 ms (14 samples, mean \u2248 49 970 ms)",
+        "reason": "The correct mean of the 14 listed GetStatementLineQuery samples in the after log is approximately 51,759 ms, not 49,970 ms; this is an unsupported/incorrect calculation."
+      }
+    ]
+  }
+}
