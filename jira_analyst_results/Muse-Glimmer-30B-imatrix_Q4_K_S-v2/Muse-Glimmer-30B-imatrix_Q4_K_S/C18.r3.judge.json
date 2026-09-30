@@ -1,0 +1,259 @@
+{
+  "checkpoints": [
+    {
+      "id": "C18-P1",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Chunk 6728 failure started ~6 minutes after 4.7.0 deploy. Inference: deployment artefact/CDN issue for /6728.b4f17ce620a8d539.js. The same chunk is referenced by two TypeErrors, suggesting they may be symptoms rather than independent defects.",
+      "reason": "The analysis places BANKUI-4A1 and 4A2 in a separate chunk-load grouping in addition to the 401 cascade, blurring the single five-issue cause the key expects."
+    },
+    {
+      "id": "C18-P2",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never states that the distinct-user counts cannot be summed or identifies 44 as the best single estimate for the cluster."
+    },
+    {
+      "id": "C18-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+      "reason": "Correctly identifies 5D6 as top by user impact despite low event count."
+    },
+    {
+      "id": "C18-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "first seen immediately after 4.7.0 deploy, bundle returns 404.",
+      "reason": "Correctly links the ChunkLoadError timing to the 4.7.0 deploy and the 404 signature."
+    },
+    {
+      "id": "C18-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "This is a browser extension, not a bank-ui defect.",
+      "reason": "Correctly identifies BANKUI-2F0 as non-application noise with the supporting details."
+    },
+    {
+      "id": "C18-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Event count is misleading: BANKUI-3C8 and BANKUI-2F0 have very high events but BANKUI-3C8 is handled console logging and BANKUI-2F0 is 1 user.",
+      "reason": "Correctly flags the two highest event-count issues as not the most valuable to fix."
+    },
+    {
+      "id": "C18-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Confirm status of BANKUI-1A7 \u2013 if it is truly resolved in 4.6.0, verify why events are still appearing on 2026-09-11.",
+      "reason": "Flags the resolved/lastSeen conflict but only suggests confirming status rather than concluding it has regressed and should be reopened."
+    },
+    {
+      "id": "C18-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Source maps are not uploaded per Ravi Kumar comment, so lastFrame values are minified e.g. ie.project, q.render, making root cause confirmation difficult.",
+      "reason": "Correctly conveys that minified frames prevent tracing to a component."
+    },
+    {
+      "id": "C18-P9",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis never notes that the 58 chunk-error users and 44 cluster users may or may not overlap, so no total can be computed."
+    },
+    {
+      "id": "C18-I1",
+      "kind": "inference",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Investigate why 401s are occurring for the listed API endpoints in Production for bank-ui in the period, and check correlation with 4.7.0 release and session/token handling.",
+      "reason": "Raises session/token expiry as one of several equally-weighted hypotheses rather than presenting it as the leading inference from the breadcrumb pattern."
+    },
+    {
+      "id": "C18-P10",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+      "reason": "Matches the expected prioritization: 5D6 first, then the 401 cluster, with 2F0 excluded and 1A7 flagged for follow-up."
+    },
+    {
+      "id": "C18-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and does not treat its event count as evidence of impact."
+    },
+    {
+      "id": "C18-T2",
+      "kind": "trap",
+      "verdict": "violated",
+      "judge_verdict": "violated",
+      "quote": "Likely downstream: BANKUI-4A1 and BANKUI-4A2 both have lastFrame in /6728.b4f17ce620a8d539.js",
+      "reason": "By attributing BANKUI-4A1 and 4A2 to the chunk-load failure as well as the 401 cascade, the analysis effectively assigns two of the four undefined-property issues a separate cause."
+    },
+    {
+      "id": "C18-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "No summed user totals such as ~188 or ~279 appear anywhere in the analysis."
+    },
+    {
+      "id": "C18-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis flags BANKUI-1A7's resolved status as inconsistent and recommends confirming it, never stating it is fixed or needs no action."
+    },
+    {
+      "id": "C18-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The 401 cluster is treated as an authentication/session issue, not described as an attack or security breach."
+    },
+    {
+      "id": "C18-T6",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Although BANKUI-4A1/4A2 are split across groupings, the analysis does not explicitly claim BANKUI-5D6 or BANKUI-1A7 share the same root cause as the 401 cluster."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 101.0,
+    "input_tokens": 9516,
+    "output_tokens": 10980
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C18-P1",
+        "verdict": "partial",
+        "quote": "Chunk 6728 failure started ~6 minutes after 4.7.0 deploy. Inference: deployment artefact/CDN issue for /6728.b4f17ce620a8d539.js. The same chunk is referenced by two TypeErrors, suggesting they may be symptoms rather than independent defects.",
+        "reason": "The analysis places BANKUI-4A1 and 4A2 in a separate chunk-load grouping in addition to the 401 cascade, blurring the single five-issue cause the key expects."
+      },
+      {
+        "id": "C18-P2",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never states that the distinct-user counts cannot be summed or identifies 44 as the best single estimate for the cluster."
+      },
+      {
+        "id": "C18-P3",
+        "verdict": "found",
+        "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+        "reason": "Correctly identifies 5D6 as top by user impact despite low event count."
+      },
+      {
+        "id": "C18-P4",
+        "verdict": "found",
+        "quote": "first seen immediately after 4.7.0 deploy, bundle returns 404.",
+        "reason": "Correctly links the ChunkLoadError timing to the 4.7.0 deploy and the 404 signature."
+      },
+      {
+        "id": "C18-P5",
+        "verdict": "found",
+        "quote": "This is a browser extension, not a bank-ui defect.",
+        "reason": "Correctly identifies BANKUI-2F0 as non-application noise with the supporting details."
+      },
+      {
+        "id": "C18-P6",
+        "verdict": "found",
+        "quote": "Event count is misleading: BANKUI-3C8 and BANKUI-2F0 have very high events but BANKUI-3C8 is handled console logging and BANKUI-2F0 is 1 user.",
+        "reason": "Correctly flags the two highest event-count issues as not the most valuable to fix."
+      },
+      {
+        "id": "C18-P7",
+        "verdict": "partial",
+        "quote": "Confirm status of BANKUI-1A7 \u2013 if it is truly resolved in 4.6.0, verify why events are still appearing on 2026-09-11.",
+        "reason": "Flags the resolved/lastSeen conflict but only suggests confirming status rather than concluding it has regressed and should be reopened."
+      },
+      {
+        "id": "C18-P8",
+        "verdict": "found",
+        "quote": "Source maps are not uploaded per Ravi Kumar comment, so lastFrame values are minified e.g. ie.project, q.render, making root cause confirmation difficult.",
+        "reason": "Correctly conveys that minified frames prevent tracing to a component."
+      },
+      {
+        "id": "C18-P9",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis never notes that the 58 chunk-error users and 44 cluster users may or may not overlap, so no total can be computed."
+      },
+      {
+        "id": "C18-I1",
+        "verdict": "partial",
+        "quote": "Investigate why 401s are occurring for the listed API endpoints in Production for bank-ui in the period, and check correlation with 4.7.0 release and session/token handling.",
+        "reason": "Raises session/token expiry as one of several equally-weighted hypotheses rather than presenting it as the leading inference from the breadcrumb pattern."
+      },
+      {
+        "id": "C18-P10",
+        "verdict": "found",
+        "quote": "First workstream: BANKUI-5D6 ChunkLoadError. 58 users for 63 events, first seen immediately after 4.7.0 deploy, bundle returns 404.",
+        "reason": "Matches the expected prioritization: 5D6 first, then the 401 cluster, with 2F0 excluded and 1A7 flagged for follow-up."
+      },
+      {
+        "id": "C18-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly excludes BANKUI-2F0 from sprint work and does not treat its event count as evidence of impact."
+      },
+      {
+        "id": "C18-T2",
+        "verdict": "violated",
+        "quote": "Likely downstream: BANKUI-4A1 and BANKUI-4A2 both have lastFrame in /6728.b4f17ce620a8d539.js",
+        "reason": "By attributing BANKUI-4A1 and 4A2 to the chunk-load failure as well as the 401 cascade, the analysis effectively assigns two of the four undefined-property issues a separate cause."
+      },
+      {
+        "id": "C18-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "No summed user totals such as ~188 or ~279 appear anywhere in the analysis."
+      },
+      {
+        "id": "C18-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis flags BANKUI-1A7's resolved status as inconsistent and recommends confirming it, never stating it is fixed or needs no action."
+      },
+      {
+        "id": "C18-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The 401 cluster is treated as an authentication/session issue, not described as an attack or security breach."
+      },
+      {
+        "id": "C18-T6",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Although BANKUI-4A1/4A2 are split across groupings, the analysis does not explicitly claim BANKUI-5D6 or BANKUI-1A7 share the same root cause as the 401 cluster."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

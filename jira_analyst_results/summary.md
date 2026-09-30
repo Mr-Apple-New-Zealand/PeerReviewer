@@ -2,7 +2,7 @@
 
 | Setting | Value |
 |---|---|
-| generated | 2026-09-30T18:33:15 |
+| generated | 2026-09-30T19:40:48 |
 | models | 17 |
 | cases_sha | ec04f03cff34 |
 | judge | Qwen3.8-27B-imatrix:Q4_K_S |
@@ -66,6 +66,7 @@ Resident GB includes the KV cache at each run's own num_ctx, so it reads higher 
 
 ## Not ranked
 
+- Muse-Glimmer-30B-imatrix:Q4_K_S in `jira_analyst_results/Muse-Glimmer-30B-imatrix_Q4_K_S-v2` (run 58): different judge 'claude-sonnet-5' (ranked runs: 'Qwen3.8-27B-imatrix:Q4_K_S')
 - Qwen3-VL-8B-Thinking-imatrix:Q4_K_M: run 42 in `jira_analyst_results/Qwen3-VL-8B-Thinking-imatrix_Q4_K_M` superseded by run 43
 - Qwen3.8-27B-imatrix-vision:Q4_K_S in `jira_analyst_results/Qwen3.8-27B-imatrix-vision_Q4_K_S` (run 54): different judge 'claude-sonnet-5' (ranked runs: 'Qwen3.8-27B-imatrix:Q4_K_S')
 

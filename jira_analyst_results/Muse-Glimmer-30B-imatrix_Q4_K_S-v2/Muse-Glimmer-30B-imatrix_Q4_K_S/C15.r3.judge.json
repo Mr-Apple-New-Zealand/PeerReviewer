@@ -1,0 +1,217 @@
+{
+  "checkpoints": [
+    {
+      "id": "C15-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+      "reason": "Analysis clearly identifies the SMTP 535 authentication failure as the cause of delivery failures."
+    },
+    {
+      "id": "C15-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The reporter\u2019s explanation about non-persisted Data Protection keys is not supported by the log.",
+      "reason": "Analysis explicitly states the DataProtection warnings are unrelated startup noise, not the cause."
+    },
+    {
+      "id": "C15-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Same error repeats every 5s for same item, with warning: `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.`",
+      "reason": "Correctly describes the retry/backlog blocking behavior with the specific item number."
+    },
+    {
+      "id": "C15-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Outbox pending grows: 1412 at 18:02:48 \u2192 2089 at 18:39:48",
+      "reason": "Correctly reports the growing backlog numbers matching the log."
+    },
+    {
+      "id": "C15-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "No previous container log, so cannot confirm when failures began relative to 14:00 report.",
+      "reason": "Analysis correctly notes the log cannot confirm the 14:00 start of the outage."
+    },
+    {
+      "id": "C15-P6",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Do not restart again. Priya Nair\u2019s suggestion to restart is not supported by evidence.",
+      "reason": "Analysis correctly concludes restart already happened and did not fix the ongoing SMTP failures."
+    },
+    {
+      "id": "C15-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference: The root cause is likely SMTP auth, not Data Protection. Based on log, SMTP server is rejecting basic authentication: `5.7.139 Authentication unsuccessful, basic authentication is disabled`.",
+      "reason": "Presents the basic-auth-disabled explanation as a labeled inference, matching the expected reasoning."
+    },
+    {
+      "id": "C15-P7",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Obtain logs from the container that was running before 18:02 restart to cover the period from ~14:00 onward, and confirm first occurrence of SMTP 535 errors.",
+      "reason": "Covers all three recommended next actions: mail auth investigation, dispatcher backoff/dead-letter, and retrieving pre-restart logs."
+    },
+    {
+      "id": "C15-P8",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The analysis mentions the health check but never addresses the NATS reconnection or clarifies that neither is part of the failure."
+    },
+    {
+      "id": "C15-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly rejects the reporter's DataProtection explanation rather than endorsing it."
+    },
+    {
+      "id": "C15-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly states the log cannot confirm what happened at 14:00, not claiming otherwise."
+    },
+    {
+      "id": "C15-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis explicitly recommends against restarting again."
+    },
+    {
+      "id": "C15-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis does not blame NATS reconnection or health check for the email failures."
+    },
+    {
+      "id": "C15-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "Analysis only cites the actual 535/5.7.139 error, no fabricated SMTP errors."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 22.8,
+    "input_tokens": 7560,
+    "output_tokens": 2859
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C15-P1",
+        "verdict": "found",
+        "quote": "System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.139 Authentication unsuccessful, basic authentication is disabled.",
+        "reason": "Analysis clearly identifies the SMTP 535 authentication failure as the cause of delivery failures."
+      },
+      {
+        "id": "C15-P2",
+        "verdict": "found",
+        "quote": "The reporter\u2019s explanation about non-persisted Data Protection keys is not supported by the log.",
+        "reason": "Analysis explicitly states the DataProtection warnings are unrelated startup noise, not the cause."
+      },
+      {
+        "id": "C15-P3",
+        "verdict": "found",
+        "quote": "Same error repeats every 5s for same item, with warning: `Outbox item 991204 has reached 5 delivery attempts and stays at the head of the queue. Retry interval is fixed at 5s; there is no backoff and no dead-letter path.`",
+        "reason": "Correctly describes the retry/backlog blocking behavior with the specific item number."
+      },
+      {
+        "id": "C15-P4",
+        "verdict": "found",
+        "quote": "Outbox pending grows: 1412 at 18:02:48 \u2192 2089 at 18:39:48",
+        "reason": "Correctly reports the growing backlog numbers matching the log."
+      },
+      {
+        "id": "C15-P5",
+        "verdict": "found",
+        "quote": "No previous container log, so cannot confirm when failures began relative to 14:00 report.",
+        "reason": "Analysis correctly notes the log cannot confirm the 14:00 start of the outage."
+      },
+      {
+        "id": "C15-P6",
+        "verdict": "found",
+        "quote": "Do not restart again. Priya Nair\u2019s suggestion to restart is not supported by evidence.",
+        "reason": "Analysis correctly concludes restart already happened and did not fix the ongoing SMTP failures."
+      },
+      {
+        "id": "C15-I1",
+        "verdict": "found",
+        "quote": "Inference: The root cause is likely SMTP auth, not Data Protection. Based on log, SMTP server is rejecting basic authentication: `5.7.139 Authentication unsuccessful, basic authentication is disabled`.",
+        "reason": "Presents the basic-auth-disabled explanation as a labeled inference, matching the expected reasoning."
+      },
+      {
+        "id": "C15-P7",
+        "verdict": "found",
+        "quote": "Obtain logs from the container that was running before 18:02 restart to cover the period from ~14:00 onward, and confirm first occurrence of SMTP 535 errors.",
+        "reason": "Covers all three recommended next actions: mail auth investigation, dispatcher backoff/dead-letter, and retrieving pre-restart logs."
+      },
+      {
+        "id": "C15-P8",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The analysis mentions the health check but never addresses the NATS reconnection or clarifies that neither is part of the failure."
+      },
+      {
+        "id": "C15-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly rejects the reporter's DataProtection explanation rather than endorsing it."
+      },
+      {
+        "id": "C15-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly states the log cannot confirm what happened at 14:00, not claiming otherwise."
+      },
+      {
+        "id": "C15-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis explicitly recommends against restarting again."
+      },
+      {
+        "id": "C15-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis does not blame NATS reconnection or health check for the email failures."
+      },
+      {
+        "id": "C15-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "Analysis only cites the actual 535/5.7.139 error, no fabricated SMTP errors."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

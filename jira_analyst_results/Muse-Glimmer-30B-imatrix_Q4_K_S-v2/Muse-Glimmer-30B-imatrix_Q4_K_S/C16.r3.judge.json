@@ -1,0 +1,231 @@
+{
+  "checkpoints": [
+    {
+      "id": "C16-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "After 4.7.0, App 4.7.0, 2026-09-15 00:19-00:24 UTC: 14 samples logged as long-running warnings 35,171ms to 72,974ms.",
+      "reason": "The analysis gives the before (~281-319ms) and after (~35-73s) ranges for GetStatementLineQuery, matching the expected quantification."
+    },
+    {
+      "id": "C16-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Minimum ~35s \u2248 115x slower than before, maximum ~73s \u2248 240x slower.",
+      "reason": "The analysis states a roughly hundredfold-plus slowdown consistent with the expected ~110x to ~240x figures."
+    },
+    {
+      "id": "C16-P3",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "14 samples logged as long-running warnings 35,171ms to 72,974ms.",
+      "reason": "The analysis gives only the min/max range without describing the escalating trend within the after window (35s\u219244s\u219269-73s) that the key expects."
+    },
+    {
+      "id": "C16-P4",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Logs show account summary unchanged, GetStatementLineQuery regressed.",
+      "reason": "The analysis reports GetAccountSummaryQuery as essentially unchanged and explicitly contrasts this with Ravi's suggestion."
+    },
+    {
+      "id": "C16-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Essentially unchanged.",
+      "reason": "The analysis notes ExportStatementCommand latency is essentially unchanged (1,840ms vs 1,902ms), supporting that the regression is isolated to the statement line query."
+    },
+    {
+      "id": "C16-P6",
+      "kind": "point",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "Although the analysis notes both Tom's claim and the migration timestamp, it explicitly states the conflict is 'not resolved by logs' rather than drawing the conclusion that the migration record contradicts Tom's claim."
+    },
+    {
+      "id": "C16-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "which is a plausible contributor, but this is inference from the logs only",
+      "reason": "The analysis identifies the migration as a plausible but unproven cause, correctly hedged as inference."
+    },
+    {
+      "id": "C16-I2",
+      "kind": "inference",
+      "verdict": "missed",
+      "judge_verdict": "missed",
+      "quote": "",
+      "reason": "The ThreadPool starvation event is reported as a bare fact and a possible resource-contention issue to check, without framing it as a likely symptom of the query pileup or connecting it to the timing jump."
+    },
+    {
+      "id": "C16-P7",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Request volume / concurrency differences between 2026-09-13 and 2026-09-15. Same clock window is used, but load is not shown.",
+      "reason": "The analysis notes the limited/uncontrolled nature of the comparison but does not explicitly state the short window size and lack of intervening data make the regression indicative rather than measured."
+    },
+    {
+      "id": "C16-P8",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Review the migration `20260914_2100_ReindexStatementLines` and the execution plan / index usage for GetStatementLineQuery before and after the migration.",
+      "reason": "The analysis recommends checking the migration and query plan, and elsewhere references Tom Becker's assignment and disbelief that it's his team's issue."
+    },
+    {
+      "id": "C16-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged, not naming it as the regression."
+    },
+    {
+      "id": "C16-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis hedges the migration's causal role as inference and does not describe specific schema changes."
+    },
+    {
+      "id": "C16-T3",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The stated magnitude (~115x-240x) is consistent with the data, not an unsupported figure like 10x or 2x."
+    },
+    {
+      "id": "C16-T4",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "ThreadPool starvation is treated as something to investigate for resource contention, not asserted as the root cause of the slow query."
+    },
+    {
+      "id": "C16-T5",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly notes load/trend data between the two days is not shown, rather than asserting a build-up trend."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 120.1,
+    "input_tokens": 6968,
+    "output_tokens": 13135
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C16-P1",
+        "verdict": "found",
+        "quote": "After 4.7.0, App 4.7.0, 2026-09-15 00:19-00:24 UTC: 14 samples logged as long-running warnings 35,171ms to 72,974ms.",
+        "reason": "The analysis gives the before (~281-319ms) and after (~35-73s) ranges for GetStatementLineQuery, matching the expected quantification."
+      },
+      {
+        "id": "C16-P2",
+        "verdict": "found",
+        "quote": "Minimum ~35s \u2248 115x slower than before, maximum ~73s \u2248 240x slower.",
+        "reason": "The analysis states a roughly hundredfold-plus slowdown consistent with the expected ~110x to ~240x figures."
+      },
+      {
+        "id": "C16-P3",
+        "verdict": "partial",
+        "quote": "14 samples logged as long-running warnings 35,171ms to 72,974ms.",
+        "reason": "The analysis gives only the min/max range without describing the escalating trend within the after window (35s\u219244s\u219269-73s) that the key expects."
+      },
+      {
+        "id": "C16-P4",
+        "verdict": "found",
+        "quote": "Logs show account summary unchanged, GetStatementLineQuery regressed.",
+        "reason": "The analysis reports GetAccountSummaryQuery as essentially unchanged and explicitly contrasts this with Ravi's suggestion."
+      },
+      {
+        "id": "C16-P5",
+        "verdict": "found",
+        "quote": "Essentially unchanged.",
+        "reason": "The analysis notes ExportStatementCommand latency is essentially unchanged (1,840ms vs 1,902ms), supporting that the regression is isolated to the statement line query."
+      },
+      {
+        "id": "C16-P6",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "Although the analysis notes both Tom's claim and the migration timestamp, it explicitly states the conflict is 'not resolved by logs' rather than drawing the conclusion that the migration record contradicts Tom's claim."
+      },
+      {
+        "id": "C16-I1",
+        "verdict": "found",
+        "quote": "which is a plausible contributor, but this is inference from the logs only",
+        "reason": "The analysis identifies the migration as a plausible but unproven cause, correctly hedged as inference."
+      },
+      {
+        "id": "C16-I2",
+        "verdict": "missed",
+        "quote": "",
+        "reason": "The ThreadPool starvation event is reported as a bare fact and a possible resource-contention issue to check, without framing it as a likely symptom of the query pileup or connecting it to the timing jump."
+      },
+      {
+        "id": "C16-P7",
+        "verdict": "partial",
+        "quote": "Request volume / concurrency differences between 2026-09-13 and 2026-09-15. Same clock window is used, but load is not shown.",
+        "reason": "The analysis notes the limited/uncontrolled nature of the comparison but does not explicitly state the short window size and lack of intervening data make the regression indicative rather than measured."
+      },
+      {
+        "id": "C16-P8",
+        "verdict": "found",
+        "quote": "Review the migration `20260914_2100_ReindexStatementLines` and the execution plan / index usage for GetStatementLineQuery before and after the migration.",
+        "reason": "The analysis recommends checking the migration and query plan, and elsewhere references Tom Becker's assignment and disbelief that it's his team's issue."
+      },
+      {
+        "id": "C16-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly states GetAccountSummaryQuery is unchanged, not naming it as the regression."
+      },
+      {
+        "id": "C16-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis hedges the migration's causal role as inference and does not describe specific schema changes."
+      },
+      {
+        "id": "C16-T3",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The stated magnitude (~115x-240x) is consistent with the data, not an unsupported figure like 10x or 2x."
+      },
+      {
+        "id": "C16-T4",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "ThreadPool starvation is treated as something to investigate for resource contention, not asserted as the root cause of the slow query."
+      },
+      {
+        "id": "C16-T5",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly notes load/trend data between the two days is not shown, rather than asserting a build-up trend."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}

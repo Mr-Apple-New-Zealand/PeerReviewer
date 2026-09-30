@@ -1,0 +1,133 @@
+{
+  "checkpoints": [
+    {
+      "id": "C04-P1",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "BANK-377 is marked Done / Fixed but retest evidence shows the issue is not resolved, so the customer should not be told it is fixed yet.",
+      "reason": "Clearly states support should not confirm the fix to the customer."
+    },
+    {
+      "id": "C04-P2",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "The ticket is marked Done / Fixed in 3.1.4 after a regex change in EmailService. However a later retest on staging with 3.1.4 reports the email still does not arrive and the SMTP log shows a provider rejection.",
+      "reason": "Correctly notes the Done/Fixed status contradicts Tom Becker's failed retest on 3.1.4."
+    },
+    {
+      "id": "C04-P3",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "SMTP log: \"Rejected: 550 5.1.3 Invalid recipient address\".",
+      "reason": "Correctly quotes the new SMTP error message."
+    },
+    {
+      "id": "C04-I1",
+      "kind": "inference",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Inference, based on the comments: The regex fix may have removed the internal rejection, but the email provider is now rejecting plus-addressed recipients. This is a hidden dependency not addressed in the current fix.",
+      "reason": "Presents the provider-rejection cause as a labelled inference rather than certain fact."
+    },
+    {
+      "id": "C04-P4",
+      "kind": "point",
+      "verdict": "partial",
+      "judge_verdict": "partial",
+      "quote": "Update BANK-377 status from Done to re-open / In Progress to reflect the open provider rejection.",
+      "reason": "Implies the ticket has not been reopened but never explicitly states that no one currently owns the unresolved problem."
+    },
+    {
+      "id": "C04-P5",
+      "kind": "point",
+      "verdict": "found",
+      "judge_verdict": "found",
+      "quote": "Priya Nair should investigate the SMTP rejection \u201c550 5.1.3 Invalid recipient address\u201d with the email provider... Marcus Reid should not tell the customer the issue is fixed until a successful end-to-end password reset for a plus-addressed email is confirmed. Update BANK-377 status from Done to re-open / In Progress",
+      "reason": "Covers reopening the ticket, assigning an owner, and giving a holding response instead of confirming a fix."
+    },
+    {
+      "id": "C04-T1",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis explicitly denies the fix is confirmed rather than asserting it is fixed."
+    },
+    {
+      "id": "C04-T2",
+      "kind": "trap",
+      "verdict": "clean",
+      "judge_verdict": "clean",
+      "quote": "",
+      "reason": "The analysis only recommends reopening as a future action, never claiming it has already happened."
+    }
+  ],
+  "unsupported_claims": [],
+  "judge_notes": {
+    "omitted": [],
+    "normalised": [],
+    "ungrounded": [],
+    "unknown_ids": []
+  },
+  "judge_usage": {
+    "wall_s": 21.2,
+    "input_tokens": 4146,
+    "output_tokens": 2386
+  },
+  "raw": {
+    "checkpoints": [
+      {
+        "id": "C04-P1",
+        "verdict": "found",
+        "quote": "BANK-377 is marked Done / Fixed but retest evidence shows the issue is not resolved, so the customer should not be told it is fixed yet.",
+        "reason": "Clearly states support should not confirm the fix to the customer."
+      },
+      {
+        "id": "C04-P2",
+        "verdict": "found",
+        "quote": "The ticket is marked Done / Fixed in 3.1.4 after a regex change in EmailService. However a later retest on staging with 3.1.4 reports the email still does not arrive and the SMTP log shows a provider rejection.",
+        "reason": "Correctly notes the Done/Fixed status contradicts Tom Becker's failed retest on 3.1.4."
+      },
+      {
+        "id": "C04-P3",
+        "verdict": "found",
+        "quote": "SMTP log: \"Rejected: 550 5.1.3 Invalid recipient address\".",
+        "reason": "Correctly quotes the new SMTP error message."
+      },
+      {
+        "id": "C04-I1",
+        "verdict": "found",
+        "quote": "Inference, based on the comments: The regex fix may have removed the internal rejection, but the email provider is now rejecting plus-addressed recipients. This is a hidden dependency not addressed in the current fix.",
+        "reason": "Presents the provider-rejection cause as a labelled inference rather than certain fact."
+      },
+      {
+        "id": "C04-P4",
+        "verdict": "partial",
+        "quote": "Update BANK-377 status from Done to re-open / In Progress to reflect the open provider rejection.",
+        "reason": "Implies the ticket has not been reopened but never explicitly states that no one currently owns the unresolved problem."
+      },
+      {
+        "id": "C04-P5",
+        "verdict": "found",
+        "quote": "Priya Nair should investigate the SMTP rejection \u201c550 5.1.3 Invalid recipient address\u201d with the email provider... Marcus Reid should not tell the customer the issue is fixed until a successful end-to-end password reset for a plus-addressed email is confirmed. Update BANK-377 status from Done to re-open / In Progress",
+        "reason": "Covers reopening the ticket, assigning an owner, and giving a holding response instead of confirming a fix."
+      },
+      {
+        "id": "C04-T1",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis explicitly denies the fix is confirmed rather than asserting it is fixed."
+      },
+      {
+        "id": "C04-T2",
+        "verdict": "clean",
+        "quote": "",
+        "reason": "The analysis only recommends reopening as a future action, never claiming it has already happened."
+      }
+    ],
+    "unsupported_claims": []
+  }
+}
