@@ -81,6 +81,132 @@ applies to other models' work, not a self-favouring premium. Read the row as ~82
 and see the section below. The run lost C15.r3 to a `judge_json` bug, hence traps
 out of 157.
 
+## Which model for which job
+
+The headline Quality is a mean over four kinds of material that behave very
+differently, and it hides the useful answers. Split by what the ticket actually
+carries:
+
+| Group | Cases | What it tests |
+|---|---|---|
+| **Plain text** | C01–C08, C10 | Ticket prose: bugs, scope conflicts, duplicates, timelines, an embedded prompt injection |
+| **Missing attachment** | C09 | A screenshot the ticket refers to but does not include |
+| **Screenshots** | C11–C13 | Error text, an annotated spec, and wordless markup |
+| **k8s / pod logs** | C14–C16 | Triage, a wrong hypothesis, a performance regression across two logs |
+| **Sentry JSON** | C17–C18 | One event where the headline error is the symptom; eight issues to group and prioritise |
+
+### The whole board, by material
+
+Scores on the judge of record. Best local figure in each column in bold.
+
+| Model | GB | Text | C09 | Screens | k8s | Sentry |
+|---|---|---|---|---|---|---|
+| claude-sonnet-5 | — | 96.4 | 94.5 | 84.9 | 82.9 | 62.8 |
+| Qwen3.8-27B-vision `=medium` ⁵ | 20.0 | 91.2 | **97.2** | **77.0** | **82.6** | **64.8** |
+| Muse-Glimmer-30B | 16.7 | **94.2** | **97.2** | 72.2 | 76.9 | 49.5 |
+| Gemma-4-31B | 22.7 | 80.8 | 80.5 | 57.1 | 51.9 | 32.6 |
+| Qwen3-VL-32B-Instruct | ~29 | 75.7 | 77.8 | 61.1 | 48.9 | 17.6 |
+| Qwen3-VL-32B-Thinking | ~35 | 76.6 | 83.3 | 56.3 | 33.1 | 24.9 |
+| Qwen3-VL-8B-Thinking | 13.0 | 71.6 | 66.7 | 35.7 | 30.6 | 15.8 |
+| Qwen3-VL-4B-Thinking | 11.0 | 70.9 | 75.0 | 42.1 | 25.8 | 8.3 |
+| Qwen3-VL-8B-Instruct | 9.4 | 58.2 | 75.0 | 51.6 | 43.8 | 5.2 |
+| Qwen2.5-VL-32B-Instruct | 32.5 | 65.9 | 66.7 | 42.9 | 28.0 | 6.7 |
+| Qwen3-VL-4B-Instruct | 7.9 | 63.3 | 61.1 | 43.7 | 28.5 | 13.7 |
+| Qwen2.5-VL-72B-Instruct | 56.3 | 64.1 | 50.0 | 45.2 | 15.5 | 6.0 |
+| Qwen3-VL-2B-Thinking | 8.1 | 37.6 | 41.7 | 29.4 | 3.9 | 0.0 |
+| Qwen3-VL-2B-Instruct | 5.4 | 34.3 | 44.4 | 27.0 | 6.6 | 0.8 |
+| Qwen2.5-VL-7B-Instruct | 7.1 | 37.7 | 27.8 | 22.2 | 1.1 | 1.5 |
+| Qwen2.5-VL-3B-Instruct | 4.1 | 22.1 | 30.6 | 7.9 | 0.9 | 1.5 |
+| Falcon-H1-Tiny-90M | 0.4 | 1.7 | 2.8 | 0.0 | 0.0 | 0.0 |
+
+### The top three on a neutral judge
+
+The three leading configurations have also been graded by `claude-sonnet-5`, which
+is the trustworthy comparison for them — two of the three are the judge of record.
+Sonnet's own row is still self-reported through Qwen3.8 and runs about +1.7 high,
+so its adjusted figures are given in brackets.
+
+| Sonnet's judging | Text | C09 | Screens | k8s | Sentry |
+|---|---|---|---|---|---|
+| claude-sonnet-5 (adjusted) | 96.4 (~94.7) | 94.5 (~92.8) | 84.9 (~83.2) | 82.9 (~81.2) | 62.8 (~61.1) |
+| Qwen3.8-27B `=medium` | 89.4 | 91.7 | 77.8 | **82.0** | 56.5 |
+| Qwen3.8-27B `=low` | 88.9 | 88.9 | **81.0** | 78.1 | 53.3 |
+| Muse-Glimmer-30B | **92.9** | **100.0** | 73.8 | 69.0 | 48.0 |
+
+**This corrects the impression the board table gives.** On the judge of record
+Qwen3.8-27B appears to *beat* Sonnet on Sentry, 64.8 to 62.8. On a neutral judge
+it does not — 56.5 against roughly 61.1. That row is self-judged; Sentry is where
+the inflation lands.
+
+### Recommendations
+
+**Plain-text tickets → Muse-Glimmer-30B.** 92.9 against Sonnet's adjusted ~94.7,
+so within two points of a frontier model at 16.7 GB and 51s a case. It is also the
+most careful model measured on this material — 0.44 unsupported claims per
+analysis, fewest traps — which matters most here, because prose tickets are the
+ones people read and act on without checking a log.
+
+**Tickets that reference a screenshot they do not include → Muse-Glimmer**, which
+scores **100.0** on C09, better than Sonnet. Spotting that the evidence is missing
+rather than inventing what it probably said is a discipline the careful models win
+at; the 72B manages 50.0 and the 7B 27.8.
+
+**Tickets with screenshots → Qwen3.8-27B at `=low`.** 81.0 against Sonnet's
+adjusted ~83.2 — the closest any local model gets on vision. Note `=low` beats
+`=medium` here (81.0 against 77.8): on images, extra reasoning makes it worse, not
+better. Muse is the weakest of the three on screenshots at 73.8, so this is the one
+category where it should not be the default.
+
+**k8s and pod logs → Qwen3.8-27B at `=medium`.** **82.0 against Sonnet's adjusted
+~81.2 — level with a frontier model.** This is the strongest local result anywhere
+on the board and the clearest case for running on-prem: log triage rewards
+exhaustive extraction, which is exactly what this model's recall buys, and its
+weakness (over-assertion) is cheap here because claims are checkable against the
+log itself.
+
+**Sentry JSON → Qwen3.8-27B at `=medium`, but expect a real gap.** 56.5 against
+Sonnet's ~61.1, and C17 defeats everything measured. If Sentry triage is the main
+job, this is the one category where the API call is still worth paying for.
+
+**Mixed material, one model → Qwen3.8-27B at `=low`.** Strongest on screenshots,
+second on logs and Sentry, and only 4 points behind Muse on text, at a third fewer
+unsupported claims than `=medium`. If instead the mix is mostly prose with
+occasional attachments, take Muse and accept the drop on the few image cases.
+
+#### If you have less than 17 GB
+
+The picture changes completely, and one category disappears:
+
+| Budget | Text | Screenshots | k8s logs | Sentry |
+|---|---|---|---|---|
+| **~13 GB** | 8B-Thinking 71.6 | 8B-Instruct 51.6 | 8B-Instruct 43.8 | — |
+| **~9 GB** | 4B-Thinking 70.9 (11.0 GB) | 8B-Instruct 51.6 (9.4 GB) | 8B-Instruct 43.8 (9.4 GB) | — |
+| **~8 GB** | 4B-Instruct 63.3 | 4B-Instruct 43.7 | 4B-Instruct 28.5 | — |
+
+**Sentry analysis does not work below about 17 GB.** The best sub-13 GB score is
+15.8 and most are under 10, against 56.5 for Qwen3.8-27B. This is not a gentle
+decline — it is a capability that is either present or absent, and nothing in the
+Qwen3-VL fleet has it. If you need Sentry triage, the hardware requirement is real.
+
+**`Qwen3-VL-8B-Instruct` at 9.4 GB is the best cheap all-rounder for attachments**,
+leading its bracket on both screenshots and logs. For text-only work
+`Qwen3-VL-4B-Thinking` at 11.0 GB is better and nearly ties the 8B-Thinking for
+2 GB less.
+
+#### Read these numbers with their sample sizes
+
+The groups are uneven: 9 cases for text, 3 for screenshots, 3 for logs, 2 for
+Sentry, 1 for C09. With per-case variance of 15–25 points across repeats, the
+two-case Sentry column and the single-case C09 column are the noisiest things in
+this file. Treat gaps under about 5 points in those columns as unresolved, and the
+C09 figures as one measurement rather than a property of the model. The text column
+is the most reliable.
+
+## Findings
+
+The sections below are the evidence behind the recommendations above, and the
+record of what was measured, corrected and retracted along the way.
+
 ### Reasoning effort, isolated: it buys recall and costs precision
 
 `Qwen3.8-27B-imatrix-vision` has been run twice at `=medium` and `=low` with
