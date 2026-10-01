@@ -116,31 +116,90 @@ Qwen3.8-27B-imatrix:Q4_K_S           | 65536   | 40000       | medium | 0
 
 # Jira ticket analyst config details
 
-Temperature is per track, not per fleet: the Instruct cards ask 0.7 and the
-Thinking cards 1.0, and a single value cannot suit both. **Thinking builds run at
-1.0** - at 0.3 they loop until `num_predict` runs out and return empty content,
-which cost the 8B 9 of 54 cases and the 32B 3 of 54. **Instruct builds run at
-0.3**, where no such failure has been seen. `--compare` ranks runs at different
-temperatures side by side and shows the value in its own column.
+Every row below is what a run actually used, not a suggestion. Results are in
+[TICKET_ANALYST_RESULTS.md](TICKET_ANALYST_RESULTS.md); the per-material
+recommendations are in its "Which model for which job" section.
+
+**Temperature is per track, not per fleet**: the Instruct cards ask 0.7 and the
+Thinking cards 1.0, and a single value cannot suit both. Thinking builds run at
+**1.0** - at 0.3 they loop until `num_predict` runs out and return empty content,
+which cost the 8B 9 of 54 cases and the 32B 3 of 54. Instruct builds run at
+**0.3**, though that is now known to be wrong below 8B: the 4B-Instruct truncated
+on 4 of 54 runs and the 2B-Instruct on 7 of 54. Use 0.7 for any new small Instruct
+build. `--compare` ranks runs at different temperatures side by side and shows the
+value in its own column.
+
+**The `think` column is the Ollama reasoning level**, passed as `model=value` in
+the workflow's `model` input. It is not the same thing for every model - see the
+notes under the table.
 
 ```text
-Model name                              | num_ctx | num_predict | temperature | repeats
-Qwen2.5-VL-72B-Instruct:Q4_K_S          | 32768   | 8192        | 0.3         | 3
-Qwen2.5-VL-32B-Instruct:Q5_K_M          | 32768   | 8192        | 0.3         | 3
-Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S   | 32768   | 8192        | 0.3         | 3
-Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M   | 32768   | 8192        | 0.3         | 3
-Qwen3-VL-32B-Instruct-imatrix:Q4_K_M    | 32768   | 8192        | 0.3         | 3
-Qwen3-VL-8B-Instruct-imatrix:Q3_K_M     | 32768   | 8192        | 0.3         | 3
-Qwen3-VL-4B-Instruct-imatrix:Q4_K_M     | 32768   | 8192        | 0.3         | 3
-Qwen3-VL-2B-Instruct-imatrix:Q4_K_M     | 32768   | 8192        | 0.3         | 3
-Qwen3-VL-32B-Thinking:Q5_K_M            | 49152   | 16384       | 1.0         | 3
-Qwen3-VL-8B-Thinking-imatrix:Q4_K_M     | 49152   | 16384       | 1.0         | 3
-Qwen3-VL-4B-Thinking-imatrix:Q5_K_M     | 49152   | 16384       | 1.0         | 3
-Qwen3-VL-2B-Thinking-imatrix:Q5_K_S     | 49152   | 16384       | 1.0         | 3
-claude-sonnet-5                         | n/a     | 8192        | not sent    | 3
+Model name                              | num_ctx | num_predict | temperature | think  | repeats
+Qwen3.8-27B-imatrix-vision:Q4_K_S *1    | 65536   | 40960       | 1.0         | medium | 3
+Qwen3.8-27B-imatrix-vision:Q4_K_S *1    | 65536   | 40960       | 1.0         | low    | 3
+Muse-Glimmer-30B-imatrix:Q4_K_S         | 49152   | 16384       | 1.0         | n/a *2 | 3
+Gemma-4-31B-it-imatrix:Q4_K_M           | 49152   | 16384       | 1.0         | blank  | 3
+Qwen3-VL-32B-Thinking:Q5_K_M            | 49152   | 16384       | 1.0         | blank  | 3
+Qwen3-VL-8B-Thinking-imatrix:Q4_K_M     | 49152   | 16384       | 1.0         | blank  | 3
+Qwen3-VL-4B-Thinking-imatrix:Q5_K_M     | 49152   | 16384       | 1.0         | blank  | 3
+Qwen3-VL-2B-Thinking-imatrix:Q5_K_S     | 49152   | 16384       | 1.0         | blank  | 3
+Qwen3-VL-32B-Instruct-imatrix:Q4_K_M    | 32768   | 8192        | 0.3         | n/a    | 3
+Qwen3-VL-8B-Instruct-imatrix:Q3_K_M     | 32768   | 8192        | 0.3         | n/a    | 3
+Qwen3-VL-4B-Instruct-imatrix:Q4_K_M     | 32768   | 8192        | 0.3 *3      | n/a    | 3
+Qwen3-VL-2B-Instruct-imatrix:Q4_K_M     | 32768   | 8192        | 0.3 *3      | n/a    | 3
+Qwen2.5-VL-72B-Instruct:Q4_K_S          | 32768   | 8192        | 0.3         | n/a    | 3
+Qwen2.5-VL-32B-Instruct:Q5_K_M          | 32768   | 8192        | 0.3         | n/a    | 3
+Qwen2.5-VL-7B-Instruct-imatrix:Q4_K_S   | 32768   | 8192        | 0.3         | n/a    | 3
+Qwen2.5-VL-3B-Instruct-imatrix:Q4_K_M   | 32768   | 8192        | 0.3         | n/a    | 3
+Falcon-H1-Tiny-90M-Instruct:Q4_K_S      | 24576   | 2048        | 0.3         | n/a    | 3
+claude-sonnet-5                         | n/a     | 8192        | not sent    | n/a    | 3
 ```
 
-The judge is hardcoded to `Qwen3.8-27B-imatrix:Q4_K_S` with `think=medium` and
+## Notes on the analyst settings
+
+**\*1 Qwen3.8-27B needs `=medium` or `=low` explicitly, and the tag matters.**
+Two rows because both were measured and they are different tools, not a better and
+a worse setting: `=medium` wins on logs (82.0) and Sentry (56.5), `=low` wins on
+screenshots (81.0) and makes a third fewer unsupported claims. Neither is
+optional - this model's `reasoning_effort` **defaults to xhigh**, and
+`JUDGE_DEFAULTS` only supplies `medium` when it is the *judge*. On the analyst path
+`--think` defaults to blank, so left alone it reasons at xhigh and returns empty
+content.
+
+Note also that the analyst tag is **`Qwen3.8-27B-imatrix-vision:Q4_K_S`**, which is
+a separate build from the judge of record `Qwen3.8-27B-imatrix:Q4_K_S`. Same base
+weights; the analyst build has the mmproj vision projector and the judge build does
+not. Do not overwrite the judge tag - seventeen ranked results depend on it. And do
+not grade this model with the default judge: that is the same model, so use
+`judge: claude-sonnet-5` and expect the run to land under "Not ranked".
+
+**\*2 Muse-Glimmer ignores the `think` setting entirely.** Its card controls
+reasoning with a `Reasoning strength: low|medium|high|xhigh` line in the *system
+prompt*, which `Modelfile.Muse-Glimmer-30B` sets to `low`. Passing
+`Muse-Glimmer-30B-imatrix:Q4_K_S=low` in the workflow is not an error and not a
+setting - it is a no-op. To change it, edit the Modelfile and re-create the tag.
+
+**\*3 0.3 is too low for these two and the figure is known.** The 4B-Instruct hit
+`num_predict` on 4 of 54 runs, costing about 0.21 quality points; the 2B-Instruct
+on 7 of 54, costing 1.5-2 points of its 25.3. Neither was re-run because both sit
+far below the leaders, but a new Instruct build under 8B should use the card's 0.7.
+
+**`num_ctx` is constrained, not chosen.** The largest case (C08) is ~17,700 tokens
+and the pre-flight check requires `num_ctx - num_predict - 500` above that, so
+32768/16384 fails outright. That is why the Thinking track runs 49152 and
+Qwen3.8-27B runs 65536 against its 40960 budget. Going higher costs KV cache for no
+benefit at these case sizes - except on Muse, where the cache is so small
+(0.69 GiB at 49152) that context is nearly free.
+
+## The judge
+
+Hardcoded to **`Qwen3.8-27B-imatrix:Q4_K_S`** with `think=medium` and
 `num_predict 40960`, supplied by `JUDGE_DEFAULTS` when the workflow's `judge`
-input is blank. Results and the reasoning behind that choice are in
-[TICKET_ANALYST_RESULTS.md](TICKET_ANALYST_RESULTS.md).
+input is blank. Without `think=medium` it reasons at xhigh and returns empty
+content. It runs about **+2 generous** against `claude-sonnet-5` on every model
+measured, including its own output, so the ranked scores are a couple of points
+high in absolute terms while their relative ordering holds.
+
+A Claude judge instead takes `num_predict` as its `max_tokens` and defaults to
+**32768** (`CLAUDE_JUDGE_NUM_PREDICT`). The earlier fixed 16,000 was not enough for
+C17 and silently lost two of three repeats.
