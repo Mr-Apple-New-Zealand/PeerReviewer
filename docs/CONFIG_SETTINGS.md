@@ -18,6 +18,7 @@ is what you actually pull and run.
 | ------------------ | --------------------------------------------- | -------------------------------------- | ------- | ------------- | ------------ |
 | `MiniMax-M3`       | n/a - hosted API                              | `minimax-m3:cloud`                     | n/a     | n/a           | yes          |
 | `claude-opus-5`    | n/a - hosted API                              | `claude-opus-5`                        | n/a     | n/a           | yes          |
+| `kimi-k3.1-pro`    | n/a - hosted API                              | `kimi-k3.1-pro:cloud`                  | n/a     | n/a           | yes          |
 | `claude-sonnet-5`  | n/a - hosted API                              | `claude-sonnet-5`                      | n/a     | n/a           | yes          |
 | `kimi-k3`          | n/a - hosted API                              | `kimi-k3`                              | n/a     | n/a           | yes          |
 | `glm-5.2`          | n/a - hosted API                              | `glm-5.2`                              | n/a     | n/a           | yes          |
@@ -82,9 +83,9 @@ between a server and a laptop.
 
 ## Sampler settings
 
-Every model received `num_ctx: 65536`, `num_predict: 40000` and `temperature: 0`.
-`think` is blank where the request omitted it, so the model's own Modelfile
-applied.
+Every model received `num_ctx: 65536`, `num_predict: 40000` and `temperature: 0`,
+except where a row below says otherwise. `think` is blank where the request
+omitted it, so the model's own Modelfile applied.
 
 ```text
 Model name                           | num_ctx | num_predict | think  | temperature
@@ -97,6 +98,7 @@ Gemma-4-31B-it-imatrix:Q4_K_M        | 65536   | 40000       | blank  | 0
 glm-5.2                              | 65536   | 40000       | blank  | 0        
 gpt-oss:120B                         | 65536   | 40000       | blank  | 0          
 Kimi-k3                              | 65536   | 40000       | blank  | 0        
+kimi-k3.1-pro:cloud                  | 65536   | 100000 *    | blank  | 0          
 MiniMax-M2.7:Q3_K_S                  | 65536   | 40000       | blank  | 0          
 minimax-m3:cloud                     | 65536   | 40000       | blank  | 0          
 Muse-Glimmer-30B-imatrix:Q4_K_S      | 65536   | 40000       | blank  | 0          
@@ -111,6 +113,21 @@ Qwen3.5-122B-imatrix:Q4_K_S          | 65536   | 40000       | blank  | 0
 Qwen3.6-27B:Q4_K_S                   | 65536   | 40000       | medium | 0          
 Qwen3.8-27B-imatrix:Q4_K_S           | 65536   | 40000       | medium | 0          
 ```
+
+**\* `kimi-k3.1-pro` does not complete at `num_predict: 40000`.** With `think`
+blank its reasoning stays on and counts against the output cap. The values that
+produced the recorded results, by role:
+
+| Role     | num_predict | What happened at 40000                                       | Tokens used at the raised cap |
+| -------- | ----------- | ------------------------------------------------------------ | ----------------------------- |
+| Reviewer | 100000      | No review at all: 184,944 characters of reasoning, then `length` | 48,297                    |
+| Patcher  | 64000       | Cut off after 7 of 13 files; the fragment does not compile   | 57,789                        |
+| Scorer   | 100000      | Not tried                                                    | 10,269 (largest of three)     |
+
+The patcher's 57,789 is 90% of its cap, so a repeat run could truncate; raise it
+to 100000 if that happens. Leave the reviewer's temperature field at `0` when
+dispatching - the review workflow defaults to 0.3 when it is left blank, and the
+first `kimi-k3.1-pro` review went out at that value and had to be repeated.
 
 
 

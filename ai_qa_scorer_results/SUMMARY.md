@@ -1,10 +1,10 @@
 # Scorer Benchmark — Results Summary
 
-Twenty-two models were tested as *scorers* — the component that grades a code review against
+Twenty-three models were tested as *scorers* — the component that grades a code review against
 `ISSUES.md` — rather than as reviewers. Each was given three synthetic reviews with known
 correct answers and asked to produce a scorecard. Every model received an identical prompt,
 system prompt and sampler settings; the harness records both digests and the decoy definition
-in each run’s `results.json`, and all twenty-two share the same values.
+in each run’s `results.json`, and all twenty-three share the same values.
 
 The companion document for the review benchmark is
 [../ai_code_review_results/SUMMARY.md](../ai_code_review_results/SUMMARY.md).
@@ -13,7 +13,7 @@ The companion document for the review benchmark is
 
 ## Executive Summary
 
-**Thirteen of the twenty-two scored a perfect 100.0%, so the headline Score does not rank them.**
+**Thirteen of the twenty-three scored a perfect 100.0%, so the headline Score does not rank them.**
 The number that separates a good scorer from a bad one is **Ungrounded** — rows the scorer
 rated Found or Partial with nothing in the review to support them. That column runs from 0 to
 84 across a field whose Scores run from 100.0% to 98.9%.
@@ -51,7 +51,8 @@ review result, the same 5.4GB model can both write and grade a review on a corpo
 **Cost is the only argument against the hosted models.** `glm-5.2` is the fastest scorer
 measured at **25.6 seconds** with zero ungrounded rows, and `claude-sonnet-5`, `claude-opus-5`
 and `kimi-k3` are all clean. They are per-call charges against a local model that is free and
-comparable.
+comparable. The newer `kimi-k3.1-pro` is the exception: it grades every row correctly but loses
+five of them to the grounding check, and lands at 97.0%.
 
 ---
 
@@ -107,10 +108,11 @@ correct.
 | 16 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
 | 17 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
 | 18 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
-| 19 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
-| 20= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
-| 20= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
-| 20= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
+| 19 | kimi-k3.1-pro | 97.0% | 5 | 17/70 | 21 | 81.5s | Correct grades, paraphrased notes — see notes |
+| 20 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
+| 21= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
+| 21= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
+| 21= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
 
 *Decoy credited = issues rated Found or Partial on a review that names 16. Times are Ollama
 generation time; `claude-*` figures are wall clock and include the network round trip.*
@@ -132,7 +134,7 @@ summarises descriptions instead of copying them. No candidate offered a measurab
 improvement, so the incumbent stays.
 
 The scorer benchmark also retroactively supports the review results: the instrument that
-graded all twenty-two reviews grades correctly here.
+graded all twenty-three reviews grades correctly here.
 
 ### The three that credit everything
 
@@ -172,7 +174,7 @@ Six scorers manage that decoy result. What separates them is cost:
 
 The two flawless sheets, `Muse-Glimmer-30B` and `Qwen3.6-27B`, take six times as long. M3 is
 within a tenth of a second of Sonnet while paraphrasing a third as many Descriptions, and the
-other sixteen scorers either credit more than the decoy names, credit fewer than the 16 real
+other seventeen scorers either credit more than the decoy names, credit fewer than the 16 real
 ones, or fail outright.
 
 It does not displace the incumbent, which is free, local and faster still at 30 seconds. It is
@@ -221,6 +223,33 @@ Description cells, by far the most, and missed 2 of the 16 decoy issues.
 
 None of these is disqualifying, but all three are measurably behind the leaders.
 
+### kimi-k3.1-pro — right answers, marked down for paraphrasing
+
+Its raw scorecards are perfect: 70 Found on the perfect review, 70 Missed on the null, and on
+the decoy the 16 named issues plus the two twins, with no false credits among the 52 silent
+ones. It finishes at 97.0% because the grounding check then removed five of those Found
+ratings — `E1`, `E2`, `RL5` and `N2` on the perfect review, `L3` on the decoy — leaving 66 of
+70 and 15 of 16.
+
+All five were read against the reviews, and all five are correct findings. The review states
+each issue in so many words; the scorer's Note describes it in its own instead of quoting it
+("The `SearchUsers` error-handling row says all exceptions are swallowed…"), and falls just
+short of the overlap the check requires. This is the opposite of the three that credit
+everything: there the check removes credits that should never have been given, here it removes
+credits that were earned.
+
+It rewrites the Description column the same way — 21 misaligned rows, 16 of them on the decoy,
+where it cut each description to a single clause. The ratings on those rows are right.
+
+That makes it a worse scorer in practice than its predecessor, not a worse grader. The reported
+figures are post-processing because that is what production ships, and in production those
+five findings would be lost. `kimi-k3` passes the same checks with zero ungrounded rows and
+half as many misaligned.
+
+It was run with a 100,000-token output cap rather than 40,000, as a precaution after it
+exhausted the default cap on the review benchmark. The cap was not a factor here: its largest
+response was 10,269 tokens.
+
 ---
 
 ## Recommendation
@@ -238,7 +267,9 @@ is the fastest of everything measured at 25.6 seconds with zero ungrounded rows;
 seconds for the same decoy result and rewrites 5 Descriptions against glm-5.2's 16, so its
 scorecards are appreciably easier to check by eye. Its successor `glm-5.3` grades just as cleanly and keeps far more of
 the reference Descriptions intact (8 misaligned against glm-5.2's 16), but takes three times as
-long, duplicates rows, and will not run at this benchmark's defaults.
+long, duplicates rows, and will not run at this benchmark's defaults. Prefer `kimi-k3` to
+`kimi-k3.1-pro`: the newer model grades as accurately but paraphrases its evidence, and loses
+correct findings to the grounding check as a result.
 
 **Never use as a scorer:** `MiniMax-M2.7`, `Codestral-22B`, `Devstral-2-123B` — all credit
 almost everything. Note that the M2.7 objection does **not** carry to `MiniMax-M3`, which is
@@ -258,10 +289,11 @@ among the best measured. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail 
   alignment, the evidence spot-check, unsupported Partials and citation validity. The reported
   figures are post-processing, because that is what production ships.
 - **Settings:** temperature 0, 65,536 context, 40,000 output tokens, identical system prompt.
+  `kimi-k3.1-pro` was given 100,000 output tokens and used 10,269.
   Models that spend their budget on internal reasoning were run with `think: false`; the
   effective value is recorded in every run.
 - **Comparability:** every run records the harness commit, both prompt digests, the
-  `ISSUES.md` digest and the decoy definition. All twenty-two share the same inputs.
+  `ISSUES.md` digest and the decoy definition. All twenty-three share the same inputs.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 
 ---

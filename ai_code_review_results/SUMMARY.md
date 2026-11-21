@@ -1,6 +1,6 @@
 # AI Code Review Benchmark — Results Summary
 
-Twenty-two models were asked to review the same deliberately-flawed C# application
+Twenty-three models were asked to review the same deliberately-flawed C# application
 (`SampleBankingApp/`) and their reviews were scored against 70 known, seeded defects
 recorded in `ISSUES.md`. Every model received an identical prompt, an identical system
 prompt, and identical sampler settings. Full per-model settings are in
@@ -17,10 +17,10 @@ downgrades. It is the only full-marks sheet in the field that survives every int
 untouched, and it produced it in 1m 55s on 12,497 output tokens — second only to `glm-5.2` on
 speed among the leaders.
 
-**Six models found essentially everything: `MiniMax-M3` at 70, then `claude-sonnet-5`,
-`claude-opus-5`, `kimi-k3`, `glm-5.2` and `glm-5.3` at 69.** The five behind it are separated by
-nothing meaningful — one mis-credited row each — and all six are hosted services rather than
-local models.
+**Seven models found essentially everything: `MiniMax-M3` at 70, then `claude-sonnet-5`,
+`claude-opus-5`, `kimi-k3.1-pro`, `kimi-k3`, `glm-5.2` and `glm-5.3` at 69.** The six behind it
+are separated by nothing meaningful — a single row each — and all seven are hosted services
+rather than local models.
 
 **The headline result is that Claude Sonnet 5 matched Claude Opus 5.** Both scored 69
 adjusted; Sonnet used fewer output tokens (19,751 vs 23,932) and finished in 2m53s against
@@ -28,7 +28,7 @@ adjusted; Sonnet used fewer output tokens (19,751 vs 23,932) and finished in 2m5
 there is no evidence in this benchmark for paying the Opus premium on this task.
 
 **The best local model is `Qwen3.8-27B` — but for a reason the raw score hides.** It scored
-62, below `Qwen3.6-27B` at 65 and `Muse-Glimmer-30B` at 64. However it is one of only four
+62, below `Qwen3.6-27B` at 65 and `Muse-Glimmer-30B` at 64. However it is one of only five
 models in the entire fleet to achieve **100% precision on a full-size sample**: every one of
 the 38 findings we could independently verify was genuinely supported by its review. The two
 models above it scored higher partly by claiming issues their reviews never actually raised.
@@ -73,26 +73,27 @@ Adjusted Found as an upper bound.** Manual inspection of several such sheets fou
 |---|---|---|---|---|---|---|
 | 1 | **MiniMax-M3** | **70** | 70/0/0 | **100% (40)** | 0 / 214 | Only clean sweep in the field |
 | 2= | **claude-opus-5** | **69** | 69/0/1 | **100% (39)** | 0 / 374 | Clean on every check |
+| 2= | **kimi-k3.1-pro** | **69** | 69/1/0 | **100% (39)** | 0 / 399 | Needs a 100,000-token output cap — see notes |
 | 2= | **claude-sonnet-5** | **69** | 70/0/0 | 98% (40) | 0 / 201 | Matches Opus at lower cost |
 | 2= | **kimi-k3** | **69** | 70/0/0 | 98% (40) | 0 / 312 | Cloud-hosted |
 | 2= | **glm-5.2** | **69** | 70/0/0 | 98% (40) | 0 / 154 | Cloud-hosted; fastest at 47s |
 | 2= | **glm-5.3** | **69** | 70/0/0 | 98% (40) | 0 / 66 | Reasoning inlined in the review — see notes |
-| 7 | Qwen3.5-122B | 66 | 69/0/1 | 92% (39) | 0 / 141 | Reading found ~6 further over-credits |
-| 8 | Qwen3.6-27B | 65 | 70/0/0 | 88% (40) | 0 / 72 | Reading found ~9 further over-credits |
-| 9 | Muse-Glimmer-30B | 64 | 69/0/1 | 87% (39) | 0 / 110 | Strong for its RAM footprint |
-| 10 | **Qwen3.8-27B** | 62 | 62/0/8 | **100% (38)** | 0 / 220 | **Best local model — see notes** |
-| 11= | gpt-oss-120B | 58 | 62/0/8 | 89% (35) | 1 / 55 | |
-| 11= | Qwen3-Coder-Next | 58 | 63/0/7 | 86% (35) | 0 / 126 | Reading found ~7 further over-credits |
-| 13 | MiniMax-M2.7 | 57 | 58/7/5 | 97% (32) | 0 / 176 | 99GB for a mid-table result |
-| 14 | Qwen3.5-4B | 55 | 60/9/1 | 86% (35) | 0 / 285 | Remarkable for 3GB |
-| 15 | Gemma-4-31B | 54 | 55/3/12 | 97% (33) | 0 / 87 | Honest scoring, few false claims |
-| 16 | **Qwen3.5-9B** | 41 | 41/28/1 | **100% (24)** | 1 / 97 | **Best laptop model — see notes** |
-| 17 | Qwen3-Coder-30B | 34 | 36/27/7 | 88% (17) | 0 / 1039 | Truncated; 90% of rows were test filler |
-| 18 | Devstral-2-123B | 32 | 32/28/10 | 100% (18) | 0 / 63 | 75GB, shallowest review of any model |
-| 19 | Qwen3-32B | 25 | 29/11/30 | 78% (18) | 0 / 44 | 2 rows scored against the wrong issue |
-| 20= | Qwen3.5-2B | 22 | 22/36/12 | 100% (13) | 0 / 143 | Thin but honest |
-| 20= | Codestral-22B | 22 | 23/46/1 | 93% (14) | 0 / 79 | Under-credited; ~26 on reading |
-| 22 | Qwen3.5-0.8B | 19 | 21/10/39 | 82% (11) | **4 / 902** | Hit token limit at 14m41s |
+| 8 | Qwen3.5-122B | 66 | 69/0/1 | 92% (39) | 0 / 141 | Reading found ~6 further over-credits |
+| 9 | Qwen3.6-27B | 65 | 70/0/0 | 88% (40) | 0 / 72 | Reading found ~9 further over-credits |
+| 10 | Muse-Glimmer-30B | 64 | 69/0/1 | 87% (39) | 0 / 110 | Strong for its RAM footprint |
+| 11 | **Qwen3.8-27B** | 62 | 62/0/8 | **100% (38)** | 0 / 220 | **Best local model — see notes** |
+| 12= | gpt-oss-120B | 58 | 62/0/8 | 89% (35) | 1 / 55 | |
+| 12= | Qwen3-Coder-Next | 58 | 63/0/7 | 86% (35) | 0 / 126 | Reading found ~7 further over-credits |
+| 14 | MiniMax-M2.7 | 57 | 58/7/5 | 97% (32) | 0 / 176 | 99GB for a mid-table result |
+| 15 | Qwen3.5-4B | 55 | 60/9/1 | 86% (35) | 0 / 285 | Remarkable for 3GB |
+| 16 | Gemma-4-31B | 54 | 55/3/12 | 97% (33) | 0 / 87 | Honest scoring, few false claims |
+| 17 | **Qwen3.5-9B** | 41 | 41/28/1 | **100% (24)** | 1 / 97 | **Best laptop model — see notes** |
+| 18 | Qwen3-Coder-30B | 34 | 36/27/7 | 88% (17) | 0 / 1039 | Truncated; 90% of rows were test filler |
+| 19 | Devstral-2-123B | 32 | 32/28/10 | 100% (18) | 0 / 63 | 75GB, shallowest review of any model |
+| 20 | Qwen3-32B | 25 | 29/11/30 | 78% (18) | 0 / 44 | 2 rows scored against the wrong issue |
+| 21= | Qwen3.5-2B | 22 | 22/36/12 | 100% (13) | 0 / 143 | Thin but honest |
+| 21= | Codestral-22B | 22 | 23/46/1 | 93% (14) | 0 / 79 | Under-credited; ~26 on reading |
+| 23 | Qwen3.5-0.8B | 19 | 21/10/39 | 82% (11) | **4 / 902** | Hit token limit at 14m41s |
 
 *Fabricated cites = review references to source lines that do not exist in the file.*
 
@@ -121,15 +122,48 @@ this score.
 The jump from `MiniMax-M2.7` is the largest generational gain measured here — 57 to 70 as a
 reviewer, and 97% precision on 32 rows to 100% on 40.
 
-### The five at 69
+### The six at 69
 
 `claude-opus-5` has a perfect precision score on the second-largest sample: all 39 checkable
 findings verified, 374 source citations all valid, no misaligned rows, no unsupported claims.
+`kimi-k3.1-pro` matches it on the same sample size — see its note below.
 `claude-sonnet-5`, `kimi-k3`, `glm-5.2` and `glm-5.3` each carry a single mis-credited row and
 are otherwise equally clean. The difference between 69 and 69 is noise.
 
 `glm-5.2` deserves a specific mention for speed — 47 seconds for a 69-point review, against
 5m22s for `kimi-k3` at the same score.
+
+### kimi-k3.1-pro — 69, but not at the default output cap
+
+69 Found, 1 Partial, 0 Missed, with 39 of 39 checkable findings verified, 0 grounding
+downgrades, 0 misaligned rows and 0 of 399 citations past the end of a file — the most
+citations of any leader. It is the only sheet among the leaders on which the scorer recorded a
+Partial at all.
+
+Two rows are flagged, and on reading neither moves the score:
+
+- **`R3`, rated Partial** — the overly long `GenerateJwtToken`. The spot-check marks it as
+  possibly under-credited because the method name appears in the review. It does, but only for
+  a null-forgiving secret access and repeated configuration keys. The review lists seven other
+  methods as doing too much and this is not one of them, so Partial is if anything generous.
+- **`N1`, rated Found** — flagged as self-hedged, giving the sheet a "plausible floor" of 68.
+  The hedge detector matched the phrase "but does not" in the scorer's note, and that phrase is
+  the review's own description of the defect (`jwtSecret!` "does not prevent" a null reaching
+  `GetBytes`), not a concession. The review also raises `N1` at its seeded location,
+  `AuthService.cs` line 70. Read it as 69, not 68.
+
+**It returns nothing at the benchmark's 40,000-token cap.** With `think` unset, which leaves
+reasoning on, the first attempt produced 184,944 characters of reasoning, `done_reason:
+length`, and zero characters of answer. At a 100,000 cap it finished naturally on 48,297
+tokens in 7m 22s, with 167,458 characters of reasoning against 48,753 of answer. The reasoning
+came back in the separate field, so unlike `glm-5.3` none of it was graded as review text.
+
+Against `kimi-k3` it buys nothing measurable: the same 69, for 72% more output tokens (48,297
+against 28,104) and 37% more time (7m 22s against 5m 22s), and `kimi-k3` completes inside the
+default cap. It is the slowest of the seven leaders.
+
+An earlier run at temperature 0.3 — the workflow's default when the field is left blank —
+scored the same 69/1/0 with the same Partial. The figures here are from the run at 0.
 
 ### glm-5.3 — a leading review inside a working notebook
 
@@ -256,7 +290,7 @@ nobody is checking its output. It leaves 6GB of headroom on a 20GB budget, so it
 co-exist with a normal corporate desktop load.
 
 **If you can free 20GB: `Muse-Glimmer-30B`.** 64 adjusted is a 56% improvement in findings
-over the 9B and puts it seventh overall, ahead of every other laptop-viable option. Its
+over the 9B and puts it tenth overall, ahead of every other laptop-viable option. Its
 unusually small KV cache (3.5GB, from 2 KV heads) is what makes a 16GB model fit where 27B
 models do not. The trade-off is 87% precision — roughly one claim in eight will not hold up,
 so treat its output as a list of leads rather than confirmed defects.
@@ -281,7 +315,9 @@ be used.
 - **Scoring:** each review is graded by `Qwen3-Coder-30B-imatrix:Q3_K_M` at temperature 0
   against `ISSUES.md`, producing Found / Partial / Missed per issue with a supporting quote.
 - **Settings:** all models ran at temperature 0, 65,536 context, 40,000 max output tokens,
-  with an identical system prompt. Per-model `think` settings and any deviations are recorded
+  with an identical system prompt. The exceptions are `glm-5.3` (128,000 output tokens) and
+  `kimi-k3.1-pro` (100,000 output tokens).
+  Per-model `think` settings and any deviations are recorded
   in [docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md), and every scorecard reprints the
   exact values used for that run.
 - **Model definitions:** Ollama build files for the local models are in
@@ -308,7 +344,7 @@ Each scorecard is validated by eight checks before its score is reported:
 ## Known limitations
 
 **The scorer is the weakest component.** It is a model, not a parser, and it consistently
-prefers crediting a near-miss over recording a clean Missed. Eleven of the twenty-two sheets
+prefers crediting a near-miss over recording a clean Missed. Eleven of the twenty-three sheets
 contain zero Partial ratings, which is not credible on a 70-issue task. The automated checks recover
 much of this — they made 15 to 17 corrections on some sheets — but they verify that evidence
 *exists*, not that it is *relevant*. Manual reading of several sheets found a further 6–9
