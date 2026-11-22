@@ -17,6 +17,7 @@ is what you actually pull and run.
 | Model              | Source GGUF                                   | Ollama tag                             | Weights | Resident @64k | Cloud hosted |
 | ------------------ | --------------------------------------------- | -------------------------------------- | ------- | ------------- | ------------ |
 | `MiniMax-M3`       | n/a - hosted API                              | `minimax-m3:cloud`                     | n/a     | n/a           | yes          |
+| `hy4`              | n/a - hosted API                              | `hy4:cloud`                            | n/a     | n/a           | yes          |
 | `claude-opus-5`    | n/a - hosted API                              | `claude-opus-5`                        | n/a     | n/a           | yes          |
 | `kimi-k3.1-pro`    | n/a - hosted API                              | `kimi-k3.1-pro:cloud`                  | n/a     | n/a           | yes          |
 | `claude-sonnet-5`  | n/a - hosted API                              | `claude-sonnet-5`                      | n/a     | n/a           | yes          |
@@ -97,6 +98,7 @@ Devstral-2-123B-Instruct-2512:Q4_K_M | 65536   | 40000       | blank  | 0
 Gemma-4-31B-it-imatrix:Q4_K_M        | 65536   | 40000       | blank  | 0          
 glm-5.2                              | 65536   | 40000       | blank  | 0        
 gpt-oss:120B                         | 65536   | 40000       | blank  | 0          
+hy4:cloud                            | 65536   | 100000 †    | false  | 0 †        
 Kimi-k3                              | 65536   | 40000       | blank  | 0        
 kimi-k3.1-pro:cloud                  | 65536   | 100000 *    | blank  | 0          
 MiniMax-M2.7:Q3_K_S                  | 65536   | 40000       | blank  | 0          
@@ -128,6 +130,22 @@ The patcher's 57,789 is 90% of its cap, so a repeat run could truncate; raise it
 to 100000 if that happens. Leave the reviewer's temperature field at `0` when
 dispatching - the review workflow defaults to 0.3 when it is left blank, and the
 first `kimi-k3.1-pro` review went out at that value and had to be repeated.
+
+**† `hy4` needs `think: false`, and its review was not run at temperature 0.** With
+`think` blank and `num_predict: 40000` the patcher spent all 40,000 tokens on
+reasoning and returned no file blocks. Every recorded run therefore used
+`think: false`, with `num_predict` raised to 100000 at the same time:
+
+| Role     | think | num_predict | temperature | Tokens used               |
+| -------- | ----- | ----------- | ----------- | ------------------------- |
+| Reviewer | false | 100000      | **0.3**     | 14,276                    |
+| Patcher  | false | 100000      | 0           | 8,419                     |
+| Scorer   | false | 100000      | 0           | 4,945 (largest of three)  |
+
+No role came near the default 40,000 once reasoning was off, so the raised cap
+was a precaution rather than a requirement; `think: false` is the setting that
+matters. The reviewer's 0.3 is the same blank-field default that caught
+`kimi-k3.1-pro`, and that run has not been repeated at 0.
 
 
 

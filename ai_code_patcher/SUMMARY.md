@@ -1,6 +1,6 @@
 # AI Code Patcher Benchmark — Results Summary
 
-Twenty-three models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
+Twenty-four models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
 find them. Each received the same source listing and the same issue list, and returned
 rewritten files. Every patch was then measured three ways: a peer review scored against
 `ISSUES.md`, a direct inspection of the patched source, and a compiler.
@@ -13,7 +13,7 @@ The companion documents are [../ai_code_review_results/SUMMARY.md](../ai_code_re
 
 ## Executive Summary
 
-**Ten of twenty-three produced code that compiles.** That is the finding. Thirteen models
+**Ten of twenty-four produced code that compiles.** That is the finding. Fourteen models
 returned patches that a C# compiler rejects — inventing methods that do not exist, deleting a
 class while still referencing it, dropping a `using` directive, or in one case emitting a
 project file that is not valid XML. A patch that does not build is not a patch, however many
@@ -33,6 +33,10 @@ other serious patcher missed.
 **`glm-5.3` will not run at this benchmark's defaults**, which is a finding in its own right —
 see below. Once configured it is the best of the hosted models bar Opus, and a clear
 improvement on `glm-5.2`.
+
+**`hy4` is the near miss.** It cleared 39 of 41 markers in 41 seconds, faster than anything
+that fixed more than a handful of defects — and its tree fails to build on one missing `using`
+directive. Like `glm-5.3`, it returns nothing at the defaults.
 
 **Model size predicts almost nothing.** `Devstral-2-123B` (75GB) cleared 31 markers in 16
 minutes and did not compile. `Qwen3.5-122B` managed 37 and did not compile. Meanwhile
@@ -85,19 +89,20 @@ Ordered by whether the patch builds, then by mechanical coverage.
 | 8 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
 | 9 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
 | 10 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
-| 11 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
-| 12 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
-| 13 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
-| 14 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
-| 15 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
-| 16 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
-| 17 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
-| 18 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
-| 19 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
-| 20 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
-| 21 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
-| 22 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
-| 23 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
+| 11 | hy4 | 39/41 | 1 × CS | 38/62 | 61% | 8,419 | 41s ‖ |
+| 12 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
+| 13 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
+| 14 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
+| 15 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
+| 16 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
+| 17 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
+| 18 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
+| 19 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
+| 20 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
+| 21 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
+| 22 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
+| 23 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
+| 24 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
 
 † Its patched tree was large enough to truncate the reviewer's input, so 98% is an upper bound.
 ‡ Reviewed by Muse-Glimmer, not Gemma — the figure is not comparable (see Limitations). Applies
@@ -108,6 +113,8 @@ advisory it never touched.
 defaults. See *The glm-5.2 → 5.3 regression*.
 § Required `num_predict: 64000`; at the default 40,000 the patch is cut off after 7 of 13
 files. See *kimi-k3.1-pro*.
+‖ Required `think: false`; at the defaults it spends the whole 40,000-token budget on reasoning
+and returns no patch. See *hy4*.
 
 ---
 
@@ -185,6 +192,28 @@ fragment scored 24 resolved with three compiler errors, all in `UserService.cs` 
 `TransactionService.cs`: the model had changed `DatabaseHelper`'s method signatures and was
 cut off before reaching the callers. At 64,000 it finished naturally, at 90% of the ceiling.
 
+### hy4 — 39 of 41 in 41 seconds, and one missing `using`
+
+`hy4` rewrote 13 files in 40.8 seconds on 8,419 output tokens. Only `Qwen3.5-2B` and
+`Qwen3.5-0.8B` were quicker, and they fixed 9 markers and none. It cleared 39 of 41, leaving
+`R3` — `GenerateJwtToken` is still one long method — and `D8`, the unenforced daily limit. Both
+are among the five defects the field found hardest.
+
+**It does not compile.** `TransactionService.cs` line 143 catches `SmtpException`, and the file
+has no `using System.Net.Mail;` — one `CS0246`, the only new error the compiler reported. It is
+the same one-line failure as `claude-sonnet-5`, and it puts a patch that would otherwise sit
+beside `Muse-Glimmer-30B` and `glm-5.2` below the line.
+
+Its Resolved figure is 38 of 62, or 61%: Gemma could name 62 defects before the patch and 24
+after. That is level with `MiniMax-M2.7`, which also cleared 39 markers and also failed to
+build.
+
+**It will not run at the defaults.** The first attempt, with `think` unset and
+`num_predict: 40000`, spent all 40,000 tokens on reasoning, stopped on `length`, and returned
+no file blocks at all. With `think: false` it finished naturally on 8,419 tokens — a fifth of
+the default cap. The recorded run also raised `num_predict` to 100,000, which turned out not to
+be needed.
+
 ### The glm-5.2 → 5.3 regression
 
 `glm-5.3` writes a better patch than `glm-5.2` — 40 of 41 markers against 39, both compiling —
@@ -216,7 +245,7 @@ previous attempt — same model, same settings, same prompt. Keep the ceiling at
 
 ### The compiler is the discriminator
 
-Thirteen models emitted code a compiler rejects, and the failures are strikingly similar. The
+Fourteen models emitted code a compiler rejects, and the failures are strikingly similar. The
 most common is rewriting one file and breaking a reference from another:
 
 | model | what broke |
@@ -225,6 +254,7 @@ most common is rewriting one file and breaking a reference from another:
 | Devstral-2-123B | removed the `_auditLog` field, left a use of it |
 | Codestral-22B | rewrote `Models/User.cs`; `TransactionService` can no longer find `User` |
 | gpt-oss-120B | replaced string concatenation with `StringBuilder`, no `using System.Text;` |
+| hy4 | caught `SmtpException` in `TransactionService.cs`, no `using System.Net.Mail;` |
 | MiniMax-M2.7 | replaced MD5 with a call to `HashAlgorithmNames`, which does not exist |
 | Qwen3-Coder-30B | emitted a `.csproj` that is not valid XML — nothing compiles at all |
 
@@ -244,15 +274,15 @@ one that reported success without attempting the work.
 
 ### What the field found hardest
 
-Across the twenty-one models that produced a patch:
+Across the twenty-two models that produced a patch:
 
 | defect | survived | |
 |---|---|---|
-| `CF9` | 13/21 | no `appsettings.Production.json` created |
-| `R3` | 12/21 | `GenerateJwtToken` left as one long method |
-| `E7` | 12/21 | no rate limiting or account lockout |
-| `A6` / `RL2` | 10/21 | connection-leaking `GetOpenConnection` retained |
-| `D8` | 9/21 | daily transaction limit never enforced |
+| `CF9` | 13/22 | no `appsettings.Production.json` created |
+| `R3` | 13/22 | `GenerateJwtToken` left as one long method |
+| `E7` | 12/22 | no rate limiting or account lockout |
+| `A6` / `RL2` | 10/22 | connection-leaking `GetOpenConnection` retained |
+| `D8` | 10/22 | daily transaction limit never enforced |
 
 The pattern is consistent: models fix what is visibly wrong in a line of code and skip what
 requires adding something that is not there. Every one of these five needs new code rather
@@ -309,9 +339,9 @@ two-thirds of the tokens, and it completes at the default ceiling where 3.1-pro 
 **Never use for patching:** `Qwen3.5-2B` and `Qwen3.5-0.8B` — one fixes almost nothing, the
 other fabricates having done so.
 
-**Always run the build check.** Four of the thirteen failures cost one line — a missing `using`,
-a dropped field. Without a compiler in the loop, all thirteen would have been scored as
-successful patches, and four of them would have ranked in the top half.
+**Always run the build check.** Five of the fourteen failures cost one line — a missing `using`,
+a dropped field. Without a compiler in the loop, all fourteen would have been scored as
+successful patches, and five of them would have ranked in the top half.
 
 ---
 
@@ -329,12 +359,12 @@ successful patches, and four of them would have ranked in the top half.
   a pre-existing package downgrade, and an unresolved restore stops compilation before any C#
   diagnostic appears.
 - **Settings:** temperature 0, 65,536 context, 40,000 output tokens for local models; 64,000
-  for the Anthropic models, `MiniMax-M3` and `kimi-k3.1-pro`; 128,000 for `glm-5.3`. Recorded
-  per run in `config`.
+  for the Anthropic models, `MiniMax-M3` and `kimi-k3.1-pro`; 128,000 for `glm-5.3`; 100,000
+  with `think: false` for `hy4`. Recorded per run in `config`.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md) and the
   `modelfiles/` directory.
 - **Provenance:** every run records its harness commit, all three prompt digests and the
-  `ISSUES.md` digest. Runs span commits `83ba9c8`–`55a4ec7`; the changes in that range affect
+  `ISSUES.md` digest. Runs span commits `83ba9c8`–`e2bc209`; the changes in that range affect
   reporting, diagnostics and input budgeting, not scoring.
 
 ---
@@ -373,13 +403,13 @@ mechanical and build results are unaffected.
 returns parseable file blocks, so the harness applies them and scores a fragment as though it
 were finished — and a defect in a file the model never reached is recorded as unfixed.
 `claude-opus-5`, `glm-5.3` and `kimi-k3.1-pro` all hit this, and `kimi-k3` came within 1,073
-tokens of it. Every run now records `delta.patch_truncated`, but four of the twenty-three
+tokens of it. Every run now records `delta.patch_truncated`, but four of the twenty-four
 needed a raised `num_predict` to produce a valid measurement at all, and the right ceiling is not knowable in
 advance.
 
-**Two models needed non-default settings to run.** `glm-5.3` and `Gemma-4-31B` both have
+**Three models needed non-default settings to run.** `glm-5.3`, `hy4` and `Gemma-4-31B` all have
 reasoning enabled by default and spend their entire output budget on it, returning nothing in
-the answer field; both need `think: false`. `think` unset does not mean off — it means the
+the answer field; all three need `think: false`. `think` unset does not mean off — it means the
 model decides. Per-model settings are in
 [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 

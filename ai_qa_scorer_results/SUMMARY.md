@@ -1,10 +1,10 @@
 # Scorer Benchmark — Results Summary
 
-Twenty-three models were tested as *scorers* — the component that grades a code review against
+Twenty-four models were tested as *scorers* — the component that grades a code review against
 `ISSUES.md` — rather than as reviewers. Each was given three synthetic reviews with known
 correct answers and asked to produce a scorecard. Every model received an identical prompt,
 system prompt and sampler settings; the harness records both digests and the decoy definition
-in each run’s `results.json`, and all twenty-three share the same values.
+in each run’s `results.json`, and all twenty-four share the same values.
 
 The companion document for the review benchmark is
 [../ai_code_review_results/SUMMARY.md](../ai_code_review_results/SUMMARY.md).
@@ -13,7 +13,7 @@ The companion document for the review benchmark is
 
 ## Executive Summary
 
-**Thirteen of the twenty-three scored a perfect 100.0%, so the headline Score does not rank them.**
+**Fourteen of the twenty-four scored a perfect 100.0%, so the headline Score does not rank them.**
 The number that separates a good scorer from a bad one is **Ungrounded** — rows the scorer
 rated Found or Partial with nothing in the review to support them. That column runs from 0 to
 84 across a field whose Scores run from 100.0% to 98.9%.
@@ -48,8 +48,9 @@ scorecard at all.
 is `UT`, the one reference issue written as prose rather than a table row. Combined with its
 review result, the same 5.4GB model can both write and grade a review on a corporate laptop.
 
-**Cost is the only argument against the hosted models.** `glm-5.2` is the fastest scorer
-measured at **25.6 seconds** with zero ungrounded rows, and `claude-sonnet-5`, `claude-opus-5`
+**Cost is the only argument against the hosted models.** `hy4` is the fastest scorer
+measured at **21.7 seconds**, with zero ungrounded rows and every reference Description left
+intact; `glm-5.2` is next at 25.6 seconds, and `claude-sonnet-5`, `claude-opus-5`
 and `kimi-k3` are all clean. They are per-call charges against a local model that is free and
 comparable. The newer `kimi-k3.1-pro` is the exception: it grades every row correctly but loses
 five of them to the grounding check, and lands at 97.0%.
@@ -90,29 +91,30 @@ correct.
 
 | # | Scorer | Score | Ungrounded | Decoy credited | Misaligned | Perfect time | Verdict |
 |---|---|---|---|---|---|---|---|
-| 1 | **glm-5.2** | 100.0% | **0** | 16/70 | 16 | **25.6s** | Fastest measured |
-| 2 | **Qwen3-Coder-30B** | 100.0% | 1 | 19/70 | **0** | 30.0s | **Incumbent — keep** |
-| 3 | Claude-Sonnet-5 | 100.0% | **0** | 16/70 | 17 | 43.9s | Clean, hosted |
-| 4 | **MiniMax-M3** | 100.0% | **0** | **16/70** | 5 | 44.0s | Perfect decoy, and fast |
-| 5 | Claude-Opus-5 | 100.0% | **0** | 18/70 | 19 | 63.7s | Clean, hosted |
-| 6 | gpt-oss-120B | 100.0% | **0** | 18/70 | 36 | 74.6s | Clean |
-| 7 | **glm-5.3** | 100.0% | **0** | 18/70 | 8 | 81.7s ◊ | Duplicated every row — see notes |
-| 8 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
-| 9 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
-| 10 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
-| 11 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
-| 12 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
-| 13 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
-| 14 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
-| 15 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
-| 16 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
-| 17 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
-| 18 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
-| 19 | kimi-k3.1-pro | 97.0% | 5 | 17/70 | 21 | 81.5s | Correct grades, paraphrased notes — see notes |
-| 20 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
-| 21= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
-| 21= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
-| 21= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
+| 1 | **hy4** | 100.0% | **0** | 18/70 | **0** | **21.7s** | Fastest measured, verbatim Descriptions — see notes |
+| 2 | **glm-5.2** | 100.0% | **0** | 16/70 | 16 | 25.6s | Clean, hosted, nearly as fast |
+| 3 | **Qwen3-Coder-30B** | 100.0% | 1 | 19/70 | **0** | 30.0s | **Incumbent — keep** |
+| 4 | Claude-Sonnet-5 | 100.0% | **0** | 16/70 | 17 | 43.9s | Clean, hosted |
+| 5 | **MiniMax-M3** | 100.0% | **0** | **16/70** | 5 | 44.0s | Perfect decoy, and fast |
+| 6 | Claude-Opus-5 | 100.0% | **0** | 18/70 | 19 | 63.7s | Clean, hosted |
+| 7 | gpt-oss-120B | 100.0% | **0** | 18/70 | 36 | 74.6s | Clean |
+| 8 | **glm-5.3** | 100.0% | **0** | 18/70 | 8 | 81.7s ◊ | Duplicated every row — see notes |
+| 9 | Kimi-k3 | 100.0% | **0** | 18/70 | 11 | 145.2s | Clean, hosted |
+| 10 | Qwen3.8-27B | 100.0% | **0** | 18/70 | 47 | 201.0s | Clean but slow |
+| 11 | Gemma-4-31B | 100.0% | **0** | 16/70 | 52 | 229.9s | Clean but slow |
+| 12 | **Muse-Glimmer-30B** | 100.0% | **0** | 16/70 | **0** | 266.1s | Flawless, slow |
+| 13 | **Qwen3.6-27B** | 100.0% | **0** | 16/70 | **0** | 268.3s | Flawless, slow |
+| 14 | MiniMax-M2.7 | 100.0% | **52** | **70/70** | 0 | 554.1s | **Credits everything** |
+| 15 | **Qwen3.5-9B** | 99.5% | **0** | 18/70 | **0** | 41.1s | **Best laptop scorer** |
+| 16 | Codestral-22B | 99.2% | **49** | **68/70** | 2 | 102.9s | **Credits everything** |
+| 17 | Qwen3-Coder-Next | 98.5% | 3 | 21/70 | **0** | 57.3s | Under-sensitive |
+| 18 | Qwen3.5-122B | 98.0% | 4 | 18/70 | 30 | 66.2s | Fabricates on perfect |
+| 19 | Qwen3.5-4B | 97.2% | 1 | 16/70 | 138 | 34.3s | Heavy paraphrase |
+| 20 | kimi-k3.1-pro | 97.0% | 5 | 17/70 | 21 | 81.5s | Correct grades, paraphrased notes — see notes |
+| 21 | Devstral-2-123B | 92.0% | **58** | **63/70** | 0 | 679.1s | **Credits everything** |
+| 22= | Qwen3.5-0.8B | **0.0%** | 69 | 0/70 | 127 | 12.9s | **Unusable** |
+| 22= | Qwen3.5-2B | **0.0%** | 84 | 7/70 | 1 | 17.8s | **Unusable** |
+| 22= | Qwen3-32B | **0.0%** | 0 | 0/70 | 0 | 355.6s | **Decoy unparseable** |
 
 *Decoy credited = issues rated Found or Partial on a review that names 16. Times are Ollama
 generation time; `claude-*` figures are wall clock and include the network round trip.*
@@ -134,7 +136,7 @@ summarises descriptions instead of copying them. No candidate offered a measurab
 improvement, so the incumbent stays.
 
 The scorer benchmark also retroactively supports the review results: the instrument that
-graded all twenty-three reviews grades correctly here.
+graded all twenty-four reviews grades correctly here.
 
 ### The three that credit everything
 
@@ -174,7 +176,7 @@ Six scorers manage that decoy result. What separates them is cost:
 
 The two flawless sheets, `Muse-Glimmer-30B` and `Qwen3.6-27B`, take six times as long. M3 is
 within a tenth of a second of Sonnet while paraphrasing a third as many Descriptions, and the
-other seventeen scorers either credit more than the decoy names, credit fewer than the 16 real
+other eighteen scorers either credit more than the decoy names, credit fewer than the 16 real
 ones, or fail outright.
 
 It does not displace the incumbent, which is free, local and faster still at 30 seconds. It is
@@ -250,6 +252,28 @@ It was run with a 100,000-token output cap rather than 40,000, as a precaution a
 exhausted the default cap on the review benchmark. The cap was not a factor here: its largest
 response was 10,269 tokens.
 
+### hy4 — the fastest clean sheet
+
+`hy4` returned 70 Found on the perfect review, 70 Missed on the null, and on the decoy the 16
+named issues plus the two twins, with nothing credited among the 52 silent ones. No ungrounded
+rows and no misaligned Descriptions on any of the three reviews, and 21.7 seconds on the
+perfect review — four seconds ahead of `glm-5.2`, which had been the fastest.
+
+It is the only hosted scorer that rewrote no Descriptions at all. Every other hosted model
+paraphrased between 5 and 21 of them, so its scorecards are the easiest of the hosted set to
+audit by eye.
+
+One row was flagged and not resolved: the hedge detector marked `RL3` on the perfect review.
+The rating stayed Found and the Score is unaffected, but the scorecards were not archived with
+the results, so the note itself has not been read.
+
+It was run with `think: false` and a 100,000-token output cap. `think: false` is not optional
+for this model — with reasoning left on it spent an entire 40,000-token budget deliberating in
+the patch benchmark and returned nothing — but the cap was not a factor: its largest response
+was 4,945 tokens. It has not been measured as a scorer with reasoning on.
+
+It does not displace the incumbent, which is free, local and takes 30 seconds.
+
 ---
 
 ## Recommendation
@@ -258,12 +282,14 @@ response was 10,269 tokens.
 clean, verbatim descriptions, and already in place.
 
 **Laptop or low-RAM: `Qwen3.5-9B-imatrix:Q4_K_S`.** 99.5% at 41 seconds in 5.4GB, with zero
-ungrounded and zero misaligned rows — one of only four scorers with a completely clean sheet.
+ungrounded and zero misaligned rows — one of only five scorers with a completely clean sheet.
 Its single miss is `UT`, the one reference issue written as prose. Paired with its review
 performance, one 5.4GB model does both jobs on a 32GB machine.
 
-**If a hosted call is acceptable: `glm-5.2` for speed, `MiniMax-M3` for auditability.** glm-5.2
-is the fastest of everything measured at 25.6 seconds with zero ungrounded rows; M3 takes 44.0
+**If a hosted call is acceptable: `hy4`, with `think: false`.** It is the fastest of everything
+measured at 21.7 seconds, with zero ungrounded rows and no rewritten Descriptions. Of the
+alternatives, take `glm-5.2` for speed or `MiniMax-M3` for auditability. glm-5.2
+is close behind at 25.6 seconds with zero ungrounded rows; M3 takes 44.0
 seconds for the same decoy result and rewrites 5 Descriptions against glm-5.2's 16, so its
 scorecards are appreciably easier to check by eye. Its successor `glm-5.3` grades just as cleanly and keeps far more of
 the reference Descriptions intact (8 misaligned against glm-5.2's 16), but takes three times as
@@ -290,17 +316,18 @@ among the best measured. `Qwen3.5-0.8B`, `Qwen3.5-2B`, `Qwen3-32B` — all fail 
   figures are post-processing, because that is what production ships.
 - **Settings:** temperature 0, 65,536 context, 40,000 output tokens, identical system prompt.
   `kimi-k3.1-pro` was given 100,000 output tokens and used 10,269.
+  `hy4` was given 100,000 with `think: false` and used 4,945.
   Models that spend their budget on internal reasoning were run with `think: false`; the
   effective value is recorded in every run.
 - **Comparability:** every run records the harness commit, both prompt digests, the
-  `ISSUES.md` digest and the decoy definition. All twenty-three share the same inputs.
+  `ISSUES.md` digest and the decoy definition. All twenty-four share the same inputs.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md).
 
 ---
 
 ## Known limitations
 
-**The Score alone is not a ranking.** Thirteen scorers tie at 100.0%, including one that
+**The Score alone is not a ranking.** Fourteen scorers tie at 100.0%, including one that
 credited every issue on the decoy. The Score answers "is this scorer broken?"; the Ungrounded
 column answers "is it any good?".
 
