@@ -18,6 +18,7 @@ is what you actually pull and run.
 | ------------------ | --------------------------------------------- | -------------------------------------- | ------- | ------------- | ------------ |
 | `MiniMax-M3`       | n/a - hosted API                              | `minimax-m3:cloud`                     | n/a     | n/a           | yes          |
 | `hy4`              | n/a - hosted API                              | `hy4:cloud`                            | n/a     | n/a           | yes          |
+| `inkling-2-small`  | n/a - hosted API                              | `inkling-2-small:cloud`                | n/a     | n/a           | yes          |
 | `claude-opus-5`    | n/a - hosted API                              | `claude-opus-5`                        | n/a     | n/a           | yes          |
 | `kimi-k3.1-pro`    | n/a - hosted API                              | `kimi-k3.1-pro:cloud`                  | n/a     | n/a           | yes          |
 | `claude-sonnet-5`  | n/a - hosted API                              | `claude-sonnet-5`                      | n/a     | n/a           | yes          |
@@ -98,7 +99,8 @@ Devstral-2-123B-Instruct-2512:Q4_K_M | 65536   | 40000       | blank  | 0
 Gemma-4-31B-it-imatrix:Q4_K_M        | 65536   | 40000       | blank  | 0          
 glm-5.2                              | 65536   | 40000       | blank  | 0        
 gpt-oss:120B                         | 65536   | 40000       | blank  | 0          
-hy4:cloud                            | 65536   | 100000 †    | false  | 0 †        
+hy4:cloud                            | 65536   | 100000 †    | false  | 0          
+inkling-2-small:cloud                | 65536   | 40000 ‡     | blank  | 0          
 Kimi-k3                              | 65536   | 40000       | blank  | 0        
 kimi-k3.1-pro:cloud                  | 65536   | 100000 *    | blank  | 0          
 MiniMax-M2.7:Q3_K_S                  | 65536   | 40000       | blank  | 0          
@@ -131,21 +133,38 @@ to 100000 if that happens. Leave the reviewer's temperature field at `0` when
 dispatching - the review workflow defaults to 0.3 when it is left blank, and the
 first `kimi-k3.1-pro` review went out at that value and had to be repeated.
 
-**† `hy4` needs `think: false`, and its review was not run at temperature 0.** With
+**† `hy4` needs `think: false`.** With
 `think` blank and `num_predict: 40000` the patcher spent all 40,000 tokens on
 reasoning and returned no file blocks. Every recorded run therefore used
 `think: false`, with `num_predict` raised to 100000 at the same time:
 
 | Role     | think | num_predict | temperature | Tokens used               |
 | -------- | ----- | ----------- | ----------- | ------------------------- |
-| Reviewer | false | 100000      | **0.3**     | 14,276                    |
+| Reviewer | false | 100000      | 0           | 18,139                    |
 | Patcher  | false | 100000      | 0           | 8,419                     |
 | Scorer   | false | 100000      | 0           | 4,945 (largest of three)  |
 
 No role came near the default 40,000 once reasoning was off, so the raised cap
 was a precaution rather than a requirement; `think: false` is the setting that
-matters. The reviewer's 0.3 is the same blank-field default that caught
-`kimi-k3.1-pro`, and that run has not been repeated at 0.
+matters. The first `hy4` review went out at 0.3, the same blank-field default
+that caught `kimi-k3.1-pro`; it was repeated at 0 and the figures above are
+from that run.
+
+**‡ `inkling-2-small` runs at the defaults, but the patcher and scorer were given
+more room.** The review used the benchmark's 40,000; the other two roles were
+dispatched with 100000 as a precaution. `think` was blank in every role, which
+leaves reasoning to the model; where it was recorded (review and scorer) it came
+back in the separate reasoning field, not in the answer:
+
+| Role     | think | num_predict | temperature | Tokens used               |
+| -------- | ----- | ----------- | ----------- | ------------------------- |
+| Reviewer | blank | 40000       | 0           | 36,678                    |
+| Patcher  | blank | 100000      | 0           | 36,859                    |
+| Scorer   | blank | 100000      | 0           | 11,040 (largest of three) |
+
+Every role fitted under 40,000, but the reviewer and patcher only just: both
+used 92% of it. Raise `num_predict` to 64000 for those two roles on a repeat run,
+because a response cut off at the cap is still scored as though it had finished.
 
 
 

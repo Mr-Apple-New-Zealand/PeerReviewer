@@ -1,6 +1,6 @@
 # Model Benchmark — Overall Summary
 
-Twenty-four models were measured in three distinct roles against the same deliberately-flawed
+Twenty-five models were measured in three distinct roles against the same deliberately-flawed
 C# application (`SampleBankingApp/`) and the same 70 seeded defects (`ISSUES.md`):
 
 | Role | Question it answers | Detail |
@@ -25,8 +25,13 @@ builds. `Qwen3.8-27B` writes the best patch of any model and ranks twelfth as a 
 a full-marks review and the fastest clean scorecard measured, and writes a patch that does not
 compile. Pick a model per role, not a model.
 
-**Grading is the easy job. Fixing is the hard one.** Fourteen of twenty-four score a perfect
-100.0% as scorers. Ten of twenty-four produce a patch that compiles. The floor differs too:
+**Fast and good are not a trade-off at the top.** `inkling-2-small` writes a review that scores
+70 in 59 seconds, grades a scorecard in 13.0 seconds — the fastest working scorer measured —
+and writes the fastest patch that compiles, in 43 seconds. It needed no special settings in any
+role.
+
+**Grading is the easy job. Fixing is the hard one.** Fifteen of twenty-five score a perfect
+100.0% as scorers. Eleven of twenty-five produce a patch that compiles. The floor differs too:
 usable grading starts around 5GB, usable reviewing around 3GB, and reliable patching does not
 begin until about 16GB.
 
@@ -66,7 +71,8 @@ Sorted by review score.
 | Model | Hosted | Review adj/70 | Precision | Patch mech/41 | Build | Scorer | Ungrounded |
 |---|---|---|---|---|---|---|---|
 | **MiniMax-M3** | yes | **70** | **100% (40)** | 40/41 | **compiles** | 100.0% | **0** |
-| hy4 | yes | 70 ³ | **100% (40)** | 39/41 | 1 × CS | 100.0% | **0** |
+| **hy4** ³ | yes | **70** | **100% (40)** | 39/41 | 1 × CS | 100.0% | **0** |
+| **inkling-2-small** | yes | **70** ⁴ | **100% (40)** | 39/41 | **compiles** | 100.0% | **0** |
 | claude-opus-5 | yes | 69 | **100% (39)** | 40/41 | **compiles** | 100.0% | **0** |
 | kimi-k3.1-pro | yes | 69 | **100% (39)** | 40/41 | **compiles** | 97.0% ² | 5 |
 | claude-sonnet-5 | yes | 69 | 98% (40) | 37/41 | 1 × CS | 100.0% | **0** |
@@ -94,8 +100,9 @@ Sorted by review score.
 came from a draft it discarded. Read it as 68.
 ² `kimi-k3.1-pro` graded every row correctly. The five ungrounded rows are genuine findings whose
 notes paraphrase the review instead of quoting it, which the grounding check removes.
-³ `hy4`'s review ran at temperature 0.3 rather than 0, and one credited row (`R3`) is not
-supported by the review on reading. Read it as 69. It needs `think: false` in every role.
+³ `hy4` needs `think: false` in every role; at the defaults it returns nothing.
+⁴ `inkling-2-small` passed every automated check, but on reading one credited row (`R3`, the
+overly long `GenerateJwtToken`) is not in its review. Read it as 69.
 
 **Reading the columns.** Precision is the share of independently checkable findings that
 survived verification, with sample size in brackets — `100% (13)` is much weaker evidence than
@@ -115,11 +122,13 @@ model's position here does not carry across the three tables.
 
 | # | Model | Adjusted /70 | Precision | Hosted | Why this one |
 |---|---|---|---|---|---|
-| 1 | **`MiniMax-M3`** | **70** | **100% (40)** | yes | A clean sweep at the benchmark's own settings, and economical with it: 12,497 output tokens in 1m 55s |
-| 2 | **`claude-opus-5`** | 69 | **100% (39)** | yes | Clean on every integrity check, on the largest sample measured — 374 citations, all valid |
-| 3 | **`glm-5.2`** | 69 | 98% (40) | yes | The same score in **47 seconds**, the fastest review measured anywhere |
-| 4 | **`Qwen3.6-27B`** | 65 | 88% (40) | no | Best local recall. Treat its findings as leads: reading found ~9 further over-credits |
-| 5 | **`Qwen3.8-27B`** | 62 | **100% (38)** | no | Best local *precision*. Finds less, but what it reports can be acted on without checking |
+| 1 | **`MiniMax-M3`** | **70** | **100% (40)** | yes | A clean sweep on every integrity check, and economical with it: 12,497 output tokens in 1m 55s |
+| 2 | **`hy4`** | **70** | **100% (40)** | yes | The same clean sweep in the same time (1m 56s), on 18,139 output tokens. Needs `think: false` |
+| 3 | **`inkling-2-small`** | 70 → 69 | **100% (40)** | yes | 70 on every check in **59 seconds**, at the defaults; one row does not survive reading |
+| 4 | **`claude-opus-5`** | 69 | **100% (39)** | yes | Clean on every integrity check, on the largest sample measured — 374 citations, all valid |
+| 5 | **`glm-5.2`** | 69 | 98% (40) | yes | The same score in **47 seconds**, the fastest review measured anywhere |
+| 6 | **`Qwen3.6-27B`** | 65 | 88% (40) | no | Best local recall. Treat its findings as leads: reading found ~9 further over-credits |
+| 7 | **`Qwen3.8-27B`** | 62 | **100% (38)** | no | Best local *precision*. Finds less, but what it reports can be acted on without checking |
 
 The choice between the two local models is recall against trust. `Qwen3.6-27B` claims all 70
 and is right about 88% of the time; `Qwen3.8-27B` declines eight outright and is right about all
@@ -129,10 +138,6 @@ reading the output directly, take the precision.
 **For a 32GB laptop:** `Qwen3.5-9B` at 14GB, 41/70 but **100% precision** on 24 checkable
 findings, in 42 seconds.
 
-**Not yet in the table:** `hy4` also returned 70 with 100% precision on 40 rows, in 1m 18s, but
-its run went out at temperature 0.3 and one row does not survive reading. Repeat it at 0 before
-ranking it here.
-
 ### Patcher — can it fix them, and does the result build?
 
 | # | Model | Markers /41 | Build | Hosted | Why this one |
@@ -141,9 +146,10 @@ ranking it here.
 | 2 | **`Qwen3.6-27B`** | **41/41** | **compiles** | no | The same result, and byte-identical across runs days apart — the only model that reproduced exactly |
 | 3 | **`claude-opus-5`** | 40/41 | **compiles** | yes | The only model that fixed defects by *adding* well-structured files rather than patching around them |
 | 4 | **`kimi-k3`** | 40/41 | **compiles** | yes | Equivalent result, roughly the same time |
-| 5 | **`glm-5.2`** | 39/41 | **compiles** | yes | Two markers short but by far the fastest that compiles, at **2m 16s** |
+| 5 | **`inkling-2-small`** | 39/41 | **compiles** | yes | Two markers short but by far the fastest that compiles, at **43 seconds** |
+| 6 | **`glm-5.2`** | 39/41 | **compiles** | yes | The same markers in 2m 16s, the next-fastest that compiles |
 
-**Build status is the column that matters.** Fourteen of twenty-four patches were scored as
+**Build status is the column that matters.** Fourteen of twenty-five patches were scored as
 successes by the peer reviewer and then failed to compile, five of them for a single missing
 line. A model with a high marker count and a failing build has not fixed anything.
 
@@ -152,13 +158,14 @@ line. A model with a high marker count and a failing build has not fixed anythin
 | # | Model | Score | Ungrounded | Decoy | Time | Why this one |
 |---|---|---|---|---|---|---|
 | 1 | **`Qwen3-Coder-30B`** | 100.0% | 1 | 19/70 | **30.0s** | Free, local, fast, and reproduces reference wording verbatim so its sheets stay auditable |
-| 2 | **`hy4`** | 100.0% | **0** | 18/70 | **21.7s** | Fastest measured, and the only hosted scorer that rewrote no Descriptions. Needs `think: false` |
-| 3 | **`glm-5.2`** | 100.0% | **0** | 16/70 | 25.6s | Nearly as fast, and a perfect decoy result |
-| 4 | **`MiniMax-M3`** | 100.0% | **0** | **16/70** | 44.0s | Perfect decoy with only 5 misaligned rows — the cleanest sheet of any fast scorer |
-| 5 | **`Qwen3.5-9B`** | 99.5% | **0** | 18/70 | 41.1s | 5.4GB. Zero ungrounded and zero misaligned; the best laptop scorer by a distance |
-| 6 | **`Muse-Glimmer-30B`** | 100.0% | **0** | 16/70 | 266.1s | Flawless but slow. Only worth it when the grading itself is in question |
+| 2 | **`inkling-2-small`** | 100.0% | **0** | 18/70 | **13.0s** | The fastest working scorer measured, at the defaults; rewrites 2 Descriptions |
+| 3 | **`hy4`** | 100.0% | **0** | 18/70 | 21.7s | The only hosted scorer that rewrote no Descriptions. Needs `think: false` |
+| 4 | **`glm-5.2`** | 100.0% | **0** | 16/70 | 25.6s | Nearly as fast, and a perfect decoy result |
+| 5 | **`MiniMax-M3`** | 100.0% | **0** | **16/70** | 44.0s | Perfect decoy with only 5 misaligned rows — the cleanest sheet of any fast scorer |
+| 6 | **`Qwen3.5-9B`** | 99.5% | **0** | 18/70 | 41.1s | 5.4GB. Zero ungrounded and zero misaligned; the best laptop scorer by a distance |
+| 7 | **`Muse-Glimmer-30B`** | 100.0% | **0** | 16/70 | 266.1s | Flawless but slow. Only worth it when the grading itself is in question |
 
-**The headline Score does not rank scorers** — fourteen models tie at 100.0%. The two columns
+**The headline Score does not rank scorers** — fifteen models tie at 100.0%. The two columns
 that separate them are Ungrounded, which counts rows credited with a quotation the review does
 not contain, and the decoy result, where a correct answer is 16–18 and three models credit
 essentially everything.
@@ -184,21 +191,22 @@ completeness.
 | 7 | **MiniMax-M3** | 40/41 | **compiles** | 31/61 | n/c ‡ | 41,834 | 5m 30s |
 | 8 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
 | 9 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
-| 10 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
-| 11 | hy4 | 39/41 | 1 × CS | 38/62 | 61% | 8,419 | 41s ‖ |
-| 12 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
-| 13 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
-| 14 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
-| 15 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
-| 16 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
-| 17 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
-| 18 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
-| 19 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
-| 20 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
-| 21 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
-| 22 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
-| 23 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
-| 24 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
+| 10 | **inkling-2-small** | 39/41 | **compiles** | 51/65 | n/c ※ | 36,859 | 43s |
+| 11 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
+| 12 | hy4 | 39/41 | 1 × CS | 38/62 | 61% | 8,419 | 41s ‖ |
+| 13 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
+| 14 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
+| 15 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
+| 16 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
+| 17 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
+| 18 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
+| 19 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
+| 20 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
+| 21 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
+| 22 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
+| 23 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
+| 24 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
+| 25 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
 
 † Opus was peer-reviewed against a smaller detectable baseline, so its ratio is flattering.
 ‡ `Gemma-4-31B` and `MiniMax-M3` were peer-reviewed by `Muse-Glimmer-30B` rather than the pinned
@@ -211,12 +219,14 @@ at 64,000 it returns a truncated patch that looks complete on every metric excep
 files and the fragment does not compile.
 ‖ `hy4` needs `think: false`. At the defaults it spends the whole 40,000-token budget on
 reasoning and returns no patch.
+※ `inkling-2-small`'s post-patch scorecard was cut off at the scorer's 24,000-token cap, so its
+Resolved figure is not reliable. Its Mech and Build results do not involve the scorer.
 
-**Ten of twenty-four produce a tree that builds.** The line between rank 10 and rank 11 is the
+**Eleven of twenty-five produce a tree that builds.** The line between rank 11 and rank 12 is the
 only one in this benchmark that is not a matter of degree: above it the patch can be applied,
-below it the repository does not compile. Note that `hy4` and `MiniMax-M2.7` at ranks 11 and 12 clear as many
-markers as two models above them and more than a third, and still fail — `hy4` for one missing
-`using` directive — and that `Qwen3-32B` at rank 16 has one of
+below it the repository does not compile. Note that `hy4` and `MiniMax-M2.7` at ranks 12 and 13 clear as many
+markers as three models above them and more than a fourth, and still fail — `hy4` for one missing
+`using` directive — and that `Qwen3-32B` at rank 17 has one of
 the highest Resolved ratios in the table on a patch that does not build — which is exactly why
 the peer-review column cannot be read on its own.
 
@@ -226,8 +236,8 @@ the peer-review column cannot be read on its own.
 
 ### If a hosted call is acceptable
 
-**`MiniMax-M3` is the best all-round result in the benchmark.** First as a reviewer with a
-clean 70 of 70 at the benchmark's settings, joint-first as a scorer with a perfect decoy result and the cleanest
+**`MiniMax-M3` is the best all-round result in the benchmark.** Joint-first as a reviewer with a
+clean 70 of 70, joint-first as a scorer with a perfect decoy result and the cleanest
 Descriptions of any fast scorer, and 40 of 41 markers with a compiling patch. It is economical
 about it too — 12,497 output tokens for the review against Opus's 23,932, in 1m 55s.
 
@@ -240,9 +250,11 @@ than a corrected expression, that behaviour is worth the premium.
 thirds of the time. Do not use it to patch: it emitted the most output tokens of any model and
 still shipped a file missing a `using`.
 
-**`glm-5.2` when latency matters.** It is the fastest reviewer (47s) measured anywhere in the
-benchmark, the second-fastest scorer (25.6s), and the fastest of the ten patchers that compile
-(2m 16s).
+**`inkling-2-small` when latency matters.** It is the fastest working scorer measured (13.0s,
+with a clean sheet), writes the fastest patch that compiles (39 of 41 in 43 seconds, three
+times quicker than the next), and returns a 70 review in 59 seconds that reads as 69 — all at
+the default settings. Its review and patch each used 92% of the 40,000-token cap, so give both
+more room. `glm-5.2` is still the fastest reviewer, at 47 seconds for 69.
 
 **Handle `glm-5.3` with care.** It needs `think: false` and `num_predict: 128000`; at the
 defaults it returns nothing, and at 64,000 it returns a truncated patch that looks complete on
@@ -254,11 +266,11 @@ every metric except `done_reason`.
 patch, and needs a raised `num_predict` for both — 100,000 and 64,000 — where `kimi-k3` runs at
 the defaults. Nothing measured here justifies the upgrade.
 
-**`hy4` for grading and reviewing, not for patching.** It is the fastest scorer measured (21.7s)
-with a completely clean sheet, and its review scored 70 in 1m 18s — though that review ran at
-temperature 0.3 and reads as 69, so repeat it at 0 before relying on it. Its patch clears 39 of
-41 markers in 41 seconds and does not compile, for want of one `using` directive. Pass
-`think: false` in every role; at the defaults it returns nothing.
+**`hy4` for grading and reviewing, not for patching.** It is the second-fastest scorer (21.7s)
+and the only hosted one with a completely clean sheet, and one of only two reviewers to return a clean 70, in 1m 56s.
+Its patch clears 39 of 41 markers in 41 seconds and does not compile, for want of one `using`
+directive — which is what keeps it behind `MiniMax-M3` overall. Pass `think: false` in every
+role; at the defaults it returns nothing.
 
 ### If you have a server (33GB+ of free RAM)
 
@@ -293,8 +305,8 @@ that builds, and both left a quarter to a third of the defects in place.
 **Keep `Qwen3-Coder-30B-imatrix:Q3_K_M`.** Free, local, the fastest local scorer at 30 seconds,
 and it
 reproduces reference Descriptions verbatim, which keeps its scorecards auditable. Nothing
-measured justifies replacing it. Reach for `hy4`, `MiniMax-M3` or `glm-5.2` only when the grading
-itself is what is being questioned.
+measured justifies replacing it. Reach for `inkling-2-small`, `hy4`, `MiniMax-M3` or `glm-5.2`
+only when the grading itself is what is being questioned.
 
 ### Never use
 
@@ -321,7 +333,9 @@ to 17 rows on a single sheet. Wherever a model grades a model, budget for an ind
 parseable output, so the harness applies a fragment and scores it as complete — and a defect in
 a file the model never reached is recorded as unfixed. `claude-opus-5`, `glm-5.3` and
 `kimi-k3.1-pro` all hit this, and `kimi-k3` came within 1,073 tokens of it. Only `done_reason` distinguishes the two
-cases, and the right output ceiling is not knowable in advance.
+cases, and the right output ceiling is not knowable in advance. The scorer can be cut off the
+same way, and nothing flags it: `inkling-2-small`'s post-patch scorecard stopped at the
+scorer's 24,000-token cap and was reported as an ordinary result.
 
 **`think` unset does not mean off.** Several models spend their entire output budget on internal
 reasoning and return nothing in the answer field unless `think: false` is passed explicitly.
@@ -344,10 +358,11 @@ restarts — 36,091 bytes and 37,687 bytes — and the build verdict flipped fro
 between them.
 
 **The scorer over-credits on real prose.** It scores 100% on synthetic reviews and still prefers
-crediting a near-miss to recording a clean Missed. Twelve of the twenty-four review sheets
+crediting a near-miss to recording a clean Missed. Thirteen of the twenty-five review sheets
 contain zero Partial ratings, which is not credible on a 70-issue task; manual reading of
 several found a further 6–9 over-credits each. Where a sheet shows zero Partials, treat its
-score as an upper bound — including the 70s from `MiniMax-M3` and `hy4`.
+score as an upper bound — including the 70s from `MiniMax-M3` and `hy4`. Reading
+`inkling-2-small`'s 70 found one row that does not hold.
 
 **Precision sample sizes vary from 11 to 40.** A 100% precision score is only as strong as the
 number in brackets beside it. `Devstral-2-123B` and `Qwen3.5-2B` both show 100%, on 18 and 13

@@ -1,6 +1,6 @@
 # AI Code Patcher Benchmark — Results Summary
 
-Twenty-four models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
+Twenty-five models were asked to *fix* the 70 seeded defects in `SampleBankingApp/`, rather than
 find them. Each received the same source listing and the same issue list, and returned
 rewritten files. Every patch was then measured three ways: a peer review scored against
 `ISSUES.md`, a direct inspection of the patched source, and a compiler.
@@ -13,7 +13,7 @@ The companion documents are [../ai_code_review_results/SUMMARY.md](../ai_code_re
 
 ## Executive Summary
 
-**Ten of twenty-four produced code that compiles.** That is the finding. Fourteen models
+**Eleven of twenty-five produced code that compiles.** That is the finding. Fourteen models
 returned patches that a C# compiler rejects — inventing methods that do not exist, deleting a
 class while still referencing it, dropping a `using` directive, or in one case emitting a
 project file that is not valid XML. A patch that does not build is not a patch, however many
@@ -33,6 +33,10 @@ other serious patcher missed.
 **`glm-5.3` will not run at this benchmark's defaults**, which is a finding in its own right —
 see below. Once configured it is the best of the hosted models bar Opus, and a clear
 improvement on `glm-5.2`.
+
+**`inkling-2-small` is the fast one.** It cleared 39 of 41 markers and compiles, in **43
+seconds** — three times quicker than `glm-5.2`, the next-fastest patch that builds, and eleven
+times quicker than `Muse-Glimmer-30B` for the same marker count. It needed no special settings.
 
 **`hy4` is the near miss.** It cleared 39 of 41 markers in 41 seconds, faster than anything
 that fixed more than a handful of defects — and its tree fails to build on one missing `using`
@@ -88,21 +92,22 @@ Ordered by whether the patch builds, then by mechanical coverage.
 | 7 | **MiniMax-M3** | 40/41 | **compiles** | 31/61 | n/c ‡ | 41,834 | 5m 30s |
 | 8 | **Muse-Glimmer-30B** | 39/41 | **compiles** | 61/61 | 100% | 18,637 | 8m 0s |
 | 9 | **glm-5.2** | 39/41 | **compiles** | 47/53 | 89% | 19,922 | 2m 16s |
-| 10 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
-| 11 | hy4 | 39/41 | 1 × CS | 38/62 | 61% | 8,419 | 41s ‖ |
-| 12 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
-| 13 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
-| 14 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
-| 15 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
-| 16 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
-| 17 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
-| 18 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
-| 19 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
-| 20 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
-| 21 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
-| 22 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
-| 23 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
-| 24 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
+| 10 | **inkling-2-small** | 39/41 | **compiles** | 51/65 | n/c ※ | 36,859 | 43s |
+| 11 | **Gemma-4-31B** | 37/41 | **compiles** | 47/64 | n/c ‡ | 7,245 | 4m 16s |
+| 12 | hy4 | 39/41 | 1 × CS | 38/62 | 61% | 8,419 | 41s ‖ |
+| 13 | MiniMax-M2.7 | 39/41 | 3 × CS | 37/61 | 61% | 9,427 | 10m 57s |
+| 14 | claude-sonnet-5 | 37/41 | 1 × CS | 20/56 | 36% | 55,820 | 7m 7s |
+| 15 | Codestral-22B | 37/41 | 1 × CS | 28/51 | 55% | 8,270 | 3m 44s |
+| 16 | Qwen3.5-122B | 37/41 | 2 × CS | 31/62 | 50% | 10,902 | 2m 30s |
+| 17 | Qwen3-32B | 36/41 | 3 × CS | 58/61 | 95% | 6,543 | 4m 6s |
+| 18 | gpt-oss-120B | 32/41 | 1 × CS | 45/61 | 74% | 7,301 | 1m 25s |
+| 19 | Qwen3-Coder-30B | 31/41 | **MSB4025** | 34/58 | 59% | 7,134 | 58s |
+| 20 | Devstral-2-123B | 31/41 | 1 × CS | 36/53 | 68% | 5,875 | 16m 16s |
+| 21 | Qwen3.5-4B | 30/41 | 10 × CS | 24/62 | 39% | 8,924 | 1m 4s |
+| 22 | Qwen3-Coder-Next | 29/41 | NU1902 ¶ | 20/61 | 33% | 7,837 | 1m 17s |
+| 23 | Qwen3.5-9B | 26/41 | 4 × CS | 34/62 | 55% | 9,161 | 1m 31s |
+| 24 | Qwen3.5-2B | 9/41 | 5 × CS | 10/62 | 16% | 6,286 | 28s |
+| 25 | Qwen3.5-0.8B | 0/41 | no patch | — | — | 1,203 | 4s |
 
 † Its patched tree was large enough to truncate the reviewer's input, so 98% is an upper bound.
 ‡ Reviewed by Muse-Glimmer, not Gemma — the figure is not comparable (see Limitations). Applies
@@ -115,6 +120,9 @@ defaults. See *The glm-5.2 → 5.3 regression*.
 files. See *kimi-k3.1-pro*.
 ‖ Required `think: false`; at the defaults it spends the whole 40,000-token budget on reasoning
 and returns no patch. See *hy4*.
+※ The post-patch scorecard was cut off: the pinned scorer stopped on its 24,000-token cap, where
+it normally needs about 4,100, so the post-patch counts — and Resolved with them — are not
+reliable. Its mechanical and build results do not involve the scorer. See *inkling-2-small*.
 
 ---
 
@@ -166,8 +174,8 @@ the sweep, which is what pushed the reviewer past its input budget.
 silently truncated under the original 40,000-token ceiling. Its patch is sound on markers
 (37/41) and fails on a single missing `using System.Net.Mail;`.
 
-`kimi-k3` and `glm-5.2` both build cleanly with high coverage, and glm-5.2 is the fastest of the
-ten that compile, at 2m 16s.
+`kimi-k3` and `glm-5.2` both build cleanly with high coverage, and glm-5.2, at 2m 16s, is the
+fastest of the eleven that compile after `inkling-2-small`.
 
 ### kimi-k3.1-pro — the same patch as kimi-k3, for half as much again
 
@@ -202,7 +210,7 @@ are among the five defects the field found hardest.
 **It does not compile.** `TransactionService.cs` line 143 catches `SmtpException`, and the file
 has no `using System.Net.Mail;` — one `CS0246`, the only new error the compiler reported. It is
 the same one-line failure as `claude-sonnet-5`, and it puts a patch that would otherwise sit
-beside `Muse-Glimmer-30B` and `glm-5.2` below the line.
+beside `Muse-Glimmer-30B`, `glm-5.2` and `inkling-2-small` below the line.
 
 Its Resolved figure is 38 of 62, or 61%: Gemma could name 62 defects before the patch and 24
 after. That is level with `MiniMax-M2.7`, which also cleared 39 markers and also failed to
@@ -213,6 +221,26 @@ build.
 no file blocks at all. With `think: false` it finished naturally on 8,419 tokens — a fifth of
 the default cap. The recorded run also raised `num_predict` to 100,000, which turned out not to
 be needed.
+
+### inkling-2-small — 39 of 41 in 43 seconds, and it builds
+
+`inkling-2-small` rewrote 13 files in 43.1 seconds on 36,859 output tokens and compiles clean,
+with no new errors. It cleared 39 of 41 markers, leaving the same two as `hy4`: `R3`,
+`GenerateJwtToken` still one long method, and `D8`, the unenforced daily limit. Of the eleven
+patches that build it is by some distance the quickest — `glm-5.2` took 2m 16s and
+`Muse-Glimmer-30B`, the other 39-marker local patch, 8 minutes.
+
+It is not a short patch produced quickly. At 36,859 tokens it is the heaviest of the 39-marker
+patches, and it arrived at 855 tokens a second. It ran with `think` unset, which leaves
+reasoning to the model, and finished naturally. It was given a 100,000-token cap; 36,859 would have fitted
+the default 40,000, at 92% of it.
+
+**Its Resolved figure is not usable.** Gemma reviewed the patched tree normally — 5,253 output
+tokens, a natural stop — but the pinned scorer then ran to its 24,000-token cap grading that
+review, against about 4,100 on every other run, and stopped on `length`. It is the only
+truncated scorecard in the sweep. The 51/65 it produced (1 Found, 24 Partial, 45 Missed after the
+patch) may count rows the scorer never reached as Missed, which would inflate Resolved, and the
+raw output was not kept to tell. Re-scoring the archived review would settle it.
 
 ### The glm-5.2 → 5.3 regression
 
@@ -274,15 +302,15 @@ one that reported success without attempting the work.
 
 ### What the field found hardest
 
-Across the twenty-two models that produced a patch:
+Across the twenty-three models that produced a patch:
 
 | defect | survived | |
 |---|---|---|
-| `CF9` | 13/22 | no `appsettings.Production.json` created |
-| `R3` | 13/22 | `GenerateJwtToken` left as one long method |
-| `E7` | 12/22 | no rate limiting or account lockout |
-| `A6` / `RL2` | 10/22 | connection-leaking `GetOpenConnection` retained |
-| `D8` | 10/22 | daily transaction limit never enforced |
+| `R3` | 14/23 | `GenerateJwtToken` left as one long method |
+| `CF9` | 13/23 | no `appsettings.Production.json` created |
+| `E7` | 12/23 | no rate limiting or account lockout |
+| `D8` | 11/23 | daily transaction limit never enforced |
+| `A6` / `RL2` | 10/23 | connection-leaking `GetOpenConnection` retained |
 
 The pattern is consistent: models fix what is visibly wrong in a line of code and skip what
 requires adding something that is not there. Every one of these five needs new code rather
@@ -336,6 +364,9 @@ measured against a different reviewer and cannot be compared with the rest of th
 two-thirds of the tokens, and it completes at the default ceiling where 3.1-pro needs
 `num_predict: 64000`.
 
+**When the turnaround matters: `inkling-2-small`.** 39 of 41 with a clean build in 43 seconds,
+at the default settings — two markers behind the two 27B leaders, in under a tenth of their time.
+
 **Never use for patching:** `Qwen3.5-2B` and `Qwen3.5-0.8B` — one fixes almost nothing, the
 other fabricates having done so.
 
@@ -360,11 +391,11 @@ successful patches, and five of them would have ranked in the top half.
   diagnostic appears.
 - **Settings:** temperature 0, 65,536 context, 40,000 output tokens for local models; 64,000
   for the Anthropic models, `MiniMax-M3` and `kimi-k3.1-pro`; 128,000 for `glm-5.3`; 100,000
-  with `think: false` for `hy4`. Recorded per run in `config`.
+  with `think: false` for `hy4`; 100,000 for `inkling-2-small`. Recorded per run in `config`.
 - **Per-model settings:** [../docs/CONFIG_SETTINGS.md](../docs/CONFIG_SETTINGS.md) and the
   `modelfiles/` directory.
 - **Provenance:** every run records its harness commit, all three prompt digests and the
-  `ISSUES.md` digest. Runs span commits `83ba9c8`–`e2bc209`; the changes in that range affect
+  `ISSUES.md` digest. Runs span commits `83ba9c8`–`afe34f0`; the changes in that range affect
   reporting, diagnostics and input budgeting, not scoring.
 
 ---
@@ -403,9 +434,14 @@ mechanical and build results are unaffected.
 returns parseable file blocks, so the harness applies them and scores a fragment as though it
 were finished — and a defect in a file the model never reached is recorded as unfixed.
 `claude-opus-5`, `glm-5.3` and `kimi-k3.1-pro` all hit this, and `kimi-k3` came within 1,073
-tokens of it. Every run now records `delta.patch_truncated`, but four of the twenty-four
+tokens of it. Every run now records `delta.patch_truncated`, but four of the twenty-five
 needed a raised `num_predict` to produce a valid measurement at all, and the right ceiling is not knowable in
 advance.
+
+**The scorer can be cut off too, and nothing flags it.** `delta.patch_truncated` covers the
+patcher only. `inkling-2-small`'s post-patch scorecard stopped on the scorer's 24,000-token cap
+and was reported as an ordinary result; the truncation shows only in
+`post_patch.scoring.done_reason`. Its Resolved figure is marked not comparable for that reason.
 
 **Three models needed non-default settings to run.** `glm-5.3`, `hy4` and `Gemma-4-31B` all have
 reasoning enabled by default and spend their entire output budget on it, returning nothing in
